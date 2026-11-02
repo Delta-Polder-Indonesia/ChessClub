@@ -226,6 +226,9 @@ for (const nama of [
   "posisiTajam",
   "tukarMenteri",
   "tukarGajahKuda",
+])
+  diminta.set(nama, 2);
+for (const nama of [
   "fianchetto",
   "dobrakPusat",
   "kudaPosTerdepan",
@@ -235,10 +238,23 @@ for (const nama of [
   "profilaksisSayap",
   "menteriDini",
   "rajaAktifAkhir",
+  "gandakanBenteng",
+  "gajahPin",
+  "incarTitikLemah",
+  "hubungkanBenteng",
+  "kudaTepi",
+  "kuasaiPusat",
 ])
-  diminta.set(nama, 2);
-diminta.set("kembangPerwira", 3);
-diminta.set("seimbangDinamis", 4);
+  diminta.set(nama, 3);
+for (const nama of [
+  "kembangPerwira",
+  "manuverKuda",
+  "manuverGajah",
+  "manuverMenteri",
+  "dorongPion",
+  "seimbangDinamis",
+])
+  diminta.set(nama, 4);
 
 ok(diminta.size >= 30, `jumlah peristiwa terdeteksi dari sumber: ${diminta.size} (harap ≥ 30)`);
 
@@ -999,8 +1015,8 @@ console.log("\n8) Status terminal FEN");
   );
 }
 
-/* ---------------- 9. 12 motif posisional & strategis master */
-console.log("\n9) Motif posisional & strategis master (12 motif)");
+/* ---------------- 9. 22 motif posisional, strategis & manuver perwira */
+console.log("\n9) Motif posisional, strategis & manuver perwira (22 motif)");
 {
   const punyaMotif = (fen, san, kunciHarap) => {
     const f = faktaDasar(fen, san);
@@ -1060,57 +1076,107 @@ console.log("\n9) Motif posisional & strategis master (12 motif)");
     punyaMotif("4k3/p6p/7p/8/8/8/PP6/4K3 w - - 0 1", "Kd2", "rajaAktifAkhir"),
     "Kd2 tanpa menteri → rajaAktifAkhir"
   );
+  ok(
+    punyaMotif("4k3/ppp2ppp/8/8/8/3R4/PPP2PPP/3R2K1 w - - 0 18", "R1d2", "gandakanBenteng"),
+    "R1d2 di belakang Rd3 → gandakanBenteng"
+  );
+  ok(
+    punyaMotif("r1bqkb1r/pppp1ppp/2n2n2/4p3/3P4/5N2/PPP1PPPP/RNBQKB1R w KQkq - 2 4", "Bg5", "gajahPin"),
+    "Bg5 memaku kuda f6 ke menteri d8 → gajahPin"
+  );
+  ok(
+    punyaMotif("r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 3 3", "Bc5", "incarTitikLemah"),
+    "3...Bc5 membidik f2 → incarTitikLemah"
+  );
+  ok(
+    punyaMotif("r1bq1rk1/pppp1ppp/2n2n2/2b1p3/4P3/2NPBN2/PPP1BPPP/R2Q1RK1 w - - 6 7", "Qd2", "hubungkanBenteng"),
+    "Qd2 membersihkan baris pertama → hubungkanBenteng"
+  );
+  ok(
+    punyaMotif(AWAL, "Nh3", "kudaTepi"),
+    "1.Nh3 ke tepi papan → kudaTepi"
+  );
+  ok(
+    punyaMotif(AWAL, "e4", "kuasaiPusat"),
+    "1.e4 ke petak pusat → kuasaiPusat"
+  );
+  ok(
+    punyaMotif("r1bq1rk1/ppp1ppbp/2np1np1/8/2PPP3/2N2N2/PP2BPPP/R1BQ1RK1 w - - 4 7", "Ne1", "manuverKuda"),
+    "Ne1 di babak tengah → manuverKuda"
+  );
+  ok(
+    punyaMotif("r1bq1rk1/ppp1ppbp/2np1np1/8/2PPP3/2N1BN2/PP2BPPP/R2Q1RK1 w - - 5 8", "Bg5", "manuverGajah"),
+    "Bg5 dari e3 di babak tengah → manuverGajah"
+  );
+  ok(
+    punyaMotif("2r2rk1/ppp1ppbp/2np1np1/8/2PPP3/2N1BN2/PP1QBPPP/R4RK1 w - - 6 9", "Qc2", "manuverMenteri"),
+    "Qd2-c2 di babak tengah → manuverMenteri"
+  );
+  ok(
+    punyaMotif("r1bq1rk1/ppp1ppbp/2np1np1/8/2PPP3/2N1BN2/PP2BPPP/R2Q1RK1 w - - 5 8", "b4", "dorongPion"),
+    "b4 di babak tengah → dorongPion"
+  );
 }
 
-/* ---------------- 10. korpus komentar master (ValdemarOrn/Chess) */
-console.log("\n10) Korpus komentar master (public/data/komentator-master.json)");
+/* ---------------- 10. korpus komentar posisi (ValdemarOrn/Chess) */
+console.log("\n10) Korpus komentar posisi (public/data/komentator-master.json)");
 {
   const jalurKorpus = path.join(AKAR, "public/data/komentator-master.json");
   ok(existsSync(jalurKorpus), "berkas public/data/komentator-master.json tersedia");
   const korpus = JSON.parse(readFileSync(jalurKorpus, "utf8"));
   const entri = Object.entries(korpus);
-  ok(entri.length >= 2000, `jumlah posisi master >= 2000 (ada ${entri.length})`);
+  ok(entri.length >= 1200, `jumlah posisi korpus >= 1200 (ada ${entri.length})`);
 
   let jumlahDwibahasa = 0;
-  let jumlahDuelMesin = 0;
   let artefakBuruk = 0;
   for (const [kunci, nilai] of entri) {
-    if (!/^[0-9a-f]{16}$/.test(kunci) || !Array.isArray(nilai)) artefakBuruk++;
-    const [partai, , en, id, hvc] = nilai;
-    if (!partai || !en) artefakBuruk++;
-    if (/\bW[1-9]\b|\bB[1-9]\b|Bereits|:\)|;\)/.test(`${partai} ${en} ${id || ""}`)) {
+    if (!/^[0-9a-f]{16}$/.test(kunci) || !Array.isArray(nilai) || nilai.length !== 2) {
+      artefakBuruk++;
+      continue;
+    }
+    const [id, en] = nilai;
+    if (typeof id !== "string" || typeof en !== "string" || !en.trim()) artefakBuruk++;
+    const gabungan = `${id} ${en}`;
+    if (
+      /\bW[1-9]\b|\bB[1-9]\b|Bereits|:\)|;\)/.test(gabungan) ||
+      /Deep Blue|Kasparov|Arsip Manusia vs Mesin/i.test(gabungan)
+    ) {
       artefakBuruk++;
     }
     if (id && id.length > 15) jumlahDwibahasa++;
-    if (hvc === 1) jumlahDuelMesin++;
   }
-  ok(artefakBuruk === 0, `korpus master bersih dari artefak (temuan: ${artefakBuruk})`);
-  ok(jumlahDwibahasa >= 50, `minimal 50 jalur pembukaan/tabiya dwibahasa (ada ${jumlahDwibahasa})`);
-  ok(jumlahDuelMesin >= 150, `minimal 150 posisi HumansVsComputers (ada ${jumlahDuelMesin})`);
+  ok(artefakBuruk === 0, `korpus posisi murni bebas metadata partai/pemain/artefak (temuan: ${artefakBuruk})`);
+  ok(jumlahDwibahasa >= 85, `minimal 85 jalur pembukaan/tabiya dwibahasa (ada ${jumlahDwibahasa})`);
 
   const catE4 = cariCatatanMaster(korpus, AWAL, "e4");
   ok(
-    Boolean(catE4 && catE4.en && catE4.id && catE4.partai),
-    "1.e4 memiliki catatan master dwibahasa lengkap"
+    Boolean(catE4 && catE4.en && catE4.id && !("partai" in catE4) && !("duelMesin" in catE4)),
+    "1.e4 memiliki catatan posisi dwibahasa murni tanpa lencana partai"
   );
   const gSisilia = new Chess();
   gSisilia.move("e4");
   const catC5 = cariCatatanMaster(korpus, gSisilia.fen(), "c5");
   ok(Boolean(catC5 && catC5.id.includes("Sisilia")), "1.e4 c5 memuat ulasan Sisilia bahasa Indonesia");
   ok(hashPosisiLangkah(AWAL, "e4") === catE4?.kunci, "hashPosisiLangkah konsisten dengan kunci korpus");
+
+  // Pastikan UI tidak lagi menampilkan lencana "Arsip Manusia vs Mesin" di kedua halaman.
+  const srcKartu = readFileSync(path.join(AKAR, "src/components/KartuKomentator.jsx"), "utf8");
+  const srcPvE = readFileSync(path.join(AKAR, "src/halaman/ManusiaVsMesin/ManusiaVsMesin.jsx"), "utf8");
+  const srcDialog = readFileSync(path.join(AKAR, "src/halaman/ManusiaVsMesin/dialogMesin.js"), "utf8");
+  ok(
+    !/infoMaster|labelDuelMesin|labelArsipMaster|jejakPartaiMaster/.test(
+      `${srcKartu}\n${srcPvE}\n${srcDialog}`
+    ),
+    "KartuKomentator & ManusiaVsMesin bebas dari lencana Arsip Manusia vs Mesin / infoMaster"
+  );
 }
 
-/* ---------------- 11. dialog Manusia vs Mesin berbasis fakta papan & arsip */
-console.log("\n11) Dialog Manusia vs Mesin berbasis fakta papan & arsip master");
+/* ---------------- 11. dialog Manusia vs Mesin berbasis fakta papan & posisi */
+console.log("\n11) Dialog Manusia vs Mesin berbasis fakta papan & korpus posisi");
 {
   const korpus = JSON.parse(
     readFileSync(path.join(AKAR, "public/data/komentator-master.json"), "utf8")
   );
-  const fTukarSeimbang = faktaDasar(
-    "rnbqkbnr/ppp1pppp/8/3P4/8/8/PPPP1PPP/RNBQKBNR b KQkq - 0 2",
-    "Qxd5"
-  );
-  // Sebentar: di 1.e4 d5 2.exd5 Qxd5, Qxd5 tidak langsung bisa direbut pion, tapi coba 1.e4 e5 2.Nf3 Nc6 3.d4 exd4:
   const fScotch = faktaDasar(
     "r1bqkbnr/pppp1ppp/2n5/4p3/3PP3/5N2/PPP2PPP/RNBQKB1R b KQkq - 0 3",
     "exd4"
@@ -1125,8 +1191,11 @@ console.log("\n11) Dialog Manusia vs Mesin berbasis fakta papan & arsip master")
     t: tId,
   });
   ok(
-    dScotch.teks.includes("exd4") && dScotch.teks.includes("d4") && !polaSisa.test(dScotch.teks),
-    "pertukaran seimbang 3...exd4 memakai jawabTukar tanpa placeholder sisa"
+    dScotch.teks.includes("exd4") &&
+      dScotch.teks.includes("d4") &&
+      !polaSisa.test(dScotch.teks) &&
+      !("infoMaster" in dScotch),
+    "pertukaran seimbang 3...exd4 memakai jawabTukar bersih tanpa infoMaster"
   );
 
   // Tangkapan materi gratis harus memakai jawabMakan
@@ -1141,12 +1210,11 @@ console.log("\n11) Dialog Manusia vs Mesin berbasis fakta papan & arsip master")
     t: tEn,
   });
   ok(
-    dMakan.teks.includes("Rxd4") && !polaSisa.test(dMakan.teks),
-    "tangkapan perwira gratis memakai jawabMakan bersih"
+    dMakan.teks.includes("Rxd4") && dMakan.teks.includes("knight") && !polaSisa.test(dMakan.teks),
+    "tangkapan perwira gratis menyebut jenis bidak korban dengan bersih"
   );
-  void fTukarSeimbang;
 
-  // Catatan master terlampir saat cocok dan tidak membocorkan EN ke bahasa ID
+  // Catatan posisi master dirajut langsung ke dalam d.teks tanpa infoMaster
   const catE4 = cariCatatanMaster(korpus, AWAL, "e4");
   const dMasterId = dialogMesin({
     statusMesin: "mesin",
@@ -1161,8 +1229,44 @@ console.log("\n11) Dialog Manusia vs Mesin berbasis fakta papan & arsip master")
     t: tId,
   });
   ok(
-    Boolean(dMasterId.infoMaster?.kutipan && dMasterId.infoMaster.kutipan === catE4.id),
-    "dialogMesin menyertakan kutipan master bahasa Indonesia pada 1.e4"
+    dMasterId.teks.includes(catE4.id) && !("infoMaster" in dMasterId),
+    "dialogMesin merajut catatan posisi bahasa Indonesia langsung ke teks dialog"
+  );
+
+  // Balasan mesin di babak tengah memakai motif perwira & evaluasi Stockfish konkret
+  const fManuverKuda = faktaDasar(
+    "r1bq1rk1/ppp1ppbp/2np1np1/8/2PPP3/2N2N2/PP2BPPP/R1BQ1RK1 b - - 4 7",
+    "Nd7"
+  );
+  const dManuver = dialogMesin({
+    statusMesin: "pemain",
+    hasil: null,
+    warnaMesin: "b",
+    langkahDialog: { san: "Nd7", oleh: "mesin", tangkap: false, skak: false, rokade: false, promosi: false, petak: "d7" },
+    fakta: fManuverKuda,
+    evaluasi: { cpPutih: 20, matePutih: null },
+    benih: 14,
+    t: tId,
+  });
+  ok(
+    dManuver.teks.includes("Nd7") && dManuver.teks.includes("d7") && !polaSisa.test(dManuver.teks),
+    "manuver kuda babak tengah mesin menghasilkan komentar spesifik perwira & petak"
+  );
+
+  // Saat mesin unggul jelas menurut Stockfish, komentar mencerminkan tekanan posisi
+  const dTekan = dialogMesin({
+    statusMesin: "pemain",
+    hasil: null,
+    warnaMesin: "b",
+    langkahDialog: { san: "Nd7", oleh: "mesin", tangkap: false, skak: false, rokade: false, promosi: false, petak: "d7" },
+    fakta: fManuverKuda,
+    evaluasi: { cpPutih: -260, matePutih: null },
+    benih: 14,
+    t: tEn,
+  });
+  ok(
+    dTekan.teks.includes("Nd7") && /positional|cramping/i.test(dTekan.teks) && !polaSisa.test(dTekan.teks),
+    "keunggulan evaluasi mesin menghasilkan narasi tekanan posisional"
   );
 
   // Mode tinjau riwayat (sedangTinjau) mengulas langkah, bukan menyuruh pemain jalan

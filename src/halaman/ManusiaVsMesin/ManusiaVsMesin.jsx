@@ -1294,36 +1294,6 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
             <p className="text-[13px] leading-5 text-gray-200" aria-live="polite">
               {dialog.teks}
             </p>
-            {dialog.infoMaster && (
-              <div className="mt-1.5 border-t border-[#34312d] pt-1.5 text-[11px] leading-4 text-gray-400">
-                {dialog.infoMaster.kutipan ? (
-                  <>
-                    <span className="mr-1.5 inline-block rounded bg-[#312e2b] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-300">
-                      {dialog.infoMaster.labelLencana}
-                    </span>
-                    <span className="text-gray-300">{dialog.infoMaster.kutipan}</span>
-                    {dialog.infoMaster.atribusi && (
-                      <p className="m-0 mt-0.5 truncate text-[10.5px] text-gray-500">
-                        {dialog.infoMaster.atribusi}
-                      </p>
-                    )}
-                  </>
-                ) : dialog.infoMaster.partai ? (
-                  <p className="m-0 truncate text-[11px] text-gray-400">
-                    <span className="font-semibold text-amber-300/90">
-                      {t("papan.komentator.jejakPartaiMaster", {
-                        partai: dialog.infoMaster.partai,
-                      })}
-                    </span>
-                    {dialog.infoMaster.komentator
-                      ? ` · ${t("papan.komentator.olehKomentator", {
-                          komentator: dialog.infoMaster.komentator,
-                        })}`
-                      : ""}
-                  </p>
-                ) : null}
-              </div>
-            )}
           </div>
         </section>
 

@@ -1,15 +1,14 @@
 /**
- * Pencari arsip komentar master (`public/data/komentator-master.json`) yang
- * diolah dari koleksi PGN beranotasi `ValdemarOrn/Chess` (partai Grandmaster,
- * turnamen klasik, dan duel bersejarah Manusia vs Mesin).
+ * Pencari korpus komentar posisi (`public/data/komentator-master.json`) yang
+ * diolah dari koleksi PGN beranotasi `ValdemarOrn/Chess`.
  *
  * Dimuat sekali secara malas (lazy) saat `/papan-interaktif` atau
- * `/manusia-vs-mesin` dibuka, lalu dicari secara sinkron O(1) lewat hash
- * `(epdSebelum, san)`. Kegagalan jaringan atau ketiadaan `fetch` (uji Node)
- * ditelan diam-diam agar komentator posisional tetap berjalan mulus.
+ * `/papan-interaktif/manusia-vs-mesin` dibuka, lalu dicari secara sinkron O(1)
+ * lewat hash `(epdSebelum, san)`. Kegagalan jaringan atau ketiadaan `fetch`
+ * (uji Node) ditelan diam-diam agar komentator posisional tetap berjalan mulus.
  */
 
-const VERSI_KORPUS = "2026-11-03";
+const VERSI_KORPUS = "2026-11-03-v2";
 
 let janjiKorpus = null;
 let cacheKorpus = null;
@@ -48,7 +47,7 @@ function unduhKorpus() {
 }
 
 /**
- * Muat peta komentar master sekali per kunjungan. Mengembalikan objek peta
+ * Muat peta komentar posisi sekali per kunjungan. Mengembalikan objek peta
  * mentah (atau `{}` bila belum tersedia / luring).
  */
 export function muatKorpusMaster() {
@@ -70,12 +69,12 @@ export function intipKorpusMaster() {
 }
 
 /**
- * Cari catatan komentator master untuk satu langkah `(fenSebelum, san)`.
+ * Cari komentar posisi untuk satu langkah `(fenSebelum, san)`.
  *
  * @param {object|null} peta hasil `muatKorpusMaster()` / `intipKorpusMaster()`
  * @param {string} fenSebelum FEN sebelum langkah dimainkan
  * @param {string} san notasi SAN baku langkah
- * @returns {{partai: string, komentator: string, en: string, id: string, hvc: boolean}|null}
+ * @returns {{kunci: string, id: string, en: string}|null}
  */
 export function cariCatatanMaster(peta, fenSebelum, san) {
   const sumber = peta || cacheKorpus;
@@ -83,16 +82,7 @@ export function cariCatatanMaster(peta, fenSebelum, san) {
   const kunci = hashPosisiLangkah(fenSebelum, san);
   const entri = sumber[kunci];
   if (!Array.isArray(entri)) return null;
-  const [partai = "", komentator = "", en = "", id = "", hvc = 0] = entri;
-  if (!partai && !en && !id) return null;
-  const duelMesin = Boolean(hvc);
-  return {
-    kunci,
-    partai,
-    komentator,
-    en,
-    id,
-    hvc: duelMesin,
-    duelMesin,
-  };
+  const [id = "", en = ""] = entri;
+  if (!id && !en) return null;
+  return { kunci, id, en };
 }

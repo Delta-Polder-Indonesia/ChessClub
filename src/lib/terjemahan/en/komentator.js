@@ -15,7 +15,7 @@
 /** komentator untuk Papan Interaktif — kunci aslinya papan.komentator.* */
 export const komentatorPapan = {
   judul: "Board Commentator",
-  keterangan: "Live commentary driven by board structure, grandmaster game archives, and engine evaluation.",
+  keterangan: "Live commentary driven by board dynamics, opening patterns, and engine evaluation.",
   nyalakan: "Turn commentator on",
   matikan: "Turn commentator off",
   gayaLabel: "Narration Style",
@@ -25,10 +25,6 @@ export const komentatorPapan = {
   menunggu: "Waiting for the opening move...",
   posisiAwal: "Board ready. White has the first move.",
   menilai: "Checking key continuations...",
-  labelArsipMaster: "Master Note",
-  labelDuelMesin: "Human vs Computer Archive",
-  jejakPartaiMaster: "Master game precedent: {partai}",
-  olehKomentator: "Notes by {komentator}",
   pihak: { putih: "White", hitam: "Black" },
   bidak: { p: "pawn", n: "knight", b: "bishop", r: "rook", q: "queen", k: "king" },
 
@@ -68,43 +64,107 @@ export const komentatorPapan = {
     fianchetto: [
       "{pihak} fianchettoes the bishop on {petak}, eyeing the long diagonal from afar.",
       "{san} — the bishop settles on {petak} to exert long-range pressure on the centre.",
+      "With {san}, {pihak}'s bishop takes up a strong fianchetto post on {petak}.",
     ],
     dobrakPusat: [
       "Central pawn break {san}! {pihak} immediately challenges {lawan}'s pawn chain to open lines.",
       "{pihak} strikes with {san}, undermining {lawan}'s central foothold and fighting for the initiative.",
+      "Tension in the centre via {san}: {pihak} asks {lawan} an immediate structural question.",
     ],
     kudaPosTerdepan: [
       "{pihak}'s knight lands on a superb outpost at {petak} — anchored by a pawn and immune to enemy pawn pokes.",
       "{san} plants a knight deep on {petak}, cramping the heart of {lawan}'s position.",
+      "Ideal knight outpost on {petak}! With {san}, {pihak} secures a commanding central perch.",
     ],
     bentengLajurTerbuka: [
       "{pihak} swings the rook to {petak} with {san}, seizing control of the open file.",
       "{san} — {pihak}'s rook claims the file from {petak}, preparing to penetrate into enemy territory.",
+      "Vertical control claimed: {san} brings {pihak}'s rook straight onto the open lane at {petak}.",
     ],
     bentengBarisTujuh: [
       "{pihak}'s rook invades {petak}! Reaching the seventh rank ties down {lawan}'s king and targets base pawns.",
       "{san} plants a rook deep in {lawan}'s back ranks — a classic endgame and middlegame trump.",
+      "Incisive penetration with {san}: {pihak}'s rook on {petak} starts harassing {lawan}'s pawn base.",
     ],
     pionBebas: [
       "{pihak}'s passed pawn marches to {petak}! Every step forward ties down more of {lawan}'s pieces.",
       "{san} — the passed pawn on {petak} becomes a serious long-term asset.",
+      "{pihak} pushes the passed pawn to {petak}, forcing {lawan} to organise an urgent blockade.",
     ],
     profilaksisSayap: [
       "{san} — neat prophylaxis from {pihak}, taking away a wing square from {lawan}'s pieces while creating luft.",
       "A useful preventive touch with {san}: securing the flank before {pihak} resumes the main plan.",
+      "{pihak} slips in {san} to rule out annoying pins or minor-piece jumps along the wing.",
     ],
     menteriDini: [
       "{pihak} brings the queen out early to {petak} with {san} — ambitious, though minor pieces may chase it with tempo.",
       "{san} activates the queen early; {pihak} must be careful not to fall behind in development.",
+      "Early queen sortie to {petak} via {san} — demanding accurate play so {lawan} doesn't gain free tempi.",
     ],
     kembangPerwira: [
       "{pihak} brings the {bidak} out to {petak} with {san}, contesting key central squares.",
       "{san} develops {pihak}'s {bidak} smoothly and clears the back rank toward castling.",
       "Natural development with {san}: {pihak}'s {bidak} joins the fight for the centre.",
+      "Smooth mobilisation — {san} posts {pihak}'s {bidak} on an active square at {petak}.",
     ],
     rajaAktifAkhir: [
       "With queens off the board, {pihak}'s king steps up to {petak} via {san} to join the endgame battle.",
       "{san} — textbook endgame play as {pihak} centralises the king toward the action.",
+      "In the endgame the king becomes a fighting piece: {san} brings {pihak}'s monarch to {petak}.",
+    ],
+    gandakanBenteng: [
+      "{pihak} builds a heavy-piece battery on {petak} with {san}, doubling vertical firepower!",
+      "{san} stacks heavy pieces along the file from {petak} — turning up the pressure on {lawan}'s entry points.",
+      "Heavy pieces team up via {san} on {petak}, preparing a direct breakthrough.",
+    ],
+    gajahPin: [
+      "{san} lines up {pihak}'s bishop from {petak}, pinning {lawan}'s defender along the diagonal!",
+      "An uncomfortable diagonal pin with {san}: the bishop on {petak} freezes {lawan}'s piece.",
+      "{pihak} posts the bishop on {petak} via {san}, sighting straight through to a major target behind.",
+    ],
+    incarTitikLemah: [
+      "{san} places {pihak}'s {bidak} on {petak}, taking direct aim at the vulnerable square beside {lawan}'s king!",
+      "Immediate pressure from {petak} with {san} — testing {lawan}'s kingside defences early.",
+      "With {san}, {pihak} trains fire on the tender spot in {lawan}'s camp.",
+    ],
+    hubungkanBenteng: [
+      "{san} finishes clearing the back rank — {pihak}'s rooks are now cleanly connected!",
+      "The first rank opens up after {san}, linking both of {pihak}'s rooks into one unit.",
+      "Development milestone reached with {san}: {pihak}'s rooks now support each other along the back rank.",
+    ],
+    kudaTepi: [
+      "{san} puts {pihak}'s knight on the rim at {petak} — narrowing its scope unless a concrete wing break follows.",
+      "{pihak}'s knight steps out to the edge on {petak} via {san}, usually a temporary stop before rerouting.",
+      "With {san}, the knight lands on the flank at {petak}; {pihak} will want a clear follow-up so it isn't sidelined.",
+    ],
+    kuasaiPusat: [
+      "{pihak} plants a pawn firmly in the centre with {san}, claiming space and restricting {lawan}'s pieces.",
+      "{san} stakes a direct central claim on {petak} while opening lines for the pieces behind.",
+      "Principled chess with {san}: {pihak} occupies the key central square {petak}.",
+    ],
+    manuverKuda: [
+      "{pihak} reroutes the knight to {petak} with {san}, eyeing a more influential middlegame post.",
+      "Knight manoeuvre {san}: {pihak} rotates the knight to {petak} to probe weak squares in {lawan}'s camp.",
+      "{san} improves {pihak}'s knight on {petak}, bringing more squares under control.",
+      "Patient knight regrouping via {san}, hunting for an active perch from {petak}.",
+    ],
+    manuverGajah: [
+      "{pihak} shifts the bishop to {petak} with {san}, switching fire onto a more open diagonal.",
+      "{san} — {pihak}'s bishop changes lanes to {petak}, slicing across key squares.",
+      "Diagonal adjustment via {san}: {pihak}'s bishop now operates from {petak}.",
+      "{pihak} repositions the bishop to {petak} so it isn't blunted by friendly pawns.",
+    ],
+    manuverMenteri: [
+      "{pihak} shifts the queen to {petak} with {san}, coordinating threats across both flanks.",
+      "Queen manoeuvre {san}: from {petak}, {pihak}'s queen eyes tactical targets while holding the structure together.",
+      "{san} activates {pihak}'s queen cleanly on {petak} without walking into tempo-gaining pokes.",
+      "Subtle queen repositioning to {petak} via {san}, tightening {pihak}'s attacking harmony.",
+    ],
+    dorongPion: [
+      "{pihak} advances a pawn with {san}, gaining space around {petak} and cramping {lawan}'s pieces.",
+      "Pawn expansion {san}: {pihak} improves the structure while nudging {lawan} back in that sector.",
+      "{san} pushes {pihak}'s pawn front to {petak} to support upcoming middlegame plans.",
+      "Measured pawn touch {san}, securing useful squares ahead of {petak} for {pihak}'s pieces.",
     ],
     skak: [
       "Check with {san}! {lawan}'s king has to deal with the threat right away.",
@@ -310,43 +370,107 @@ export const komentatorPapan = {
     fianchetto: [
       "{pihak} fianchettoes the bishop to {petak}, contesting the long diagonal.",
       "{san} posts the bishop on the flank to exert indirect pressure against the centre.",
+      "Fianchetto development via {san}: {pihak}'s bishop on {petak} becomes a lasting strategic asset.",
     ],
     dobrakPusat: [
       "A thematic central break with {san}: {pihak} challenges {lawan}'s pawn chain to open files.",
       "With {san}, {pihak} contests central space directly and fights for the middlegame initiative.",
+      "{pihak} launches the pawn break {san} to undermine {lawan}'s central bulwark.",
     ],
     kudaPosTerdepan: [
       "{pihak}'s knight establishes an ideal outpost on {petak}, supported by a pawn and safe from enemy pawns.",
       "Posting the knight on {petak} via {san} secures a lasting strategic foothold for {pihak}.",
+      "{san} anchors a central knight outpost on {petak} that cramps {lawan}'s coordination.",
     ],
     bentengLajurTerbuka: [
       "{pihak} brings the rook to {petak}, contesting a file clear of friendly pawns.",
       "With {san}, {pihak}'s rook seizes vertical control from {petak} in preparation for seventh-rank entry.",
+      "Rook centralisation via {san} asserts vertical authority from {petak}.",
     ],
     bentengBarisTujuh: [
       "Classical invasion with {san}: {pihak}'s rook penetrates to {petak} deep inside enemy territory.",
       "The rook on {petak} ties down {lawan}'s king while targeting the base of the pawn chain.",
+      "Seventh-rank penetration at {petak} grants {pihak} a persistent, nagging initiative.",
     ],
     pionBebas: [
       "Advancing the passed pawn to {petak} via {san} creates an enduring promotion threat against {lawan}.",
       "{pihak}'s passed pawn on {petak} grows in strategic weight with every exchange.",
+      "{san} pushes the passed pawn to {petak}, obliging {lawan}'s pieces to assume blockading duty.",
     ],
     profilaksisSayap: [
       "{san} serves a prophylactic purpose, restricting enemy piece jumps along the flank.",
       "A preventive pawn touch with {san}, controlling a wing square while providing useful luft.",
+      "{pihak} exercises prophylactic restraint with {san} ahead of active central plans.",
     ],
     menteriDini: [
       "Early queen activation to {petak} via {san} risks offering {lawan}'s minor pieces convenient tempo targets.",
       "{san} commits the queen early in the opening; precise handling of tempo will be required.",
+      "Bringing the queen to {petak} early demands care lest {pihak} fall behind in minor-piece development.",
     ],
     kembangPerwira: [
       "{pihak} develops the {bidak} to {petak}, accelerating piece mobilisation in the opening.",
       "Sound classical development with {san}: {pihak}'s {bidak} joins the struggle for the centre.",
       "{san} continues {pihak}'s harmonious build-up along classical lines.",
+      "With {san}, {pihak}'s {bidak} takes up an active post on {petak}.",
     ],
     rajaAktifAkhir: [
       "In queenless endgame fashion, {pihak} activates the king toward {petak} to support the pawns.",
       "King centralisation via {san} adheres strictly to fundamental endgame principles.",
+      "{pihak}'s king steps forward to {petak} with {san}, assuming an active fighting role.",
+    ],
+    gandakanBenteng: [
+      "{pihak} forms a heavy-piece battery on {petak} with {san}, intensifying vertical pressure.",
+      "Doubling along the file via {san} at {petak} prepares deep penetration into {lawan}'s camp.",
+      "With {san}, {pihak} aligns heavy pieces along a key vertical artery.",
+    ],
+    gajahPin: [
+      "{san} places {pihak}'s bishop on {petak}, pinning an enemy defender along the diagonal.",
+      "A diagonal pin via {san} restricts the flexibility of {lawan}'s defensive pieces from {petak}.",
+      "Pinning pressure from {petak} with {san} puts {lawan}'s piece coordination to the test.",
+    ],
+    incarTitikLemah: [
+      "{san} directs {pihak}'s {bidak} from {petak} straight against the sensitive point near {lawan}'s king.",
+      "Active placement on {petak} via {san} exerts early kingside pressure against {lawan}.",
+      "With {san}, {pihak} probes the tenderest square in {lawan}'s uncastled setup.",
+    ],
+    hubungkanBenteng: [
+      "{san} clears the back rank, bringing both of {pihak}'s rooks into direct communication.",
+      "Mobilisation is completed with {san}; {pihak}'s rooks now coordinate along the first rank.",
+      "With {san} played, {pihak}'s back rank is clear and both rooks are linked.",
+    ],
+    kudaTepi: [
+      "{san} places the knight on the rim at {petak}, curtailing its scope unless a flank break follows.",
+      "Posting the knight on the edge via {san} calls for a concrete continuation to avoid passivity.",
+      "{pihak}'s knight steps to the flank on {petak}; classically the rim diminishes central reach.",
+    ],
+    kuasaiPusat: [
+      "{pihak} occupies a core central square directly with {san}, staking an immediate spatial claim.",
+      "The central advance {san} tightens {pihak}'s grip on key squares while freeing piece diagonals.",
+      "Classical central play with {san}: {pihak}'s pawn claims {petak}.",
+    ],
+    manuverKuda: [
+      "{pihak} reroutes the knight toward {petak} via {san} in search of a superior strategic square.",
+      "The regrouping manoeuvre {san} directs {pihak}'s knight to {petak}.",
+      "With {san}, {pihak} repositions the knight on {petak} to eye weak squares in {lawan}'s structure.",
+      "A patient knight rotation via {san} refines {pihak}'s middlegame harmony.",
+    ],
+    manuverGajah: [
+      "{pihak} transfers the bishop to {petak} with {san}, contesting a more productive diagonal.",
+      "Diagonal redeployment via {san} places {pihak}'s bishop effectively on {petak}.",
+      "With {san}, {pihak}'s bishop shifts to {petak} to probe the opponent's camp from a fresh angle.",
+      "Repositioning the bishop to {petak} via {san} preserves active scope for {pihak}'s minor pieces.",
+    ],
+    manuverMenteri: [
+      "{pihak} centralises or regroups the queen to {petak} with {san}, uniting offensive and defensive duties.",
+      "Queen redeployment via {san} on {petak} heightens tactical awareness across both wings.",
+      "With {san}, {pihak}'s queen adopts a flexible post at {petak} clear of immediate harassment.",
+      "Shifting the queen to {petak} strengthens {pihak}'s heavy-piece coordination.",
+    ],
+    dorongPion: [
+      "{pihak} advances a pawn with {san}, claiming space and restricting {lawan}'s piece mobility.",
+      "The structural touch {san} tightens control over the squares surrounding {petak}.",
+      "Measured pawn expansion via {san} lays groundwork for {pihak}'s middlegame operations.",
+      "{san} secures useful spatial gains around {petak} without overextending.",
     ],
     skak: [
       "Check via {san}; {pihak} compels {lawan} to attend immediately to king safety.",
@@ -552,43 +676,107 @@ export const komentatorPapan = {
     fianchetto: [
       "Clean fianchetto on {petak}! {pihak}'s bishop is laser-beaming the long diagonal.",
       "{san} — tucked neatly on {petak}, that bishop eyes the whole centre from afar.",
+      "Sniper lane unlocked with {san}: {pihak}'s bishop sets up shop on {petak}!",
     ],
     dobrakPusat: [
       "Central break {san}! {pihak} goes straight at {lawan}'s pawn chain.",
       "{san}! {pihak} challenges the centre head-on to rip open fresh files.",
+      "Throwing a punch in the centre with {san} — forcing {lawan} to make a call!",
     ],
     kudaPosTerdepan: [
       "{pihak}'s knight parks on a dream outpost at {petak}! Pawn-protected and impossible to kick out.",
       "{san} — monster knight planted on {petak}, suffocating {lawan}'s camp!",
+      "Prime real estate on {petak}! {pihak}'s knight via {san} is a total thorn in {lawan}'s side.",
     ],
     bentengLajurTerbuka: [
       "{pihak} swings the rook to {petak} with {san}, claiming the open highway!",
       "{san} — open file locked down by {pihak}'s rook from {petak}.",
+      "Vertical lane owned! {san} lines up {pihak}'s rook at {petak} ready to invade.",
     ],
     bentengBarisTujuh: [
       "{pihak}'s rook crashes onto {petak}! Seventh-rank invasion — {lawan}'s pawns are in trouble.",
       "{san}! Rook deep on the seventh rank, the worst kind of uninvited guest for {lawan}.",
+      "Back-rank raid started via {san} to {petak}! {lawan}'s pawn base is under heavy fire.",
     ],
     pionBebas: [
       "{pihak}'s passed pawn charges to {petak}! Every step closer to queening turns up the heat on {lawan}.",
       "{san} — that passed pawn on {petak} is rolling and tying down defenders.",
+      "Runaway pawn alert! With {san}, {pihak}'s passer on {petak} gets harder to stop.",
     ],
     profilaksisSayap: [
       "{san} — smart preventive touch from {pihak}, shutting down wing jumps and giving the king breathing room.",
       "Neat little prophylaxis with {san}: lock the flank first, then push the main plan.",
+      "Zero headaches allowed via {san}: {pihak} takes away annoying pins on the wing.",
     ],
     menteriDini: [
       "{pihak} brings the queen out early to {petak} with {san} — bold, just watch out for tempo-gaining chases!",
       "{san} puts the queen to work early; {pihak} can't afford to fall behind in development.",
+      "Queen out early on {petak} with {san} — ambitious, as long as {lawan} doesn't get free tempi!",
     ],
     kembangPerwira: [
       "{pihak} gets the {bidak} out to {petak} with {san} — fast, healthy development!",
       "{san} brings {pihak}'s {bidak} straight into the central fight.",
       "Clean setup with {san}: another piece joins the party for {pihak}.",
+      "Smooth mobilisation {san}: {pihak}'s {bidak} goes to work on {petak}.",
     ],
     rajaAktifAkhir: [
       "Queens are off, time for {pihak}'s king to roll up its sleeves on {petak} with {san}!",
       "{san} — endgame mode unlocked as {pihak}'s king marches toward the centre.",
+      "No sitting back in the endgame: {san} brings {pihak}'s king up to {petak}!",
+    ],
+    gandakanBenteng: [
+      "Heavy battery locked in at {petak} with {san}! Double firepower down the file!",
+      "{san} stacks the heavy hitters — {lawan} better brace for impact along this lane!",
+      "Cannons lined up via {san} on {petak}, ready to punch straight through!",
+    ],
+    gajahPin: [
+      "{san} slaps a nasty pin from {petak} — {lawan}'s piece can barely twitch!",
+      "Sharp diagonal pin with {san}! {pihak}'s bishop on {petak} freezes the defender.",
+      "{pihak} locks down the diagonal from {petak} via {san}, tying {lawan} in knots!",
+    ],
+    incarTitikLemah: [
+      "{san} parks {pihak}'s {bidak} on {petak}, staring straight at the soft spot by {lawan}'s king!",
+      "Instant heat from {petak} with {san} — testing {lawan}'s kingside right out of the gate!",
+      "{pihak} takes aim at the tenderest square in {lawan}'s camp via {san}!",
+    ],
+    hubungkanBenteng: [
+      "Back rank officially cleared after {san} — {pihak}'s rooks are teamed up now!",
+      "{san} wraps up development nicely: both of {pihak}'s rooks are connected.",
+      "Clean coordination unlocked with {san} as {pihak}'s rooks link up!",
+    ],
+    kudaTepi: [
+      "{san} sends the knight out to the rim at {petak} — cramped range unless a wing break is coming.",
+      "{pihak}'s knight steps wide to {petak} with {san}, hopefully just passing through!",
+      "Knight on the edge at {petak} via {san}; needs a crisp follow-up so it doesn't get stranded.",
+    ],
+    kuasaiPusat: [
+      "{san}! {pihak} plants a flag right on the central square {petak}.",
+      "Central pawn push {san}, grabbing prime real estate and opening lines for {pihak}!",
+      "Big claim in the middle via {san} — setting the tone from {petak}.",
+    ],
+    manuverKuda: [
+      "{pihak} reroutes the knight to {petak} with {san}, hunting for a juicier square!",
+      "Slick knight rotation {san}: {pihak} hops to {petak} to probe weak spots in {lawan}'s camp.",
+      "{san} — upgrading the knight to {petak} where it covers way more ground.",
+      "Patient knight footwork via {san}, eyeing fresh targets from {petak}.",
+    ],
+    manuverGajah: [
+      "{pihak} swings the bishop to {petak} with {san}, switching onto a cleaner diagonal!",
+      "{san} shifts the bishop to {petak} to slice across {lawan}'s squares.",
+      "New angle unlocked with {san}: {pihak}'s bishop now works from {petak}.",
+      "{pihak} tidies up the bishop on {petak} via {san} for maximum scope.",
+    ],
+    manuverMenteri: [
+      "{pihak} slides the queen to {petak} with {san}, linking threats across both wings!",
+      "Queen shift {san}: from {petak}, {pihak} keeps tactical pressure simmering.",
+      "{san} parks {pihak}'s queen actively on {petak} clear of easy pokes.",
+      "Smooth queen touch {san} — tightening {pihak}'s coordination from {petak}.",
+    ],
+    dorongPion: [
+      "Pawn push {san}! {pihak} squeezes extra space around {petak}.",
+      "{san} — clean pawn expansion from {pihak} to set up the next wave.",
+      "Front line moves up via {san}, taking squares away from {lawan}'s pieces near {petak}.",
+      "Measured pawn touch {san} by {pihak}, tightening the grip on that sector.",
     ],
     skak: [
       "Check with {san}! {lawan}'s king has to move right now.",

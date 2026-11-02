@@ -437,24 +437,117 @@ function adalahFaseAkhir(game) {
   return nilaiNonPion <= 20;
 }
 
+/** Apakah gajah di `petakGajah` memaku kuda/gajah/benteng lawan ke arah menteri atau raja lawan. */
+function apakahGajahMemaku(game, petakGajah, warna) {
+  const lawan = warna === "w" ? "b" : "w";
+  const kolAsal = petakGajah.charCodeAt(0) - 97;
+  const barAsal = Number(petakGajah[1]);
+  for (const [dk, db] of [
+    [1, 1],
+    [1, -1],
+    [-1, 1],
+    [-1, -1],
+  ]) {
+    let k = kolAsal + dk;
+    let b = barAsal + db;
+    let perwiraPertama = null;
+    while (k >= 0 && k <= 7 && b >= 1 && b <= 8) {
+      const isi = game.get(`${String.fromCharCode(97 + k)}${b}`);
+      if (isi) {
+        if (!perwiraPertama) {
+          if (isi.color !== lawan || (isi.type !== "n" && isi.type !== "b" && isi.type !== "r")) {
+            break;
+          }
+          perwiraPertama = isi;
+        } else {
+          if (isi.color === lawan && (isi.type === "k" || isi.type === "q")) {
+            return true;
+          }
+          break;
+        }
+      }
+      k += dk;
+      b += db;
+    }
+  }
+  return false;
+}
+
+/** Apakah langkah baru di `petak` membentuk baterai dengan benteng kawan di lajur yang sama. */
+function adaBentengKawanDiLajur(game, petak, warna) {
+  const huruf = petak[0];
+  const barisTujuan = Number(petak[1]);
+  for (let r = 1; r <= 8; r += 1) {
+    if (r === barisTujuan) continue;
+    const isi = game.get(`${huruf}${r}`);
+    if (isi && isi.color === warna && isi.type === "r") return true;
+  }
+  return false;
+}
+
+/** Apakah kedua benteng `warna` di baris belakang saling terhubung tanpa penghalang. */
+function bentengBarisBelakangTerhubung(game, warna) {
+  const bar = warna === "w" ? "1" : "8";
+  const kolomBenteng = [];
+  for (let k = 0; k < 8; k += 1) {
+    const isi = game.get(`${String.fromCharCode(97 + k)}${bar}`);
+    if (isi && isi.color === warna && isi.type === "r") kolomBenteng.push(k);
+  }
+  if (kolomBenteng.length < 2) return false;
+  for (let k = kolomBenteng[0] + 1; k < kolomBenteng[1]; k += 1) {
+    if (game.get(`${String.fromCharCode(97 + k)}${bar}`)) return false;
+  }
+  return true;
+}
+
+/** Apakah perwira di `petak` langsung menekan titik lemah f7 (Putih) atau f2 (Hitam) yang hanya dijaga raja. */
+function menekanTitikLemahRaja(game, petak, warna) {
+  const sasaran = warna === "w" ? "f7" : "f2";
+  const lawan = warna === "w" ? "b" : "w";
+  const rajaLawan = petakRaja(game, lawan);
+  if (warna === "w" ? rajaLawan !== "e8" : rajaLawan !== "e1") return false;
+  const pionSasaran = game.get(sasaran);
+  if (!pionSasaran || pionSasaran.color !== lawan) return false;
+  try {
+    const bagian = game.fen().split(" ");
+    bagian[1] = warna;
+    bagian[3] = "-";
+    const uji = new Chess(bagian.join(" "));
+    return uji.moves({ verbose: true }).some((m) => m.from === petak && m.to === sasaran);
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Motif posisional/strategis nyata pada langkah tenang (tanpa tangkapan/skak):
- * mengadopsi konsep ulasan komentator manusia (fianchetto, dobrakan pusat,
- * pos terdepan kuda, benteng di lajur terbuka / baris ketujuh, pion bebas,
- * profilaksis sayap, pengembangan awal, hingga aktivasi raja babak akhir)
- * agar tidak jatuh ke kalimat generik `biasa`.
+ * mengadopsi konsep ulasan komentator grandmaster (fianchetto, dobrakan pusat,
+ * paku gajah, baterai benteng, penghubung benteng, pos terdepan kuda, kuda di
+ * tepi, tekanan ke f7/f2, pion bebas, hingga manuver perwira babak tengah)
+ * agar komentar selalu spesifik terhadap papan dan tidak jatuh ke teks generik.
  */
 function motifPosisional(fakta) {
-  if (fakta.bentengBarisTujuh) return { kunci: "bentengBarisTujuh", n: 2, ganti: {}, kuatSaatEngine: true };
-  if (fakta.kudaPosTerdepan) return { kunci: "kudaPosTerdepan", n: 2, ganti: {}, kuatSaatEngine: true };
-  if (fakta.pionBebas) return { kunci: "pionBebas", n: 2, ganti: {}, kuatSaatEngine: true };
-  if (fakta.bentengLajurTerbuka) return { kunci: "bentengLajurTerbuka", n: 2, ganti: {}, kuatSaatEngine: true };
-  if (fakta.dobrakPusat) return { kunci: "dobrakPusat", n: 2, ganti: {}, kuatSaatEngine: true };
-  if (fakta.fianchetto) return { kunci: "fianchetto", n: 2, ganti: {}, kuatSaatEngine: true };
-  if (fakta.rajaAktifAkhir) return { kunci: "rajaAktifAkhir", n: 2, ganti: {}, kuatSaatEngine: true };
-  if (fakta.menteriDini) return { kunci: "menteriDini", n: 2, ganti: {}, kuatSaatEngine: false };
-  if (fakta.profilaksisSayap) return { kunci: "profilaksisSayap", n: 2, ganti: {}, kuatSaatEngine: false };
-  if (fakta.kembangPerwira) return { kunci: "kembangPerwira", n: 3, ganti: {}, kuatSaatEngine: false };
+  if (fakta.bentengBarisTujuh) return { kunci: "bentengBarisTujuh", n: 3, ganti: {}, kuatSaatEngine: true };
+  if (fakta.kudaPosTerdepan) return { kunci: "kudaPosTerdepan", n: 3, ganti: {}, kuatSaatEngine: true };
+  if (fakta.pionBebas) return { kunci: "pionBebas", n: 3, ganti: {}, kuatSaatEngine: true };
+  if (fakta.gandakanBenteng) return { kunci: "gandakanBenteng", n: 3, ganti: {}, kuatSaatEngine: true };
+  if (fakta.bentengLajurTerbuka) return { kunci: "bentengLajurTerbuka", n: 3, ganti: {}, kuatSaatEngine: true };
+  if (fakta.gajahPin) return { kunci: "gajahPin", n: 3, ganti: {}, kuatSaatEngine: true };
+  if (fakta.menteriDini) return { kunci: "menteriDini", n: 3, ganti: {}, kuatSaatEngine: false };
+  if (fakta.incarTitikLemah) return { kunci: "incarTitikLemah", n: 3, ganti: {}, kuatSaatEngine: true };
+  if (fakta.dobrakPusat) return { kunci: "dobrakPusat", n: 3, ganti: {}, kuatSaatEngine: true };
+  if (fakta.fianchetto) return { kunci: "fianchetto", n: 3, ganti: {}, kuatSaatEngine: true };
+  if (fakta.hubungkanBenteng) return { kunci: "hubungkanBenteng", n: 3, ganti: {}, kuatSaatEngine: true };
+  if (fakta.rajaAktifAkhir) return { kunci: "rajaAktifAkhir", n: 3, ganti: {}, kuatSaatEngine: true };
+  if (fakta.kudaTepi) return { kunci: "kudaTepi", n: 3, ganti: {}, kuatSaatEngine: false };
+  if (fakta.menteriDini) return { kunci: "menteriDini", n: 3, ganti: {}, kuatSaatEngine: false };
+  if (fakta.profilaksisSayap) return { kunci: "profilaksisSayap", n: 3, ganti: {}, kuatSaatEngine: false };
+  if (fakta.kuasaiPusat) return { kunci: "kuasaiPusat", n: 3, ganti: {}, kuatSaatEngine: false };
+  if (fakta.kembangPerwira) return { kunci: "kembangPerwira", n: 4, ganti: {}, kuatSaatEngine: false };
+  if (fakta.manuverKuda) return { kunci: "manuverKuda", n: 4, ganti: {}, kuatSaatEngine: false };
+  if (fakta.manuverGajah) return { kunci: "manuverGajah", n: 4, ganti: {}, kuatSaatEngine: false };
+  if (fakta.manuverMenteri) return { kunci: "manuverMenteri", n: 4, ganti: {}, kuatSaatEngine: false };
+  if (fakta.dorongPion) return { kunci: "dorongPion", n: 4, ganti: {}, kuatSaatEngine: false };
   return null;
 }
 
@@ -547,6 +640,16 @@ export function faktaLangkah(fenSebelum, san) {
     menteriDini: false,
     kembangPerwira: false,
     rajaAktifAkhir: false,
+    gandakanBenteng: false,
+    gajahPin: false,
+    incarTitikLemah: false,
+    hubungkanBenteng: false,
+    kudaTepi: false,
+    kuasaiPusat: false,
+    manuverKuda: false,
+    manuverGajah: false,
+    manuverMenteri: false,
+    dorongPion: false,
   };
 
   // --- Fork: bidak yang baru bergerak menyerang >=2 perwira lawan. ---
@@ -706,6 +809,61 @@ export function faktaLangkah(fenSebelum, san) {
   );
   fakta.rajaAktifAkhir = Boolean(
     pindah.piece === "k" && !fakta.rokade && !fakta.skak && adalahFaseAkhir(game)
+  );
+  fakta.gandakanBenteng = Boolean(
+    (pindah.piece === "r" || pindah.piece === "q") &&
+      !pindah.captured &&
+      !fakta.skak &&
+      adaBentengKawanDiLajur(game, pindah.to, warna)
+  );
+  fakta.gajahPin = Boolean(
+    pindah.piece === "b" && !pindah.captured && !fakta.skak && apakahGajahMemaku(game, pindah.to, warna)
+  );
+  fakta.incarTitikLemah = Boolean(
+    (pindah.piece === "b" || pindah.piece === "n" || pindah.piece === "q") &&
+      !pindah.captured &&
+      !fakta.skak &&
+      !fakta.menteriDini &&
+      fakta.ply <= 20 &&
+      menekanTitikLemahRaja(game, pindah.to, warna)
+  );
+  let bentengSebelumTerhubung;
+  try {
+    bentengSebelumTerhubung = bentengBarisBelakangTerhubung(new Chess(fenSebelum), warna);
+  } catch {
+    bentengSebelumTerhubung = false;
+  }
+  fakta.hubungkanBenteng = Boolean(
+    !pindah.captured &&
+      !fakta.skak &&
+      !fakta.rokade &&
+      !bentengSebelumTerhubung &&
+      bentengBarisBelakangTerhubung(game, warna)
+  );
+  fakta.kudaTepi = Boolean(
+    pindah.piece === "n" &&
+      !pindah.captured &&
+      !fakta.skak &&
+      (pindah.to[0] === "a" || pindah.to[0] === "h")
+  );
+  fakta.kuasaiPusat = Boolean(
+    pindah.piece === "p" &&
+      !pindah.captured &&
+      !fakta.skak &&
+      !fakta.dobrakPusat &&
+      ["d4", "e4", "d5", "e5"].includes(pindah.to)
+  );
+  const langkahTenang = !pindah.captured && !fakta.skak && !fakta.rokade && !fakta.promosi;
+  fakta.manuverKuda = Boolean(langkahTenang && pindah.piece === "n" && !fakta.kembangPerwira && !fakta.kudaTepi);
+  fakta.manuverGajah = Boolean(langkahTenang && pindah.piece === "b" && !fakta.kembangPerwira && !fakta.fianchetto);
+  fakta.manuverMenteri = Boolean(langkahTenang && pindah.piece === "q" && !fakta.menteriDini);
+  fakta.dorongPion = Boolean(
+    langkahTenang &&
+      pindah.piece === "p" &&
+      !fakta.kuasaiPusat &&
+      !fakta.dobrakPusat &&
+      !fakta.pionBebas &&
+      !fakta.profilaksisSayap
   );
 
   return fakta;

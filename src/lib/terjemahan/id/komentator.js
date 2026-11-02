@@ -15,7 +15,7 @@
 /** komentator untuk Papan Interaktif — kunci aslinya papan.komentator.* */
 export const komentatorPapan = {
   judul: "Komentator Papan",
-  keterangan: "Ulasan langsung berbasis posisi papan, arsip partai grandmaster, dan evaluasi mesin.",
+  keterangan: "Ulasan langsung berbasis dinamika posisi, pola pembukaan, dan evaluasi mesin.",
   nyalakan: "Nyalakan komentator",
   matikan: "Matikan komentator",
   gayaLabel: "Gaya Narasi",
@@ -25,10 +25,6 @@ export const komentatorPapan = {
   menunggu: "Menunggu langkah pembuka...",
   posisiAwal: "Papan siap. Putih memegang langkah pertama.",
   menilai: "Menelusuri jalur utama...",
-  labelArsipMaster: "Catatan Master",
-  labelDuelMesin: "Arsip Manusia vs Mesin",
-  jejakPartaiMaster: "Jejak partai master: {partai}",
-  olehKomentator: "Ulasan {komentator}",
   pihak: { putih: "Putih", hitam: "Hitam" },
   bidak: { p: "pion", n: "kuda", b: "gajah", r: "benteng", q: "menteri", k: "raja" },
 
@@ -67,44 +63,108 @@ export const komentatorPapan = {
     ],
     fianchetto: [
       "{pihak} menempatkan gajah secara fianchetto di {petak}, mengintai diagonal panjang sejak dini.",
-      "{san} — gajah bersarang di {petak} untuk menekan pusat dari jarak jauh.",
+      "{san} — gajah bersarang di {petak} untuk menekan petak pusat dari jarak jauh.",
+      "Lewat {san}, gajah {pihak} mengambil jalur fianchetto di {petak} dan menyinari diagonal panjang.",
     ],
     dobrakPusat: [
       "Dobrakan pion {san}! {pihak} langsung menantang rantai pion pusat {lawan} agar lajur segera terbuka.",
       "{pihak} mendorong {san}, menggoyang tumpuan pusat {lawan} dan memperebutkan inisiatif.",
+      "Tantangan pusat lewat {san}: {pihak} memaksa {lawan} mengambil keputusan atas ketegangan pion.",
     ],
     kudaPosTerdepan: [
       "Kuda {pihak} mendarat mantap di pos terdepan {petak}! Dijaga pion sendiri dan sulit diusir {lawan}.",
       "{san} menancapkan kuda di {petak} — pijakan ideal yang menekan jantung pertahanan {lawan}.",
+      "Pos terdepan kuat di {petak}! Lewat {san}, kuda {pihak} mencengkeram petak penting di wilayah lawan.",
     ],
     bentengLajurTerbuka: [
       "{pihak} menggeser benteng ke {petak} lewat {san}, langsung menguasai lajur yang terbuka.",
       "{san} — benteng {pihak} mengambil alih lajur dari {petak} untuk menyiapkan penetrasi ke wilayah lawan.",
+      "Kendali vertikal diraih: {san} menempatkan benteng {pihak} tepat di jalur terbuka pada {petak}.",
     ],
     bentengBarisTujuh: [
-      "Benteng {pihak} menyusup ke {petak}! Baris ketujuh dikuasai, mengancam barisan pion dan membatasi raja {lawan}.",
-      "{san} menempatkan benteng di baris pertahanan {lawan} — motif klasik yang sangat merepotkan.",
+      "Benteng {pihak} menyusup ke {petak}! Baris pertahanan dikuasai, mengancam pion dan membatasi raja {lawan}.",
+      "{san} menempatkan benteng di baris ketujuh milik {lawan} — motif klasik yang sangat merepotkan.",
+      "Penetrasi tajam lewat {san}: benteng {pihak} di {petak} mulai menekan pangkal barisan pion {lawan}.",
     ],
     pionBebas: [
       "Pion bebas {pihak} melaju ke {petak}! Setiap langkah majunya makin mengikat perwira {lawan}.",
       "{san} — pion bebas di {petak} mulai menjadi aset berharga menjelang babak akhir.",
+      "{pihak} mendorong pion bebasnya ke {petak}; {lawan} harus segera menyiapkan blokade.",
     ],
     profilaksisSayap: [
       "{san} — langkah profilaksis rapi dari {pihak}, menutup petak loncatan perwira {lawan} sekaligus memberi ruang bernapas.",
       "Sentuhan pencegahan lewat {san}: sayap dijaga lebih dulu sebelum {pihak} melanjutkan rencana utama.",
+      "{pihak} menyelipkan {san} untuk mencegah paku atau lompatan perwira ringan {lawan} di sayap.",
     ],
     menteriDini: [
       "Menteri {pihak} sudah keluar ke {petak} lewat {san} — agresif, tetapi rawan kehilangan tempo bila dikejar perwira ringan {lawan}.",
       "{san} mengeluarkan menteri lebih awal; {pihak} harus berhati-hati agar tidak tertinggal pengembangan.",
+      "Aktivasi menteri dini ke {petak} lewat {san} — menuntut akurasi agar tidak menjadi sasaran empuk tempo lawan.",
     ],
     kembangPerwira: [
       "{pihak} mengaktifkan {bidak} ke {petak} lewat {san}, mempercepat pengembangan menuju pusat.",
       "{san} membawa {bidak} {pihak} masuk ke permainan dan membuka jalan menuju rokade.",
       "Pengembangan wajar lewat {san}: {bidak} {pihak} kini ikut mengawasi petak-petak penting.",
+      "Mobilisasi berlanjut — {san} menempatkan {bidak} {pihak} di petak kerja {petak}.",
     ],
     rajaAktifAkhir: [
       "Tanpa menteri di papan, raja {pihak} maju ke {petak} lewat {san} untuk ikut bertempur di babak akhir.",
       "{san} — prinsip babak akhir dijalankan: raja {pihak} bergerak aktif mendekati pusat permainan.",
+      "Di babak akhir, raja adalah perwira tempur: {san} membawa raja {pihak} ke {petak}.",
+    ],
+    gandakanBenteng: [
+      "{pihak} menyusun baterai perwira berat lewat {san} di {petak}, melipatgandakan daya dobrak vertikal!",
+      "{san} menumpuk kekuatan di satu lajur dari {petak} — tekanan terhadap titik masuk lawan kian berat.",
+      "Koordinasi perwira berat terbangun di {petak} lewat {san}, siap mendobrak pertahanan {lawan}.",
+    ],
+    gajahPin: [
+      "{san} mengarahkan gajah {pihak} dari {petak} untuk memaku perwira {lawan} di sepanjang diagonal!",
+      "Paku diagonal yang mengganggu lewat {san}: gajah di {petak} mengikat gerak perwira penjaga {lawan}.",
+      "{pihak} menempatkan gajah di {petak} lewat {san}, menekan garis diagonal menuju perwira utama {lawan}.",
+    ],
+    incarTitikLemah: [
+      "{san} menempatkan {bidak} {pihak} di {petak} untuk membidik langsung petak lemah di dekat raja {lawan}!",
+      "Tekanan langsung dari {petak} lewat {san} — {pihak} menguji ketahanan sayap raja {lawan} sejak awal.",
+      "Lewat {san}, {pihak} mengarahkan pandangan tajam ke titik paling peka di sekitar raja {lawan}.",
+    ],
+    hubungkanBenteng: [
+      "{san} menuntaskan pembersihan baris belakang — kedua benteng {pihak} kini saling terhubung penuh!",
+      "Baris pertama kini lapang setelah {san}, menyatukan kerja sama kedua benteng {pihak}.",
+      "Koordinasi tuntas lewat {san}: kedua benteng {pihak} sudah saling menjaga di baris belakang.",
+    ],
+    kudaTepi: [
+      "{san} menggeser kuda {pihak} ke tepi papan di {petak} — jangkauannya menyempit kecuali menyiapkan dobrakan sayap.",
+      "Kuda {pihak} menepi ke {petak} lewat {san}; biasanya hanya sementara sebelum mencari rute baru ke tengah.",
+      "Lewat {san}, kuda mendarat di pinggir papan {petak} — menuntut rencana lanjutan yang jelas agar tak terkurung.",
+    ],
+    kuasaiPusat: [
+      "{pihak} menancapkan pion di pusat lewat {san}, mengklaim ruang penting dan membatasi perwira {lawan}.",
+      "{san} mempertegas pijakan pion {pihak} di jantung papan sekaligus membuka garis bagi perwira di belakangnya.",
+      "Langkah prinsipil {san}: {pihak} langsung menduduki petak pusat {petak} untuk mendikte arah permainan.",
+    ],
+    manuverKuda: [
+      "{pihak} memutar rute kuda ke {petak} lewat {san}, mengincar pijakan yang lebih menekan di babak tengah.",
+      "Manuver kuda {san}: {pihak} menggeser kudanya ke {petak} untuk membidik petak lemah di kubu {lawan}.",
+      "{san} memperbaiki letak kuda {pihak} di {petak} agar lebih hidup mengawasi dua sayap.",
+      "Rotasi kuda yang sabar lewat {san}, mencari pos kerja terbaik dari {petak}.",
+    ],
+    manuverGajah: [
+      "{pihak} menggeser gajah ke {petak} lewat {san}, memindahkan bidikan ke diagonal yang lebih terbuka.",
+      "{san} — gajah {pihak} berganti jalur ke {petak} untuk mengiris petak-petak penting milik {lawan}.",
+      "Penyesuaian diagonal lewat {san}: gajah {pihak} kini bekerja dari {petak}.",
+      "{pihak} menempatkan ulang gajahnya di {petak} agar tidak terhalang rantai pion sendiri.",
+    ],
+    manuverMenteri: [
+      "{pihak} memindahkan menteri ke {petak} lewat {san}, menyatukan pengawasan taktis di pusat dan sayap.",
+      "Manuver menteri {san}: dari {petak}, menteri {pihak} mengintip kelemahan sekaligus menopang barisan sendiri.",
+      "{san} menempatkan menteri {pihak} lebih aktif di {petak} tanpa membuka celah balasan.",
+      "Pergeseran halus menteri ke {petak} lewat {san} untuk meningkatkan koordinasi serangan {pihak}.",
+    ],
+    dorongPion: [
+      "{pihak} mendorong pion lewat {san}, menyita ruang di sekitar {petak} dan membatasi pijakan perwira {lawan}.",
+      "Ekspansi pion {san}: {pihak} memperbaiki struktur sekaligus menekan ruang gerak {lawan} di sektor itu.",
+      "{san} menggeser garis depan pion {pihak} ke {petak} untuk menyiapkan rencana babak tengah.",
+      "Langkah pion terukur lewat {san}, mengamankan petak di depan {petak} bagi manuver perwira {pihak}.",
     ],
     skak: [
       "Skak lewat {san}! Raja {lawan} dipaksa segera mencari jawaban.",
@@ -310,43 +370,107 @@ export const komentatorPapan = {
     fianchetto: [
       "{pihak} mengembangkan gajah secara fianchetto ke {petak} untuk menguasai diagonal panjang.",
       "{san} menempatkan gajah di sayap guna menekan petak-petak pusat secara tidak langsung.",
+      "Pengembangan fianchetto lewat {san}: gajah {pihak} di {petak} menjadi poros kekuatan jangka panjang.",
     ],
     dobrakPusat: [
       "Dobrakan tematik {san}: {pihak} menantang struktur pion pusat {lawan} untuk membuka lajur permainan.",
       "Lewat {san}, {pihak} menggugat kemapanan pusat {lawan} dan memperebutkan inisiatif babak tengah.",
+      "{pihak} melancarkan tantangan pion {san} guna membongkar rantai pusat milik {lawan}.",
     ],
     kudaPosTerdepan: [
       "Kuda {pihak} menduduki pos terdepan ideal di {petak}, ditopang pion sendiri dan kebal dari usiran pion lawan.",
       "Penempatan kuda di {petak} lewat {san} memberikan pijakan strategis jangka panjang bagi {pihak}.",
+      "{san} mengamankan pos terdepan pusat di {petak} yang sangat membatasi koordinasi {lawan}.",
     ],
     bentengLajurTerbuka: [
       "{pihak} memusatkan benteng ke {petak}, mengambil kendali atas lajur yang bebas dari pion sendiri.",
       "Lewat {san}, benteng {pihak} menguasai jalur vertikal dari {petak} sebagai persiapan invasi.",
+      "Sentralisasi benteng lewat {san} menancapkan kontrol vertikal {pihak} di petak {petak}.",
     ],
     bentengBarisTujuh: [
       "Invasi klasik lewat {san}: benteng {pihak} menembus baris pertahanan lawan di {petak}.",
       "Benteng di {petak} menekan basis pion sekaligus membatasi ruang gerak raja {lawan}.",
+      "Penetrasi baris ketujuh di {petak} memberi {pihak} inisiatif aktif yang sulit diredam.",
     ],
     pionBebas: [
       "Kemajuan pion bebas ke {petak} lewat {san} menciptakan ancaman promosi jangka panjang yang mengikat {lawan}.",
       "Pion bebas {pihak} di {petak} kian bernilai strategis seiring berkurangnya perwira di papan.",
+      "{san} memajukan pion bebas ke {petak}, memaksa perwira {lawan} mengambil tugas bertahan.",
     ],
     profilaksisSayap: [
       "{san} berfungsi sebagai langkah profilaksis untuk membatasi akses perwira lawan di petak sayap.",
       "Langkah pencegahan {san} mengamankan petak lompatan di sayap sekaligus membuka ruang bagi raja.",
+      "Disiplin profilaksis ditunjukkan {pihak} lewat {san} sebelum melanjutkan operasi utama.",
     ],
     menteriDini: [
       "Aktivasi menteri lebih awal ke {petak} lewat {san} berisiko memberi target pengembangan bagi perwira {lawan}.",
       "{san} membawa menteri keluar pada fase pembukaan; ketepatan perhitungan tempo menjadi krusial.",
+      "Mobilisasi dini menteri ke {petak} menuntut kewaspadaan agar {pihak} tidak tertinggal perkembangan perwira ringan.",
     ],
     kembangPerwira: [
       "{pihak} mengembangkan {bidak} menuju {petak}, mempercepat mobilisasi perwira di fase pembukaan.",
       "Langkah pengembangan sehat {san}: {bidak} {pihak} berpartisipasi aktif dalam perebutan pusat.",
       "{san} melanjutkan pembangunan posisi {pihak} sesuai prinsip pengembangan klasik.",
+      "Lewat {san}, {bidak} {pihak} menempati petak aktif {petak} guna menyokong kendali tengah.",
     ],
     rajaAktifAkhir: [
       "Memasuki babak akhir, raja {pihak} diaktifkan menuju {petak} untuk mendukung struktur pion.",
       "Sentralisasi raja lewat {san} sejalan dengan kaidah teknik babak akhir tanpa menteri.",
+      "Raja {pihak} maju ke {petak} lewat {san}, mengambil peran aktif di panggung babak akhir.",
+    ],
+    gandakanBenteng: [
+      "{pihak} membentuk baterai perwira berat di {petak} lewat {san} untuk melipatgandakan tekanan lajur.",
+      "Penggandaan kekuatan vertikal melalui {san} di {petak} menyiapkan penetrasi ke wilayah {lawan}.",
+      "Lewat {san}, {pihak} menyatukan daya gempur perwira berat di satu lajur terbuka.",
+    ],
+    gajahPin: [
+      "{san} menempatkan gajah {pihak} di {petak} untuk memaku perwira lawan di sepanjang diagonal.",
+      "Ikatan diagonal lewat {san} membatasi keluwesan perwira pertahanan {lawan} dari {petak}.",
+      "Tekanan paku gajah di {petak} lewat {san} menguji keutuhan koordinasi {lawan}.",
+    ],
+    incarTitikLemah: [
+      "{san} mengarahkan {bidak} {pihak} dari {petak} langsung ke titik rawan di sekitar raja {lawan}.",
+      "Penempatan aktif di {petak} lewat {san} memberikan tekanan dini terhadap sayap raja {lawan}.",
+      "Lewat {san}, {pihak} membidik petak paling peka dalam bangunan awal {lawan}.",
+    ],
+    hubungkanBenteng: [
+      "{san} melapangkan baris belakang sehingga kedua benteng {pihak} kini saling terhubung.",
+      "Mobilisasi tuntas lewat {san}; koordinasi kedua benteng {pihak} di baris pertama telah terbentuk.",
+      "Dengan dimainkannya {san}, garis komunikasi antarbenteng {pihak} terbuka sepenuhnya.",
+    ],
+    kudaTepi: [
+      "{san} menempatkan kuda di tepi papan pada {petak}, membatasi radius kontrolnya kecuali untuk tujuan konkret.",
+      "Penempatan kuda di pinggir papan lewat {san} menuntut rencana lanjutan agar perwira itu tidak terpinggirkan.",
+      "Kuda {pihak} bergeser ke {petak}; secara klasik tepi papan mengurangi jangkauan petak pusat.",
+    ],
+    kuasaiPusat: [
+      "{pihak} menduduki petak pusat secara langsung lewat {san}, menetapkan klaim ruang sejak dini.",
+      "Dorongan sentral {san} memperkuat cengkeraman {pihak} di pusat sekaligus membebaskan garis perwira.",
+      "Prinsip klasik dijalankan melalui {san}: pion {pihak} menguasai petak inti {petak}.",
+    ],
+    manuverKuda: [
+      "{pihak} merotasi kuda menuju {petak} lewat {san} guna mencari pijakan strategis yang lebih efektif.",
+      "Manuver reposisi {san} mengarahkan kuda {pihak} ke sektor {petak} yang lebih menjanjikan.",
+      "Lewat {san}, kuda {pihak} ditata ulang di {petak} untuk memperketat pengawasan petak lemah.",
+      "Perputaran rute kuda melalui {san} meningkatkan harmoni perwira {pihak} di babak tengah.",
+    ],
+    manuverGajah: [
+      "{pihak} memindahkan gajah ke {petak} lewat {san} untuk menguasai diagonal yang lebih produktif.",
+      "Penyesuaian jalur diagonal lewat {san} menempatkan gajah {pihak} secara optimal di {petak}.",
+      "Lewat {san}, gajah {pihak} beralih ke {petak} guna menekan struktur lawan dari sudut baru.",
+      "Penataan ulang gajah ke {petak} lewat {san} menjaga pasangan perwira {pihak} tetap leluasa.",
+    ],
+    manuverMenteri: [
+      "{pihak} memusatkan kembali menteri ke {petak} lewat {san}, menyatukan fungsi serang dan bertahan.",
+      "Pergeseran menteri melalui {san} di {petak} meningkatkan kepekaan taktis di kedua sayap.",
+      "Lewat {san}, menteri {pihak} mengambil kedudukan fleksibel di {petak} tanpa mengundang ancaman tempo.",
+      "Penempatan ulang menteri di {petak} memperkuat koordinasi perwira berat milik {pihak}.",
+    ],
+    dorongPion: [
+      "{pihak} memajukan pion lewat {san}, memperluas ruang sekaligus membatasi mobilitas perwira {lawan}.",
+      "Langkah struktur {san} memperbaiki cengkeraman petak di sekitar {petak} bagi {pihak}.",
+      "Ekspansi bertahap melalui {san} menyiapkan landasan operasi {pihak} di babak tengah.",
+      "Dorongan pion {san} mengamankan ruang tambahan di sektor {petak} secara terukur.",
     ],
     skak: [
       "Skak lewat {san}; {pihak} memaksa {lawan} segera mengamankan rajanya.",
@@ -552,43 +676,107 @@ export const komentatorPapan = {
     fianchetto: [
       "Fianchetto rapi di {petak}! Gajah {pihak} siap nembak diagonal panjang dari jauh.",
       "{san} — gajah nongkrong manis di {petak}, ngawasin pusat diam-diam.",
+      "Jalur sniper aktif lewat {san}: gajah {pihak} di {petak} ngincer diagonal panjang!",
     ],
     dobrakPusat: [
       "Dobrak pusat lewat {san}! {pihak} langsung goyang rantai pion {lawan}.",
       "{san}! Pion {pihak} maju nantang pusat biar jalur serangan cepet kebuka.",
+      "Langsung adu otot di tengah lewat {san} — {lawan} dipaksa ambil sikap!",
     ],
     kudaPosTerdepan: [
       "Kuda {pihak} parkir cantik di pos terdepan {petak}! Dijaga pion dan susah banget diusir.",
       "{san} — kuda nangkring gagah di {petak}, bikin sesak pertahanan {lawan}!",
+      "Pos emas di {petak}! Kuda {pihak} lewat {san} jadi duri tajam di wilayah lawan.",
     ],
     bentengLajurTerbuka: [
       "Benteng {pihak} geser ke {petak} lewat {san}, langsung kuasai jalan tol lajur terbuka!",
       "{san} — lajur kosong langsung diklaim benteng {pihak} dari {petak}.",
+      "Jalur vertikal dikunci! {san} bikin benteng {pihak} siap nyelonong dari {petak}.",
     ],
     bentengBarisTujuh: [
       "Benteng {pihak} tembus ke {petak}! Masuk baris pertahanan lawan, pion-pion langsung gemetar.",
       "{san}! Benteng mendarat di jantung baris ketujuh — tamu paling nyebelin buat {lawan}.",
+      "Invasi benteng lewat {san} ke {petak}! Pertahanan belakang {lawan} mulai diacak-acak.",
     ],
     pionBebas: [
       "Pion bebas {pihak} ngegas ke {petak}! Makin dekat kotak promosi, makin bikin panik {lawan}.",
       "{san} — pion bebas di {petak} mulai jalan terus dan mengikat perwira lawan.",
+      "Awas pion lari! Lewat {san}, pion bebas {pihak} di {petak} makin susah dihentikan.",
     ],
     profilaksisSayap: [
       "{san} — langkah jaga-jaga cerdas dari {pihak}, tutup petak loncatan lawan sekalian kasih napas buat raja.",
       "Sentuhan rapi {san}: kunci sayap dulu sebelum {pihak} lanjut gas rencana utama.",
+      "Anti-ribet lewat {san}: {pihak} nutup akses paku atau lompatan lawan di sayap.",
     ],
     menteriDini: [
       "Menteri {pihak} udah nongol duluan ke {petak} lewat {san} — berani, tapi awas dikejar-kejar perwira lawan!",
       "{san} keluarin menteri cepat banget; jangan sampai malah rugi tempo pengembangan.",
+      "Menteri turun gunung lebih awal lewat {san} ke {petak} — harus ekstra hati-hati sama tempo!",
     ],
     kembangPerwira: [
       "{pihak} keluarin {bidak} ke {petak} lewat {san} — pengembangan cepat dan sehat!",
       "{san} bikin {bidak} {pihak} langsung aktif ngincer pusat papan.",
       "Setup rapi lewat {san}: satu per satu perwira {pihak} turun ke medan tempur.",
+      "Pengembangan mulus {san}: {bidak} {pihak} siap kerja dari {petak}.",
     ],
     rajaAktifAkhir: [
       "Menteri udah nggak ada, saatnya raja {pihak} turun tangan sendiri ke {petak} lewat {san}!",
       "{san} — mode endgame aktif, raja {pihak} maju bantu kawal pertarungan di tengah.",
+      "Di babak akhir raja nggak boleh mager: {san} bawa raja {pihak} maju ke {petak}!",
+    ],
+    gandakanBenteng: [
+      "Baterai meriam terpasang di {petak} lewat {san}! Daya dobrak lajur {pihak} langsung dobel!",
+      "{san} numpuk perwira berat di satu jalur — {lawan} wajib siap-siap nahan gempuran!",
+      "Formasi ganda lewat {san} di {petak}, siap jebol pertahanan vertikal {lawan}!",
+    ],
+    gajahPin: [
+      "{san} langsung nge-pin perwira {lawan} dari {petak} — gerak dikit bisa bahaya!",
+      "Paku tajam lewat {san}! Gajah {pihak} di {petak} bikin perwira lawan serba salah.",
+      "Diagonal dikunci gajah {pihak} di {petak} lewat {san}, mengikat penjaga {lawan}!",
+    ],
+    incarTitikLemah: [
+      "{san} taruh {bidak} di {petak}, langsung melototin titik lemah dekat raja {lawan}!",
+      "Tekanan kilat lewat {san} dari {petak} — sayap raja {lawan} langsung diuji sejak dini!",
+      "{pihak} ngincer titik paling rawan di kubu {lawan} lewat {san}!",
+    ],
+    hubungkanBenteng: [
+      "Baris belakang resmi bersih setelah {san} — dua benteng {pihak} sekarang udah nyambung!",
+      "{san} menuntaskan setup: duet benteng {pihak} siap kompak menguasai lajur tengah.",
+      "Koordinasi beres lewat {san}, kedua benteng {pihak} sudah saling jaga!",
+    ],
+    kudaTepi: [
+      "{san} geser kuda ke pinggir papan di {petak} — jangkauannya agak sempit kalau kelamaan di situ.",
+      "Kuda {pihak} melipir dulu ke {petak} lewat {san}, biasanya cuma transit sebelum manuver lagi.",
+      "Lewat {san}, kuda mendarat di tepi {petak}; harus punya rencana lanjut biar nggak mati gaya.",
+    ],
+    kuasaiPusat: [
+      "{san}! {pihak} langsung tancap bendera di petak pusat {petak}.",
+      "Pion tengah maju lewat {san}, nyita ruang penting sekaligus buka jalur perwira {pihak}!",
+      "Klaim pusat tegas dari {pihak} lewat {san} — enak banget buat ngatur serangan lanjut.",
+    ],
+    manuverKuda: [
+      "Kuda {pihak} muter rute ke {petak} lewat {san}, cari pijakan yang lebih nendang!",
+      "Manuver licin {san}: kuda {pihak} pindah ke {petak} buat ngintip celah pertahanan {lawan}.",
+      "{san} — rotasi kuda ke {petak} biar jangkauan serangnya makin hidup.",
+      "Pelan tapi pasti, {san} nempatin kuda {pihak} di pos strategis {petak}.",
+    ],
+    manuverGajah: [
+      "Gajah {pihak} pindah jalur ke {petak} lewat {san}, cari diagonal yang lebih segar!",
+      "{san} geser gajah ke {petak} buat ngiris petak-petak penting di kubu {lawan}.",
+      "Ganti sudut tembak lewat {san}: gajah {pihak} sekarang mantau dari {petak}.",
+      "{pihak} rapihin posisi gajah ke {petak} lewat {san} biar makin leluasa.",
+    ],
+    manuverMenteri: [
+      "Menteri {pihak} geser ke {petak} lewat {san}, nyatuin kontrol pusat dan sayap sekaligus!",
+      "Manuver menteri {san}: dari {petak}, ancaman taktis {pihak} makin terasa.",
+      "{san} bikin menteri {pihak} makin aktif di {petak} sambil tetap aman dari gangguan.",
+      "Sentuhan halus {san} — menteri {pihak} siap dukung serangan dari {petak}.",
+    ],
+    dorongPion: [
+      "Dorong pion {san}! {pihak} nyicil ruang di sekitar {petak} biar lawan makin sempit.",
+      "{san} — ekspansi pion rapi dari {pihak} buat nyiapin manuver babak tengah.",
+      "Garis depan maju lewat {san}, ngebatasin pijakan perwira {lawan} di dekat {petak}.",
+      "Langkah pion terukur {san} dari {pihak}, perkuat struktur sambil tekan sayap.",
     ],
     skak: [
       "Skak lewat {san}! Raja {lawan} dipaksa gerak sekarang juga.",
