@@ -77,6 +77,9 @@ function judul(teks) {
 const { problems } = JSON.parse(
   readFileSync(path.join(ROOT, "public", "data", "teka-teki.json"), "utf8")
 );
+const { problems: soalTambahanVideo } = JSON.parse(
+  readFileSync(path.join(ROOT, "public", "data", "teka-teki-video.json"), "utf8")
+);
 
 const FEN_AKHIR = (soal) => {
   let fen = soal.fen;
@@ -746,42 +749,73 @@ judul("lanjut otomatis berhenti saat pemain meninjau solusi");
   }
 }
 
-judul("tablebase Syzygy: tidak menembak posisi >7 bidak");
+judul("panel video pembahasan: menggantikan Syzygy, terkunci sebelum selesai, tanpa autoplay");
 {
-  const soalBanyak = problems.find(
-    (p) => p.fen.split(" ")[0].replace(/[^pnbrqkPNBRQK]/g, "").length > 7
-  );
-  const soalSedikit = problems.find(
-    (p) => p.fen.split(" ")[0].replace(/[^pnbrqkPNBRQK]/g, "").length <= 7
-  );
+  let panggilanPlayOtomatis = 0;
+  const playAsli = window.HTMLMediaElement.prototype.play;
+  window.HTMLMediaElement.prototype.play = function playPantau() {
+    panggilanPlayOtomatis++;
+    return Promise.resolve();
+  };
+
   permintaanJaringan.length = 0;
-  await bukaNomor(soalBanyak.problemid);
-  await tunggu(1000);
-  const tembakanBanyak = permintaanJaringan.filter((u) => u.includes("tablebase.lichess.ovh"));
+  await bukaNomor(1);
+  await tunggu(350);
+  const tembakanSyzygy = permintaanJaringan.filter((u) => u.includes("tablebase.lichess.ovh"));
   uji(
-    `posisi ${soalBanyak.fen.split(" ")[0].replace(/[^pnbrqkPNBRQK]/g, "").length} bidak: tanpa permintaan tablebase`,
-    tembakanBanyak.length === 0,
-    `${tembakanBanyak.length} permintaan`
+    "panel Syzygy telah dihapus (tanpa permintaan tablebase.lichess.ovh)",
+    tembakanSyzygy.length === 0,
+    `${tembakanSyzygy.length} permintaan`
   );
   uji(
-    "panel menampilkan keterangan gagal/tak didukung",
-    dok.body.textContent.includes(kamus.syzygyGagal)
+    "soal Lichess tanpa video menampilkan status kosong + tombol buka koleksi video",
+    !!dok.querySelector('[data-status-video="kosong"]') &&
+      dok.body.textContent.includes(kamus.videoTidakTersedia)
   );
 
-  if (soalSedikit) {
-    permintaanJaringan.length = 0;
-    await bukaNomor(soalSedikit.problemid);
-    await tungguSampai(
-      () => permintaanJaringan.some((u) => u.includes("tablebase.lichess.ovh")),
-      2500
-    );
-    const tembakanSedikit = permintaanJaringan.filter((u) => u.includes("tablebase.lichess.ovh"));
-    uji(
-      `posisi ≤7 bidak (#${soalSedikit.problemid}) tetap dianalisis`,
-      tembakanSedikit.length >= 1,
-      "tidak ada permintaan"
-    );
-  }
+  // Beralih ke koleksi Taktik + Video
+  const pilihKoleksiEl = dok.querySelector("#wadah-koleksi");
+  const setterSelect = Object.getOwnPropertyDescriptor(
+    window.HTMLSelectElement.prototype,
+    "value"
+  ).set;
+  setterSelect.call(pilihKoleksiEl, "video");
+  pilihKoleksiEl.dispatchEvent(new window.Event("change", { bubbles: true }));
+
+  const soalVideoPertama = soalTambahanVideo.find((p) => Boolean(p.video));
+  const videoDimuat = await tungguSampai(() => papanSama(soalVideoPertama.fen), 3000);
+  uji("beralih ke koleksi Taktik + Video memuat soal video pertama", videoDimuat);
+  uji(
+    "sebelum soal selesai: video terkunci dan elemen <video> belum dirender",
+    !!dok.querySelector('[data-status-video="terkunci"]') &&
+      !dok.querySelector("video") &&
+      dok.body.textContent.includes(kamus.videoTerkunci)
+  );
+
+  // Selesaikan soal video pertama (taktik multi-langkah)
+  const tuntasVideo = await selesaikan(soalVideoPertama);
+  uji("soal taktik ber-video berhasil dituntaskan", tuntasVideo);
+
+  const elVideo = dok.querySelector("video");
+  uji(
+    "setelah soal selesai: elemen <video> muncul dengan URL mp4 yang sesuai",
+    !!elVideo && elVideo.getAttribute("src") === soalVideoPertama.video
+  );
+  uji(
+    "video TIDAK autoplay dan memakai preload='none' (putar manual)",
+    !!elVideo &&
+      !elVideo.hasAttribute("autoplay") &&
+      elVideo.autoplay === false &&
+      elVideo.getAttribute("preload") === "none" &&
+      panggilanPlayOtomatis === 0,
+    `panggilanPlayOtomatis=${panggilanPlayOtomatis}`
+  );
+
+  // Kembalikan ke koleksi Skakmat Lichess agar pengujian berikutnya tetap berjalan di kolam bawaan
+  setterSelect.call(pilihKoleksiEl, "lichess");
+  pilihKoleksiEl.dispatchEvent(new window.Event("change", { bubbles: true }));
+  await tungguSampai(() => !soalTambahanVideo.some((p) => papanSama(p.fen)), 3000);
+  window.HTMLMediaElement.prototype.play = playAsli;
 }
 
 judul("input nomor: rentang mengikuti jumlah soal yang tersaring");

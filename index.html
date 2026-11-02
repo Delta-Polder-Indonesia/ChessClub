@@ -19,8 +19,9 @@
         script-src 'self' 'wasm-unsafe-eval' https://va.vercel-scripts.com;
         style-src 'self' 'unsafe-inline';
         img-src 'self' data: blob: https:;
+        media-src 'self' https://media.chesscomfiles.com https://chesscom-videos.s3.amazonaws.com;
         font-src 'self' data:;
-        connect-src 'self' https://media.githubusercontent.com https://*.supabase.co https://api.chess.com https://www.chess.com https://lichess.org https://tablebase.lichess.ovh https://va.vercel-scripts.com https://*.wikipedia.org https://*.wikibooks.org https://translate.googleapis.com;
+        connect-src 'self' https://media.githubusercontent.com https://*.supabase.co https://api.chess.com https://www.chess.com https://lichess.org https://va.vercel-scripts.com https://*.wikipedia.org https://*.wikibooks.org https://translate.googleapis.com;
         worker-src 'self' blob:;
         frame-src 'self' https://*.supabase.co https://media.githubusercontent.com https://docs.google.com;
         object-src 'none';
