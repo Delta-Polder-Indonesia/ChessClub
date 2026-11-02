@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { Chess } from "chess.js";
-import { ExternalLink, Lock, Video } from "lucide-react";
+import { ExternalLink, Lock, Search, Video } from "lucide-react";
 import { ArrowRightIcon, ChevronStartIcon, ChevronLeftIcon, ChevronRightIcon, ChevronEndIcon } from "../../components/icons.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 import { ChessPiece } from "../../components/chess/ChessPiece.jsx";
@@ -163,6 +163,33 @@ function faktaDariKoordinat(fen, from, to, promo) {
   }
 }
 
+/** Susun teks PGN standar (lengkap dengan SetUp + FEN) untuk dikirim ke Papan Analisa. */
+function bangunPgnUntukAnalisa(m) {
+  if (!m) return "";
+  if (m.pgnAnalisa) return m.pgnAnalisa;
+  try {
+    const catur = new Chess(m.fen);
+    for (const teks of String(m.moves || "").split(";").filter(Boolean)) {
+      const { from, to, promo } = parseLangkah(teks);
+      catur.move({ from, to, ...(promo ? { promotion: promo } : {}) });
+    }
+    const header = [
+      `[Event "${(m.judulSoal || m.turnamen || `Teka-Teki #${m.problemid}`).replace(/"/g, "'")}"]`,
+      `[White "${(m.pemainPutih || "Putih").replace(/"/g, "'")}"]`,
+      `[Black "${(m.pemainHitam || "Hitam").replace(/"/g, "'")}"]`,
+      ...(m.eloPutih ? [`[WhiteElo "${m.eloPutih}"]`] : []),
+      ...(m.eloHitam ? [`[BlackElo "${m.eloHitam}"]`] : []),
+      `[SetUp "1"]`,
+      `[FEN "${m.fen}"]`,
+      `[Result "*"]`,
+    ];
+    const langkahPgn = catur.pgn().replace(/^\[[^\]]*\]\s*/gm, "").trim();
+    return `${header.join("\n")}\n\n${langkahPgn || "*"}`;
+  } catch {
+    return "";
+  }
+}
+
 function bacaTerpecahkan() {
   const simpan = coba(
     () => JSON.parse(localStorage.getItem(KUNCI_SELESAI) || "[]"),
@@ -262,6 +289,7 @@ export default function TekaTeki() {
   const [videoGagal, setVideoGagal] = useState(false);
   const [indeks, setIndeks] = useState(0);
   const [filterKoleksi, setFilterKoleksi] = useState("lichess");
+  const [filterPelatih, setFilterPelatih] = useState("semua");
   const [filterTipe, setFilterTipe] = useState("semua");
   const [filterLevel, setFilterLevel] = useState("semua");
   const [filterTema, setFilterTema] = useState("semua");
@@ -509,6 +537,7 @@ export default function TekaTeki() {
       window.clearTimeout(timerOtomatis.current);
       setGalatNomor(null);
       setNomorSoal("");
+      setFilterPelatih("semua");
       if (koleksiBaru === "lichess") {
         if (filterTipe === "Mate in More" || filterTipe === "Tactical") {
           setFilterTipe("semua");
@@ -541,12 +570,32 @@ export default function TekaTeki() {
     if (filterKoleksi === "video") {
       return soalTambahan.filter((m) => Boolean(m.video));
     }
+    if (filterKoleksi === "legenda") {
+      return soalTambahan.filter((m) => (m.kurasi || "").split(" ").includes("legenda"));
+    }
+    if (filterKoleksi === "studi") {
+      return soalTambahan.filter((m) => (m.kurasi || "").split(" ").includes("studi"));
+    }
     return soalTambahan;
   }, [filterKoleksi, semuaSoal, soalTambahan]);
+
+  const daftarPelatih = useMemo(() => {
+    if (!kolamAktif || filterKoleksi === "lichess") return [];
+    const hitung = new Map();
+    for (const m of kolamAktif) {
+      if (m.pelatih) hitung.set(m.pelatih, (hitung.get(m.pelatih) || 0) + 1);
+    }
+    return [...hitung.entries()]
+      .filter(([, n]) => n >= 2)
+      .sort((a, b) => b[1] - a[1]);
+  }, [kolamAktif, filterKoleksi]);
 
   const soal = useMemo(() => {
     if (!kolamAktif) return null;
     let hasil = kolamAktif;
+    if (filterPelatih !== "semua") {
+      hasil = hasil.filter((m) => m.pelatih === filterPelatih);
+    }
     if (filterTipe !== "semua") hasil = hasil.filter((m) => m.type === filterTipe);
     if (filterLevel !== "semua")
       hasil = hasil.filter((m) => PITA_LEVEL[filterLevel](m.rating ?? 0));
@@ -554,9 +603,21 @@ export default function TekaTeki() {
       hasil = hasil.filter((m) => (m.tema || "").split(" ").includes(filterTema));
     if (filterGiliran !== "semua") hasil = hasil.filter((m) => m.first === filterGiliran);
     return hasil;
-  }, [kolamAktif, filterTipe, filterLevel, filterTema, filterGiliran]);
+  }, [kolamAktif, filterPelatih, filterTipe, filterLevel, filterTema, filterGiliran]);
 
   const masalah = soal?.[indeks];
+
+  const bukaDiAnalisa = useCallback(() => {
+    if (!masalah) return;
+    const pgn = bangunPgnUntukAnalisa(masalah);
+    if (!pgn) return;
+    window.clearTimeout(timerOtomatis.current);
+    coba(
+      () => sessionStorage.setItem("kci-analisa-impor-awal", pgn),
+      "titip PGN ke papan analisa"
+    );
+    navigate("/program-kami/analisa/papan");
+  }, [masalah, navigate]);
   const langkahPenuh = masalah ? masalah.moves.split(";") : [];
   const posisiLangkah = Math.max(0, langkahPenuh.length - sisa.length);
 
@@ -719,7 +780,7 @@ export default function TekaTeki() {
     // soal/indeks ikut dipantau, tiap pindah soal posisi yang sama akan
     // dipasang ulang. Riwayat dibaca saat filter berubah.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterKoleksi, filterTipe, filterLevel, filterTema, filterGiliran]);
+  }, [filterKoleksi, filterPelatih, filterTipe, filterLevel, filterTema, filterGiliran]);
 
   useEffect(() => {
     document.title = `${t("tekaTeki.judul")} | ${t("common.namaKomunitas")}`;
@@ -1641,12 +1702,19 @@ export default function TekaTeki() {
               videoTurnamen={masalah?.turnamen || ""}
               videoTanggal={masalah?.tanggal || ""}
               videoGagal={videoGagal}
+              catatanLangkah={masalah?.catatanLangkah || null}
+              jumlahVariasi={masalah?.jumlahVariasi || 0}
+              simbolNag={masalah?.simbolNag || ""}
               memuatKoleksi={memuatKoleksi}
               onPutarVideo={() => window.clearTimeout(timerOtomatis.current)}
               onGalatVideo={() => setVideoGagal(true)}
               onBukaKoleksiVideo={() => pilihKoleksi("video")}
+              onBukaAnalisa={bukaDiAnalisa}
               nilaiKoleksi={filterKoleksi}
               onGantiKoleksi={pilihKoleksi}
+              daftarPelatih={daftarPelatih}
+              nilaiPelatih={filterPelatih}
+              onGantiPelatih={setFilterPelatih}
               teksSoal={masalah ? t("tekaTeki.soal", { n: indeks + 1, total: soal.length }) : ""}
               teksTingkat={masalah ? t(KUNCI_LEVEL[bandLevel(masalah.rating ?? 0)]) : ""}
               teksTipe={masalah ? t(KUNCI_TIPE[masalah.type] || "") : ""}
@@ -1837,7 +1905,7 @@ const OPSI_TEMA_BAWAAN = [
   { grup: "Karakteristik", isi: [["endgame", "Endgame"], ["middlegame", "Middlegame"], ["opening", "Opening"]] },
 ];
 
-function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = false, onGantiPengaturan = null, onFlip = null, giliran = "putih", jumlahLangkah = 1, bukanSkakmat = false, selesai = false, videoUrl = "", videoPelatih = "", videoJudulSoal = "", videoTurnamen = "", videoTanggal = "", videoGagal = false, memuatKoleksi = false, onPutarVideo = null, onGalatVideo = null, onBukaKoleksiVideo = null, nilaiKoleksi = "lichess", onGantiKoleksi = null, teksSoal = "", teksTingkat = "", teksTipe = "", teksTerpecahkan = "", teksCekmat = "", teksSudah = "", daftarSet = [], nilaiSetBidak = "merida", onGantiSetBidak = null, pilihanWarnaPapan = [], nilaiWarnaPapan = "green", onGantiWarnaPapan = null, nilaiSuara = true, onGantiSuara = null, onAcak = null, onLewati = null, nilaiOtomatis = false, onGantiOtomatis = null, engineNyala = false, onGantiEngine = null, tampilPanahMesin = true, onGantiPanahMesin = null, teksPanahMesin = "", nilaiLevel = "semua", onGantiLevel = null, nilaiLangkah = "semua", onGantiLangkah = null, nilaiTema = "semua", opsiTema = [], onGantiTema = null, nilaiGiliran = "semua", onGantiGiliran = null, nilaiNomorSoal = "", nilaiTotalSoal = 0, onGantiNomorSoal = null, nilaiIngatPosisi = true, onGantiIngatPosisi = null, teksPosisiTersimpan = "", teksIngatNonaktif = "", teksGalatNomor = "", onBukaNomor = null, bisaHint = false, onHint = null, teksSalah = "", teksPeringatan = "", kartuKomentator = null, kecepatanEngine = 800, opsiKecepatan = [], onGantiKecepatan = null, pvSanEngine = [], onMainkanSaran = null, onKeAwal = null, onMundur = null, onMaju = null, onKeAkhir = null, bisaMundur = false, bisaMaju = false, onPertama = null, eloSoal = 1500, namaHitam = "", eloHitam = 0, namaPutih = "", eloPutih = 0, teksPembukaan = "", komentatorNyala = false, memuat = false }) {
+function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = false, onGantiPengaturan = null, onFlip = null, giliran = "putih", jumlahLangkah = 1, bukanSkakmat = false, selesai = false, videoUrl = "", videoPelatih = "", videoJudulSoal = "", videoTurnamen = "", videoTanggal = "", videoGagal = false, catatanLangkah = null, jumlahVariasi = 0, simbolNag = "", memuatKoleksi = false, onPutarVideo = null, onGalatVideo = null, onBukaKoleksiVideo = null, onBukaAnalisa = null, nilaiKoleksi = "lichess", onGantiKoleksi = null, daftarPelatih = [], nilaiPelatih = "semua", onGantiPelatih = null, teksSoal = "", teksTingkat = "", teksTipe = "", teksTerpecahkan = "", teksCekmat = "", teksSudah = "", daftarSet = [], nilaiSetBidak = "merida", onGantiSetBidak = null, pilihanWarnaPapan = [], nilaiWarnaPapan = "green", onGantiWarnaPapan = null, nilaiSuara = true, onGantiSuara = null, onAcak = null, onLewati = null, nilaiOtomatis = false, onGantiOtomatis = null, engineNyala = false, onGantiEngine = null, tampilPanahMesin = true, onGantiPanahMesin = null, teksPanahMesin = "", nilaiLevel = "semua", onGantiLevel = null, nilaiLangkah = "semua", onGantiLangkah = null, nilaiTema = "semua", opsiTema = [], onGantiTema = null, nilaiGiliran = "semua", onGantiGiliran = null, nilaiNomorSoal = "", nilaiTotalSoal = 0, onGantiNomorSoal = null, nilaiIngatPosisi = true, onGantiIngatPosisi = null, teksPosisiTersimpan = "", teksIngatNonaktif = "", teksGalatNomor = "", onBukaNomor = null, bisaHint = false, onHint = null, teksSalah = "", teksPeringatan = "", kartuKomentator = null, kecepatanEngine = 800, opsiKecepatan = [], onGantiKecepatan = null, pvSanEngine = [], onMainkanSaran = null, onKeAwal = null, onMundur = null, onMaju = null, onKeAkhir = null, bisaMundur = false, bisaMaju = false, onPertama = null, eloSoal = 1500, namaHitam = "", eloHitam = 0, namaPutih = "", eloPutih = 0, teksPembukaan = "", komentatorNyala = false, memuat = false }) {
   const { t } = useI18n();
   // Default prop sengaja kosong: teksnya selalu dari kamus.
   const labelPanahMesin = teksPanahMesin || t("papan.enginePanahToggle");
@@ -1887,9 +1955,30 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
                 >
                   <option value="lichess">{t("tekaTeki.koleksiLichess")}</option>
                   <option value="video">{t("tekaTeki.koleksiVideo")}</option>
+                  <option value="legenda">{t("tekaTeki.koleksiLegenda")}</option>
+                  <option value="studi">{t("tekaTeki.koleksiStudi")}</option>
                   <option value="arsip">{t("tekaTeki.koleksiArsip")}</option>
                 </select>
               </div>
+
+              {daftarPelatih.length > 0 && (
+                <div className="flex flex-col gap-1">
+                  <label htmlFor="wadah-pelatih" className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{t("tekaTeki.labelPelatih")}</label>
+                  <select
+                    id="wadah-pelatih"
+                    value={nilaiPelatih}
+                    onChange={(e) => onGantiPelatih && onGantiPelatih(e.target.value)}
+                    className="w-full rounded-md border border-slate-600 bg-[#262421] px-2.5 py-1.5 text-sm text-gray-200 outline-none transition focus:border-[#81b64c] focus:ring-2 focus:ring-[#81b64c]/20"
+                  >
+                    <option value="semua">{t("tekaTeki.semuaPelatih")}</option>
+                    {daftarPelatih.map(([nama, cacah]) => (
+                      <option key={nama} value={nama}>
+                        {nama} ({cacah})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               <div className="flex flex-col gap-1">
                 <label htmlFor="wadah-level" className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{t("tekaTeki.labelLevel")}</label>
@@ -2637,6 +2726,51 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
                     className="w-full rounded-md bg-[#363431] hover:bg-[#45423e] px-3 py-2 text-xs font-semibold text-white transition cursor-pointer"
                   >
                     {t("tekaTeki.videoBukaKoleksi")}
+                  </button>
+                )}
+              </div>
+            )}
+
+            {selesai && !memuat && !memuatKoleksi && (
+              <div className="space-y-2.5 pt-1">
+                {(Array.isArray(catatanLangkah) && catatanLangkah.length > 0 || jumlahVariasi > 0 || simbolNag) && (
+                  <div
+                    data-catatan-pgn="ada"
+                    className="rounded-md border border-[#312e2b] bg-[#1e1c18] p-3 space-y-1.5"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-300">
+                        {t("tekaTeki.catatanPelatihJudul")}
+                      </span>
+                      {simbolNag && (
+                        <span className="rounded bg-[#81b64c]/20 px-1.5 py-0.5 font-mono text-[11px] font-bold text-[#a3d168]">
+                          {simbolNag}
+                        </span>
+                      )}
+                    </div>
+                    {Array.isArray(catatanLangkah) &&
+                      catatanLangkah.map((teks, idxCatatan) => (
+                        <p key={idxCatatan} className="text-xs leading-5 text-gray-300">
+                          {teks}
+                        </p>
+                      ))}
+                    {jumlahVariasi > 0 && (
+                      <p className="text-xs text-gray-400">
+                        {t("tekaTeki.variasiCabang", { n: jumlahVariasi })}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {onBukaAnalisa && (
+                  <button
+                    type="button"
+                    data-aksi="buka-analisa"
+                    onClick={onBukaAnalisa}
+                    className="w-full inline-flex items-center justify-center gap-2 rounded-md border border-[#81b64c]/50 bg-[#81b64c]/15 hover:bg-[#81b64c]/25 px-3 py-2 text-xs font-semibold text-[#b8dc8e] transition cursor-pointer"
+                  >
+                    <Search className="size-3.5 shrink-0" aria-hidden="true" />
+                    {t("tekaTeki.bukaPapanAnalisa")}
                   </button>
                 )}
               </div>

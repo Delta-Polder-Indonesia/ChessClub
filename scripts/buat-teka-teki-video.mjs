@@ -20,14 +20,25 @@ import { parsePgnTekaTeki, tanggalSah } from "../src/lib/tekaTekiHarian.js";
 import { parseLangkah } from "../src/lib/tekaTeki.js";
 
 const AKAR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const SUMBER = path.join(AKAR, "public", "data", "puzzle", "all.json");
+const SUMBER = path.join(AKAR, "scripts", "data-sumber", "puzzle-all.json");
 const DATA_UTAMA = path.join(AKAR, "public", "data", "teka-teki.json");
 const KELUARAN = path.join(AKAR, "public", "data", "teka-teki-video.json");
 
 const DOMAIN_VIDEO_SAH = /^https:\/\/(media\.chesscomfiles\.com|chesscom-videos\.s3\.amazonaws\.com)\/[^\s"<>]+\.mp4$/i;
 const POLA_EMOJI = /[\p{Extended_Pictographic}\uFE0E\uFE0F\u200D]/gu;
 const NAMA_ABAIKAN = /^(?:\?+|daily puzzle inspiration|study|white|black|unknown|nn)$/i;
-const POLA_MASTER = /\b(?:GM|IM|WGM|WIM|FM|NM|Carlsen|Nakamura|Kasparov|Fischer|Tal|Karpov|Anand|Caruana|Gukesh|Firouzja|Nepomniachtchi|Polgar|Morphy|Capablanca|Alekhine|Botvinnik|Spassky|Ivanchuk|Aronian|Ding|Kramnik|Topalov|Shirov|bronstein|korchnoi)\b/i;
+const POLA_MASTER = /\b(?:GM|IM|WGM|WIM|FM|NM|Carlsen|Nakamura|Kasparov|Fischer|Tal|Karpov|Anand|Caruana|Gukesh|Firouzja|Nepomniachtchi|Polgar|Morphy|Capablanca|Alekhine|Botvinnik|Spassky|Ivanchuk|Aronian|Ding Liren|Kramnik|Topalov|Shirov|Bronstein|Korchnoi)\b/i;
+const POLA_LEGENDA_PEMAIN = /\b(?:Carlsen|Kasparov|Fischer|Tal|Nakamura|Capablanca|Morphy|Polgar|Anand|Karpov|Kramnik|Spassky|Botvinnik|Alekhine|Smyslov|Petrosian|Korchnoi|Bronstein|Ivanchuk|Aronian|Caruana|Ding\s+Liren|Ding,\s*L|Nepomniachtchi|Gukesh|Praggnanandhaa|Firouzja|Anderssen|Steinitz|Lasker|Euwe|Nimzowitsch|Rubinstein)\b/i;
+const POLA_LEGENDA_JUDUL = /\b(?:Carlsen|Kasparov|Fischer|Mikhail\s+Tal|Hikaru|Nakamura|Capablanca|Morphy|Polgar|Anand|Karpov|Kramnik|Spassky|Botvinnik|Alekhine|Ivanchuk|Aronian|Caruana|Ding\s+Liren|Nepomniachtchi|Gukesh|Praggnanandhaa|Pragg|Firouzja|Anderssen|Steinitz|Lasker)\b/i;
+const POLA_STUDI = /\b(?:Troitzky|Troitsky|Reti|R[eé]ti|Rinck|Kasparian|Kubbel|Loyd|Stamma|Mendheim|Horwitz|Kling|Mattison|Grigoriev|Endgame\s+Study|Composition)\b/i;
+const PETA_NAG = {
+  $1: "!",
+  $2: "?",
+  $3: "!!",
+  $4: "??",
+  $5: "!?",
+  $6: "?!",
+};
 const NILAI_BIDAK = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 0 };
 
 function bersihkanTeks(nilai) {
@@ -164,34 +175,113 @@ function deteksiTema({ fenAwal, daftarDetail, gameAkhir, pemainPutih, pemainHita
   return [...tema].join(" ");
 }
 
-function estimasiRating({ jumlahLangkahPemain, solvedCount, punyaUnderpromosi, akhirSkakmat }) {
+function deteksiKurasi({ pemainPutih, pemainHitam, judulSoal, turnamen, rawEvent, rawWhite, rawBlack }) {
+  const tag = [];
+  const gabunganPemain = `${pemainPutih} ${pemainHitam}`;
+  if (POLA_LEGENDA_PEMAIN.test(gabunganPemain) || POLA_LEGENDA_JUDUL.test(judulSoal)) {
+    tag.push("legenda");
+  }
+  const konteksStudi = `${rawEvent} ${rawWhite} ${rawBlack} ${turnamen} ${judulSoal}`;
+  if (
+    POLA_STUDI.test(konteksStudi) ||
+    /^(?:study|endgame study|composition)$/i.test(bersihkanTeks(rawEvent)) ||
+    /^(?:study|white)$/i.test(bersihkanTeks(rawWhite)) && /study/i.test(konteksStudi)
+  ) {
+    tag.push("studi");
+  }
+  return tag.join(" ");
+}
+
+function ekstrakAnotasiPgn(pgnMentah) {
+  const teks = String(pgnMentah || "").replace(POLA_EMOJI, "").replace(/\r\n/g, "\n").trim();
+  if (!teks) return null;
+  const badan = teks.replace(/^\[[^\]]*\]\s*/gm, "").trim();
+  const komentar = [...badan.matchAll(/\{([^}]*)\}/g)]
+    .map((m) => m[1].replace(/\[%[^\]]*\]/g, "").replace(/\s+/g, " ").trim())
+    .filter(Boolean);
+  const jumlahVariasi = (badan.match(/\(/g) || []).length;
+  const simbolNag = [...new Set((badan.match(/\$[1-6]\b/g) || []).map((k) => PETA_NAG[k]).filter(Boolean))];
+
+  if (!komentar.length && jumlahVariasi === 0 && !simbolNag.length) {
+    return null;
+  }
+
+  let pgnValid;
+  try {
+    const ujiCatur = new Chess();
+    ujiCatur.loadPgn(teks, { strict: false });
+    pgnValid = ujiCatur.history().length > 0;
+  } catch {
+    pgnValid = false;
+  }
+
+  return {
+    ...(pgnValid ? { pgnAnalisa: teks } : {}),
+    ...(komentar.length ? { catatanLangkah: komentar.slice(0, 4) } : {}),
+    ...(jumlahVariasi > 0 ? { jumlahVariasi } : {}),
+    ...(simbolNag.length ? { simbolNag: simbolNag.join(" ") } : {}),
+  };
+}
+
+function bangunPersentilTahunan(sumber) {
+  const perTahun = new Map();
+  for (const item of sumber) {
+    const tahun = String(item?.date || "").slice(0, 4) || "0000";
+    const n = Number(item?.solved_count) || 0;
+    if (n <= 0) continue;
+    if (!perTahun.has(tahun)) perTahun.set(tahun, []);
+    perTahun.get(tahun).push(n);
+  }
+  for (const daftar of perTahun.values()) {
+    daftar.sort((a, b) => a - b);
+  }
+  return function ambilPersentil(tanggal, solvedCount) {
+    const tahun = String(tanggal || "").slice(0, 4) || "0000";
+    const daftar = perTahun.get(tahun);
+    const n = Number(solvedCount) || 0;
+    if (!daftar || daftar.length < 2 || n <= 0) return 0.5;
+    let lo = 0;
+    let hi = daftar.length - 1;
+    while (lo < hi) {
+      const mid = (lo + hi) >> 1;
+      if (daftar[mid] < n) lo = mid + 1;
+      else hi = mid;
+    }
+    return lo / (daftar.length - 1);
+  };
+}
+
+function estimasiRating({
+  jumlahLangkahPemain,
+  persentilSelesai,
+  punyaUnderpromosi,
+  akhirSkakmat,
+}) {
   let dasar =
     jumlahLangkahPemain === 1
       ? 860
       : jumlahLangkahPemain === 2
-        ? 1140
+        ? 1160
         : jumlahLangkahPemain === 3
-          ? 1420
+          ? 1450
           : jumlahLangkahPemain === 4
-            ? 1680
+            ? 1700
             : 1920;
 
-  if (!akhirSkakmat) dasar += 110;
-  if (punyaUnderpromosi) dasar += 180;
+  if (!akhirSkakmat) dasar += 90;
+  if (punyaUnderpromosi) dasar += 170;
 
-  const selesai = Number(solvedCount) || 0;
-  if (selesai > 0) {
-    if (selesai < 1500) dasar += 140;
-    else if (selesai < 5000) dasar += 60;
-    else if (selesai > 1200000) dasar -= 120;
-    else if (selesai > 400000) dasar -= 60;
-  }
+  // persentilSelesai = 1.0 berarti paling banyak terpecahkan di tahunnya (lebih mudah),
+  // persentilSelesai = 0.0 berarti paling jarang terpecahkan di tahunnya (lebih sulit).
+  const penyesuaianEmpiris = Math.round((0.5 - persentilSelesai) * 460);
+  dasar += penyesuaianEmpiris;
 
-  return Math.max(700, Math.min(2350, Math.round(dasar)));
+  return Math.max(700, Math.min(2380, Math.round(dasar)));
 }
 
 function bangunDataset() {
   const sumber = JSON.parse(fs.readFileSync(SUMBER, "utf8"));
+  const ambilPersentil = bangunPersentilTahunan(sumber);
   const utama = JSON.parse(fs.readFileSync(DATA_UTAMA, "utf8"));
   const daftarUtama = Array.isArray(utama) ? utama : utama.problems || [];
   const idAwal = daftarUtama.length + 1;
@@ -202,6 +292,9 @@ function bangunDataset() {
   const berVideo = [];
   const arsipLain = [];
   let dilewati = 0;
+  let hitungLegenda = 0;
+  let hitungStudi = 0;
+  let hitungAnotasi = 0;
 
   for (const item of sumber) {
     const tanggal = tanggalSah(item?.date) ? item.date : "";
@@ -274,6 +367,21 @@ function bangunDataset() {
     const pelatih = namaPelatih(item?.author);
     const judulSoal = bersihkanTeks(item?.title);
     const turnamen = namaPemainBersih(item?.parsed?.event);
+    const kurasi = deteksiKurasi({
+      pemainPutih,
+      pemainHitam,
+      judulSoal,
+      turnamen,
+      rawEvent: item?.parsed?.event || "",
+      rawWhite: item?.parsed?.white || "",
+      rawBlack: item?.parsed?.black || "",
+    });
+    if (kurasi.includes("legenda")) hitungLegenda += 1;
+    if (kurasi.includes("studi")) hitungStudi += 1;
+
+    const anotasi = ekstrakAnotasiPgn(item?.pgn);
+    if (anotasi) hitungAnotasi += 1;
+
     const tema = deteksiTema({
       fenAwal: hasil.fen,
       daftarDetail,
@@ -283,9 +391,11 @@ function bangunDataset() {
       eloPutih,
       eloHitam,
     });
+    const jumlahTerpecahkan = Math.max(0, Math.trunc(Number(item?.solved_count) || 0));
+    const persentilSelesai = ambilPersentil(tanggal, jumlahTerpecahkan);
     const rating = estimasiRating({
       jumlahLangkahPemain,
-      solvedCount: item?.solved_count,
+      persentilSelesai,
       punyaUnderpromosi,
       akhirSkakmat,
     });
@@ -298,6 +408,8 @@ function bangunDataset() {
       rating,
       tema,
       sumberId: `cc-${item.id}`,
+      ...(jumlahTerpecahkan > 0 ? { jumlahTerpecahkan } : {}),
+      ...(kurasi ? { kurasi } : {}),
       ...(tanggal ? { tanggal } : {}),
       ...(judulSoal ? { judulSoal } : {}),
       ...(video ? { video } : {}),
@@ -307,6 +419,7 @@ function bangunDataset() {
       ...(eloPutih ? { eloPutih } : {}),
       ...(eloHitam ? { eloHitam } : {}),
       ...(turnamen ? { turnamen } : {}),
+      ...(anotasi || {}),
     };
 
     if (video) berVideo.push(entri);
@@ -322,15 +435,18 @@ function bangunDataset() {
   }));
 
   const paket = {
-    versi: 1,
+    versi: 2,
     jumlahVideo: berVideo.length,
+    jumlahLegenda: hitungLegenda,
+    jumlahStudi: hitungStudi,
+    jumlahAnotasi: hitungAnotasi,
     jumlahTotal: gabungan.length,
     problems: gabungan,
   };
 
   fs.writeFileSync(KELUARAN, `${JSON.stringify(paket)}\n`, "utf8");
   console.log(
-    `Selesai: ${gabungan.length} soal ditulis ke public/data/teka-teki-video.json (${berVideo.length} ber-video, ${arsipLain.length} arsip non-video, ${dilewati} dilewati).`
+    `Selesai: ${gabungan.length} soal ditulis ke public/data/teka-teki-video.json (${berVideo.length} video, ${hitungLegenda} legenda, ${hitungStudi} studi, ${hitungAnotasi} beranotasi PGN, ${dilewati} dilewati).`
   );
 }
 

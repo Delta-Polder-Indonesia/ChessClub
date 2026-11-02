@@ -15,6 +15,7 @@ dist/
 # "Cannot find module" hanya di Vercel — lokal dan CI tetap hijau karena
 # checkout-nya lengkap. Dijaga uji:integritas-suite.
 tests/
+scripts/data-sumber/
 playwright.config.js
 playwright-report/
 test-results/

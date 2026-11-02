@@ -26,6 +26,10 @@ export const tekaTekiRush = {
     durasi3: "3 menit",
     durasi5: "5 menit",
     menitSingkat: "menit",
+    modeSoalLabel: "Koleksi soal",
+    modeSkakmat: "Skakmat Klasik",
+    modeCampuran: "Taktik Campuran",
+    memuatCampuran: "Memuat arsip taktik…",
     mulai: "Mulai Rush",
     usernamePlaceholder: "Username Chess.com kamu",
     usernameKosong: "Username tidak boleh kosong.",
@@ -56,6 +60,7 @@ export const tekaTekiRush = {
     benar: "Benar!",
     salah: "Salah!",
     skakmat: "Skakmat!",
+    taktikTuntas: "Tuntas!",
     kesulitan: "Kesulitan soal ~{n}",
 
     // Layar hasil

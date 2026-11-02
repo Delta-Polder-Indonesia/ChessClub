@@ -810,6 +810,41 @@ judul("panel video pembahasan: menggantikan Syzygy, terkunci sebelum selesai, ta
       panggilanPlayOtomatis === 0,
     `panggilanPlayOtomatis=${panggilanPlayOtomatis}`
   );
+  uji(
+    "setelah soal selesai: tombol 'Bedah di Papan Analisa' tampil",
+    !!dok.querySelector('[data-aksi="buka-analisa"]')
+  );
+  uji(
+    "filter pelatih muncul pada koleksi Taktik + Video",
+    !!dok.querySelector("#wadah-pelatih") &&
+      dok.querySelector("#wadah-pelatih").options.length > 2
+  );
+
+  // Uji koleksi kurasi Partai Legenda Dunia & Studi Akhir Permainan
+  const sudahSelesaiSet = new Set(terpecahkan());
+  const soalLegendaPertama = soalTambahanVideo.find(
+    (p) =>
+      (p.kurasi || "").split(" ").includes("legenda") &&
+      !sudahSelesaiSet.has(p.problemid)
+  );
+  setterSelect.call(pilihKoleksiEl, "legenda");
+  pilihKoleksiEl.dispatchEvent(new window.Event("change", { bubbles: true }));
+  const legendaDimuat = await tungguSampai(
+    () => papanSama(soalLegendaPertama.fen),
+    3000
+  );
+  uji("koleksi Partai Legenda Dunia memuat soal legenda pertama", legendaDimuat);
+
+  const soalStudiPertama = soalTambahanVideo.find((p) =>
+    (p.kurasi || "").split(" ").includes("studi")
+  );
+  setterSelect.call(pilihKoleksiEl, "studi");
+  pilihKoleksiEl.dispatchEvent(new window.Event("change", { bubbles: true }));
+  const studiDimuat = await tungguSampai(
+    () => papanSama(soalStudiPertama.fen),
+    3000
+  );
+  uji("koleksi Studi Akhir Permainan memuat soal studi pertama", studiDimuat);
 
   // Kembalikan ke koleksi Skakmat Lichess agar pengujian berikutnya tetap berjalan di kolam bawaan
   setterSelect.call(pilihKoleksiEl, "lichess");

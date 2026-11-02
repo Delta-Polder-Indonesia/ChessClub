@@ -236,7 +236,11 @@ export default function TekaTekiRush() {
   const [warnaPapan, setWarnaPapan] = useState(bacaWarnaPapan);
 
   // Data soal.
+  const soalLichessRef = useRef([]);
+  const soalTambahanRef = useRef(null);
   const semuaSoalRef = useRef([]);
+  const [modeSoal, setModeSoal] = useState("skakmat");
+  const [memuatCampuran, setMemuatCampuran] = useState(false);
   const [gagalMuat, setGagalMuat] = useState(false);
   const [siap, setSiap] = useState(false);
   // Tombol "Coba lagi" pada layar galat mengulang pemuatan data soal.
@@ -339,7 +343,11 @@ export default function TekaTekiRush() {
         if (!aktif) return;
         const daftar = data.problems || [];
         if (!daftar.length) throw new Error("data kosong");
-        semuaSoalRef.current = daftar;
+        soalLichessRef.current = daftar;
+        semuaSoalRef.current =
+          modeSoal === "campuran" && soalTambahanRef.current
+            ? [...daftar, ...soalTambahanRef.current]
+            : daftar;
         setTerbaik(bacaTerbaik());
         setSiap(true);
       })
@@ -349,7 +357,37 @@ export default function TekaTekiRush() {
     return () => {
       aktif = false;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [percobaan]);
+
+  const pilihModeSoal = useCallback((modeBaru) => {
+    setModeSoal(modeBaru);
+    if (modeBaru === "skakmat") {
+      semuaSoalRef.current = soalLichessRef.current;
+      return;
+    }
+    if (soalTambahanRef.current) {
+      semuaSoalRef.current = [...soalLichessRef.current, ...soalTambahanRef.current];
+      return;
+    }
+    setMemuatCampuran(true);
+    fetch(`${import.meta.env.BASE_URL}data/teka-teki-video.json`)
+      .then((respon) => {
+        if (!respon.ok) throw new Error(`HTTP ${respon.status}`);
+        return respon.json();
+      })
+      .then((data) => {
+        const tambahan = data?.problems || [];
+        soalTambahanRef.current = tambahan;
+        semuaSoalRef.current = [...soalLichessRef.current, ...tambahan];
+        setMemuatCampuran(false);
+      })
+      .catch(() => {
+        setModeSoal("skakmat");
+        semuaSoalRef.current = soalLichessRef.current;
+        setMemuatCampuran(false);
+      });
+  }, []);
 
   /* ------------------------------------------------------- judul halaman */
   useEffect(() => {
@@ -628,7 +666,7 @@ export default function TekaTekiRush() {
         const nilai = skorRef.current + 1;
         skorRef.current = nilai;
         setSkor(nilai);
-        setFlash({ jenis: "benar" });
+        setFlash({ jenis: "benar", skakmat: g.isCheckmate() });
         setKomputer(false);
         setTransisi(true);
         mainkan(SUARA.tekaTekiTuntas);
@@ -1099,8 +1137,37 @@ export default function TekaTekiRush() {
             })}
           </div>
 
+          <p className="mt-6 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+            {t("tekaTekiRush.modeSoalLabel")}
+          </p>
+          <div className="mt-2.5 flex gap-3">
+            {[
+              ["skakmat", t("tekaTekiRush.modeSkakmat")],
+              ["campuran", t("tekaTekiRush.modeCampuran")],
+            ].map(([kode, label]) => {
+              const aktif = modeSoal === kode;
+              return (
+                <button
+                  key={kode}
+                  type="button"
+                  data-mode-rush={kode}
+                  aria-pressed={aktif}
+                  onClick={() => pilihModeSoal(kode)}
+                  className={`flex-1 cursor-pointer rounded-md border-2 px-3 py-2.5 text-center text-xs font-bold transition ${
+                    aktif
+                      ? "border-[#81b64c] text-[#b8dc8e]"
+                      : "border-[#363236] text-slate-300 hover:border-slate-500"
+                  }`}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+
           <button
             type="button"
+            disabled={memuatCampuran}
             onClick={() => {
               if (!usernameForm.trim()) {
                 setCobaMulai(true);
@@ -1108,9 +1175,9 @@ export default function TekaTekiRush() {
               }
               mulai(durasiMenit);
             }}
-            className="mt-6 w-full rounded-lg bg-[#81b64c] py-3.5 text-sm font-bold uppercase tracking-[0.14em] text-[#1e1c18] transition hover:bg-[#92c45f] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#81b64c]/60"
+            className="mt-6 w-full rounded-lg bg-[#81b64c] py-3.5 text-sm font-bold uppercase tracking-[0.14em] text-[#1e1c18] transition hover:bg-[#92c45f] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#81b64c]/60 disabled:opacity-50"
           >
-            {t("tekaTekiRush.mulai")}
+            {memuatCampuran ? t("tekaTekiRush.memuatCampuran") : t("tekaTekiRush.mulai")}
           </button>
         </div>
       </div>
@@ -1331,7 +1398,9 @@ export default function TekaTekiRush() {
                       }`}
                     >
                       {flash.jenis === "benar"
-                        ? t("tekaTekiRush.skakmat")
+                        ? flash.skakmat === false
+                          ? t("tekaTekiRush.taktikTuntas")
+                          : t("tekaTekiRush.skakmat")
                         : t("tekaTekiRush.salah")}
                     </span>
                   </div>

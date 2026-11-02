@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useI18n } from "../../lib/i18n.jsx";
 import { useSuara, SUARA } from "../../lib/suara.js";
 import { SOAL_CATUR, DAFTAR_KATEGORI, IKON_KATEGORI } from "./daftar.js";
+import PapanTekaTeki from "../TekaTeki/PapanTekaTeki.jsx";
 import { berkasPublik } from "../../lib/asets.js";
 import { gabungPeringkat } from "../../lib/peringkatKuis.js";
 import License from "../Analisa/komponen/svg/license.jsx";
@@ -562,9 +563,23 @@ export default function QuizCatur() {
             {t(`quiz.kategori.${soal.kategori}`)}
           </span>
         </div>
-        <div className="flex min-h-0 flex-1 items-center justify-center py-6">
+        <div className="flex min-h-0 flex-1 items-center justify-center overflow-y-auto py-4">
           <div className="w-full max-w-4xl">
-            <h2 className="text-center text-xl font-bold leading-relaxed text-[#fffaec] sm:text-2xl">
+            {soal.fen && (
+              <div
+                data-diagram-kuis="papan"
+                className="mx-auto mb-5 w-full max-w-[280px] sm:max-w-[320px] aspect-square overflow-hidden rounded-md shadow-xl ring-1 ring-black/30"
+              >
+                <PapanTekaTeki
+                  fen={soal.fen}
+                  orientasi={soal.orientasi || "w"}
+                  langkahAkhir={dipilih !== null ? soal.langkahBenar || null : null}
+                  tanda={{ panah: [], petak: {} }}
+                  terkunci
+                />
+              </div>
+            )}
+            <h2 className="text-center text-lg font-bold leading-relaxed text-[#fffaec] sm:text-xl">
               {soal.soal}
             </h2>
 
