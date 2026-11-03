@@ -344,6 +344,7 @@ export default function TekaTeki() {
    * terbuka.
    */
   const [bukaPengaturan, setBukaPengaturan] = useState(false);
+  const [tabPanelAktif, setTabPanelAktif] = useState("main");
 
   // Suara papan (MP3 di public/SoundChess) — sakelarnya dibagi dengan
   // halaman Papan Interaktif lewat localStorage.
@@ -2585,6 +2586,37 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
         {/* PANEL KANAN                                            */}
         {/* ═══════════════════════════════════════════════════════ */}
         <aside className="w-full lg:w-[480px] h-full bg-[#211f1c] border-t lg:border-t-0 lg:border-l border-[#312e2b] flex flex-col flex-shrink-0 min-h-0">
+          {/* Tab panel kanan — pola visual mengikuti Teka-teki Harian. */}
+          <div
+            role="tablist"
+            aria-label="Panel teka-teki"
+            className="grid grid-cols-3 gap-1 rounded-lg border border-[#312e2b] bg-[#262421] p-1 m-3 mb-0"
+          >
+            {[
+              ["main", "Main"],
+              ["video", "Video"],
+              ["pengaturan", "Pengaturan"],
+            ].map(([kunci, label]) => {
+              const aktif = tabPanelAktif === kunci;
+              return (
+                <button
+                  key={kunci}
+                  type="button"
+                  role="tab"
+                  aria-selected={aktif}
+                  data-tab={kunci}
+                  onClick={() => setTabPanelAktif(kunci)}
+                  className={`rounded-md px-2 py-1.5 text-xs font-bold transition ${
+                    aktif
+                      ? "bg-[#3d3a37] text-white shadow-sm"
+                      : "text-gray-400 hover:text-gray-200"
+                  }`}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
           {/* Nomor soal + status (di bawah teks soal) */}
           {(teksSoal || teksCekmat || teksSudah || teksSalah || teksPeringatan) && (
             <div className="flex-shrink-0 px-4 py-2 border-b border-[#312e2b] bg-[#262421] flex flex-col gap-1">
@@ -2637,7 +2669,9 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
             </div>
           ) : null}
 
-          {/* Panel Video Pembahasan */}
+          {tabPanelAktif === "main" && (
+          <>
+          {/* Konten utama panel dipertahankan seperti sebelumnya. */}
           <div className="flex-1 overflow-y-auto min-h-0 p-4 space-y-3 text-sm">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 min-w-0">
@@ -2800,6 +2834,16 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
               </div>
             )}
           </div>
+          </>
+          )}
+
+          {(tabPanelAktif === "video" || tabPanelAktif === "pengaturan") && (
+            <div
+              role="tabpanel"
+              data-panel={tabPanelAktif}
+              className="flex-1 min-h-0"
+            />
+          )}
 
           {engineNyala && (
             <div className="flex-shrink-0 border-b border-[#312e2b] bg-[#1e1c18] px-3 py-2 space-y-2">
