@@ -56,5 +56,6 @@ export const quiz = {
         notasi: "Chess Notation",
         sejarah: "History",
         umum: "General",
+        grandmaster: "Grandmaster Moves",
     },
 };

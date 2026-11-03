@@ -577,7 +577,7 @@ export function kerangkaRute(html, rute) {
   // agar tidak mengunduh gambar yang tidak diperlukan di halaman lain.
   const preloadAvatar =
     rute === "/teka-teki/problem"
-      ? `    <link rel="preload" as="image" href="${dasar}engine_expressions/coachdavid.png" fetchpriority="high" />`
+      ? `    <link rel="preload" as="image" href="${dasar}gambar_comentator/FritzConcentrated.webp" fetchpriority="high" />`
       : "";
   if (!json && !preloadAvatar) return hasil;
   const preloads = [

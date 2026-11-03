@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { MessageSquareText } from "lucide-react";
 import { Switch } from "./ui/switch.jsx";
 import RatingSVG from "../halaman/Analisa/komponen/svg/rating.jsx";
+import { berkasPublik } from "../lib/asets.js";
 import {
   AVATAR_BUKU,
   GAYA_KOMENTATOR,
@@ -59,6 +60,8 @@ export default function KartuKomentator({
   posisiAwal = false,
   saranAwan = null,
   ekspresiAwan = null,
+  catatanMaster = null,
+  bahasa = "id",
   nyala,
   setNyala,
   gaya,
@@ -89,12 +92,24 @@ export default function KartuKomentator({
     );
   }, [nyala, segmen, fakta, gaya, rating, evalSesudah, namaPembukaan, saranTerbaik, engineNyala, saranAwan, t]);
 
+  const teksTampil = useMemo(() => {
+    if (!nyala) return "";
+    if (posisiAwal) return t("papan.komentator.posisiAwal");
+    const kutipan = !segmen && catatanMaster ? (bahasa === "en" ? catatanMaster.en : catatanMaster.id) : "";
+    if (!kutipan) return kalimat || t("papan.komentator.menunggu");
+    if (!engineNyala) return kutipan;
+    const langkahBuruk =
+      rating === "inaccuracy" || rating === "mistake" || rating === "miss" || rating === "blunder";
+    if (langkahBuruk) return kalimat || kutipan;
+    return kutipan;
+  }, [nyala, posisiAwal, segmen, catatanMaster, bahasa, kalimat, engineNyala, rating, t]);
+
   // Animasi "muncul" ringan tiap kalimat berganti — cukup memberi kesan hidup
   // tanpa memindahkan tata letak.
   const [kunciAnimasi, setKunciAnimasi] = useState(0);
   useEffect(() => {
     setKunciAnimasi((k) => k + 1);
-  }, [kalimat]);
+  }, [teksTampil]);
 
   const ikonRating = ikon || (rating && rating !== "forced" ? rating : null);
   // Avatar karakter: engine mati → Fritz berkonsentrasi, KECUALI bila ada
@@ -163,21 +178,31 @@ export default function KartuKomentator({
           aria-live="polite"
           className="komentator-gelembung mt-3 flex min-h-[88px] shrink-0 items-center gap-2 sm:gap-3"
         >
-          {/* Avatar komentator: 160×160 (asetnya sudah diperkecil dari 600×600,
-              ±27 KiB → ±6,6 KiB) untuk tampilan 48–64 px. Sengaja TANPA
-              `fetchpriority="high"`: elemen LCP panel ini adalah teks judul
-              engine, dan prioritas tinggi pada gambar kecil membuat audit
-              PageSpeed menandainya sebagai pengiriman gambar yang boros. */}
-          <img
-            src="/engine_expressions/coachdavid.png"
-            alt=""
-            className="h-12 w-12 shrink-0 object-contain drop-shadow-md sm:h-16 sm:w-16"
-            width="64"
-            height="64"
-            loading="eager"
-            fetchpriority="high"
-            decoding="async"
-          />
+          {/* Avatar komentator mengikuti `gambarKomentator()`: selama posisi
+              masih di buku pembukaan / posisi awal tampilkan ikon buku tanpa
+              gambar karakter; di luar itu tampilkan karakter aktif tanpa
+              `fetchpriority="high"` agar tidak membebani prioritas unduhan
+              pada panel yang LCP-nya berupa teks judul. */}
+          {avatarBuku ? (
+            <span
+              data-avatar-komentator="book"
+              aria-hidden="true"
+              className="flex h-12 w-12 shrink-0 items-center justify-center drop-shadow-md sm:h-16 sm:w-16"
+            >
+              <RatingSVG rating={AVATAR_BUKU} size={44} />
+            </span>
+          ) : (
+            <img
+              data-avatar-komentator="karakter"
+              src={berkasPublik(gambarAvatar)}
+              alt=""
+              className="h-12 w-12 shrink-0 object-contain drop-shadow-md sm:h-16 sm:w-16"
+              width="64"
+              height="64"
+              loading="eager"
+              decoding="async"
+            />
+          )}
           <div className="relative min-w-0 flex-1 rounded-md border border-[#3b3935] bg-[#262421] p-2.5 sm:p-3">
             <span
               aria-hidden="true"
@@ -189,7 +214,7 @@ export default function KartuKomentator({
               </span>
             )}
             <p className="m-0 min-w-0 text-[13px] leading-5 text-gray-200">
-              {posisiAwal ? t("papan.komentator.posisiAwal") : kalimat || t("papan.komentator.menunggu")}
+              {teksTampil}
               {!posisiAwal && engineMenilai && (
                 <span className="ml-1 text-xs italic text-gray-500">{t("papan.komentator.menilai")}</span>
               )}

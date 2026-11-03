@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { Chess } from "chess.js";
+import { ExternalLink, Lock, Search, Video } from "lucide-react";
 import { ArrowRightIcon, ChevronStartIcon, ChevronLeftIcon, ChevronRightIcon, ChevronEndIcon } from "../../components/icons.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 import { ChessPiece } from "../../components/chess/ChessPiece.jsx";
@@ -52,6 +53,8 @@ const KUNCI_TIPE = {
   "Mate in One": "tekaTeki.skakmat1",
   "Mate in Two": "tekaTeki.skakmat2",
   "Mate in Three": "tekaTeki.skakmat3",
+  "Mate in More": "tekaTeki.skakmatPanjang",
+  Tactical: "tekaTeki.tipeTaktik",
 };
 /**
  * Kunci kamus label level (1–5) sesuai pita rating NACCL — sama dengan pilihan
@@ -137,16 +140,6 @@ const PILIHAN_WARNA_PAPAN = [
   ["metal", "papan.warnaMetal"],
 ];
 
-/** Warna chip kategori hasil tablebase Syzygy; labelnya lewat t("tekaTeki.syzygyKat.*"). */
-const PETA_KELAS_SYZYGY = {
-  win: "text-emerald-300",
-  "cursed-win": "text-lime-300",
-  draw: "text-slate-300",
-  "blessed-loss": "text-amber-300",
-  loss: "text-red-300",
-  unknown: "text-gray-400",
-};
-
 /** Urutan pilihan bidak promosi (menteri, benteng, gajah, kuda). */
 const PILIHAN_PROMOSI = ["q", "r", "b", "n"];
 const KUCI_NAMA_PROMOSI = {
@@ -170,19 +163,31 @@ function faktaDariKoordinat(fen, from, to, promo) {
   }
 }
 
-/**
- * Jumlah bidak pada FEN (bagian posisi saja). Dipakai menyaring permintaan
- * tablebase Syzygy: standar Lichess hanya menerima ≤7 bidak, sedangkan soal
- * skakmat umumnya jauh lebih penuh — permintaan yang pasti ditolak tidak
- * perlu dikirim.
- */
-function jumlahBidakFen(fen) {
-  const posisi = String(fen || "").split(" ")[0];
-  let jumlah = 0;
-  for (const ch of posisi) {
-    if (/[pnbrqkPNBRQK]/.test(ch)) jumlah += 1;
+/** Susun teks PGN standar (lengkap dengan SetUp + FEN) untuk dikirim ke Papan Analisa. */
+function bangunPgnUntukAnalisa(m) {
+  if (!m) return "";
+  if (m.pgnAnalisa) return m.pgnAnalisa;
+  try {
+    const catur = new Chess(m.fen);
+    for (const teks of String(m.moves || "").split(";").filter(Boolean)) {
+      const { from, to, promo } = parseLangkah(teks);
+      catur.move({ from, to, ...(promo ? { promotion: promo } : {}) });
+    }
+    const header = [
+      `[Event "${(m.judulSoal || m.turnamen || `Teka-Teki #${m.problemid}`).replace(/"/g, "'")}"]`,
+      `[White "${(m.pemainPutih || "Putih").replace(/"/g, "'")}"]`,
+      `[Black "${(m.pemainHitam || "Hitam").replace(/"/g, "'")}"]`,
+      ...(m.eloPutih ? [`[WhiteElo "${m.eloPutih}"]`] : []),
+      ...(m.eloHitam ? [`[BlackElo "${m.eloHitam}"]`] : []),
+      `[SetUp "1"]`,
+      `[FEN "${m.fen}"]`,
+      `[Result "*"]`,
+    ];
+    const langkahPgn = catur.pgn().replace(/^\[[^\]]*\]\s*/gm, "").trim();
+    return `${header.join("\n")}\n\n${langkahPgn || "*"}`;
+  } catch {
+    return "";
   }
-  return jumlah;
 }
 
 function bacaTerpecahkan() {
@@ -276,17 +281,21 @@ export default function TekaTeki() {
       : "");
 
   const [semuaSoal, setSemuaSoal] = useState(null);
+  const [soalTambahan, setSoalTambahan] = useState(null);
+  const [memuatKoleksi, setMemuatKoleksi] = useState(false);
   const [gagal, setGagal] = useState(false);
   // Tombol "Coba lagi" pada layar galat mengulang pemuatan data soal.
   const [percobaan, setPercobaan] = useState(0);
-  const [syzygy, setSyzygy] = useState(null);
-  const [syzygyMemuat, setSyzygyMemuat] = useState(false);
-  const [syzygyGagal, setSyzygyGagal] = useState(false);
+  const [videoGagal, setVideoGagal] = useState(false);
   const [indeks, setIndeks] = useState(0);
+  const [filterKoleksi, setFilterKoleksi] = useState("lichess");
+  const [filterPelatih, setFilterPelatih] = useState("semua");
   const [filterTipe, setFilterTipe] = useState("semua");
   const [filterLevel, setFilterLevel] = useState("semua");
   const [filterTema, setFilterTema] = useState("semua");
   const [filterGiliran, setFilterGiliran] = useState("semua");
+  const lewatiRefilterRef = useRef(false);
+  const koleksiSebelumnyaRef = useRef("lichess");
 
   const [fen, setFen] = useState("");
   const [sisa, setSisa] = useState([]);
@@ -509,9 +518,119 @@ export default function TekaTeki() {
     cobaLangkah(pindah.from, pindah.to, pindah.promotion);
   }
 
+  const janjiKoleksiRef = useRef(null);
+  const koleksiDimintaRef = useRef("lichess");
+  const hidupKoleksiRef = useRef(true);
+  useEffect(() => {
+    hidupKoleksiRef.current = true;
+    return () => {
+      hidupKoleksiRef.current = false;
+    };
+  }, []);
+
+  const unduhKoleksiTambahan = useCallback(() => {
+    if (janjiKoleksiRef.current) return janjiKoleksiRef.current;
+    const janji = fetch(`${import.meta.env.BASE_URL}data/teka-teki-video.json`)
+      .then((respon) => {
+        if (!respon.ok) throw new Error(`HTTP ${respon.status}`);
+        return respon.json();
+      })
+      .then((data) => {
+        const mentah = data?.problems || [];
+        if (!mentah.length) throw new Error("data tambahan kosong");
+        return mentah.map((item) => {
+          const videoBersih = urlVideoSah(item?.video);
+          const tanggalBersih = tanggalVideoSah(item?.tanggal);
+          return {
+            ...item,
+            ...(item?.pembukaan ? { pembukaan: standarkanNamaPembukaan(item.pembukaan) } : {}),
+            video: videoBersih || undefined,
+            tanggal: tanggalBersih || undefined,
+          };
+        });
+      })
+      .catch((err) => {
+        janjiKoleksiRef.current = null;
+        throw err;
+      });
+    janjiKoleksiRef.current = janji;
+    return janji;
+  }, []);
+
+  const pilihKoleksi = useCallback(
+    (koleksiBaru) => {
+      if (koleksiBaru === filterKoleksi && !memuatKoleksi) return;
+      koleksiDimintaRef.current = koleksiBaru;
+      window.clearTimeout(timerOtomatis.current);
+      setGalatNomor(null);
+      setNomorSoal("");
+      setFilterPelatih("semua");
+      if (koleksiBaru === "lichess") {
+        setMemuatKoleksi(false);
+        if (filterTipe === "Mate in More" || filterTipe === "Tactical") {
+          setFilterTipe("semua");
+        }
+        setFilterKoleksi("lichess");
+        return;
+      }
+      if (soalTambahan) {
+        setMemuatKoleksi(false);
+        setFilterKoleksi(koleksiBaru);
+        return;
+      }
+      setMemuatKoleksi(true);
+      unduhKoleksiTambahan()
+        .then((daftarTambahan) => {
+          if (!hidupKoleksiRef.current) return;
+          setSoalTambahan(daftarTambahan);
+          setMemuatKoleksi(false);
+          if (koleksiDimintaRef.current !== "lichess") {
+            setFilterKoleksi(koleksiDimintaRef.current);
+          }
+        })
+        .catch(() => {
+          if (!hidupKoleksiRef.current) return;
+          setMemuatKoleksi(false);
+          if (koleksiDimintaRef.current !== "lichess") {
+            setPesan({ jenis: "peringatan", teks: t("tekaTeki.gagalMuat") });
+          }
+        });
+    },
+    [filterKoleksi, filterTipe, memuatKoleksi, soalTambahan, unduhKoleksiTambahan, t]
+  );
+
+  const kolamAktif = useMemo(() => {
+    if (filterKoleksi === "lichess") return semuaSoal;
+    if (!soalTambahan) return null;
+    if (filterKoleksi === "video") {
+      return soalTambahan.filter((m) => Boolean(m.video));
+    }
+    if (filterKoleksi === "legenda") {
+      return soalTambahan.filter((m) => (m.kurasi || "").split(" ").includes("legenda"));
+    }
+    if (filterKoleksi === "studi") {
+      return soalTambahan.filter((m) => (m.kurasi || "").split(" ").includes("studi"));
+    }
+    return soalTambahan;
+  }, [filterKoleksi, semuaSoal, soalTambahan]);
+
+  const daftarPelatih = useMemo(() => {
+    if (!kolamAktif || filterKoleksi === "lichess") return [];
+    const hitung = new Map();
+    for (const m of kolamAktif) {
+      if (m.pelatih) hitung.set(m.pelatih, (hitung.get(m.pelatih) || 0) + 1);
+    }
+    return [...hitung.entries()]
+      .filter(([, n]) => n >= 2)
+      .sort((a, b) => b[1] - a[1]);
+  }, [kolamAktif, filterKoleksi]);
+
   const soal = useMemo(() => {
-    if (!semuaSoal) return null;
-    let hasil = semuaSoal;
+    if (!kolamAktif) return null;
+    let hasil = kolamAktif;
+    if (filterPelatih !== "semua") {
+      hasil = hasil.filter((m) => m.pelatih === filterPelatih);
+    }
     if (filterTipe !== "semua") hasil = hasil.filter((m) => m.type === filterTipe);
     if (filterLevel !== "semua")
       hasil = hasil.filter((m) => PITA_LEVEL[filterLevel](m.rating ?? 0));
@@ -519,20 +638,36 @@ export default function TekaTeki() {
       hasil = hasil.filter((m) => (m.tema || "").split(" ").includes(filterTema));
     if (filterGiliran !== "semua") hasil = hasil.filter((m) => m.first === filterGiliran);
     return hasil;
-  }, [semuaSoal, filterTipe, filterLevel, filterTema, filterGiliran]);
+  }, [kolamAktif, filterPelatih, filterTipe, filterLevel, filterTema, filterGiliran]);
 
   const masalah = soal?.[indeks];
+
+  const bukaDiAnalisa = useCallback(() => {
+    if (!masalah) return;
+    const pgn = bangunPgnUntukAnalisa(masalah);
+    if (!pgn) return;
+    window.clearTimeout(timerOtomatis.current);
+    coba(
+      () => sessionStorage.setItem("kci-analisa-impor-awal", pgn),
+      "titip PGN ke papan analisa"
+    );
+    navigate("/program-kami/analisa/papan");
+  }, [masalah, navigate]);
   const langkahPenuh = masalah ? masalah.moves.split(";") : [];
   const posisiLangkah = Math.max(0, langkahPenuh.length - sisa.length);
 
-  const simpanPosisi = useCallback((id) => {
-    if (!ingatPosisiRef.current) return;
-    coba(
-      () => localStorage.setItem(KUNCI_POSISI, String(id)),
-      "simpan posisi terakhir"
-    );
-    setPosisiTersimpan(id);
-  }, []);
+  const simpanPosisi = useCallback(
+    (id) => {
+      if (!ingatPosisiRef.current) return;
+      if (semuaSoal && id > semuaSoal.length) return;
+      coba(
+        () => localStorage.setItem(KUNCI_POSISI, String(id)),
+        "simpan posisi terakhir"
+      );
+      setPosisiTersimpan(id);
+    },
+    [semuaSoal]
+  );
 
   /*
    * `replace: true` — nomor soal ditulis ke alamat supaya bisa dibagikan,
@@ -553,7 +688,7 @@ export default function TekaTeki() {
         if (!respon.ok) throw new Error(`HTTP ${respon.status}`);
         return respon.json();
       })
-      .then((data) => {
+      .then(async (data) => {
         if (!aktif) return;
         const daftarMentah = data.problems || [];
         if (!daftarMentah.length) throw new Error("data kosong");
@@ -563,6 +698,35 @@ export default function TekaTeki() {
             : item
         );
         const idParam = Number(idPath);
+
+        if (Number.isInteger(idParam) && idParam > daftar.length) {
+          try {
+            const daftarTambahan = await unduhKoleksiTambahan();
+            if (!aktif) return;
+            const target = daftarTambahan.find((m) => m.problemid === idParam);
+            if (target) {
+              const koleksiTarget = target.video ? "video" : "arsip";
+              const kolamTarget =
+                koleksiTarget === "video"
+                  ? daftarTambahan.filter((m) => Boolean(m.video))
+                  : daftarTambahan;
+              const idxTarget = kolamTarget.findIndex((m) => m.problemid === idParam);
+              lewatiRefilterRef.current = true;
+              koleksiSebelumnyaRef.current = koleksiTarget;
+              koleksiDimintaRef.current = koleksiTarget;
+              setSemuaSoal(daftar);
+              setSoalTambahan(daftarTambahan);
+              setFilterKoleksi(koleksiTarget);
+              setIndeks(idxTarget >= 0 ? idxTarget : 0);
+              terapkanSoal(target);
+              perbaruiUrlSoal(target.problemid);
+              return;
+            }
+          } catch {
+            if (!aktif) return;
+          }
+        }
+
         let awalDiminta;
         let idTidakDitemukan = false;
         if (idParam >= 1 && idParam <= daftar.length) {
@@ -627,11 +791,17 @@ export default function TekaTeki() {
   }, [percobaan]);
 
   useEffect(() => {
+    if (lewatiRefilterRef.current) {
+      lewatiRefilterRef.current = false;
+      return;
+    }
+    const gantiKoleksi = koleksiSebelumnyaRef.current !== filterKoleksi;
+    koleksiSebelumnyaRef.current = filterKoleksi;
     if (!soal?.length) {
       setIndeks(-1);
       return;
     }
-    const awalDiminta = Math.max(0, indeks);
+    const awalDiminta = gantiKoleksi ? 0 : Math.max(0, indeks);
     const safeIdx = cariIndeksBelumTerpecahkan(soal, awalDiminta, terpecahkan);
     if (safeIdx === -1) {
       setIndeks(-1);
@@ -646,55 +816,11 @@ export default function TekaTeki() {
     // soal/indeks ikut dipantau, tiap pindah soal posisi yang sama akan
     // dipasang ulang. Riwayat dibaca saat filter berubah.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterTipe, filterLevel, filterTema, filterGiliran]);
+  }, [filterKoleksi, filterPelatih, filterTipe, filterLevel, filterTema, filterGiliran]);
 
   useEffect(() => {
     document.title = `${t("tekaTeki.judul")} | ${t("common.namaKomunitas")}`;
   }, [t]);
-
-  useEffect(() => {
-    if (!fen) return;
-    // Jangan tampilkan hasil atau status gagal dari posisi sebelumnya.
-    setSyzygy(null);
-    setSyzygyGagal(false);
-    // Tablebase standar hanya untuk ≤7 bidak. Posisinga sendiri biasanya jauh
-    // lebih penuh; mengirim permintaan yang pasti ditolak hanya membebani
-    // jaringan (dan sempat membuat panel diam tanpa penjelasan).
-    if (jumlahBidakFen(fen) > 7) {
-      setSyzygyMemuat(false);
-      setSyzygyGagal(true);
-      return undefined;
-    }
-    setSyzygyMemuat(true);
-    let aktif = true;
-    const timer = window.setTimeout(() => {
-      fetch(
-        `https://tablebase.lichess.ovh/standard?fen=${encodeURIComponent(fen)}`
-      )
-        .then((respon) => {
-          if (!respon.ok) throw new Error(`HTTP ${respon.status}`);
-          return respon.json();
-        })
-        .then((data) => {
-          if (aktif) {
-            setSyzygy(data);
-            setSyzygyMemuat(false);
-            setSyzygyGagal(false);
-          }
-        })
-        .catch(() => {
-          if (aktif) {
-            setSyzygy(null);
-            setSyzygyMemuat(false);
-            setSyzygyGagal(true);
-          }
-        });
-    }, 300);
-    return () => {
-      aktif = false;
-      window.clearTimeout(timer);
-    };
-  }, [fen]);
 
   // Pesan salah dan peringatan otomatis hilang setelah beberapa detik.
   useEffect(() => {
@@ -724,7 +850,7 @@ export default function TekaTeki() {
       () => localStorage.setItem(KUNCI_WARNA_PAPAN, warnaPapan),
       "simpan warna papan"
     );
-  }, [warnaPapan]);
+  }, [setWarnaPapan, warnaPapan]);
 
   useEffect(() => {
     coba(
@@ -748,8 +874,8 @@ export default function TekaTeki() {
 
   /**
    * Pasang satu soal ke papan. `pertahankanSelesai` dipakai mode review
-   * setelah cekmat: papan kembali ke posisi awal soal, tetapi status selesai
-   * beserta pesan "terpecahkan" dibiarkan supaya tombol maju tetap aktif.
+   * setelah soal tuntas: papan kembali ke posisi awal soal, tetapi status
+   * selesai beserta pesan tuntas dibiarkan supaya tombol maju & video tetap aktif.
    */
   const terapkanSoal = useCallback((m, { pertahankanSelesai = false } = {}) => {
     setFen(m.fen);
@@ -769,9 +895,7 @@ export default function TekaTeki() {
     hapusSemuaTanda();
     setSedangSeret(false);
     setPromosi(null);
-    setSyzygy(null);
-    setSyzygyMemuat(false);
-    setSyzygyGagal(false);
+    setVideoGagal(false);
     setKomentar({ tahap: "mulai", fakta: null, fen: m.fen });
   }, [hapusSemuaTanda]);
 
@@ -951,7 +1075,10 @@ export default function TekaTeki() {
       bunyikanLangkah(langkahPemain, lanjut);
       window.setTimeout(() => bunyikan(SUARA.tekaTekiTuntas), 220);
       setSelesai(true);
-      setPesan({ jenis: "selesai", teks: t("tekaTeki.terpecahkan") });
+      setPesan({
+        jenis: "selesai",
+        teks: t(lanjut.isCheckmate() ? "tekaTeki.terpecahkan" : "tekaTeki.taktikTerpecahkan"),
+      });
       setKomentar({ tahap: "selesai", fakta: faktaLangkah(fen, langkahPemain.san), fen: lanjut.fen() });
       catatTerpecahkan(masalah.problemid);
       if (otomatis) {
@@ -1379,12 +1506,6 @@ export default function TekaTeki() {
           ? "best"
           : null;
 
-  /** Label dwibahasa kategori Syzygy — mentah bila kategori di luar kamus. */
-  function teksKategoriSyzygy(kat) {
-    const hasil = t(`tekaTeki.syzygyKat.${kat}`);
-    return hasil === `tekaTeki.syzygyKat.${kat}` ? kat : hasil;
-  }
-
   // Papan re-usable untuk ditempatkan di wadah gelap.
   /** Label tema dari kamus — dipakai keadaan memuat DAN keadaan siap supaya
    *  daftar tema tidak sempat tampil dalam bahasa Inggris bawaan
@@ -1580,7 +1701,7 @@ export default function TekaTeki() {
           </button>
         </div>
       ) : !masalah ? (
-        semuaSoal ? (
+        kolamAktif && !memuatKoleksi ? (
           <div className="flex min-h-screen items-center justify-center bg-[#262421] px-6 py-10">
             <p className="max-w-md rounded-md border border-amber-900 bg-amber-950/40 px-4 py-3 text-sm leading-6 text-amber-300">
               {soal?.length && soal.every((m) => terpecahkan.has(m.problemid))
@@ -1589,15 +1710,11 @@ export default function TekaTeki() {
             </p>
           </div>
         ) : (
-          /* Kerangka layar penuh selama `teka-teki.json` (±558 KiB) diunduh.
-             Dulu cabang ini hanya teks "Memuat…" sehingga seluruh tata letak —
-             termasuk judul merek yang menjadi elemen LCP rute ini — baru dicat
-             setelah data mendarat (PageSpeed: LCP 7,2 dtk). Tata letaknya
-             dirender lebih dulu tanpa data: papan memakai versi contoh
-             (prop `papan` kosong), jadi ukurannya identik dan tidak ada
-             pergeseran tata letak saat soal asli masuk. */
+          /* Kerangka layar penuh selama data soal diunduh. */
           <LayoutTekaTeki
             memuat
+            nilaiKoleksi={filterKoleksi}
+            onGantiKoleksi={pilihKoleksi}
             nilaiTotalSoal={0}
             opsiTema={opsiTemaKamus}
           />
@@ -1611,20 +1728,29 @@ export default function TekaTeki() {
               giliran={(fen && fen.split(" ")[1] === "b") ? "hitam" : "putih"}
               // langkahPenuh menyimpan setengah-langkah (ply), sedangkan label
               // "Skak dalam N langkah" harus menghitung langkah pihak yang
-              // mencari skakmat: mate-in-3 = 5 ply solusi, bukan 5 langkah.
+              // mencari solusi: mate-in-3 = 5 ply solusi, bukan 5 langkah.
               jumlahLangkah={Math.ceil(langkahPenuh.length / 2)}
-              syzygy={syzygy}
-              syzygyMemuat={syzygyMemuat}
-              syzygyGagal={syzygyGagal}
-              teksSyzygyMemuat={t("tekaTeki.syzygyMenganalisis")}
-              teksSyzygyGagal={t("tekaTeki.syzygyGagal")}
-              fen={fen}
-              teksKategoriSyzygy={teksKategoriSyzygy}
-              PETA_KELAS_SYZYGY={PETA_KELAS_SYZYGY}
-              syzygyJudul={t("tekaTeki.syzygyJudul")}
-              syzygyDidukung={t("tekaTeki.syzygyDidukung")}
-              syzygyDetail={t("tekaTeki.syzygyDetail")}
-              syzygyCatatan={t("tekaTeki.syzygyCatatan")}
+              bukanSkakmat={masalah?.type === "Tactical"}
+              selesai={selesai}
+              videoUrl={masalah?.video || ""}
+              videoPelatih={masalah?.pelatih || ""}
+              videoJudulSoal={masalah?.judulSoal || ""}
+              videoTurnamen={masalah?.turnamen || ""}
+              videoTanggal={masalah?.tanggal || ""}
+              videoGagal={videoGagal}
+              catatanLangkah={masalah?.catatanLangkah || null}
+              jumlahVariasi={masalah?.jumlahVariasi || 0}
+              simbolNag={masalah?.simbolNag || ""}
+              memuatKoleksi={memuatKoleksi}
+              onPutarVideo={() => window.clearTimeout(timerOtomatis.current)}
+              onGalatVideo={() => setVideoGagal(true)}
+              onBukaKoleksiVideo={() => pilihKoleksi("video")}
+              onBukaAnalisa={bukaDiAnalisa}
+              nilaiKoleksi={filterKoleksi}
+              onGantiKoleksi={pilihKoleksi}
+              daftarPelatih={daftarPelatih}
+              nilaiPelatih={filterPelatih}
+              onGantiPelatih={setFilterPelatih}
               teksSoal={masalah ? t("tekaTeki.soal", { n: indeks + 1, total: soal.length }) : ""}
               teksTingkat={masalah ? t(KUNCI_LEVEL[bandLevel(masalah.rating ?? 0)]) : ""}
               teksTipe={masalah ? t(KUNCI_TIPE[masalah.type] || "") : ""}
@@ -1665,7 +1791,11 @@ export default function TekaTeki() {
                     ? "2"
                     : filterTipe === "Mate in Three"
                       ? "3"
-                      : "semua"
+                      : filterTipe === "Mate in More"
+                        ? "4+"
+                        : filterTipe === "Tactical"
+                          ? "taktik"
+                          : "semua"
               }
               onGantiLangkah={(v) =>
                 setFilterTipe(
@@ -1675,7 +1805,11 @@ export default function TekaTeki() {
                       ? "Mate in One"
                       : v === "2"
                         ? "Mate in Two"
-                        : "Mate in Three"
+                        : v === "3"
+                          ? "Mate in Three"
+                          : v === "4+"
+                            ? "Mate in More"
+                            : "Tactical"
                 )
               }
               nilaiTema={filterTema}
@@ -1800,6 +1934,21 @@ const TAB = [
   },
 ];
 
+/** Validasi runtime URL video MP4 & tanggal harian agar hanya domain CSP sah yang pernah dirender. */
+const POLA_URL_VIDEO_SAH =
+  /^https:\/\/(media\.chesscomfiles\.com|chesscom-videos\.s3\.amazonaws\.com)\/[^\s"<>]+\.mp4$/i;
+const POLA_TANGGAL_VIDEO_SAH = /^\d{4}-\d{2}-\d{2}$/;
+
+function urlVideoSah(url) {
+  const bersih = typeof url === "string" ? url.trim() : "";
+  return POLA_URL_VIDEO_SAH.test(bersih) ? bersih : "";
+}
+
+function tanggalVideoSah(tanggal) {
+  const bersih = typeof tanggal === "string" ? tanggal.trim() : "";
+  return POLA_TANGGAL_VIDEO_SAH.test(bersih) ? bersih : "";
+}
+
 /** Opsi tema cadangan bila tidak dikirim dari halaman utama. */
 const OPSI_TEMA_BAWAAN = [
   { grup: "Skakmat", isi: [["backRankMate", "Back Rank Mate"], ["smotheredMate", "Smothered Mate"], ["promotion", "Promotion"]] },
@@ -1807,13 +1956,18 @@ const OPSI_TEMA_BAWAAN = [
   { grup: "Karakteristik", isi: [["endgame", "Endgame"], ["middlegame", "Middlegame"], ["opening", "Opening"]] },
 ];
 
-function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = false, onGantiPengaturan = null, onFlip = null, giliran = "putih", jumlahLangkah = 1, syzygy = null, syzygyMemuat = false, syzygyGagal = false, teksSyzygyMemuat = "", teksSyzygyGagal = "", fen = "", teksKategoriSyzygy = null, PETA_KELAS_SYZYGY = null, syzygyJudul = "", syzygyDidukung = "", syzygyDetail = "", syzygyCatatan = "", teksSoal = "", teksTingkat = "", teksTipe = "", teksTerpecahkan = "", teksCekmat = "", teksSudah = "", daftarSet = [], nilaiSetBidak = "merida", onGantiSetBidak = null, pilihanWarnaPapan = [], nilaiWarnaPapan = "green", onGantiWarnaPapan = null, nilaiSuara = true, onGantiSuara = null, onAcak = null, onLewati = null, nilaiOtomatis = false, onGantiOtomatis = null, engineNyala = false, onGantiEngine = null, tampilPanahMesin = true, onGantiPanahMesin = null, teksPanahMesin = "", nilaiLevel = "semua", onGantiLevel = null, nilaiLangkah = "semua", onGantiLangkah = null, nilaiTema = "semua", opsiTema = [], onGantiTema = null, nilaiGiliran = "semua", onGantiGiliran = null, nilaiNomorSoal = "", nilaiTotalSoal = 0, onGantiNomorSoal = null, nilaiIngatPosisi = true, onGantiIngatPosisi = null, teksPosisiTersimpan = "", teksIngatNonaktif = "", teksGalatNomor = "", onBukaNomor = null, bisaHint = false, onHint = null, teksSalah = "", teksPeringatan = "", kartuKomentator = null, kecepatanEngine = 800, opsiKecepatan = [], onGantiKecepatan = null, pvSanEngine = [], onMainkanSaran = null, onKeAwal = null, onMundur = null, onMaju = null, onKeAkhir = null, bisaMundur = false, bisaMaju = false, onPertama = null, eloSoal = 1500, namaHitam = "", eloHitam = 0, namaPutih = "", eloPutih = 0, teksPembukaan = "", komentatorNyala = false, memuat = false }) {
+function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = false, onGantiPengaturan = null, onFlip = null, giliran = "putih", jumlahLangkah = 1, bukanSkakmat = false, selesai = false, videoUrl = "", videoPelatih = "", videoJudulSoal = "", videoTurnamen = "", videoTanggal = "", videoGagal = false, catatanLangkah = null, jumlahVariasi = 0, simbolNag = "", memuatKoleksi = false, onPutarVideo = null, onGalatVideo = null, onBukaKoleksiVideo = null, onBukaAnalisa = null, nilaiKoleksi = "lichess", onGantiKoleksi = null, daftarPelatih = [], nilaiPelatih = "semua", onGantiPelatih = null, teksSoal = "", teksTingkat = "", teksTipe = "", teksTerpecahkan = "", teksCekmat = "", teksSudah = "", daftarSet = [], nilaiSetBidak = "merida", onGantiSetBidak = null, pilihanWarnaPapan = [], nilaiWarnaPapan = "green", onGantiWarnaPapan = null, nilaiSuara = true, onGantiSuara = null, onAcak = null, onLewati = null, nilaiOtomatis = false, onGantiOtomatis = null, engineNyala = false, onGantiEngine = null, tampilPanahMesin = true, onGantiPanahMesin = null, teksPanahMesin = "", nilaiLevel = "semua", onGantiLevel = null, nilaiLangkah = "semua", onGantiLangkah = null, nilaiTema = "semua", opsiTema = [], onGantiTema = null, nilaiGiliran = "semua", onGantiGiliran = null, nilaiNomorSoal = "", nilaiTotalSoal = 0, onGantiNomorSoal = null, nilaiIngatPosisi = true, onGantiIngatPosisi = null, teksPosisiTersimpan = "", teksIngatNonaktif = "", teksGalatNomor = "", onBukaNomor = null, bisaHint = false, onHint = null, teksSalah = "", teksPeringatan = "", kartuKomentator = null, kecepatanEngine = 800, opsiKecepatan = [], onGantiKecepatan = null, pvSanEngine = [], onMainkanSaran = null, onKeAwal = null, onMundur = null, onMaju = null, onKeAkhir = null, bisaMundur = false, bisaMaju = false, onPertama = null, eloSoal = 1500, namaHitam = "", eloHitam = 0, namaPutih = "", eloPutih = 0, teksPembukaan = "", komentatorNyala = false, memuat = false }) {
   const { t } = useI18n();
   // Default prop sengaja kosong: teksnya selalu dari kamus.
   const labelPanahMesin = teksPanahMesin || t("papan.enginePanahToggle");
   const papanStatic = papanSampel();
   const file = ["a", "b", "c", "d", "e", "f", "g", "h"];
   const daftarTema = opsiTema.length ? opsiTema : OPSI_TEMA_BAWAAN;
+  const videoUrlAman = urlVideoSah(videoUrl);
+  const videoTanggalAman = tanggalVideoSah(videoTanggal);
+  const tautanSumberVideo = videoTanggalAman
+    ? `https://www.chess.com/daily-chess-puzzle/${videoTanggalAman}`
+    : "https://www.chess.com/daily-chess-puzzle";
 
   // Pengaturan (gear): state-nya milik halaman (lihat `bukaPengaturan` di
   // komponen halaman) supaya pintasan panah ikut terkunci saat panel terbuka.
@@ -1836,21 +1990,56 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
         <aside className="w-full lg:w-[220px] bg-[#1e1c18] flex flex-col justify-between py-4 border-r border-b lg:border-b-0 border-[#312e2b] flex-shrink-0">
           <div>
             {/* Brand */}
-            <div className="px-5 mb-6 flex items-center">
+            <div className="px-5 mb-4 flex items-center">
               <span className="font-bold text-[22px] tracking-tight text-white leading-none">
                 Blunder<span className="text-[#81b64c]">Skuad</span>
               </span>
             </div>
 
             {/* Filter Controls */}
-            <div className="px-5 pt-2 space-y-4">
-              <div className="flex flex-col gap-1.5">
+            <div className="px-5 pt-1 space-y-3">
+              <div className="flex flex-col gap-1">
+                <label htmlFor="wadah-koleksi" className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{t("tekaTeki.labelKoleksi")}</label>
+                <select
+                  id="wadah-koleksi"
+                  value={nilaiKoleksi}
+                  onChange={(e) => onGantiKoleksi && onGantiKoleksi(e.target.value)}
+                  className="w-full rounded-md border border-slate-600 bg-[#262421] px-2.5 py-1.5 text-sm text-gray-200 outline-none transition focus:border-[#81b64c] focus:ring-2 focus:ring-[#81b64c]/20"
+                >
+                  <option value="lichess">{t("tekaTeki.koleksiLichess")}</option>
+                  <option value="video">{t("tekaTeki.koleksiVideo")}</option>
+                  <option value="legenda">{t("tekaTeki.koleksiLegenda")}</option>
+                  <option value="studi">{t("tekaTeki.koleksiStudi")}</option>
+                  <option value="arsip">{t("tekaTeki.koleksiArsip")}</option>
+                </select>
+              </div>
+
+              {daftarPelatih.length > 0 && (
+                <div className="flex flex-col gap-1">
+                  <label htmlFor="wadah-pelatih" className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{t("tekaTeki.labelPelatih")}</label>
+                  <select
+                    id="wadah-pelatih"
+                    value={nilaiPelatih}
+                    onChange={(e) => onGantiPelatih && onGantiPelatih(e.target.value)}
+                    className="w-full rounded-md border border-slate-600 bg-[#262421] px-2.5 py-1.5 text-sm text-gray-200 outline-none transition focus:border-[#81b64c] focus:ring-2 focus:ring-[#81b64c]/20"
+                  >
+                    <option value="semua">{t("tekaTeki.semuaPelatih")}</option>
+                    {daftarPelatih.map(([nama, cacah]) => (
+                      <option key={nama} value={nama}>
+                        {nama} ({cacah})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              <div className="flex flex-col gap-1">
                 <label htmlFor="wadah-level" className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{t("tekaTeki.labelLevel")}</label>
                 <select
                   id="wadah-level"
                   value={nilaiLevel}
                   onChange={(e) => onGantiLevel && onGantiLevel(e.target.value)}
-                  className="w-full rounded-md border border-slate-600 bg-[#262421] px-2.5 py-2 text-sm text-gray-200 outline-none transition focus:border-[#81b64c] focus:ring-2 focus:ring-[#81b64c]/20"
+                  className="w-full rounded-md border border-slate-600 bg-[#262421] px-2.5 py-1.5 text-sm text-gray-200 outline-none transition focus:border-[#81b64c] focus:ring-2 focus:ring-[#81b64c]/20"
                 >
                   <option value="semua">{t("tekaTeki.semuaLevel")}</option>
                   <option value="1">{t("tekaTeki.sangatMudah")}</option>
@@ -1861,28 +2050,34 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
                 </select>
               </div>
 
-              <div className="flex flex-col gap-1.5">
+              <div className="flex flex-col gap-1">
                 <label htmlFor="wadah-langkah" className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{t("tekaTeki.labelLangkah")}</label>
                 <select
                   id="wadah-langkah"
                   value={nilaiLangkah}
                   onChange={(e) => onGantiLangkah && onGantiLangkah(e.target.value)}
-                  className="w-full rounded-md border border-slate-600 bg-[#262421] px-2.5 py-2 text-sm text-gray-200 outline-none transition focus:border-[#81b64c] focus:ring-2 focus:ring-[#81b64c]/20"
+                  className="w-full rounded-md border border-slate-600 bg-[#262421] px-2.5 py-1.5 text-sm text-gray-200 outline-none transition focus:border-[#81b64c] focus:ring-2 focus:ring-[#81b64c]/20"
                 >
                   <option value="semua">{t("tekaTeki.semua")}</option>
                   <option value="1">{t("tekaTeki.langkahSatu")}</option>
                   <option value="2">{t("tekaTeki.langkahDua")}</option>
                   <option value="3">{t("tekaTeki.langkahTiga")}</option>
+                  {nilaiKoleksi !== "lichess" && (
+                    <>
+                      <option value="4+">{t("tekaTeki.langkahEmpatPlus")}</option>
+                      <option value="taktik">{t("tekaTeki.langkahTaktik")}</option>
+                    </>
+                  )}
                 </select>
               </div>
 
-              <div className="flex flex-col gap-1.5">
+              <div className="flex flex-col gap-1">
                 <label htmlFor="wadah-tema" className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{t("tekaTeki.labelTema")}</label>
                 <select
                   id="wadah-tema"
                   value={nilaiTema}
                   onChange={(e) => onGantiTema && onGantiTema(e.target.value)}
-                  className="w-full rounded-md border border-slate-600 bg-[#262421] px-2.5 py-2 text-sm text-gray-200 outline-none transition focus:border-[#81b64c] focus:ring-2 focus:ring-[#81b64c]/20"
+                  className="w-full rounded-md border border-slate-600 bg-[#262421] px-2.5 py-1.5 text-sm text-gray-200 outline-none transition focus:border-[#81b64c] focus:ring-2 focus:ring-[#81b64c]/20"
                 >
                   <option value="semua">{t("tekaTeki.semuaTema")}</option>
                   {daftarTema.map((g) => (
@@ -1897,13 +2092,13 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
                 </select>
               </div>
 
-              <div className="flex flex-col gap-1.5">
+              <div className="flex flex-col gap-1">
                 <label htmlFor="wadah-giliran" className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{t("tekaTeki.labelGiliran")}</label>
                 <select
                   id="wadah-giliran"
                   value={nilaiGiliran}
                   onChange={(e) => onGantiGiliran && onGantiGiliran(e.target.value)}
-                  className="w-full rounded-md border border-slate-600 bg-[#262421] px-2.5 py-2 text-sm text-gray-200 outline-none transition focus:border-[#81b64c] focus:ring-2 focus:ring-[#81b64c]/20"
+                  className="w-full rounded-md border border-slate-600 bg-[#262421] px-2.5 py-1.5 text-sm text-gray-200 outline-none transition focus:border-[#81b64c] focus:ring-2 focus:ring-[#81b64c]/20"
                 >
                   <option value="semua">{t("tekaTeki.semuaGiliran")}</option>
                   <option value="White to Move">{t("tekaTeki.hanyaPutih")}</option>
@@ -2010,7 +2205,11 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
                     </div>
                     <div className="flex flex-row items-center gap-1.5 mt-0.5">
                       <span className="text-[11px] text-gray-400 font-medium truncate">
-                        {memuat ? "—" : t("tekaTeki.skakDalamN", { n: jumlahLangkah })}
+                        {memuat
+                          ? "—"
+                          : bukanSkakmat
+                            ? t("tekaTeki.taktikDalamN", { n: jumlahLangkah })
+                            : t("tekaTeki.skakDalamN", { n: jumlahLangkah })}
                       </span>
                     </div>
                   </div>
@@ -2471,68 +2670,168 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
             </div>
           ) : null}
 
-          {/* Syzygy — salinan kata-kata dari bagian atas TekaTeki, warna tema gelap */}
-          <div className="flex-1 overflow-y-auto min-h-0 p-3 space-y-2 text-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-gray-300 uppercase tracking-wider">{syzygyJudul}</span>
-              <span className="text-[11px] text-gray-300">{syzygyDidukung}</span>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-              {(memuat || syzygyMemuat) && !syzygy ? (
-                <span className="animate-pulse text-xs font-semibold text-gray-400">
-                  {teksSyzygyMemuat}
+          {/* Panel Video Pembahasan */}
+          <div className="flex-1 overflow-y-auto min-h-0 p-4 space-y-3 text-sm">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <Video className="size-4 shrink-0 text-[#81b64c]" aria-hidden="true" />
+                <span className="text-xs font-bold text-gray-200 uppercase tracking-wider truncate">
+                  {t("tekaTeki.videoJudul")}
                 </span>
-              ) : syzygyGagal && !syzygy ? (
-                <span className="text-xs font-semibold text-gray-400">{teksSyzygyGagal}</span>
-              ) : (
-                <>
-              <span
-                className={`inline-block text-xs font-semibold ${
-                  syzygy && PETA_KELAS_SYZYGY
-                    ? PETA_KELAS_SYZYGY[syzygy.category] || "text-gray-400"
-                    : "text-gray-400"
-                }`}
-              >
-                {syzygy && teksKategoriSyzygy ? teksKategoriSyzygy(syzygy.category) : "—"}
-              </span>
-              <span className="text-xs text-gray-400">DTZ: {syzygy ? syzygy.dtz ?? "-" : "-"}</span>
-              <span className="text-xs text-gray-400">DTM: {syzygy ? syzygy.dtm ?? "-" : "-"}</span>
-              {syzygy && (
-                <a
-                  href={`https://tablebase.lichess.ovh/standard?fen=${encodeURIComponent(fen)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="ml-auto text-xs font-medium text-sky-400 hover:text-sky-300 hover:underline"
-                >
-                  {syzygyDetail}
-                </a>
-              )}
-                </>
+              </div>
+              {videoPelatih && (
+                <span className="text-xs font-medium text-gray-300 truncate">
+                  {t("tekaTeki.videoOleh", { pelatih: videoPelatih })}
+                </span>
               )}
             </div>
 
-            {syzygy && Array.isArray(syzygy.moves) && syzygy.moves.length > 0 && (
-              <ul className="divide-y divide-[#312e2b]">
-                {syzygy.moves.map((m) => (
-                  <li key={m.san} className="flex items-center justify-between gap-2 py-1.5">
-                    <span className="font-mono text-xs font-semibold text-gray-300">
-                      {m.san}
-                    </span>
-                    <span
-                      className={`shrink-0 text-[10px] font-semibold ${
-                        PETA_KELAS_SYZYGY && (PETA_KELAS_SYZYGY[m.category] || "text-gray-400")
-                      }`}
-                    >
-                      {teksKategoriSyzygy ? teksKategoriSyzygy(m.category) : m.category}
-                      {typeof m.dtz === "number" ? ` · DTZ ${m.dtz}` : ""}
-                    </span>
-                  </li>
-                ))}
-              </ul>
+            {(videoJudulSoal || videoTurnamen) && (
+              <div className="rounded-md border border-[#312e2b] bg-[#1e1c18] px-3 py-2 space-y-0.5">
+                {videoJudulSoal && (
+                  <p className="text-xs font-semibold text-white truncate" title={videoJudulSoal}>
+                    {videoJudulSoal}
+                  </p>
+                )}
+                {videoTurnamen && (
+                  <p className="text-xs text-gray-400 truncate" title={videoTurnamen}>
+                    {videoTurnamen}
+                  </p>
+                )}
+              </div>
             )}
 
-            <p className="text-[11px] leading-4 text-gray-300">{syzygyCatatan}</p>
+            {/* Penguncian antarmuka (UI anti-spoiler): URL MP4 berasal dari
+                dataset publik `data/teka-teki-video.json`, sehingga menunda
+                render `<video>` hingga `selesai === true` bertujuan mencegah
+                bocoran solusi di antarmuka latihan, bukan kontrol akses server. */}
+            {memuat || memuatKoleksi ? (
+              <p className="text-xs font-medium text-gray-400">
+                {t("tekaTeki.videoMemuatKoleksi")}
+              </p>
+            ) : videoUrlAman ? (
+              !selesai ? (
+                <div
+                  data-status-video="terkunci"
+                  className="flex items-start gap-2.5 rounded-md border border-[#312e2b] bg-[#1e1c18] p-3"
+                >
+                  <Lock className="mt-0.5 size-4 shrink-0 text-amber-400" aria-hidden="true" />
+                  <p className="text-xs leading-5 text-gray-300">
+                    {t("tekaTeki.videoTerkunci")}
+                  </p>
+                </div>
+              ) : (
+                <div data-status-video="terbuka" className="space-y-2.5">
+                  <p className="text-xs leading-5 text-gray-300">
+                    {t("tekaTeki.videoSiap")}
+                  </p>
+                  {videoGagal ? (
+                    <div className="rounded-md border border-[#312e2b] bg-[#1e1c18] p-3 space-y-2">
+                      <p className="text-xs leading-5 text-gray-300">
+                        {t("tekaTeki.videoGagal")}
+                      </p>
+                      <a
+                        href={tautanSumberVideo}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#a3d168] hover:underline"
+                      >
+                        {t("tekaTeki.videoBukaSumber")}
+                        <ExternalLink className="size-3.5" aria-hidden="true" />
+                      </a>
+                    </div>
+                  ) : (
+                    <video
+                      key={videoUrlAman}
+                      controls
+                      preload="none"
+                      playsInline
+                      src={videoUrlAman}
+                      onPlay={onPutarVideo || undefined}
+                      onError={onGalatVideo || undefined}
+                      className="w-full aspect-square max-h-72 rounded-md border border-[#312e2b] bg-black object-contain select-auto"
+                    />
+                  )}
+                  <div className="flex items-center justify-between gap-2 pt-0.5">
+                    <a
+                      href={tautanSumberVideo}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-gray-200 hover:underline"
+                    >
+                      {t("tekaTeki.videoSumber")}
+                      <ExternalLink className="size-3" aria-hidden="true" />
+                    </a>
+                    {videoTanggalAman && (
+                      <span className="font-mono text-xs text-gray-400">{videoTanggalAman}</span>
+                    )}
+                  </div>
+                </div>
+              )
+            ) : (
+              <div
+                data-status-video="kosong"
+                className="rounded-md border border-[#312e2b] bg-[#1e1c18] p-3 space-y-3"
+              >
+                <p className="text-xs leading-5 text-gray-300">
+                  {t("tekaTeki.videoTidakTersedia")}
+                </p>
+                {nilaiKoleksi !== "video" && onBukaKoleksiVideo && (
+                  <button
+                    type="button"
+                    onClick={onBukaKoleksiVideo}
+                    className="w-full rounded-md bg-[#363431] hover:bg-[#45423e] px-3 py-2 text-xs font-semibold text-white transition cursor-pointer"
+                  >
+                    {t("tekaTeki.videoBukaKoleksi")}
+                  </button>
+                )}
+              </div>
+            )}
+
+            {selesai && !memuat && !memuatKoleksi && (
+              <div className="space-y-2.5 pt-1">
+                {(Array.isArray(catatanLangkah) && catatanLangkah.length > 0 || jumlahVariasi > 0 || simbolNag) && (
+                  <div
+                    data-catatan-pgn="ada"
+                    className="rounded-md border border-[#312e2b] bg-[#1e1c18] p-3 space-y-1.5"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-300">
+                        {t("tekaTeki.catatanPelatihJudul")}
+                      </span>
+                      {simbolNag && (
+                        <span className="rounded bg-[#81b64c]/20 px-1.5 py-0.5 font-mono text-[11px] font-bold text-[#a3d168]">
+                          {simbolNag}
+                        </span>
+                      )}
+                    </div>
+                    {Array.isArray(catatanLangkah) &&
+                      catatanLangkah.map((teks, idxCatatan) => (
+                        <p key={idxCatatan} className="text-xs leading-5 text-gray-300">
+                          {teks}
+                        </p>
+                      ))}
+                    {jumlahVariasi > 0 && (
+                      <p className="text-xs text-gray-400">
+                        {t("tekaTeki.variasiCabang", { n: jumlahVariasi })}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {onBukaAnalisa && (
+                  <button
+                    type="button"
+                    data-aksi="buka-analisa"
+                    onClick={onBukaAnalisa}
+                    className="w-full inline-flex items-center justify-center gap-2 rounded-md border border-[#81b64c]/50 bg-[#81b64c]/15 hover:bg-[#81b64c]/25 px-3 py-2 text-xs font-semibold text-[#b8dc8e] transition cursor-pointer"
+                  >
+                    <Search className="size-3.5 shrink-0" aria-hidden="true" />
+                    {t("tekaTeki.bukaPapanAnalisa")}
+                  </button>
+                )}
+              </div>
+            )}
           </div>
 
           {engineNyala && (

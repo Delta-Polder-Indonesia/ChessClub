@@ -328,6 +328,218 @@ try {
   clearInterval(penggerakWaktu);
 }
 
+/* ------------------------------------------------------------------ ujian regresi kolam soal & jaringan */
+console.log("\nRegresi mode soal (Skakmat Klasik <-> Taktik Campuran), balapan unduhan, & kegagalan jaringan:");
+{
+  const dataUtamaAsli = JSON.parse(readFileSync(path.join(ROOT, "public", "data", "teka-teki.json"), "utf8"));
+  const dataVideoAsli = JSON.parse(readFileSync(path.join(ROOT, "public", "data", "teka-teki-video.json"), "utf8"));
+  // Satu soal skakmat ber-rating tinggi (2200) vs satu soal taktik di rating awal sesi (800):
+  // saat Rush mulai (mulaiRating=800, pita 650..950), kolam 'skakmat' pasti memuat soalSkakmatUji,
+  // sedangkan kolam 'campuran' pasti memilih soalTaktikUji secara deterministik.
+  const soalSkakmatUji = { ...dataUtamaAsli.problems[0], problemid: 1, rating: 2200 };
+  const soalTaktikUji = {
+    ...dataVideoAsli.problems.find((p) => p.fen !== soalSkakmatUji.fen),
+    problemid: 5487,
+    rating: 800,
+  };
+
+  const dom2 = new JSDOM('<!doctype html><html><body><div id="root"></div></body></html>', {
+    url: "https://uji.test/teka-teki-rush",
+    pretendToBeVisual: true,
+  });
+  siapkanGlobal(dom2.window);
+  const dok2 = dom2.window.document;
+  const wadah2 = dok2.getElementById("root");
+
+  let gagalUtama = true;
+  let gagalTambahan = true;
+  let tundaTambahan = null;
+
+  dom2.window.fetch = (url) => {
+    const u = String(url);
+    if (u.includes("teka-teki-video.json")) {
+      if (gagalTambahan) {
+        return Promise.reject(new Error("gagal unduh teka-teki-video.json"));
+      }
+      const muatan = { problems: [soalTaktikUji] };
+      const respon = {
+        ok: true,
+        status: 200,
+        text: () => Promise.resolve(JSON.stringify(muatan)),
+        json: () => Promise.resolve(muatan),
+      };
+      if (tundaTambahan) {
+        return new Promise((resolve) => {
+          tundaTambahan = () => resolve(respon);
+        });
+      }
+      return Promise.resolve(respon);
+    }
+    if (u.includes("teka-teki.json")) {
+      if (gagalUtama) {
+        return Promise.reject(new Error("gagal unduh teka-teki.json"));
+      }
+      const muatan = { problems: [soalSkakmatUji] };
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        text: () => Promise.resolve(JSON.stringify(muatan)),
+        json: () => Promise.resolve(muatan),
+      });
+    }
+    return Promise.reject(new Error(`offline: ${u}`));
+  };
+  globalThis.fetch = dom2.window.fetch;
+
+  delete require.cache[berkasBundel];
+  const akar2 = require(berkasBundel).mount(wadah2);
+
+  // 1) Kegagalan unduh awal teka-teki.json menampilkan tombol Coba lagi & tidak macet
+  const tampilCobaLagi = await tungguHingga(
+    () => [...dok2.querySelectorAll("button")].some((b) => /Coba lagi|Try again/i.test(b.textContent)),
+    4000
+  );
+  uji("gagal muat teka-teki.json menampilkan layar galat + tombol Coba lagi", tampilCobaLagi);
+
+  gagalUtama = false;
+  const tombolCobaLagi = [...dok2.querySelectorAll("button")].find((b) =>
+    /Coba lagi|Try again/i.test(b.textContent)
+  );
+  tombolCobaLagi.dispatchEvent(new dom2.window.MouseEvent("click", { bubbles: true }));
+
+  const pulihMenu = await tungguHingga(
+    () => !!dok2.querySelector('[data-mode-rush="skakmat"]'),
+    4000
+  );
+  uji("klik Coba lagi memulihkan menu Rush setelah jaringan kembali", pulihMenu);
+
+  // Isi nama pemain untuk uji mulai sesi
+  const inputNama2 = dok2.querySelector('input[type="text"]');
+  const setterInput2 = Object.getOwnPropertyDescriptor(dom2.window.HTMLInputElement.prototype, "value").set;
+  setterInput2.call(inputNama2, "PengujiMode");
+  inputNama2.dispatchEvent(new dom2.window.Event("input", { bubbles: true }));
+  await tunggu(40);
+
+  // 2) Kegagalan unduh teka-teki-video.json jatuh mulus kembali ke Skakmat Klasik
+  const btnSkakmat = () => dok2.querySelector('[data-mode-rush="skakmat"]');
+  const btnCampuran = () => dok2.querySelector('[data-mode-rush="campuran"]');
+  const btnMulai = () =>
+    [...dok2.querySelectorAll("button")].find((b) => /Mulai Rush|Memuat paket/i.test(b.textContent));
+
+  btnCampuran().dispatchEvent(new dom2.window.MouseEvent("click", { bubbles: true }));
+  const jatuhKeSkakmat = await tungguHingga(
+    () =>
+      !!dok2.querySelector('[data-galat-campuran="1"]') &&
+      btnSkakmat()?.getAttribute("aria-pressed") === "true" &&
+      btnMulai()?.disabled === false,
+    4000
+  );
+  uji(
+    "gagal unduh teka-teki-video.json menampilkan peringatan & mengembalikan mode Skakmat tanpa macet",
+    jatuhKeSkakmat
+  );
+
+  // 3) Balapan: klik Campuran (unduhan ditahan) lalu kembali ke Skakmat sebelum selesai
+  gagalTambahan = false;
+  tundaTambahan = true;
+  btnCampuran().dispatchEvent(new dom2.window.MouseEvent("click", { bubbles: true }));
+  await tungguHingga(() => btnMulai()?.disabled === true, 2000);
+  // Batalkan dan pilih Skakmat selagi unduhan masih menggantung
+  btnSkakmat().dispatchEvent(new dom2.window.MouseEvent("click", { bubbles: true }));
+  await tunggu(50);
+  uji(
+    "beralih balik ke Skakmat saat unduhan Campuran berjalan langsung membuka tombol Mulai",
+    btnSkakmat()?.getAttribute("aria-pressed") === "true" && btnMulai()?.disabled === false
+  );
+  // Selesaikan unduhan terlambat: kolam aktif TIDAK boleh tertimpa Campuran
+  if (typeof tundaTambahan === "function") tundaTambahan();
+  tundaTambahan = null;
+  await tunggu(120);
+
+  const bacaPetakBidak = () =>
+    [...wadah2.querySelectorAll("[data-petak]")]
+      .filter((el) => el.querySelector("img"))
+      .map((el) => el.getAttribute("data-petak"))
+      .sort()
+      .join(",");
+  const jejakFen = (fen) => {
+    const peta = [];
+    const baris = fen.split(" ")[0].split("/");
+    for (let r = 0; r < 8; r++) {
+      let c = 0;
+      for (const ch of baris[r]) {
+        if (/\d/.test(ch)) c += Number(ch);
+        else {
+          peta.push(`${"abcdefgh"[c]}${8 - r}`);
+          c++;
+        }
+      }
+    }
+    return peta.sort().join(",");
+  };
+
+  btnMulai().dispatchEvent(new dom2.window.MouseEvent("click", { bubbles: true }));
+  const masukSkakmat = await tungguHingga(
+    () => wadah2.querySelectorAll("[data-petak]").length === 64,
+    5000
+  );
+  uji(
+    "setelah balapan unduhan, sesi Skakmat benar-benar memakai kolam Skakmat murni",
+    masukSkakmat && bacaPetakBidak() === jejakFen(soalSkakmatUji.fen)
+  );
+  akar2.unmount();
+
+  // 4) Pergantian mode sesudah dataset termuat (Skakmat -> Campuran -> mulai Campuran)
+  const akar3 = require(berkasBundel).mount(wadah2);
+  await tungguHingga(() => !!dok2.querySelector('[data-mode-rush="campuran"]'), 4000);
+  const inputNama3 = dok2.querySelector('input[type="text"]');
+  setterInput2.call(inputNama3, "PengujiCampuran");
+  inputNama3.dispatchEvent(new dom2.window.Event("input", { bubbles: true }));
+  await tunggu(30);
+
+  btnCampuran().dispatchEvent(new dom2.window.MouseEvent("click", { bubbles: true }));
+  await tungguHingga(
+    () => btnCampuran()?.getAttribute("aria-pressed") === "true" && btnMulai()?.disabled === false,
+    4000
+  );
+  btnMulai().dispatchEvent(new dom2.window.MouseEvent("click", { bubbles: true }));
+  const masukCampuran = await tungguHingga(
+    () => wadah2.querySelectorAll("[data-petak]").length === 64,
+    5000
+  );
+  uji(
+    "pergantian ke Taktik Campuran sesudah unduh memakai kolam soal gabungan",
+    masukCampuran && bacaPetakBidak() === jejakFen(soalTaktikUji.fen)
+  );
+  akar3.unmount();
+
+  // 5) Pergantian bolak-balik sesudah dataset termuat (Skakmat -> Campuran -> Skakmat -> mulai Skakmat)
+  const akar4 = require(berkasBundel).mount(wadah2);
+  await tungguHingga(() => !!dok2.querySelector('[data-mode-rush="campuran"]'), 4000);
+  const inputNama4 = dok2.querySelector('input[type="text"]');
+  setterInput2.call(inputNama4, "PengujiBalik");
+  inputNama4.dispatchEvent(new dom2.window.Event("input", { bubbles: true }));
+  await tunggu(30);
+
+  btnCampuran().dispatchEvent(new dom2.window.MouseEvent("click", { bubbles: true }));
+  await tungguHingga(
+    () => btnCampuran()?.getAttribute("aria-pressed") === "true" && btnMulai()?.disabled === false,
+    4000
+  );
+  btnSkakmat().dispatchEvent(new dom2.window.MouseEvent("click", { bubbles: true }));
+  await tunggu(40);
+  btnMulai().dispatchEvent(new dom2.window.MouseEvent("click", { bubbles: true }));
+  const masukSkakmatLagi = await tungguHingga(
+    () => wadah2.querySelectorAll("[data-petak]").length === 64,
+    5000
+  );
+  uji(
+    "pergantian kembali Campuran -> Skakmat sesudah dataset termuat mengembalikan kolam Skakmat murni",
+    masukSkakmatLagi && bacaPetakBidak() === jejakFen(soalSkakmatUji.fen)
+  );
+  akar4.unmount();
+}
+
 const galatRender = pesanGalat.filter((p) => !/not wrapped in act/i.test(p));
 uji("tidak ada galat render React", galatRender.length === 0);
 if (galatRender.length) console.log(galatRender.slice(0, 3).join("\n"));

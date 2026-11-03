@@ -35,6 +35,7 @@ import Menu from "./menu/menu.jsx";
 import GameButtons from "./menu/analysis/gameButtons.jsx";
 import LayarDatabase from "./nav/layarDatabase.jsx";
 import LayarImpor from "./nav/layarImpor.jsx";
+import { validasiPgn } from "./nav/validasiImpor.js";
 
 /*
  * LayarAkun (via DashboardAkun) mengimpor recharts ±97 KiB — bundle grafik
@@ -79,6 +80,24 @@ export default function AreaKerja() {
     },
     [setData, setTampilan],
   );
+
+  // Terima kiriman PGN sekali pakai dari halaman Teka-Teki ("Bedah di Papan Analisa").
+  useEffect(() => {
+    let pgnTitipan;
+    try {
+      pgnTitipan = sessionStorage.getItem("kci-analisa-impor-awal") || "";
+      if (pgnTitipan) sessionStorage.removeItem("kci-analisa-impor-awal");
+    } catch {
+      return;
+    }
+    if (!pgnTitipan.trim()) return;
+    try {
+      validasiPgn(pgnTitipan);
+      muatPartai({ format: "pgn", string: pgnTitipan });
+    } catch {
+      /* abaikan PGN tidak sah agar papan tetap normal */
+    }
+  }, [muatPartai]);
 
   const papanAktif = tampilan === TAMPILAN_ANALISA.BERMAIN;
 

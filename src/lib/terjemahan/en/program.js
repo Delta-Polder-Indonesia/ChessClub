@@ -116,89 +116,82 @@ export const bermainCatur = {
 export const tipsTekaTeki = {
     judul: "Chess Puzzles & Tips",
     deskripsi:
-      "Tactics training with 5,486 checkmate puzzles from real games in the Lichess puzzle database — filter by level and theme, and solve them right in your browser.",
+      "Untimed tactical calculation across 12,037 numbered puzzles from real Lichess games, coach videos, world legends, and endgame studies.",
     metaDeskripsi:
-      "The chess puzzle trainer of Komunitas Catur Indonesia: 5,486 mate-in-1 to mate-in-3 puzzles from real games in the Lichess puzzle database, with level and theme filters plus hints.",
-    introJudul:
-      "Master chess tactics with puzzles from real tournament games",
+      "Komunitas Catur Indonesia puzzle trainer: 12,037 positions (rated 600–2,567) across five tactical sets, 18 themes, and post-solve coach videos.",
+    introJudul: "Train Calculation from Real Tournament Positions",
     intro1:
-      "Chess Puzzles & Tips introduces the tactics trainer of Komunitas Catur Indonesia. The collection holds 5,486 puzzles asking for mate in one to three moves, all taken from real games in the Lichess puzzle database. Each puzzle carries a rating, theme tags, and the players and opening of its source game.",
+      "The Komunitas Catur Indonesia puzzle trainer brings together 12,037 numbered positions (#1 through #12,037) with no clock pressure, giving you room to calculate forcing lines to the end before touching a piece. The default set holds 5,486 forced one- to three-move checkmates from CC0-licensed Lichess games, joined by four curated collections covering material-winning combinations, historic master games, endgame studies, and coach video breakdowns.",
     intro2:
-      "Training runs directly in the browser, with no account required. Filter puzzles by level, tactical theme, or the side to move; when you are stuck, the hint button highlights the first move's origin and destination squares. Your progress is saved automatically on your device.",
+      "Training runs directly in your browser without creating an account. Filter positions across five rating bands (600–2,567), move lengths, 18 tactical themes, coach authors, or side to move; solved puzzle counts and your last visited number stay saved on your device.",
     ctaUtama: "Start Puzzle Training",
-    ctaHarian: "Daily Puzzle",
-    ctaRush: "Puzzle Rush — the timed mode",
-    demoJudul: "One puzzle, shown in full",
-    demoPengantar:
-      "Everything below — the position, rating, themes, and source game — is taken verbatim from the puzzle file, exactly as the trainer shows it. Press the button to play through the solution move by move.",
-    demoGiliran: "White to move",
-    demoPutar: "Play the solution",
-    demoLanjut: "Next move",
-    demoUlangi: "Replay from the start",
-    demoNarasi0: "White to move. Find the mate in two.",
-    demoNarasi1: "25. Rxe8+ — the rook is offered as bait.",
-    demoNarasi2: "25… Kxe8 — the only legal reply; the king is pulled to e8.",
-    demoNarasi3: "26. Qa8# — checkmate along the back rank.",
-    demoAriaPapan:
-      "Chess board with the position of puzzle #4457: white to move, mate in two.",
     pengantarAriaPapan:
-      "Chess board with the position of puzzle #1927: white to move.",
-    labelNomor: "Puzzle number",
-    labelJenis: "Type",
-    labelRating: "Puzzle rating",
-    labelLevel: "Level",
-    labelTema: "Themes",
-    labelPartai: "Source game",
-    labelPembukaan: "Opening",
-    labelSumber: "Source",
-    nilaiJenis: "Mate in two",
-    nilaiRating: "1,619",
-    nilaiLevel: "Level 4 — Difficult",
-    nilaiTema: "Sacrifice · Attraction (bait) · Back-rank mate",
-    nilaiPembukaan: "English Opening, Symmetrical Variation",
-    demoBuka: "Open puzzle #4457 in the trainer",
-    statJudul: "What the collection holds",
-    statPengantar:
-      "Counted directly from the puzzle data file used by the trainer.",
-    statBaris1: "Mate in one",
-    statNilai1: "1,377",
-    statBaris2: "Mate in two",
-    statNilai2: "2,991",
-    statBaris3: "Mate in three",
-    statNilai3: "1,118",
-    statTotalLabel: "Total puzzles",
-    statTotalNilai: "5,486",
-    statPitaLabel: "Puzzle rating range",
-    statPitaNilai: "600–2,567",
-    statGiliranLabel: "Side to move",
-    statGiliranNilai: "2,923 white to move · 2,563 black to move",
-    statSumberLabel: "Data source",
-    statSumberNilai: "Lichess puzzle database — real games",
-    caraJudul: "How training works",
+      "Chessboard showing puzzle #1927: White to move with a bishop on d3, knight on g5, and queen on c2 aimed at Black's castled kingside.",
+    pengantarCaption:
+      "Puzzle #1,927 from the Lichess Checkmates set (rating 1,095, French Defense): White to move and finish the kingside attack in two moves.",
+    pengantarTautan: "Try puzzle #1,927 in the trainer",
+    koleksiJudul: "Five collections in one workspace",
+    koleksiLead:
+      "Every figure below is counted directly from the data files loaded by the trainer. Extended archive files download only when you switch away from the default collection so the initial load stays fast.",
+    kolomKoleksi: "Collection",
+    kolomJumlah: "Puzzles",
+    kolomFokus: "Scope & training focus",
+    kol1Nama: "Lichess Checkmates",
+    kol1Jumlah: "5,486",
+    kol1Fokus:
+      "Default set (#1–#5,486): 1,377 mate-in-one, 2,991 mate-in-two, and 1,118 mate-in-three positions from real games (2,923 White to move, 2,563 Black to move).",
+    kol2Nama: "Tactics + Video",
+    kol2Jumlah: "1,681",
+    kol2Fokus:
+      "Selected tactical positions paired with English-language coach video explanations that unlock only after you solve the puzzle.",
+    kol3Nama: "World Legends",
+    kol3Jumlah: "222",
+    kol3Fokus:
+      "Combinative turning points from historic games by world champions and classical masters to sharpen attacking calculation.",
+    kol4Nama: "Endgame Studies",
+    kol4Jumlah: "86",
+    kol4Fokus:
+      "Curated endgame compositions demanding quiet moves, king opposition calculation, and accurate pawn promotion lines.",
+    kol5Nama: "Tactics Archive",
+    kol5Jumlah: "6,551",
+    kol5Fokus:
+      "The complete extended pool (#5,487–#12,037), including 3,267 non-mate tactical combinations, 1,383 mate-in-4+ problems, and per-coach filters.",
+    koleksiCatatan:
+      "Combined catalog: 12,037 uniquely numbered puzzles spanning ratings 600–2,567.",
+    caraJudul: "How to train and review positions",
+    caraSubjudul: "Solving workflow",
     cara1:
-      "Filter the puzzles you want: levels 1–5 follow the puzzle rating bands, mate length from one to three moves, tactical theme, or the side to move.",
+      "Select a collection, level band 1–5 (from under 1,000 up to 1,900+), move length, tactical motif, or side to move inside the settings panel.",
     cara2:
-      "Play your move on the board by clicking or dragging the piece. Once your move is correct, the opponent's reply is played automatically.",
+      "Right-click squares or right-drag across the board to sketch highlight circles and candidate arrows while calculating, then click or drag your piece to play.",
     cara3:
-      "Stuck? Press the hint to see the origin and destination squares of the first move, or jump straight to any puzzle number from 1 to 5,486.",
+      "Each accurate move is answered automatically by the defender's strongest reply until the line concludes; when stuck, the Hint button marks the first move's origin and target squares.",
     cara4:
-      "Solved puzzles are marked and counted automatically. The list is stored in your browser, not on a server.",
-    tipsJudul: "Tips for solving puzzles",
-    tips1Judul: "Start with every check",
+      "Every puzzle writes its number straight into the page URL (/teka-teki/problem/:id), making positions easy to bookmark or share with clubmates.",
+    bantuSubjudul: "Post-solve analysis tools",
+    bantu1:
+      "Once a combination finishes, the commentator card summarizes the motif behind your winning move. In the Tactics + Video set, the coach's recorded breakdown unlocks for manual playback so you can compare your candidate lines against the main idea.",
+    bantu2:
+      "To test why an alternative sacrifice fails, toggle Stockfish 18 directly in the sidebar or press Open in Analysis Board to send the full PGN and variations into the analysis workspace.",
+    tipsJudul: "Four habits for cleaner calculation",
+    tips1Judul: "Order checks, captures, and threats",
     tips1Isi:
-      "In mate puzzles the strongest candidate is almost always a check. Examine every available check before considering a quiet move.",
-    tips2Judul: "Recognize the motif instead of memorizing moves",
+      "Start with the moves that restrict the defender most: examine every legal check first, then captures, and only afterward quiet threats.",
+    tips2Judul: "Calculate the defender's best reply to the end",
     tips2Isi:
-      "The example above uses attraction: a rook is sacrificed to pull the king onto a square the queen can attack. Once the pattern is familiar, similar puzzles read faster.",
-    tips3Judul: "One theme per session",
+      "Avoid playing the first attractive check on impulse. Verify your answer against every legal block, king flight square, and recapture before moving.",
+    tips3Judul: "Drill one tactical motif per session",
     tips3Isi:
-      "Use the theme filter to drill a single motif — say the back-rank mate or the smothered mate — until the pattern is recognized at a glance.",
-    tips4Judul: "Move up after you are consistent",
+      "Filter by a single theme such as pins, forks, deflections, attractions, or smothered mates until the piece geometry registers at a glance.",
+    tips4Judul: "Step up a band after clean streaks",
     tips4Isi:
-      "Work at a level you can finish several in a row without hints, then step up one band. If a puzzle keeps beating you, note its number — any puzzle can be reopened at any time.",
-    penutupJudul: "Start solving now",
-    penutupIsi:
-      "The trainer opens straight in the browser with no sign-up. Every puzzle is numbered from 1 to 5,486 and its address can be shared, which makes the set easy to use for training with a friend.",
+      "Stay in a rating band you can solve consecutively without hints or guesses before moving up, and jot down missed puzzle numbers to revisit days later.",
+    penutupJudul: "Test your speed or dig deeper",
+    penutupAwal:
+      "Once core motifs read cleanly without clock pressure, test your pattern speed over 3- or 5-minute runs in",
+    penutupTengah: "or explore defensive sidelines with the engine on the",
+    tautanAnalisa: "Analysis Board",
+    penutupAkhir: "whenever a position deserves a second look.",
   }
 
 export const bukuPembukaan = {
@@ -431,58 +424,156 @@ export const analisaLanding = {
 export const rushLanding = {
     judul: "Puzzle Rush",
     deskripsi:
-      "A timed tactics workout: solve a streak of increasingly hard checkmates before the clock runs out or you lose three lives.",
+      "Timed tactical training: solve a streak of checkmates and tactical combinations of rising difficulty before the clock expires or three lives run out.",
     metaDeskripsi:
-      "Indonesian Chess Community Puzzle Rush — a fast-paced tactics mode. Solve back-to-back checkmate puzzles within a 3- or 5-minute limit with three lives.",
+      "Indonesian Chess Community Puzzle Rush: 3- or 5-minute timed tactics with three lives, Classic Checkmate (5,486 puzzles) or Mixed Tactics (12,037 puzzles), and member leaderboards.",
     introJudul: "A Race to Spot the Checkmate",
     intro1:
-      "Puzzle Rush is a timed practice mode: you solve checkmate puzzles one after another, and each solved puzzle unlocks a slightly harder one. The goal is simple — score as high as you can before time runs out.",
+      "Puzzle Rush tests how quickly and cleanly you find forcing moves under clock pressure. Across a 3- or 5-minute session with three lives, positions open near an 800 rating and climb 30 points with every solved puzzle toward 2400.",
     intro2:
-      "The format trains pattern recognition as a reflex. Instead of long calculation, you learn to instantly recognise recurring tactical motifs — forks, pins, double attacks, and classic mating patterns — so that in real games your eye catches chances faster.",
+      "Unlike untimed puzzle solving, a continuous streak sharpens first-sight board vision: spotting forcing checks, knight forks, open-file pins, deflections, and mating nets within seconds, mirroring time-trouble decisions in rapid and blitz games.",
     introGambarAlt:
-      "Infographic on the benefits of puzzle training: sharpens tactical vision, improves calculation skills, and boosts pattern recognition.",
-    caraJudul: "How to play",
-    langkah1: "Enter your Chess.com username, then choose a session length: 3 minutes or 5 minutes.",
-    langkah2: "Solve each checkmate puzzle — click or drag your piece to the target square before your opponent replies.",
-    langkah3: "A single wrong move fails that puzzle and costs one of your three lives.",
-    langkah4: "The session ends when time runs out or all three lives are gone; your final score is recorded on the leaderboard.",
+      "A player's hand placing a white wooden knight onto a central square of a Staunton chessboard beside a mechanical tournament chess clock.",
+    introGambarCaption:
+      "Illustration of timed tactical training: executing accurate forcing moves while the clock ticks down.",
+    modeJudul: "Two puzzle pools, one calculation discipline",
+    modeLead:
+      "Before starting a session, choose the puzzle pool that matches your training focus from 12,037 verified positions.",
+    modeSkakmatJudul: "Classic Checkmate (5,486 puzzles)",
+    modeSkakmatIsi:
+      "Built from the Lichess checkmate collection with a single objective: deliver forced mate in 1, 2, or 3 moves. Ideal for drilling back-rank mates, smothered knight mates, queen-bishop batteries, and king-file clearance sacrifices.",
+    modeCampuranJudul: "Mixed Tactics (12,037 puzzles)",
+    modeCampuranIsi:
+      "Combines all 5,486 checkmate problems with 6,551 tactical puzzles drawn from daily archives and endgame studies. Not every position ends in mate; many require winning clean material, promoting a pawn, deflecting a key defender, or finding an only defensive resource.",
+    caraJudul: "Session rules and pacing",
+    caraSubjudul: "How a session runs",
+    langkah1:
+      "Enter your name or Chess.com username, select a 3-minute or 5-minute clock, and choose Classic Checkmate or Mixed Tactics.",
+    langkah2:
+      "Check the side-to-move indicator (White or Black) before touching a piece; in multi-move sequences, the opponent replies automatically to test your full line.",
+    langkah3:
+      "Illegal moves do not cost a life, whereas a legal move that misses the solution ends that puzzle immediately and deducts one of your three lives.",
+    langkah4:
+      "The run stops when the timer hits 00:00 (turning red during the final 30 seconds) or all three lives are spent. Personal bests are saved per duration and can be submitted to the club leaderboard via Chess.com verification.",
+    strategiSubjudul: "Staying accurate as ratings climb",
+    strategi1:
+      "Use the opening ten puzzles in the 800 to 1050 band to settle into a clean rhythm without rushing the mouse. Early lives are rarely lost to deep combinations; they usually slip away from overlooking side to move or playing an imprecise check.",
+    strategi2:
+      "Once the target rating passes 1100, pause briefly whenever the defender has more than one way to block a check or recapture. Spending eight to ten seconds verifying the opponent's forcing reply preserves far more score than dropping an early strike.",
     fiturJudul: "What makes it work",
-    fitur1Judul: "Rising difficulty",
+    fitur1Judul: "Progressive rating ladder",
     fitur1Isi:
-      "Puzzles start easy and step up gradually with your performance, so there is always a challenge without frustrating you from the start.",
-    fitur2Judul: "Time pressure",
+      "Difficulty steps smoothly from foundational 800-level patterns up toward 2400-level combinations without repeating positions inside the same run.",
+    fitur2Judul: "Decision-making in time trouble",
     fitur2Isi:
-      "The 3- or 5-minute limit forces quick decisions — sharpening the tactical intuition you need in rapid and blitz play.",
-    fitur3Judul: "Leaderboard",
+      "The 3-minute sprint demands instant motif recall, while the 5-minute format leaves room to calculate two or three branches on tougher positions.",
+    fitur3Judul: "Separate records & club leaderboard",
     fitur3Isi:
-      "Your best score is saved and measured against fellow community members, adding motivation to keep beating your personal record.",
+      "Personal bests for 3 and 5 minutes are tracked separately in your browser, and verified Chess.com club members can post official scores to the community leaderboard.",
+    penutupJudul: "Pair it with untimed calculation",
+    penutupAwal:
+      "Puzzle Rush sharpens how fast you recall patterns you already know. When certain tactical themes repeatedly cost you lives, practice deep calculation without a clock on",
+    penutupTengah: "or examine the defensive sidelines with the engine on the",
+    tautanAnalisa: "Analysis Board",
+    penutupAkhir: "before coming back for your next timed run.",
     ctaJudul: "Ready to race the clock?",
     ctaIsi:
-      "Pick a length, start a session, and see how many checkmates you can solve without stopping.",
+      "Pick a duration, start a session, and see how many tactical positions you can solve before time runs out.",
     cta: "Start Puzzle Rush",
 };
 
 export const kuisLanding = {
     judul: "Chess Quiz",
     deskripsi:
-      "Test your chess understanding with themed multiple-choice questions — from basic rules to strategy and history.",
+      "Test your chess understanding across 115 multiple-choice questions in 11 categories, from basic rules and notation to diagrammed grandmaster moves.",
     metaDeskripsi:
-      "Indonesian Chess Community Chess Quiz — multiple-choice questions across ten categories: rules, pieces, mating patterns, tactics, openings, strategy, endgame, notation, history, and general.",
-    introJudul: "Learn While You Test Yourself",
+      "Komunitas Catur Indonesia Chess Quiz: 115 multiple-choice questions across 11 categories, from rules and tactics to grandmaster board positions.",
+    introJudul: "Test Your Chess Theory and History Beyond the Board",
     intro1:
-      "The Chess Quiz presents multiple-choice questions with a single correct answer. Every question comes with instant feedback, so you don't just guess — you understand why an answer is right or wrong.",
+      "The Komunitas Catur Indonesia Chess Quiz brings together 115 verified multiple-choice questions organized into 11 thematic categories. Topics range from official FIDE rules, piece values, and algebraic notation to opening lines, middlegame planning, endgame principles, world championship history, and 15 board-diagram questions from classic grandmaster games.",
     intro2:
-      "The material spans the whole game — from official rules and piece movement, to tactical motifs and mating patterns, through opening principles, middlegame strategy, endgame technique, notation, and chess history.",
-    kategoriJudul: "Ten categories",
-    caraJudul: "How to play",
-    langkah1: "Enter your name, choose a category, and set a mistake limit: 3 or 5 wrong answers.",
-    langkah2: "Read each question, then pick one answer from the available options.",
-    langkah3: "Feedback appears instantly — right or wrong — along with the move to the next question.",
-    langkah4: "The quiz ends when all questions are answered or the mistake limit is reached; your final score is shown on screen.",
-    ctaJudul: "How deep is your understanding?",
-    ctaIsi:
-      "Choose a favourite category or test them all at once, then prove your chess knowledge.",
+      "Every session runs directly in your browser with no account required. Both question order and the A-through-D answer slots are shuffled anew on each run, paired with instant right-or-wrong feedback so you immediately spot which concepts are solid and which deserve another look.",
     cta: "Start Chess Quiz",
+    contohKategori: "Sample question · Grandmaster Moves",
+    contohAriaPapan:
+      "Chessboard position from Adolf Anderssen versus Jean Dufresne in Berlin, 1852: White to move with a queen on a4, bishops on a3 and d3, and rook on d1.",
+    contohSoal:
+      "Adolf Anderssen vs Jean Dufresne (Berlin, 1852) — White to move. Which queen sacrifice launches the winning combination?",
+    contohCaption:
+      "All fifteen questions in the Grandmaster Moves category pair a real game diagram with four legal candidate moves and highlight the winning move once answered.",
+    kategoriJudul: "Eleven subject categories",
+    kategoriLead:
+      "Pick an individual category for focused study or select All to draw all 115 questions in randomized order within a single run.",
+    kolomKategori: "Category",
+    kolomJumlah: "Questions",
+    kolomCakupan: "Topics covered",
+    kat1Nama: "Rules",
+    kat1Jumlah: "13",
+    kat1Isi:
+      "Board setup, turn order, castling conditions, en passant captures, pawn promotion, stalemate, and threefold-repetition draw claims.",
+    kat2Nama: "Pieces",
+    kat2Jumlah: "13",
+    kat2Isi:
+      "Movement geometry of all six pieces, knight jump mechanics, single-color bishop scope, and standard material values.",
+    kat3Nama: "Checkmate Patterns",
+    kat3Jumlah: "9",
+    kat3Isi:
+      "Fool's Mate, Scholar's Mate, two-rook ladder mate, back-rank mate, smothered knight mate, Boden's Mate, and Arabian Mate.",
+    kat4Nama: "Tactics",
+    kat4Jumlah: "10",
+    kat4Isi:
+      "Forks, skewers, absolute and relative pins, discovered attacks, double checks, deflections, and intermediate moves (zwischenzug).",
+    kat5Nama: "Openings",
+    kat5Jumlah: "10",
+    kat5Isi:
+      "Defining moves of the Ruy Lopez, Sicilian Defense, Queen's Gambit, Caro-Kann, French Defense, Italian Game, King's Indian, and opening development rules.",
+    kat6Nama: "Strategy",
+    kat6Jumlah: "10",
+    kat6Isi:
+      "Central control, knight outposts, open rook files, isolated pawn weaknesses, and the bishop-pair advantage.",
+    kat7Nama: "Endgame",
+    kat7Jumlah: "10",
+    kat7Isi:
+      "King opposition, passed pawns, rule of the square, Lucena and Philidor rook endgames, and king activation.",
+    kat8Nama: "Chess Notation",
+    kat8Jumlah: "10",
+    kat8Isi:
+      "Standard algebraic piece letters, capture symbols (x), kingside and queenside castling (O-O / O-O-O), check (+), checkmate (#), and move evaluation marks.",
+    kat9Nama: "History",
+    kat9Jumlah: "8",
+    kat9Isi:
+      "Origins in Indian chaturanga and Persian shatranj, the founding of FIDE, first official world champion Wilhelm Steinitz, and the 1997 Deep Blue match.",
+    kat10Nama: "General",
+    kat10Jumlah: "7",
+    kat10Isi:
+      "Over-the-board (OTB) play, blindfold chess, simultaneous exhibitions, underpromotion, blitz/rapid/classical time controls, and Elo ratings.",
+    kat11Nama: "Grandmaster Moves",
+    kat11Jumlah: "15",
+    kat11Isi:
+      "Board-diagram questions drawn from games by Anderssen, Morphy, Capablanca, Tal, Fischer, Spassky, Kasparov, Kramnik, Anand, Judit Polgar, Ivanchuk, and Carlsen.",
+    kategoriCatatan:
+      "Total bank: 115 verified questions (100 conceptual text questions and 15 board-diagram positions).",
+    caraJudul: "Session rules and local scoring",
+    caraSubjudul: "How a run works",
+    langkah1:
+      "Choose a category in the left sidebar or leave All selected, enter a display name, and pick a mistake limit of 3 wrong or 5 wrong answers.",
+    langkah2:
+      "Read the prompt (and side-to-move orientation on diagram questions), then select one of the four shuffled answer choices.",
+    langkah3:
+      "The interface immediately marks the correct option with a green check and highlights the winning move on diagrammed boards before you press Next.",
+    langkah4:
+      "A session finishes automatically once every question in the selected pool is answered or your wrong-answer limit is reached; Give Up ends a run early at any point.",
+    skorSubjudul: "Local leaderboard & suggested study order",
+    skor1:
+      "The top ten scores are saved locally in your browser (localStorage), keeping only the best result per player name without sending data to a server. Your most recent right-and-wrong tally stays visible in the right-hand panel between runs.",
+    skor2:
+      "Newer players can clear Rules, Pieces, and Chess Notation with the 5-mistake limit before attempting the full 115-question pool. Intermediate players can switch to the 3-mistake limit across Tactics, Strategy, Endgame, and Grandmaster Moves.",
+    penutupJudul: "Review topics you missed",
+    penutupAwal:
+      "Whenever a specific subject trips you up, study its structured chapters in",
+    penutupTengah1: "inspect opening move trees on",
+    penutupTengah2: "or drill tactical execution directly on the board in",
+    penutupAkhir: "before starting your next quiz run.",
 };
 
 

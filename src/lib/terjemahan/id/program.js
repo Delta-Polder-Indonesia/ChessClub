@@ -118,86 +118,82 @@ export const bermainCatur = {
 export const tipsTekaTeki = {
     judul: "Teka-teki & Tips",
     deskripsi:
-      "Latihan taktik dengan 5.486 soal skakmat dari partai nyata di basis data puzzle Lichess — saring menurut level dan tema, kerjakan langsung di peramban.",
+      "Latihan kalkulasi taktik tanpa jam lewat 12.037 soal bernomor dari partai nyata Lichess, video pelatih, legenda dunia, dan studi akhir permainan.",
     metaDeskripsi:
-      "Alat latihan teka-teki skakmat Komunitas Catur Indonesia: 5.486 soal skakmat 1–3 langkah dari partai nyata basis data puzzle Lichess, dengan saringan level, tema, dan petunjuk.",
-    introJudul: "Kuasai Taktik Catur dengan Puzzle dari Partai Turnamen Sungguhan",
+      "Latihan teka-teki catur Komunitas Catur Indonesia: 12.037 soal (rating 600–2.567) dari lima koleksi taktik, 18 tema, dan video pembahasan.",
+    introJudul: "Latih Kalkulasi dari Posisi Partai Nyata",
     intro1:
-      "Teka-teki & Tips adalah halaman pengantar alat latihan taktik Komunitas Catur Indonesia. Koleksinya memuat 5.486 soal skakmat satu sampai tiga langkah yang diambil dari partai nyata di basis data puzzle Lichess. Setiap soal menyertakan rating, penanda tema, serta nama pemain dan pembukaan partai asalnya.",
+      "Alat teka-teki Komunitas Catur Indonesia menghimpun 12.037 soal bernomor (#1 sampai #12.037) tanpa batas jam, sehingga Anda dapat menghitung variasi paksa sampai tuntas sebelum menggerakkan bidak. Koleksi bawaannya memuat 5.486 soal skakmat satu hingga tiga langkah dari partai nyata berlisensi CC0 di basis data Lichess, dilengkapi empat koleksi kurasi yang mencakup kombinasi perebutan materi, partai bersejarah, studi babak akhir, serta video pembahasan pelatih.",
     intro2:
-      "Latihan berjalan langsung di peramban tanpa perlu membuat akun. Saring soal menurut level, tema taktik, atau warna yang melangkah; bila buntu, tombol petunjuk menyoroti petak asal dan tujuan langkah pertama. Kemajuan tersimpan otomatis di perangkat Anda.",
+      "Seluruh latihan berjalan langsung di peramban tanpa perlu mendaftar akun. Anda dapat menyaring soal berdasarkan lima pita kesulitan (rating 600–2.567), panjang langkah, 18 tema taktik, pelatih, atau giliran warna; riwayat soal yang sudah terpecahkan beserta posisi terakhir tersimpan otomatis di perangkat Anda.",
     ctaUtama: "Mulai Latihan Teka-teki",
-    ctaHarian: "Teka-teki Harian",
-    ctaRush: "Rush Teka-teki — mode berjangka waktu",
-    demoJudul: "Satu soal, diperlihatkan utuh",
-    demoPengantar:
-      "Data di bawah ini — posisi, rating, tema, hingga identitas partai — diambil apa adanya dari berkas soal, sama seperti yang tampil di alat latihan. Tekan tombolnya untuk memutar solusi langkah demi langkah.",
-    demoGiliran: "Putih melangkah",
-    demoPutar: "Putar solusi",
-    demoLanjut: "Langkah berikutnya",
-    demoUlangi: "Ulangi dari awal",
-    demoNarasi0: "Putih melangkah. Temukan skakmat dua langkah.",
-    demoNarasi1: "25. Rxe8+ — benteng dikorbankan sebagai umpan.",
-    demoNarasi2: "25… Kxe8 — satu-satunya balasan legal; raja tertarik ke petak e8.",
-    demoNarasi3: "26. Qa8# — skakmat di baris kedelapan.",
-    demoAriaPapan:
-      "Papan catur posisi soal #4457: putih melangkah, skakmat dalam dua langkah.",
-    pengantarAriaPapan: "Papan catur posisi soal #1927: putih melangkah.",
-    labelNomor: "Nomor soal",
-    labelJenis: "Jenis",
-    labelRating: "Rating soal",
-    labelLevel: "Level",
-    labelTema: "Tema",
-    labelPartai: "Partai asal",
-    labelPembukaan: "Pembukaan",
-    labelSumber: "Sumber",
-    nilaiJenis: "Skakmat dua langkah",
-    nilaiRating: "1.619",
-    nilaiLevel: "Level 4 — Sulit",
-    nilaiTema: "Pengorbanan · Attraksi (umpan) · Skakmat punggung",
-    nilaiPembukaan: "Pembukaan Inggris, Varian Simetris",
-    demoBuka: "Buka soal #4457 di alat latihan",
-    statJudul: "Isi koleksi soal",
-    statPengantar: "Dihitung langsung dari berkas data soal yang dipakai alat latihan.",
-    statBaris1: "Skakmat satu langkah",
-    statNilai1: "1.377",
-    statBaris2: "Skakmat dua langkah",
-    statNilai2: "2.991",
-    statBaris3: "Skakmat tiga langkah",
-    statNilai3: "1.118",
-    statTotalLabel: "Total soal",
-    statTotalNilai: "5.486",
-    statPitaLabel: "Rentang rating soal",
-    statPitaNilai: "600–2.567",
-    statGiliranLabel: "Giliran pertama",
-    statGiliranNilai: "2.923 posisi putih · 2.563 posisi hitam",
-    statSumberLabel: "Sumber data",
-    statSumberNilai: "Basis data puzzle Lichess — partai nyata",
-    caraJudul: "Cara latihan",
+    pengantarAriaPapan:
+      "Papan catur posisi soal nomor 1927: Putih melangkah dengan gajah di d3, kuda di g5, dan menteri di c2 mengarah ke sayap raja Hitam.",
+    pengantarCaption:
+      "Soal #1.927 dari koleksi Skakmat Lichess (rating 1.095, Pertahanan Prancis): Putih melangkah untuk menuntaskan serangan sayap raja dalam dua langkah.",
+    pengantarTautan: "Coba soal #1.927 di alat latihan",
+    koleksiJudul: "Lima koleksi dalam satu ruang latihan",
+    koleksiLead:
+      "Setiap koleksi disusun dari berkas soal yang dipakai langsung oleh alat latihan. Berkas tambahan baru diunduh saat Anda berpindah dari koleksi bawaan agar pemuatan awal tetap ringan.",
+    kolomKoleksi: "Koleksi",
+    kolomJumlah: "Soal",
+    kolomFokus: "Cakupan & fokus latihan",
+    kol1Nama: "Skakmat Lichess",
+    kol1Jumlah: "5.486",
+    kol1Fokus:
+      "Koleksi bawaan (#1–#5.486): 1.377 skakmat 1 langkah, 2.991 skakmat 2 langkah, dan 1.118 skakmat 3 langkah dari partai nyata (2.923 giliran Putih, 2.563 giliran Hitam).",
+    kol2Nama: "Taktik + Video",
+    kol2Jumlah: "1.681",
+    kol2Fokus:
+      "Posisi taktis pilihan yang menyertakan rekaman video pembahasan pelatih berbahasa Inggris; pemutar video baru terbuka sesudah soal berhasil dipecahkan.",
+    kol3Nama: "Partai Legenda Dunia",
+    kol3Jumlah: "222",
+    kol3Fokus:
+      "Titik balik kombinatif dari partai bersejarah para juara dunia dan master klasik untuk melatih ketajaman membaca serangan.",
+    kol4Nama: "Studi Akhir Permainan",
+    kol4Jumlah: "86",
+    kol4Fokus:
+      "Komposisi babak akhir terpilih yang menuntut langkah tenang, perhitungan oposisi raja, dan manuver promosi pion.",
+    kol5Nama: "Arsip Taktik",
+    kol5Jumlah: "6.551",
+    kol5Fokus:
+      "Gabungan seluruh soal tambahan (#5.487–#12.037), termasuk 3.267 kombinasi non-skakmat, 1.383 skakmat 4+ langkah, serta saringan per pelatih.",
+    koleksiCatatan:
+      "Total keseluruhan: 12.037 soal bernomor unik pada rentang rating 600–2.567.",
+    caraJudul: "Cara berlatih dan membedah posisi",
+    caraSubjudul: "Alur mengerjakan soal",
     cara1:
-      "Saring soal sesuai kebutuhan: level 1–5 mengikuti pita rating soal, panjang skakmat satu sampai tiga langkah, tema taktik, atau warna yang melangkah.",
+      "Pilih koleksi soal, pita level 1–5 (dari bawah 1.000 hingga 1.900+), panjang langkah, tema taktik, atau warna yang melangkah melalui panel pengaturan.",
     cara2:
-      "Mainkan langkah di papan dengan klik atau seret bidak. Setelah langkah Anda benar, balasan lawan dijalankan otomatis.",
+      "Klik kanan petak atau seret klik kanan di papan untuk menggambar lingkaran penanda dan panah variasi selagi menghitung, lalu jalankan langkah dengan klik atau seret bidak.",
     cara3:
-      "Buntu? Tekan petunjuk untuk melihat petak asal dan tujuan langkah pertama, atau langsung buka nomor soal tertentu dari 1 sampai 5.486.",
+      "Setiap langkah tepat langsung dibalas otomatis oleh pertahanan terbaik lawan hingga rangkaian selesai; bila buntu, tombol Petunjuk menyoroti petak asal dan tujuan langkah pertama.",
     cara4:
-      "Soal yang sudah dipecahkan ditandai dan dihitung otomatis. Daftarnya tersimpan di peramban Anda, bukan di server.",
-    tipsJudul: "Tips mengerjakan teka-teki",
-    tips1Judul: "Mulai dari semua skak",
+      "Nomor soal tertulis langsung pada alamat halaman (/teka-teki/problem/:id) sehingga setiap posisi mudah dicatat atau dibagikan untuk didiskusikan bersama rekan klub.",
+    bantuSubjudul: "Evaluasi sesudah teka-teki pecah",
+    bantu1:
+      "Begitu kombinasi tuntas, kartu komentator merangkum motif taktis yang baru dijalankan. Pada koleksi Taktik + Video, rekaman penjelasan pelatih dapat diputar secara manual untuk membandingkan kandidat langkah yang Anda hitung dengan rencana utamanya.",
+    bantu2:
+      "Jika Anda ingin menguji mengapa pengorbanan alternatif tidak berhasil, nyalakan Stockfish 18 di bilah samping atau tekan Bedah di Papan Analisa untuk membuka posisi beserta notasi PGN lengkapnya di ruang analisis.",
+    tipsJudul: "Empat kebiasaan menghitung taktik",
+    tips1Judul: "Urutkan skak, tangkapan, dan ancaman",
     tips1Isi:
-      "Pada soal skakmat, kandidat terkuat hampir selalu langkah berskak. Periksa setiap skak yang tersedia sebelum mempertimbangkan langkah tenang.",
-    tips2Judul: "Kenali motifnya, jangan hafalkan langkahnya",
+      "Mulailah selalu dari langkah yang paling membatasi balasan lawan: periksa seluruh skak legal, lanjutkan ke pukulan perwira, baru kemudian pertimbangkan ancaman mat atau langkah tenang.",
+    tips2Judul: "Tuntaskan balasan terbaik lawan di kepala",
     tips2Isi:
-      "Contoh soal di atas memakai motif attraksi: benteng dikorbankan untuk menarik raja ke petak yang bisa diserang menteri. Setelah polanya dikenali, soal serupa terbaca lebih cepat.",
-    tips3Judul: "Satu tema dalam satu sesi",
+      "Jangan menggerakkan bidak hanya karena langkah pertama terlihat menjanjikan. Pastikan setiap cara lawan menutup skak, menggeser raja, atau memukul balik sudah memiliki jawaban pasti.",
+    tips3Judul: "Ulang satu motif sampai terbaca sekilas",
     tips3Isi:
-      "Gunakan saringan tema untuk mengulang satu motif — misalnya skakmat punggung atau skakmat sempit — sampai polanya terbaca tanpa berpikir panjang.",
-    tips4Judul: "Naik level setelah konsisten",
+      "Gunakan saringan tema seperti paku (pin), garpu (fork), defleksi, attraksi, atau skakmat sempit dalam satu sesi fokus agar geometri bidaknya lekat di ingatan visual.",
+    tips4Judul: "Naik pita level sesudah bersih tanpa petunjuk",
     tips4Isi:
-      "Kerjakan level yang bisa Anda selesaikan berturut-turut tanpa petunjuk, lalu naik satu tingkat. Bila mentok di satu soal, catat nomornya — nomor soal apa pun bisa dibuka kembali kapan saja.",
-    penutupJudul: "Kerjakan sekarang",
-    penutupIsi:
-      "Alat terbuka langsung di peramban tanpa pendaftaran. Setiap soal bernomor 1–5.486 dan alamatnya bisa dibagikan, sehingga mudah dijadikan bahan latihan bersama teman.",
+      "Kerjakan pita rating yang dapat Anda selesaikan berturut-turut tanpa menebak langkah, lalu naik satu tingkat. Simpan nomor soal yang meleset untuk diuji ulang beberapa hari kemudian.",
+    penutupJudul: "Uji kecepatan atau bedah lebih dalam",
+    penutupAwal:
+      "Sesudah pola dasar terbaca rapi tanpa tekanan jam, uji refleks pengenalan motif Anda dalam batas 3 atau 5 menit di",
+    penutupTengah: "atau telusuri cabang pertahanan lanjutannya bersama mesin di",
+    tautanAnalisa: "Papan Analisa",
+    penutupAkhir: "kapan pun Anda menemukan posisi yang layak dipelajari ulang.",
   }
 
 export const bukuPembukaan = {
@@ -432,58 +428,156 @@ export const analisaLanding = {
 export const rushLanding = {
     judul: "Rush Teka-teki",
     deskripsi:
-      "Latihan taktik berjangka waktu: pecahkan skakmat beruntun yang makin sulit sebelum waktu habis atau tiga nyawa hilang.",
+      "Latihan taktik berjangka waktu: pecahkan rangkaian skakmat dan kombinasi taktis dengan tingkat kesulitan menanjak sebelum waktu habis atau tiga nyawa gugur.",
     metaDeskripsi:
-      "Rush Teka-teki Komunitas Catur Indonesia — mode latihan taktik kilat ala PuzzleDash. Pecahkan skakmat beruntun dalam batas waktu 3 atau 5 menit dengan tiga nyawa.",
+      "Rush Teka-teki Komunitas Catur Indonesia: latihan taktik kilat 3 atau 5 menit dengan 3 nyawa, pilihan Skakmat Klasik (5.486 soal) atau Taktik Campuran (12.037 soal), dan papan peringkat anggota.",
     introJudul: "Adu Cepat Melihat Skakmat",
     intro1:
-      "Rush Teka-teki adalah mode latihan berjangka waktu: Anda menyelesaikan soal skakmat satu demi satu, dan setiap soal yang tuntas membuka soal berikutnya yang sedikit lebih sulit. Tujuannya sederhana — kumpulkan skor setinggi mungkin sebelum waktu habis.",
+      "Rush Teka-teki menguji seberapa cepat dan bersih Anda menemukan langkah paksa di bawah tekanan jam. Dalam satu sesi berdurasi 3 atau 5 menit dengan bekal tiga nyawa, soal dibuka dari sekitar rating 800 lalu naik 30 poin setiap kali satu posisi berhasil dituntaskan hingga mendekati rating 2400.",
     intro2:
-      "Format ini melatih pengenalan pola secara refleks. Alih-alih menghitung panjang, Anda dibiasakan langsung mengenali motif taktik yang berulang — garpu, sula, serangan ganda, hingga pola skakmat khas — sehingga saat bertanding, mata Anda lebih cepat menangkap peluang.",
+      "Berbeda dari teka-teki biasa tanpa batas waktu, format beruntun ini melatih ketajaman pandang pertama: mengenali skak paksa, garpu kuda, paku di lajur terbuka, pembelokan penjaga, serta jaring skakmat dalam hitungan detik sebagaimana situasi krisis waktu pada partai cepat dan blitz.",
     introGambarAlt:
-      "Infografis manfaat latihan puzzle: mempertajam visi taktik, meningkatkan keterampilan menghitung, dan memperkuat pengenalan pola.",
-    caraJudul: "Cara bermain",
-    langkah1: "Masukkan username Chess.com Anda, lalu pilih durasi permainan: 3 menit atau 5 menit.",
-    langkah2: "Pecahkan setiap soal skakmat — klik atau seret bidak ke petak tujuan sebelum lawan membalas.",
-    langkah3: "Satu langkah keliru menggagalkan soal itu dan menghabiskan satu dari tiga nyawa Anda.",
-    langkah4: "Sesi berhenti saat waktu habis atau ketiga nyawa hilang; skor akhir tercatat pada papan peringkat.",
+      "Tangan pemain menempatkan kuda putih di tengah papan catur kayu Staunton di samping jam catur turnamen mekanis.",
+    introGambarCaption:
+      "Ilustrasi latihan taktik berjangka waktu: menjaga ketepatan langkah kunci ketika jarum jam terus berjalan.",
+    modeJudul: "Dua mode soal, satu disiplin hitung",
+    modeLead:
+      "Sebelum menekan tombol mulai, Anda memilih kolam soal yang sesuai dengan sasaran latihan hari itu dari total 12.037 posisi terverifikasi.",
+    modeSkakmatJudul: "Skakmat Klasik (5.486 soal)",
+    modeSkakmatIsi:
+      "Seluruh soal berasal dari koleksi skakmat Lichess dengan tugas tunggal: mematikan raja lawan secara paksa dalam 1, 2, atau 3 langkah. Mode ini efektif untuk menghafal pola mat punggung, mat kuda tercekik, koordinasi menteri-gajah, serta pengorbanan pembuka lajur raja.",
+    modeCampuranJudul: "Taktik Campuran (12.037 soal)",
+    modeCampuranIsi:
+      "Menggabungkan 5.486 soal skakmat dengan 6.551 soal taktik tambahan dari arsip latihan harian dan studi akhir permainan. Tidak setiap posisi berujung mat; banyak soal menuntut Anda memenangkan perwira bersih, mempromosikan pion, menarik bek lawan, atau menemukan satu-satunya langkah bertahan.",
+    caraJudul: "Aturan sesi dan ritme bermain",
+    caraSubjudul: "Alur satu sesi",
+    langkah1:
+      "Masukkan nama atau username Chess.com Anda, pilih durasi 3 menit atau 5 menit, lalu tentukan mode Skakmat Klasik atau Taktik Campuran.",
+    langkah2:
+      "Periksa indikator giliran Putih atau Hitam sebelum melangkah; pada soal multi-langkah, lawan membalas secara otomatis untuk menguji kelanjutan kombinasi Anda.",
+    langkah3:
+      "Langkah tidak sah tidak mengurangi nyawa, tetapi satu langkah sah yang meleset dari solusi langsung menggugurkan soal itu dan memotong satu dari tiga nyawa.",
+    langkah4:
+      "Sesi berakhir ketika pencatat waktu menyentuh 00:00 (penanda berubah merah sejak sisa 30 detik) atau ketiga nyawa habis. Rekor pribadi tersimpan per durasi dan dapat dikirim ke papan peringkat anggota lewat verifikasi Chess.com.",
+    strategiSubjudul: "Menjaga akurasi saat rating menanjak",
+    strategi1:
+      "Gunakan sepuluh soal pembuka di rentang rating 800 sampai 1050 untuk membangun irama tanpa tergesa-gesa melepas bidak. Sebagian besar nyawa yang hilang di menit pertama bukan karena posisi rumit, melainkan karena melewatkan giliran warna atau mengeksekusi skak alternatif yang bukan jalur tercepat.",
+    strategi2:
+      "Begitu rating melewati 1100, tahan tangan sejenak setiap kali lawan punya lebih dari satu cara menutup skak atau memukul balik. Menginvestasikan delapan hingga sepuluh detik untuk memverifikasi balasan paksa lawan jauh lebih menguntungkan daripada kehilangan satu nyawa secara cuma-cuma.",
     fiturJudul: "Yang membuatnya melatih",
-    fitur1Judul: "Kesulitan menaik",
+    fitur1Judul: "Tangga rating progresif",
     fitur1Isi:
-      "Soal dimulai dari yang mudah lalu naik bertahap mengikuti performa Anda, sehingga selalu ada tantangan tanpa membuat frustrasi sejak awal.",
-    fitur2Judul: "Tekanan waktu",
+      "Kurva soal bergerak mulus dari pola dasar ber-rating 800 menuju kombinasi tingkat lanjut hingga 2400 tanpa mengulang soal yang sama dalam satu sesi.",
+    fitur2Judul: "Keputusan di bawah krisis waktu",
     fitur2Isi:
-      "Batas 3 atau 5 menit memaksa keputusan cepat — melatih intuisi taktis yang berguna dalam permainan kilat dan blitz.",
-    fitur3Judul: "Papan peringkat",
+      "Batas 3 menit menuntut refleks pola seketika, sedangkan durasi 5 menit memberi ruang kalkulasi dua sampai tiga cabang saat memasuki soal menengah-atas.",
+    fitur3Judul: "Rekor terpisah & papan peringkat klub",
     fitur3Isi:
-      "Skor terbaik tersimpan dan diadu dengan sesama anggota komunitas, menambah motivasi untuk terus memecahkan rekor pribadi.",
+      "Skor terbaik 3 menit dan 5 menit dicatat terpisah di peramban, sementara anggota terverifikasi Chess.com dapat mengadu rekor resmi di papan peringkat komunitas.",
+    penutupJudul: "Lengkapi dengan latihan tanpa jam",
+    penutupAwal:
+      "Rush Teka-teki mengasah kecepatan mengenali motif yang sudah pernah Anda pelajari. Bila jenis kombinasi tertentu sering memangkas nyawa Anda, latih kalkulasi mendalam tanpa tekanan waktu di halaman",
+    penutupTengah: "atau bedah variasi bertahannya bersama mesin di",
+    tautanAnalisa: "Papan Analisa",
+    penutupAkhir: "sebelum kembali menguji rekor kecepatan berikutnya.",
     ctaJudul: "Siap mengadu kecepatan?",
     ctaIsi:
-      "Pilih durasi, mulai sesi, dan lihat berapa banyak skakmat yang bisa Anda pecahkan tanpa henti.",
+      "Pilih durasi, mulai sesi, dan lihat berapa banyak posisi taktis yang bisa Anda tuntaskan sebelum waktu habis.",
     cta: "Mulai Rush Teka-teki",
 };
 
 export const kuisLanding = {
     judul: "Kuis Catur",
     deskripsi:
-      "Uji pemahaman catur Anda lewat soal pilihan ganda bertema — dari peraturan dasar sampai strategi dan sejarah.",
+      "Uji pemahaman catur melalui 115 soal pilihan ganda dalam 11 kategori, dari peraturan dasar dan notasi hingga langkah grandmaster berdiagram.",
     metaDeskripsi:
-      "Kuis Catur Komunitas Catur Indonesia — soal pilihan ganda dari sepuluh kategori: peraturan, bidak, pola skakmat, taktik, pembukaan, strategi, endgame, notasi, sejarah, dan umum.",
-    introJudul: "Belajar sambil Menguji Diri",
+      "Kuis Catur Komunitas Catur Indonesia: 115 soal pilihan ganda dalam 11 kategori, mencakup peraturan, taktik, endgame, hingga posisi grandmaster.",
+    introJudul: "Uji Pemahaman Teori dan Sejarah di Luar Papan",
     intro1:
-      "Kuis Catur menyajikan pertanyaan pilihan ganda dengan satu jawaban benar. Setiap soal disertai umpan balik langsung, sehingga Anda tidak sekadar menebak, tetapi memahami mengapa sebuah jawaban tepat atau keliru.",
+      "Kuis Catur Komunitas Catur Indonesia menghimpun 115 pertanyaan pilihan ganda terverifikasi yang dibagi ke dalam 11 kategori tematis. Materinya merentang dari aturan resmi FIDE, nilai perwira, dan pembacaan notasi aljabar hingga pola pembukaan, strategi tengah permainan, prinsip babak akhir, sejarah kejuaraan dunia, serta 15 soal berdiagram dari partai grandmaster.",
     intro2:
-      "Materinya menjangkau seluruh aspek permainan — mulai dari aturan resmi dan gerak bidak, motif taktik dan pola skakmat, hingga prinsip pembukaan, strategi tengah permainan, teknik babak akhir, notasi, dan sejarah catur.",
-    kategoriJudul: "Sepuluh kategori",
-    caraJudul: "Cara bermain",
-    langkah1: "Masukkan nama Anda, pilih kategori, dan tentukan batas kesalahan: 3 atau 5 jawaban salah.",
-    langkah2: "Baca setiap soal, lalu pilih satu jawaban dari opsi yang tersedia.",
-    langkah3: "Umpan balik muncul seketika — benar atau salah — beserta perpindahan ke soal berikutnya.",
-    langkah4: "Kuis selesai saat semua soal terjawab atau batas kesalahan tercapai; skor akhir muncul di layar.",
-    ctaJudul: "Seberapa dalam pemahaman Anda?",
-    ctaIsi:
-      "Pilih satu kategori favorit atau uji semuanya sekaligus, lalu buktikan pengetahuan catur Anda.",
+      "Seluruh sesi berjalan langsung di peramban tanpa memerlukan akun. Urutan kemunculan soal maupun letak opsi jawaban A sampai D diacak ulang setiap kali sesi dimulai, diikuti penanda benar atau salah seketika sehingga Anda langsung mengetahui konsep mana yang sudah matang dan bagian mana yang masih perlu ditinjau ulang.",
     cta: "Mulai Kuis Catur",
+    contohKategori: "Contoh soal · Kategori Langkah Grandmaster",
+    contohAriaPapan:
+      "Diagram papan catur Adolf Anderssen melawan Jean Dufresne di Berlin tahun 1852: Putih melangkah dengan menteri di a4, gajah di a3 dan d3, serta benteng di d1.",
+    contohSoal:
+      "Adolf Anderssen vs Jean Dufresne (Berlin, 1852) — Putih melangkah. Pengorbanan menteri mana yang mengawali rangkaian kemenangan?",
+    contohCaption:
+      "Lima belas soal pada kategori Langkah Grandmaster menampilkan diagram posisi partai asli dan menyorot langkah kunci di papan begitu opsi dipilih.",
+    kategoriJudul: "Sebelas kategori materi",
+    kategoriLead:
+      "Anda dapat memilih satu topik spesifik untuk latihan terarah atau memilih mode Semua untuk mengerjakan seluruh 115 soal secara acak dalam satu rangkaian.",
+    kolomKategori: "Kategori",
+    kolomJumlah: "Soal",
+    kolomCakupan: "Pokok materi yang diujikan",
+    kat1Nama: "Peraturan",
+    kat1Jumlah: "13",
+    kat1Isi:
+      "Susunan petak awal, giliran melangkah, syarat rokade, penangkapan en passant, promosi pion, pat (stalemate), dan klaim remis tiga kali pengulangan.",
+    kat2Nama: "Bidak",
+    kat2Jumlah: "13",
+    kat2Isi:
+      "Arah gerak keenam jenis bidak, keunikan lompatan kuda, keterbatasan gajah petak sewarna, serta perbandingan nilai materi dasar.",
+    kat3Nama: "Pola Skakmat",
+    kat3Jumlah: "9",
+    kat3Isi:
+      "Fool's Mate, Scholar's Mate, mat tangga dua benteng, mat baris belakang, smothered mate kuda, Boden's Mate, dan Arabian Mate.",
+    kat4Nama: "Taktik",
+    kat4Jumlah: "10",
+    kat4Isi:
+      "Garpu (fork), tusuk sate (skewer), paku mutlak maupun relatif (pin), serangan terbuka, skak ganda, defleksi, dan langkah sela (zwischenzug).",
+    kat5Nama: "Pembukaan",
+    kat5Jumlah: "10",
+    kat5Isi:
+      "Langkah pengenal Ruy Lopez, Pertahanan Sisilia, Gambit Menteri, Caro-Kann, Prancis, Permainan Italia, India Raja, serta disiplin perkembangan awal.",
+    kat6Nama: "Strategi",
+    kat6Jumlah: "10",
+    kat6Isi:
+      "Penguasaan petak pusat, petak outpost kuda, penguasaan lajur terbuka oleh benteng, kelemahan pion terisolasi, serta keunggulan pasangan gajah.",
+    kat7Nama: "Endgame",
+    kat7Jumlah: "10",
+    kat7Isi:
+      "Oposisi raja, pion bebas (passed pawn), aturan kotak pion, posisi kunci Lucena dan Philidor pada akhir benteng, serta sentralisasi raja.",
+    kat8Nama: "Notasi Catur",
+    kat8Jumlah: "10",
+    kat8Isi:
+      "Huruf perwira dalam notasi aljabar standar, simbol tangkapan (x), rokade pendek dan panjang (O-O / O-O-O), tanda skak (+), skakmat (#), dan evaluasi langkah.",
+    kat9Nama: "Sejarah",
+    kat9Jumlah: "8",
+    kat9Isi:
+      "Asal-usul permainan dari chaturanga di India dan shatranj di Persia, pendirian FIDE, juara dunia resmi pertama Wilhelm Steinitz, hingga duel Deep Blue 1997.",
+    kat10Nama: "Umum",
+    kat10Jumlah: "7",
+    kat10Isi:
+      "Istilah pertandingan over-the-board (OTB), catur buta, ekshibisi simultan, underpromotion, pembagian waktu blitz/rapid/klasik, dan sistem rating Elo.",
+    kat11Nama: "Langkah Grandmaster",
+    kat11Jumlah: "15",
+    kat11Isi:
+      "Soal bergambar diagram papan dari partai Anderssen, Morphy, Capablanca, Tal, Fischer, Spassky, Kasparov, Kramnik, Anand, Judit Polgar, Ivanchuk, hingga Carlsen.",
+    kategoriCatatan:
+      "Total keseluruhan: 115 soal terverifikasi (100 soal konseptual teks dan 15 soal posisi berdiagram papan).",
+    caraJudul: "Aturan sesi dan pencatatan skor",
+    caraSubjudul: "Alur bermain",
+    langkah1:
+      "Pilih satu kategori di bilah kiri atau pilih Semua, ketik nama panggilan Anda, lalu tentukan batas toleransi 3 jawaban salah atau 5 jawaban salah.",
+    langkah2:
+      "Baca pertanyaan (beserta orientasi giliran pada soal berdiagram), lalu klik salah satu dari empat pilihan jawaban yang telah diacak urutannya.",
+    langkah3:
+      "Antarmuka langsung menandai kunci jawaban yang tepat dengan centang hijau dan memperlihatkan langkah kunci di papan sebelum Anda menekan Lanjut.",
+    langkah4:
+      "Kuis berakhir otomatis begitu seluruh soal kategori terpilih habis terjawab atau jumlah kekeliruan mencapai batas salah; tombol Menyerah tersedia bila Anda ingin mengakhiri sesi lebih awal.",
+    skorSubjudul: "Peringkat lokal & urutan belajar yang disarankan",
+    skor1:
+      "Sepuluh nilai tertinggi dicatat langsung di peramban perangkat Anda (localStorage) dengan menyisakan skor terbaik untuk setiap nama, tanpa pengiriman data ke server. Rekap jawaban benar dan salah dari sesi terakhir tetap tampil di panel kanan agar Anda mudah memantau perkembangan.",
+    skor2:
+      "Bagi pemula, tuntaskan lebih dulu kategori Peraturan, Bidak, dan Notasi Catur dengan batas 5 salah sebelum mencoba mode gabungan Semua. Pemain menengah dapat langsung memilih batas 3 salah pada Taktik, Strategi, Endgame, dan Langkah Grandmaster.",
+    penutupJudul: "Perdalam materi yang belum dikuasai",
+    penutupAwal:
+      "Apabila Anda masih sering keliru pada topik tertentu, pelajari bab terkait secara runtut melalui",
+    penutupTengah1: "telusuri jalur langkah awalnya di halaman",
+    penutupTengah2: "atau latih penerapan taktiknya langsung di papan melalui",
+    penutupAkhir: "sebelum mengulang kuis kembali.",
 };
 
 

@@ -26,6 +26,10 @@ export const tekaTekiRush = {
     durasi3: "3 minutes",
     durasi5: "5 minutes",
     menitSingkat: "min",
+    modeSoalLabel: "Puzzle pool",
+    modeSkakmat: "Classic Checkmates",
+    modeCampuran: "Mixed Tactics",
+    memuatCampuran: "Loading tactics archive…",
     mulai: "Start Rush",
     usernamePlaceholder: "Your Chess.com username",
     usernameKosong: "Username cannot be empty.",
@@ -56,6 +60,7 @@ export const tekaTekiRush = {
     benar: "Correct!",
     salah: "Wrong!",
     skakmat: "Checkmate!",
+    taktikTuntas: "Solved!",
     kesulitan: "Puzzle difficulty ~{n}",
 
     // Result screen

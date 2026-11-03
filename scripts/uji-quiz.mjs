@@ -5,6 +5,7 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { Chess } from "chess.js";
 import { SOAL_CATUR, DAFTAR_KATEGORI, IKON_KATEGORI } from "../src/halaman/QuizCatur/daftar.js";
 
 const AKAR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -22,6 +23,7 @@ const distribusiDiharapkan = {
   notasi: 10,
   sejarah: 8,
   umum: 7,
+  grandmaster: 15,
 };
 let gagal = 0;
 const cek = (kondisi, pesan) => {
@@ -32,8 +34,8 @@ const cek = (kondisi, pesan) => {
 const okCount = (pesan) => console.log(`  ✅ ${pesan}`);
 
 console.log(`\nMemeriksa ${SOAL_CATUR.length} soal…`);
-cek(DAFTAR_KATEGORI.length === 10, `Jumlah kategori harus 10, saat ini ${DAFTAR_KATEGORI.length}.`);
-cek(SOAL_CATUR.length === 100, `Jumlah soal harus tepat 100, saat ini ${SOAL_CATUR.length}.`);
+cek(DAFTAR_KATEGORI.length === 11, `Jumlah kategori harus 11, saat ini ${DAFTAR_KATEGORI.length}.`);
+cek(SOAL_CATUR.length === 115, `Jumlah soal harus tepat 115, saat ini ${SOAL_CATUR.length}.`);
 
 const jumlahPerKategori = new Map();
 
@@ -59,6 +61,44 @@ SOAL_CATUR.forEach((s, i) => {
   if (Array.isArray(s.pilihan)) {
     const set = new Set(s.pilihan.map((p) => String(p).trim().toLowerCase()));
     cek(set.size === s.pilihan.length, `[${n}] ada pilihan yang duplikat.`);
+  }
+
+  if (s.fen !== undefined) {
+    let papan;
+    try {
+      papan = new Chess(s.fen);
+    } catch {
+      papan = null;
+    }
+    cek(Boolean(papan), `[${n}] FEN diagram kuis tidak sah.`);
+    if (papan && Array.isArray(s.pilihan)) {
+      cek(
+        s.orientasi === papan.turn(),
+        `[${n}] orientasi diagram (${s.orientasi}) harus cocok dengan giliran FEN (${papan.turn()}).`
+      );
+      if (/\bPutih melangkah\b/i.test(s.soal)) {
+        cek(papan.turn() === "w", `[${n}] teks menyebut Putih melangkah tetapi giliran FEN Hitam.`);
+      }
+      if (/\bHitam melangkah\b/i.test(s.soal)) {
+        cek(papan.turn() === "b", `[${n}] teks menyebut Hitam melangkah tetapi giliran FEN Putih.`);
+      }
+      const langkahLegal = new Set(papan.moves());
+      for (const san of s.pilihan) {
+        cek(langkahLegal.has(san), `[${n}] pilihan "${san}" bukan langkah legal pada FEN soal.`);
+      }
+      cek(Boolean(s.langkahBenar), `[${n}] soal berdiagram wajib menyertakan langkahBenar.`);
+      if (s.langkahBenar) {
+        const detail = papan
+          .moves({ verbose: true })
+          .find((m) => m.san === s.pilihan[s.kunci]);
+        cek(
+          Boolean(detail) &&
+            detail.from === s.langkahBenar.from &&
+            detail.to === s.langkahBenar.to,
+          `[${n}] langkahBenar tidak cocok dengan jawaban kunci "${s.pilihan[s.kunci]}".`
+        );
+      }
+    }
   }
 
   jumlahPerKategori.set(s.kategori, (jumlahPerKategori.get(s.kategori) || 0) + 1);

@@ -56,5 +56,6 @@ export const quiz = {
         notasi: "Notasi Catur",
         sejarah: "Sejarah",
         umum: "Umum",
+        grandmaster: "Langkah Grandmaster",
     },
 };

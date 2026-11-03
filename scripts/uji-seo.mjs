@@ -261,12 +261,12 @@ for (const rute of RUTE_LATAR_GELAP.filter((r) => !(r in PRELOAD_JSON_RUTE))) {
 // Avatar komentator adalah kandidat LCP pada rute teka-teki: preload harus
 // berada di HTML awal rute itu saja, bukan pada semua halaman layar-penuh.
 const htmlTekaTeki = kerangkaRute(metadataRute(html, "/teka-teki/problem", situs), "/teka-teki/problem");
-if (!htmlTekaTeki.includes('rel="preload" as="image" href="/engine_expressions/coachdavid.png" fetchpriority="high"')) {
+if (!htmlTekaTeki.includes('rel="preload" as="image" href="/gambar_comentator/FritzConcentrated.webp" fetchpriority="high"')) {
   gagal("Rute teka-teki: preload prioritas tinggi untuk avatar LCP tidak ditemukan.");
 }
 for (const rute of RUTE_LATAR_GELAP.filter((r) => r !== "/teka-teki/problem")) {
   const hasil = kerangkaRute(metadataRute(html, rute, situs), rute);
-  if (hasil.includes('href="/engine_expressions/coachdavid.png"')) {
+  if (hasil.includes('href="/gambar_comentator/FritzConcentrated.webp"')) {
     gagal(`Rute ${rute}: preload avatar teka-teki bocor ke halaman lain.`);
   }
 }

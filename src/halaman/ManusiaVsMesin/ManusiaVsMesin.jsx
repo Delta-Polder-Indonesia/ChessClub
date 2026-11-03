@@ -24,6 +24,14 @@ import TombolMundur from "../PapanInteraktif/bersama/TombolMundur.jsx";
 import TombolMaju from "../PapanInteraktif/bersama/TombolMaju.jsx";
 import TombolKeAkhir from "../PapanInteraktif/bersama/TombolKeAkhir.jsx";
 import { fenDariLangkah, susunPgn } from "../PapanInteraktif/bersama/utilPapan.js";
+import { faktaLangkah } from "../../lib/komentator.js";
+import {
+  cariCatatanMaster,
+  intipKorpusMaster,
+  muatKorpusMaster,
+} from "../../lib/korpusKomentarMaster.js";
+import { muatBuku } from "../Analisa/mesin/buku.js";
+import { kunciFen } from "../Analisa/mesin/kunciFen.js";
 import { dialogMesin } from "./dialogMesin.js";
 import IkonPutih from "../PapanInteraktif/bersama/ikon/white--sm.svg";
 import IkonHitam from "../PapanInteraktif/bersama/ikon/black--sm.svg";
@@ -336,7 +344,7 @@ function PengaturanPermainan({
 }
 
 export default function ManusiaVsMesin({ pengaturan = null }) {
-  const { t } = useI18n();
+  const { t, bahasa } = useI18n();
   // Halaman mandiri dengan sidebar miliknya sendiri (ala Teka-teki/Rush),
   // jadi judul tab diatur di sini — bukan oleh tata letak Workspace.
   useEffect(() => {
@@ -347,6 +355,26 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
   const pengaturanLokal = usePengaturanPapan();
   const pengaturanBersama = usePengaturanBersama();
   const pp = (pengaturan ?? pengaturanBersama ?? pengaturanLokal).nilai ?? PENGATURAN_AWAL;
+
+  const [korpusMaster, setKorpusMaster] = useState(() => intipKorpusMaster());
+  const [bukuPembukaan, setBukuPembukaan] = useState(null);
+  const jejakEvaluasiRef = useRef(new Map());
+  useEffect(() => {
+    let aktifMuat = true;
+    muatKorpusMaster()
+      .then((peta) => {
+        if (aktifMuat && peta) setKorpusMaster(peta);
+      })
+      .catch(() => {});
+    muatBuku()
+      .then((buku) => {
+        if (aktifMuat && buku) setBukuPembukaan(buku);
+      })
+      .catch(() => {});
+    return () => {
+      aktifMuat = false;
+    };
+  }, []);
 
   const [fen, setFen] = useState(FEN_AWAL);
   const fenRef = useRef(FEN_AWAL);
@@ -462,6 +490,15 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
     if (!hasilEvaluasi || hasilEvaluasi.fen !== fen) return null;
     return hasilEvaluasi;
   }, [hasilEvaluasi, fen]);
+
+  useEffect(() => {
+    if (evaluasiAktif && fen) {
+      jejakEvaluasiRef.current.set(fen, {
+        cpPutih: evaluasiAktif.cpPutih,
+        matePutih: evaluasiAktif.matePutih,
+      });
+    }
+  }, [evaluasiAktif, fen]);
 
   useEffect(() => {
     riwayatRef.current = riwayat;
@@ -782,6 +819,7 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
     fenRef.current = FEN_AWAL;
     setFen(FEN_AWAL);
     riwayatRef.current = [];
+    jejakEvaluasiRef.current.clear();
     setRiwayat([]);
     setRiwayatLengkap([]);
     setLangkahAkhir(null);
@@ -937,6 +975,71 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
     return t("papan.pveGiliranPemain");
   }
 
+  const konteksLangkahAktif = useMemo(() => {
+    if (!riwayat.length) {
+      return {
+        fakta: null,
+        langkahAktif: null,
+        catatanMaster: null,
+        namaPembukaan: null,
+        fenSebelum: null,
+      };
+    }
+    const fenSebelum = fenDariLangkah(riwayat.slice(0, -1), FEN_AWAL);
+    const sanTerakhir = riwayat[riwayat.length - 1];
+    const fakta = fenSebelum ? faktaLangkah(fenSebelum, sanTerakhir) : null;
+    const langkahAktif = fakta
+      ? {
+          san: fakta.san,
+          oleh: fakta.warna === warnaMesin ? "mesin" : "pemain",
+          tangkap: Boolean(fakta.tangkap),
+          skak: fakta.skak,
+          rokade: Boolean(fakta.rokade),
+          promosi: Boolean(fakta.promosi),
+          petak: fakta.ke,
+        }
+      : null;
+    const catatanMaster =
+      korpusMaster && fenSebelum
+        ? cariCatatanMaster(korpusMaster, fenSebelum, sanTerakhir)
+        : null;
+    const namaPembukaan = bukuPembukaan
+      ? bukuPembukaan[kunciFen(fen)] ||
+        (fenSebelum ? bukuPembukaan[kunciFen(fenSebelum)] : null) ||
+        null
+      : null;
+    return {
+      fakta,
+      langkahAktif,
+      catatanMaster,
+      namaPembukaan,
+      fenSebelum,
+    };
+  }, [riwayat, warnaMesin, korpusMaster, bukuPembukaan, fen]);
+
+  const selisihCpPemain = useMemo(() => {
+    if (
+      konteksLangkahAktif.langkahAktif?.oleh !== "pemain" ||
+      !konteksLangkahAktif.fenSebelum ||
+      !evaluasiAktif
+    ) {
+      return null;
+    }
+    const keCpPutih = (ev) => {
+      if (!ev) return null;
+      if (typeof ev.cpPutih === "number") return ev.cpPutih;
+      if (typeof ev.matePutih === "number") {
+        return ev.matePutih > 0 ? 10000 - ev.matePutih * 100 : -10000 - ev.matePutih * 100;
+      }
+      return null;
+    };
+    const sesudahCp = keCpPutih(evaluasiAktif);
+    const sebelumCp = keCpPutih(jejakEvaluasiRef.current.get(konteksLangkahAktif.fenSebelum));
+    if (sesudahCp === null || sebelumCp === null) return null;
+    const tanda = warnaPemain === "w" ? 1 : -1;
+    return (sesudahCp - sebelumCp) * tanda;
+  }, [konteksLangkahAktif, evaluasiAktif, warnaPemain]);
+
   // Daftar disusun dari riwayat lengkap agar langkah yang sedang ditelusuri
   // masih terlihat; yang belum dimasuki posisi aktif tampil redup.
   const giliranPenuh = riwayatLengkap.reduce((baris, san, index) => {
@@ -944,12 +1047,20 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
     else baris[baris.length - 1].hitam = san;
     return baris;
   }, []);
+  const sedangTinjau = riwayat.length > 0 && riwayat.length < riwayatLengkap.length;
   const dialog = dialogMesin({
     statusMesin,
     hasil,
     warnaMesin,
-    langkahDialog,
-    benih: riwayatLengkap.length,
+    langkahDialog: konteksLangkahAktif.langkahAktif ?? langkahDialog,
+    fakta: konteksLangkahAktif.fakta,
+    catatanMaster: konteksLangkahAktif.catatanMaster,
+    namaPembukaan: konteksLangkahAktif.namaPembukaan,
+    evaluasi: evaluasiAktif,
+    selisihCpPemain,
+    sedangTinjau,
+    bahasa,
+    benih: riwayat.length || riwayatLengkap.length,
     t,
   });
   // Worker aktif berarti mesin masih memuat atau menghitung. Ikon kembali ke
