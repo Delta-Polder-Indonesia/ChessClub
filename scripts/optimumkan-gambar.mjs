@@ -82,6 +82,7 @@ export const TARGET = [
   { jalur: "images/ProgramKami/kuis-catur-hero.webp", varian: [828], kualitas: 78 },
   { jalur: "images/ProgramKami/analisa-hero.webp", varian: [828], kualitas: 78 },
   { jalur: "images/ProgramKami/pembukaan-hero.webp", varian: [828], kualitas: 78 },
+  { jalur: "images/RushPuzzle.webp", varian: [640, 828], kualitas: 78 },
   { jalur: "images/chesscomlogo.webp", varian: [150], kualitas: 78 },
 ];
 

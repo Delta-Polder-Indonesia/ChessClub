@@ -432,34 +432,61 @@ export const analisaLanding = {
 export const rushLanding = {
     judul: "Rush Teka-teki",
     deskripsi:
-      "Latihan taktik berjangka waktu: pecahkan skakmat beruntun yang makin sulit sebelum waktu habis atau tiga nyawa hilang.",
+      "Latihan taktik berjangka waktu: pecahkan rangkaian skakmat dan kombinasi taktis dengan tingkat kesulitan menanjak sebelum waktu habis atau tiga nyawa gugur.",
     metaDeskripsi:
-      "Rush Teka-teki Komunitas Catur Indonesia — mode latihan taktik kilat ala PuzzleDash. Pecahkan skakmat beruntun dalam batas waktu 3 atau 5 menit dengan tiga nyawa.",
+      "Rush Teka-teki Komunitas Catur Indonesia: latihan taktik kilat 3 atau 5 menit dengan 3 nyawa, pilihan Skakmat Klasik (5.486 soal) atau Taktik Campuran (12.037 soal), dan papan peringkat anggota.",
     introJudul: "Adu Cepat Melihat Skakmat",
     intro1:
-      "Rush Teka-teki adalah mode latihan berjangka waktu: Anda menyelesaikan soal skakmat satu demi satu, dan setiap soal yang tuntas membuka soal berikutnya yang sedikit lebih sulit. Tujuannya sederhana — kumpulkan skor setinggi mungkin sebelum waktu habis.",
+      "Rush Teka-teki menguji seberapa cepat dan bersih Anda menemukan langkah paksa di bawah tekanan jam. Dalam satu sesi berdurasi 3 atau 5 menit dengan bekal tiga nyawa, soal dibuka dari sekitar rating 400 lalu naik 30 poin setiap kali satu posisi berhasil dituntaskan hingga mendekati rating 2400.",
     intro2:
-      "Format ini melatih pengenalan pola secara refleks. Alih-alih menghitung panjang, Anda dibiasakan langsung mengenali motif taktik yang berulang — garpu, sula, serangan ganda, hingga pola skakmat khas — sehingga saat bertanding, mata Anda lebih cepat menangkap peluang.",
+      "Berbeda dari teka-teki biasa tanpa batas waktu, format beruntun ini melatih ketajaman pandang pertama: mengenali skak paksa, garpu kuda, paku di lajur terbuka, pembelokan penjaga, serta jaring skakmat dalam hitungan detik sebagaimana situasi krisis waktu pada partai cepat dan blitz.",
     introGambarAlt:
-      "Infografis manfaat latihan puzzle: mempertajam visi taktik, meningkatkan keterampilan menghitung, dan memperkuat pengenalan pola.",
-    caraJudul: "Cara bermain",
-    langkah1: "Masukkan username Chess.com Anda, lalu pilih durasi permainan: 3 menit atau 5 menit.",
-    langkah2: "Pecahkan setiap soal skakmat — klik atau seret bidak ke petak tujuan sebelum lawan membalas.",
-    langkah3: "Satu langkah keliru menggagalkan soal itu dan menghabiskan satu dari tiga nyawa Anda.",
-    langkah4: "Sesi berhenti saat waktu habis atau ketiga nyawa hilang; skor akhir tercatat pada papan peringkat.",
+      "Tangan pemain menempatkan kuda putih di tengah papan catur kayu Staunton di samping jam catur turnamen mekanis.",
+    introGambarCaption:
+      "Ilustrasi latihan taktik berjangka waktu: menjaga ketepatan langkah kunci ketika jarum jam terus berjalan.",
+    modeJudul: "Dua mode soal, satu disiplin hitung",
+    modeLead:
+      "Sebelum menekan tombol mulai, Anda memilih kolam soal yang sesuai dengan sasaran latihan hari itu dari total 12.037 posisi terverifikasi.",
+    modeSkakmatJudul: "Skakmat Klasik (5.486 soal)",
+    modeSkakmatIsi:
+      "Seluruh soal berasal dari koleksi skakmat Lichess dengan tugas tunggal: mematikan raja lawan secara paksa dalam 1, 2, atau 3 langkah. Mode ini efektif untuk menghafal pola mat punggung, mat kuda tercekik, koordinasi menteri-gajah, serta pengorbanan pembuka lajur raja.",
+    modeCampuranJudul: "Taktik Campuran (12.037 soal)",
+    modeCampuranIsi:
+      "Menggabungkan 5.486 soal skakmat dengan 6.551 soal taktik tambahan dari arsip latihan harian dan studi akhir permainan. Tidak setiap posisi berujung mat; banyak soal menuntut Anda memenangkan perwira bersih, mempromosikan pion, menarik bek lawan, atau menemukan satu-satunya langkah bertahan.",
+    caraJudul: "Aturan sesi dan ritme bermain",
+    caraSubjudul: "Alur satu sesi",
+    langkah1:
+      "Masukkan nama atau username Chess.com Anda, pilih durasi 3 menit atau 5 menit, lalu tentukan mode Skakmat Klasik atau Taktik Campuran.",
+    langkah2:
+      "Periksa indikator giliran Putih atau Hitam sebelum melangkah; pada soal multi-langkah, lawan membalas secara otomatis untuk menguji kelanjutan kombinasi Anda.",
+    langkah3:
+      "Langkah tidak sah tidak mengurangi nyawa, tetapi satu langkah sah yang meleset dari solusi langsung menggugurkan soal itu dan memotong satu dari tiga nyawa.",
+    langkah4:
+      "Sesi berakhir ketika pencatat waktu menyentuh 00:00 (penanda berubah merah sejak sisa 30 detik) atau ketiga nyawa habis. Rekor pribadi tersimpan per durasi dan dapat dikirim ke papan peringkat anggota lewat verifikasi Chess.com.",
+    strategiSubjudul: "Menjaga akurasi saat rating menanjak",
+    strategi1:
+      "Gunakan sepuluh soal pembuka di rentang rating 400 sampai 700 untuk membangun irama tanpa tergesa-gesa melepas bidak. Sebagian besar nyawa yang hilang di menit pertama bukan karena posisi rumit, melainkan karena melewatkan giliran warna atau mengeksekusi skak alternatif yang bukan jalur tercepat.",
+    strategi2:
+      "Begitu rating melewati 1100, tahan tangan sejenak setiap kali lawan punya lebih dari satu cara menutup skak atau memukul balik. Menginvestasikan delapan hingga sepuluh detik untuk memverifikasi balasan paksa lawan jauh lebih menguntungkan daripada kehilangan satu nyawa secara cuma-cuma.",
     fiturJudul: "Yang membuatnya melatih",
-    fitur1Judul: "Kesulitan menaik",
+    fitur1Judul: "Tangga rating progresif",
     fitur1Isi:
-      "Soal dimulai dari yang mudah lalu naik bertahap mengikuti performa Anda, sehingga selalu ada tantangan tanpa membuat frustrasi sejak awal.",
-    fitur2Judul: "Tekanan waktu",
+      "Kurva soal bergerak mulus dari pola dasar ber-rating 400 menuju kombinasi tingkat lanjut hingga 2400 tanpa mengulang soal yang sama dalam satu sesi.",
+    fitur2Judul: "Keputusan di bawah krisis waktu",
     fitur2Isi:
-      "Batas 3 atau 5 menit memaksa keputusan cepat — melatih intuisi taktis yang berguna dalam permainan kilat dan blitz.",
-    fitur3Judul: "Papan peringkat",
+      "Batas 3 menit menuntut refleks pola seketika, sedangkan durasi 5 menit memberi ruang kalkulasi dua sampai tiga cabang saat memasuki soal menengah-atas.",
+    fitur3Judul: "Rekor terpisah & papan peringkat klub",
     fitur3Isi:
-      "Skor terbaik tersimpan dan diadu dengan sesama anggota komunitas, menambah motivasi untuk terus memecahkan rekor pribadi.",
+      "Skor terbaik 3 menit dan 5 menit dicatat terpisah di peramban, sementara anggota terverifikasi Chess.com dapat mengadu rekor resmi di papan peringkat komunitas.",
+    penutupJudul: "Lengkapi dengan latihan tanpa jam",
+    penutupAwal:
+      "Rush Teka-teki mengasah kecepatan mengenali motif yang sudah pernah Anda pelajari. Bila jenis kombinasi tertentu sering memangkas nyawa Anda, latih kalkulasi mendalam tanpa tekanan waktu di halaman",
+    penutupTengah: "atau bedah variasi bertahannya bersama mesin di",
+    tautanAnalisa: "Papan Analisa",
+    penutupAkhir: "sebelum kembali menguji rekor kecepatan berikutnya.",
     ctaJudul: "Siap mengadu kecepatan?",
     ctaIsi:
-      "Pilih durasi, mulai sesi, dan lihat berapa banyak skakmat yang bisa Anda pecahkan tanpa henti.",
+      "Pilih durasi, mulai sesi, dan lihat berapa banyak posisi taktis yang bisa Anda tuntaskan sebelum waktu habis.",
     cta: "Mulai Rush Teka-teki",
 };
 

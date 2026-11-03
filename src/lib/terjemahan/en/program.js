@@ -431,34 +431,61 @@ export const analisaLanding = {
 export const rushLanding = {
     judul: "Puzzle Rush",
     deskripsi:
-      "A timed tactics workout: solve a streak of increasingly hard checkmates before the clock runs out or you lose three lives.",
+      "Timed tactical training: solve a streak of checkmates and tactical combinations of rising difficulty before the clock expires or three lives run out.",
     metaDeskripsi:
-      "Indonesian Chess Community Puzzle Rush — a fast-paced tactics mode. Solve back-to-back checkmate puzzles within a 3- or 5-minute limit with three lives.",
+      "Indonesian Chess Community Puzzle Rush: 3- or 5-minute timed tactics with three lives, Classic Checkmate (5,486 puzzles) or Mixed Tactics (12,037 puzzles), and member leaderboards.",
     introJudul: "A Race to Spot the Checkmate",
     intro1:
-      "Puzzle Rush is a timed practice mode: you solve checkmate puzzles one after another, and each solved puzzle unlocks a slightly harder one. The goal is simple — score as high as you can before time runs out.",
+      "Puzzle Rush tests how quickly and cleanly you find forcing moves under clock pressure. Across a 3- or 5-minute session with three lives, positions open near a 400 rating and climb 30 points with every solved puzzle toward 2400.",
     intro2:
-      "The format trains pattern recognition as a reflex. Instead of long calculation, you learn to instantly recognise recurring tactical motifs — forks, pins, double attacks, and classic mating patterns — so that in real games your eye catches chances faster.",
+      "Unlike untimed puzzle solving, a continuous streak sharpens first-sight board vision: spotting forcing checks, knight forks, open-file pins, deflections, and mating nets within seconds, mirroring time-trouble decisions in rapid and blitz games.",
     introGambarAlt:
-      "Infographic on the benefits of puzzle training: sharpens tactical vision, improves calculation skills, and boosts pattern recognition.",
-    caraJudul: "How to play",
-    langkah1: "Enter your Chess.com username, then choose a session length: 3 minutes or 5 minutes.",
-    langkah2: "Solve each checkmate puzzle — click or drag your piece to the target square before your opponent replies.",
-    langkah3: "A single wrong move fails that puzzle and costs one of your three lives.",
-    langkah4: "The session ends when time runs out or all three lives are gone; your final score is recorded on the leaderboard.",
+      "A player's hand placing a white wooden knight onto a central square of a Staunton chessboard beside a mechanical tournament chess clock.",
+    introGambarCaption:
+      "Illustration of timed tactical training: executing accurate forcing moves while the clock ticks down.",
+    modeJudul: "Two puzzle pools, one calculation discipline",
+    modeLead:
+      "Before starting a session, choose the puzzle pool that matches your training focus from 12,037 verified positions.",
+    modeSkakmatJudul: "Classic Checkmate (5,486 puzzles)",
+    modeSkakmatIsi:
+      "Built from the Lichess checkmate collection with a single objective: deliver forced mate in 1, 2, or 3 moves. Ideal for drilling back-rank mates, smothered knight mates, queen-bishop batteries, and king-file clearance sacrifices.",
+    modeCampuranJudul: "Mixed Tactics (12,037 puzzles)",
+    modeCampuranIsi:
+      "Combines all 5,486 checkmate problems with 6,551 tactical puzzles drawn from daily archives and endgame studies. Not every position ends in mate; many require winning clean material, promoting a pawn, deflecting a key defender, or finding an only defensive resource.",
+    caraJudul: "Session rules and pacing",
+    caraSubjudul: "How a session runs",
+    langkah1:
+      "Enter your name or Chess.com username, select a 3-minute or 5-minute clock, and choose Classic Checkmate or Mixed Tactics.",
+    langkah2:
+      "Check the side-to-move indicator (White or Black) before touching a piece; in multi-move sequences, the opponent replies automatically to test your full line.",
+    langkah3:
+      "Illegal moves do not cost a life, whereas a legal move that misses the solution ends that puzzle immediately and deducts one of your three lives.",
+    langkah4:
+      "The run stops when the timer hits 00:00 (turning red during the final 30 seconds) or all three lives are spent. Personal bests are saved per duration and can be submitted to the club leaderboard via Chess.com verification.",
+    strategiSubjudul: "Staying accurate as ratings climb",
+    strategi1:
+      "Use the opening ten puzzles in the 400 to 700 band to settle into a clean rhythm without rushing the mouse. Early lives are rarely lost to deep combinations; they usually slip away from overlooking side to move or playing an imprecise check.",
+    strategi2:
+      "Once the target rating passes 1100, pause briefly whenever the defender has more than one way to block a check or recapture. Spending eight to ten seconds verifying the opponent's forcing reply preserves far more score than dropping an early strike.",
     fiturJudul: "What makes it work",
-    fitur1Judul: "Rising difficulty",
+    fitur1Judul: "Progressive rating ladder",
     fitur1Isi:
-      "Puzzles start easy and step up gradually with your performance, so there is always a challenge without frustrating you from the start.",
-    fitur2Judul: "Time pressure",
+      "Difficulty steps smoothly from foundational 400-level patterns up toward 2400-level combinations without repeating positions inside the same run.",
+    fitur2Judul: "Decision-making in time trouble",
     fitur2Isi:
-      "The 3- or 5-minute limit forces quick decisions — sharpening the tactical intuition you need in rapid and blitz play.",
-    fitur3Judul: "Leaderboard",
+      "The 3-minute sprint demands instant motif recall, while the 5-minute format leaves room to calculate two or three branches on tougher positions.",
+    fitur3Judul: "Separate records & club leaderboard",
     fitur3Isi:
-      "Your best score is saved and measured against fellow community members, adding motivation to keep beating your personal record.",
+      "Personal bests for 3 and 5 minutes are tracked separately in your browser, and verified Chess.com club members can post official scores to the community leaderboard.",
+    penutupJudul: "Pair it with untimed calculation",
+    penutupAwal:
+      "Puzzle Rush sharpens how fast you recall patterns you already know. When certain tactical themes repeatedly cost you lives, practice deep calculation without a clock on",
+    penutupTengah: "or examine the defensive sidelines with the engine on the",
+    tautanAnalisa: "Analysis Board",
+    penutupAkhir: "before coming back for your next timed run.",
     ctaJudul: "Ready to race the clock?",
     ctaIsi:
-      "Pick a length, start a session, and see how many checkmates you can solve without stopping.",
+      "Pick a duration, start a session, and see how many tactical positions you can solve before time runs out.",
     cta: "Start Puzzle Rush",
 };
 
