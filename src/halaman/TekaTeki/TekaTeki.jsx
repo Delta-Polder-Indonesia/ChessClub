@@ -2140,6 +2140,8 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
               </Link>
             </div>
           </div>
+          </>
+          )}
         </aside>
 
         {/* ═══════════════════════════════════════════════════════ */}
@@ -2440,6 +2442,8 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
               );
             })}
           </div>
+          {tabPanelAktif === "main" && (
+          <>
           {/* Nomor soal + status (di bawah teks soal) */}
           {(teksSoal || teksCekmat || teksSudah || teksSalah || teksPeringatan) && (
             <div className="flex-shrink-0 px-4 py-2 border-b border-[#312e2b] bg-[#262421] flex flex-col gap-1">
@@ -2492,8 +2496,6 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
             </div>
           ) : null}
 
-          {tabPanelAktif === "main" && (
-          <>
           {/* Konten utama panel dipertahankan seperti sebelumnya. */}
           <div className="flex-1 overflow-y-auto min-h-0 p-4 space-y-3 text-sm">
             <div className="flex items-center justify-between gap-2">
@@ -2657,8 +2659,6 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
               </div>
             )}
           </div>
-          </>
-          )}
 
           {tabPanelAktif === "video" && (
             <div role="tabpanel" data-panel="video" className="flex-1 min-h-0" />
