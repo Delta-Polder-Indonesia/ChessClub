@@ -306,6 +306,7 @@ export default function TekaTeki() {
   const [langkahAkhir, setLangkahAkhir] = useState(null);
   const [jalurFen, setJalurFen] = useState([]);
   const [orientasi, setOrientasi] = useState("w");
+  const [tabPanelAktif, setTabPanelAktif] = useState("main");
   const [pesan, setPesan] = useState(null);
   /**
    * ID dari URL saat mount: bila bukan angka yang sah (di luar rentang soal)
@@ -1337,7 +1338,7 @@ export default function TekaTeki() {
     keAwal: keAwalLangkah,
     keAkhir: keAkhirLangkah,
     adaSoal: !!langkahPenuh?.length,
-    blokir: !!promosi,
+    blokir: !!promosi || tabPanelAktif === "pengaturan",
   };
   useEffect(() => {
     let terakhirDitekan = 0;
@@ -1716,6 +1717,9 @@ export default function TekaTeki() {
         <LayoutTekaTeki
               papan={papanWadah}
               barEvaluasi={barEvaluasiWadah}
+              orientasi={orientasi}
+              tabPanelAktif={tabPanelAktif}
+              onGantiTabPanel={setTabPanelAktif}
               giliran={(fen && fen.split(" ")[1] === "b") ? "hitam" : "putih"}
               // langkahPenuh menyimpan setengah-langkah (ply), sedangkan label
               // "Skak dalam N langkah" harus menghitung langkah pihak yang
@@ -1937,9 +1941,8 @@ const OPSI_TEMA_BAWAAN = [
   { grup: "Karakteristik", isi: [["endgame", "Endgame"], ["middlegame", "Middlegame"], ["opening", "Opening"]] },
 ];
 
-function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, giliran = "putih", jumlahLangkah = 1, bukanSkakmat = false, selesai = false, videoUrl = "", videoPelatih = "", videoJudulSoal = "", videoTurnamen = "", videoTanggal = "", videoGagal = false, catatanLangkah = null, jumlahVariasi = 0, simbolNag = "", memuatKoleksi = false, onPutarVideo = null, onGalatVideo = null, onBukaKoleksiVideo = null, onBukaAnalisa = null, nilaiKoleksi = "lichess", onGantiKoleksi = null, daftarPelatih = [], nilaiPelatih = "semua", onGantiPelatih = null, teksSoal = "", teksTingkat = "", teksTipe = "", teksTerpecahkan = "", teksCekmat = "", teksSudah = "", daftarSet = [], nilaiSetBidak = "merida", onGantiSetBidak = null, pilihanWarnaPapan = [], nilaiWarnaPapan = "green", onGantiWarnaPapan = null, nilaiSuara = true, onGantiSuara = null, onAcak = null, onLewati = null, engineNyala = false, onGantiEngine = null, tampilPanahMesin = true, onGantiPanahMesin = null, teksPanahMesin = "", nilaiLevel = "semua", onGantiLevel = null, nilaiLangkah = "semua", onGantiLangkah = null, nilaiTema = "semua", opsiTema = [], onGantiTema = null, nilaiGiliran = "semua", onGantiGiliran = null, nilaiNomorSoal = "", nilaiTotalSoal = 0, onGantiNomorSoal = null, nilaiIngatPosisi = true, onGantiIngatPosisi = null, teksPosisiTersimpan = "", teksIngatNonaktif = "", teksGalatNomor = "", onBukaNomor = null, bisaHint = false, onHint = null, teksSalah = "", teksPeringatan = "", kartuKomentator = null, kecepatanEngine = 800, opsiKecepatan = [], onGantiKecepatan = null, pvSanEngine = [], onMainkanSaran = null, onKeAwal = null, onMundur = null, onMaju = null, onKeAkhir = null, bisaMundur = false, bisaMaju = false, eloSoal = 1500, namaHitam = "", eloHitam = 0, namaPutih = "", eloPutih = 0, teksPembukaan = "", komentatorNyala = false, memuat = false }) {
+function LayoutTekaTeki({ papan = null, barEvaluasi = null, orientasi = "w", tabPanelAktif = "main", onGantiTabPanel = null, onFlip = null, giliran = "putih", jumlahLangkah = 1, bukanSkakmat = false, selesai = false, videoUrl = "", videoPelatih = "", videoJudulSoal = "", videoTurnamen = "", videoTanggal = "", videoGagal = false, catatanLangkah = null, jumlahVariasi = 0, simbolNag = "", memuatKoleksi = false, onPutarVideo = null, onGalatVideo = null, onBukaKoleksiVideo = null, onBukaAnalisa = null, nilaiKoleksi = "lichess", onGantiKoleksi = null, daftarPelatih = [], nilaiPelatih = "semua", onGantiPelatih = null, teksSoal = "", teksTingkat = "", teksTipe = "", teksTerpecahkan = "", teksCekmat = "", teksSudah = "", daftarSet = [], nilaiSetBidak = "merida", onGantiSetBidak = null, pilihanWarnaPapan = [], nilaiWarnaPapan = "green", onGantiWarnaPapan = null, nilaiSuara = true, onGantiSuara = null, onAcak = null, onLewati = null, engineNyala = false, onGantiEngine = null, tampilPanahMesin = true, onGantiPanahMesin = null, teksPanahMesin = "", nilaiLevel = "semua", onGantiLevel = null, nilaiLangkah = "semua", onGantiLangkah = null, nilaiTema = "semua", opsiTema = [], onGantiTema = null, nilaiGiliran = "semua", onGantiGiliran = null, nilaiNomorSoal = "", nilaiTotalSoal = 0, onGantiNomorSoal = null, nilaiIngatPosisi = true, onGantiIngatPosisi = null, teksPosisiTersimpan = "", teksIngatNonaktif = "", teksGalatNomor = "", onBukaNomor = null, bisaHint = false, onHint = null, teksSalah = "", teksPeringatan = "", kartuKomentator = null, kecepatanEngine = 800, opsiKecepatan = [], onGantiKecepatan = null, pvSanEngine = [], onMainkanSaran = null, onKeAwal = null, onMundur = null, onMaju = null, onKeAkhir = null, bisaMundur = false, bisaMaju = false, eloSoal = 1500, namaHitam = "", eloHitam = 0, namaPutih = "", eloPutih = 0, teksPembukaan = "", komentatorNyala = false, memuat = false }) {
   const { t } = useI18n();
-  const [tabPanelAktif, setTabPanelAktif] = useState("main");
   // Default prop sengaja kosong: teksnya selalu dari kamus.
   const labelPanahMesin = teksPanahMesin || t("papan.enginePanahToggle");
   const papanStatic = papanSampel();
@@ -2715,7 +2718,6 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
             </div>
           )}
 
-          <>
           {engineNyala && (
             <div className="flex-shrink-0 border-b border-[#312e2b] bg-[#1e1c18] px-3 py-2 space-y-2">
               <div className="flex items-center justify-between gap-3">
@@ -2878,8 +2880,6 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
               </button>
             </div>
           </div>
-          </>
-          )}
         </aside>
       </div>
     </div>
