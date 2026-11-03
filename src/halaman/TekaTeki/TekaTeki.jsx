@@ -1764,7 +1764,6 @@ export default function TekaTeki() {
               nilaiSuara={suaraNyala}
               onGantiSuara={setSuaraNyala}
               onAcak={pilihAcak}
-              onPertama={() => pindahSoal(0)}
               onLewati={() => pindahSoal(indeks + 1)}
               nilaiOtomatis={otomatis}
               onGantiOtomatis={(v) => setOtomatis(v)}
@@ -1940,7 +1939,7 @@ const OPSI_TEMA_BAWAAN = [
   { grup: "Karakteristik", isi: [["endgame", "Endgame"], ["middlegame", "Middlegame"], ["opening", "Opening"]] },
 ];
 
-function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, giliran = "putih", jumlahLangkah = 1, bukanSkakmat = false, selesai = false, videoUrl = "", videoPelatih = "", videoJudulSoal = "", videoTurnamen = "", videoTanggal = "", videoGagal = false, catatanLangkah = null, jumlahVariasi = 0, simbolNag = "", memuatKoleksi = false, onPutarVideo = null, onGalatVideo = null, onBukaKoleksiVideo = null, onBukaAnalisa = null, nilaiKoleksi = "lichess", onGantiKoleksi = null, daftarPelatih = [], nilaiPelatih = "semua", onGantiPelatih = null, teksSoal = "", teksTingkat = "", teksTipe = "", teksTerpecahkan = "", teksCekmat = "", teksSudah = "", daftarSet = [], nilaiSetBidak = "merida", onGantiSetBidak = null, pilihanWarnaPapan = [], nilaiWarnaPapan = "green", onGantiWarnaPapan = null, nilaiSuara = true, onGantiSuara = null, onAcak = null, onLewati = null, nilaiOtomatis = false, onGantiOtomatis = null, engineNyala = false, onGantiEngine = null, tampilPanahMesin = true, onGantiPanahMesin = null, teksPanahMesin = "", nilaiLevel = "semua", onGantiLevel = null, nilaiLangkah = "semua", onGantiLangkah = null, nilaiTema = "semua", opsiTema = [], onGantiTema = null, nilaiGiliran = "semua", onGantiGiliran = null, nilaiNomorSoal = "", nilaiTotalSoal = 0, onGantiNomorSoal = null, nilaiIngatPosisi = true, onGantiIngatPosisi = null, teksPosisiTersimpan = "", teksIngatNonaktif = "", teksGalatNomor = "", onBukaNomor = null, bisaHint = false, onHint = null, teksSalah = "", teksPeringatan = "", kartuKomentator = null, kecepatanEngine = 800, opsiKecepatan = [], onGantiKecepatan = null, pvSanEngine = [], onMainkanSaran = null, onKeAwal = null, onMundur = null, onMaju = null, onKeAkhir = null, bisaMundur = false, bisaMaju = false, onPertama = null, eloSoal = 1500, namaHitam = "", eloHitam = 0, namaPutih = "", eloPutih = 0, teksPembukaan = "", komentatorNyala = false, memuat = false }) {
+function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, giliran = "putih", jumlahLangkah = 1, bukanSkakmat = false, selesai = false, videoUrl = "", videoPelatih = "", videoJudulSoal = "", videoTurnamen = "", videoTanggal = "", videoGagal = false, catatanLangkah = null, jumlahVariasi = 0, simbolNag = "", memuatKoleksi = false, onPutarVideo = null, onGalatVideo = null, onBukaKoleksiVideo = null, onBukaAnalisa = null, nilaiKoleksi = "lichess", onGantiKoleksi = null, daftarPelatih = [], nilaiPelatih = "semua", onGantiPelatih = null, teksSoal = "", teksTingkat = "", teksTipe = "", teksTerpecahkan = "", teksCekmat = "", teksSudah = "", daftarSet = [], nilaiSetBidak = "merida", onGantiSetBidak = null, pilihanWarnaPapan = [], nilaiWarnaPapan = "green", onGantiWarnaPapan = null, nilaiSuara = true, onGantiSuara = null, onAcak = null, onLewati = null, nilaiOtomatis = false, onGantiOtomatis = null, engineNyala = false, onGantiEngine = null, tampilPanahMesin = true, onGantiPanahMesin = null, teksPanahMesin = "", nilaiLevel = "semua", onGantiLevel = null, nilaiLangkah = "semua", onGantiLangkah = null, nilaiTema = "semua", opsiTema = [], onGantiTema = null, nilaiGiliran = "semua", onGantiGiliran = null, nilaiNomorSoal = "", nilaiTotalSoal = 0, onGantiNomorSoal = null, nilaiIngatPosisi = true, onGantiIngatPosisi = null, teksPosisiTersimpan = "", teksIngatNonaktif = "", teksGalatNomor = "", onBukaNomor = null, bisaHint = false, onHint = null, teksSalah = "", teksPeringatan = "", kartuKomentator = null, kecepatanEngine = 800, opsiKecepatan = [], onGantiKecepatan = null, pvSanEngine = [], onMainkanSaran = null, onKeAwal = null, onMundur = null, onMaju = null, onKeAkhir = null, bisaMundur = false, bisaMaju = false, eloSoal = 1500, namaHitam = "", eloHitam = 0, namaPutih = "", eloPutih = 0, teksPembukaan = "", komentatorNyala = false, memuat = false }) {
   const { t } = useI18n();
   const [tabPanelAktif, setTabPanelAktif] = useState("main");
   // Default prop sengaja kosong: teksnya selalu dari kamus.
@@ -2856,33 +2855,45 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
             <div className="grid grid-cols-5 gap-2 text-xs font-semibold text-gray-400">
               <button
                 type="button"
-                onClick={onPertama}
-                title={t("tekaTeki.soalPertama")}
-                aria-label={t("tekaTeki.soalPertama")}
+                onClick={onFlip}
+                title={t("tekaTeki.balikPapan")}
+                aria-label={t("tekaTeki.balikPapan")}
                 className="flex flex-col items-center gap-1.5 p-2.5 bg-[#262421] hover:bg-[#312e2b] hover:text-white rounded-lg transition border border-[#312e2b] cursor-pointer"
               >
-                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 5v14M5 12h14" />
+                <svg className="w-5 h-5" viewBox="0 0 120 120" fill="currentColor">
+                  <path d="M 21.475246,117.78677 H 73.154894 L 56.373294,98.524495 H 40.73752 V 35.922099 H 59.999794 L 31.106383,2.2131167 2.2129751,35.922099 H 21.475246 Z" />
+                  <path d="m 98.524909,2.2132354 -51.679643,0 16.781593,19.2622766 15.635776,0 V 84.077908 H 60.00036 L 88.893772,117.78689 117.78718,84.077908 H 98.524909 Z" />
                 </svg>
-                <span>{t("tekaTeki.baru")}</span>
+                <span>{t("tekaTeki.balikPapan")}</span>
               </button>
               <button
                 type="button"
-                onClick={() => onGantiEngine && onGantiEngine()}
-                aria-pressed={engineNyala}
-                aria-label={t("papan.engine")}
-                title={t("papan.engine")}
-                className="flex flex-col items-center gap-1.5 p-2.5 bg-[#262421] hover:bg-[#312e2b] rounded-lg transition border border-[#312e2b] cursor-pointer"
+                onClick={() => {
+                  if (!onGantiSuara) return;
+                  if (!nilaiSuara) mainkanSuara(SUARA.tesSuara);
+                  onGantiSuara(!nilaiSuara);
+                }}
+                aria-pressed={nilaiSuara}
+                aria-label={nilaiSuara ? t("tekaTeki.suaraMatikan") : t("tekaTeki.suaraHidupkan")}
+                title={nilaiSuara ? t("tekaTeki.suaraMatikan") : t("tekaTeki.suaraHidupkan")}
+                className={`flex flex-col items-center gap-1.5 p-2.5 bg-[#262421] hover:bg-[#312e2b] rounded-lg transition border border-[#312e2b] cursor-pointer ${nilaiSuara ? "text-white" : "text-[#b33430]"}`}
               >
-                <svg className="w-5 h-5 text-gray-400" viewBox="0 0 24 24" fill="currentColor" stroke="none">
-                  {engineNyala ? (
-                    <path d="M6 5h4v14H6zM14 5h4v14h-4z" />
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M11 5 6 9H2v6h4l5 4z" />
+                  {nilaiSuara ? (
+                    <>
+                      <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+                      <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+                    </>
                   ) : (
-                    <path d="M8 5.5v13l11-6.5-11-6.5z" />
+                    <>
+                      <line x1="22" y1="9" x2="16" y2="15" />
+                      <line x1="16" y1="9" x2="22" y2="15" />
+                    </>
                   )}
                 </svg>
-                <span className={`text-xs font-semibold ${engineNyala ? "text-[#81b64c]" : "text-white"}`}>
-                  Engine
+                <span className="text-xs font-semibold">
+                  {t("papan.suara")}
                 </span>
               </button>
               <button
