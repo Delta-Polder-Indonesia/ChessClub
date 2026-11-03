@@ -1927,13 +1927,6 @@ function KerangkaBilahEvaluasi() {
   );
 }
 
-const TAB = [
-  {
-    kunci: "tekaTeki.tabAtribusi",
-    tautan: "https://delta-polder-indonesia.github.io/BintangToba/index.html",
-  },
-];
-
 /** Validasi runtime URL video MP4 & tanggal harian agar hanya domain CSP sah yang pernah dirender. */
 const POLA_URL_VIDEO_SAH =
   /^https:\/\/(media\.chesscomfiles\.com|chesscom-videos\.s3\.amazonaws\.com)\/[^\s"<>]+\.mp4$/i;
@@ -2592,32 +2585,6 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
         {/* PANEL KANAN                                            */}
         {/* ═══════════════════════════════════════════════════════ */}
         <aside className="w-full lg:w-[480px] h-full bg-[#211f1c] border-t lg:border-t-0 lg:border-l border-[#312e2b] flex flex-col flex-shrink-0 min-h-0">
-          {/* Tabs */}
-          <div className="flex-shrink-0 flex border-b border-[#312e2b] bg-[#1e1c18]">
-            {TAB.map((tab) =>
-              tab.tautan ? (
-                <a
-                  key={tab.kunci}
-                  href={tab.tautan}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  title={t(tab.kunci)}
-                  className="flex-1 px-2 py-3.5 flex items-center justify-center gap-2 text-center text-xs font-bold uppercase tracking-wider transition border-b-2 border-[#81b64c] text-white bg-[#262421] hover:bg-[#2c2926] hover:underline cursor-pointer"
-                >
-                  {t(tab.kunci)}
-                </a>
-              ) : (
-                <button
-                  key={tab.kunci}
-                  type="button"
-                  className="flex-1 py-3.5 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-wider transition border-b-2 border-[#81b64c] text-white bg-[#262421]"
-                >
-                  {t(tab.kunci)}
-                </button>
-              )
-            )}
-          </div>
-
           {/* Nomor soal + status (di bawah teks soal) */}
           {(teksSoal || teksCekmat || teksSudah || teksSalah || teksPeringatan) && (
             <div className="flex-shrink-0 px-4 py-2 border-b border-[#312e2b] bg-[#262421] flex flex-col gap-1">
