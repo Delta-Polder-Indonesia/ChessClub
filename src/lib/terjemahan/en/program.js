@@ -436,7 +436,7 @@ export const rushLanding = {
       "Indonesian Chess Community Puzzle Rush: 3- or 5-minute timed tactics with three lives, Classic Checkmate (5,486 puzzles) or Mixed Tactics (12,037 puzzles), and member leaderboards.",
     introJudul: "A Race to Spot the Checkmate",
     intro1:
-      "Puzzle Rush tests how quickly and cleanly you find forcing moves under clock pressure. Across a 3- or 5-minute session with three lives, positions open near a 400 rating and climb 30 points with every solved puzzle toward 2400.",
+      "Puzzle Rush tests how quickly and cleanly you find forcing moves under clock pressure. Across a 3- or 5-minute session with three lives, positions open near an 800 rating and climb 30 points with every solved puzzle toward 2400.",
     intro2:
       "Unlike untimed puzzle solving, a continuous streak sharpens first-sight board vision: spotting forcing checks, knight forks, open-file pins, deflections, and mating nets within seconds, mirroring time-trouble decisions in rapid and blitz games.",
     introGambarAlt:
@@ -464,13 +464,13 @@ export const rushLanding = {
       "The run stops when the timer hits 00:00 (turning red during the final 30 seconds) or all three lives are spent. Personal bests are saved per duration and can be submitted to the club leaderboard via Chess.com verification.",
     strategiSubjudul: "Staying accurate as ratings climb",
     strategi1:
-      "Use the opening ten puzzles in the 400 to 700 band to settle into a clean rhythm without rushing the mouse. Early lives are rarely lost to deep combinations; they usually slip away from overlooking side to move or playing an imprecise check.",
+      "Use the opening ten puzzles in the 800 to 1050 band to settle into a clean rhythm without rushing the mouse. Early lives are rarely lost to deep combinations; they usually slip away from overlooking side to move or playing an imprecise check.",
     strategi2:
       "Once the target rating passes 1100, pause briefly whenever the defender has more than one way to block a check or recapture. Spending eight to ten seconds verifying the opponent's forcing reply preserves far more score than dropping an early strike.",
     fiturJudul: "What makes it work",
     fitur1Judul: "Progressive rating ladder",
     fitur1Isi:
-      "Difficulty steps smoothly from foundational 400-level patterns up toward 2400-level combinations without repeating positions inside the same run.",
+      "Difficulty steps smoothly from foundational 800-level patterns up toward 2400-level combinations without repeating positions inside the same run.",
     fitur2Judul: "Decision-making in time trouble",
     fitur2Isi:
       "The 3-minute sprint demands instant motif recall, while the 5-minute format leaves room to calculate two or three branches on tougher positions.",

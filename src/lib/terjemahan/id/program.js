@@ -437,7 +437,7 @@ export const rushLanding = {
       "Rush Teka-teki Komunitas Catur Indonesia: latihan taktik kilat 3 atau 5 menit dengan 3 nyawa, pilihan Skakmat Klasik (5.486 soal) atau Taktik Campuran (12.037 soal), dan papan peringkat anggota.",
     introJudul: "Adu Cepat Melihat Skakmat",
     intro1:
-      "Rush Teka-teki menguji seberapa cepat dan bersih Anda menemukan langkah paksa di bawah tekanan jam. Dalam satu sesi berdurasi 3 atau 5 menit dengan bekal tiga nyawa, soal dibuka dari sekitar rating 400 lalu naik 30 poin setiap kali satu posisi berhasil dituntaskan hingga mendekati rating 2400.",
+      "Rush Teka-teki menguji seberapa cepat dan bersih Anda menemukan langkah paksa di bawah tekanan jam. Dalam satu sesi berdurasi 3 atau 5 menit dengan bekal tiga nyawa, soal dibuka dari sekitar rating 800 lalu naik 30 poin setiap kali satu posisi berhasil dituntaskan hingga mendekati rating 2400.",
     intro2:
       "Berbeda dari teka-teki biasa tanpa batas waktu, format beruntun ini melatih ketajaman pandang pertama: mengenali skak paksa, garpu kuda, paku di lajur terbuka, pembelokan penjaga, serta jaring skakmat dalam hitungan detik sebagaimana situasi krisis waktu pada partai cepat dan blitz.",
     introGambarAlt:
@@ -465,13 +465,13 @@ export const rushLanding = {
       "Sesi berakhir ketika pencatat waktu menyentuh 00:00 (penanda berubah merah sejak sisa 30 detik) atau ketiga nyawa habis. Rekor pribadi tersimpan per durasi dan dapat dikirim ke papan peringkat anggota lewat verifikasi Chess.com.",
     strategiSubjudul: "Menjaga akurasi saat rating menanjak",
     strategi1:
-      "Gunakan sepuluh soal pembuka di rentang rating 400 sampai 700 untuk membangun irama tanpa tergesa-gesa melepas bidak. Sebagian besar nyawa yang hilang di menit pertama bukan karena posisi rumit, melainkan karena melewatkan giliran warna atau mengeksekusi skak alternatif yang bukan jalur tercepat.",
+      "Gunakan sepuluh soal pembuka di rentang rating 800 sampai 1050 untuk membangun irama tanpa tergesa-gesa melepas bidak. Sebagian besar nyawa yang hilang di menit pertama bukan karena posisi rumit, melainkan karena melewatkan giliran warna atau mengeksekusi skak alternatif yang bukan jalur tercepat.",
     strategi2:
       "Begitu rating melewati 1100, tahan tangan sejenak setiap kali lawan punya lebih dari satu cara menutup skak atau memukul balik. Menginvestasikan delapan hingga sepuluh detik untuk memverifikasi balasan paksa lawan jauh lebih menguntungkan daripada kehilangan satu nyawa secara cuma-cuma.",
     fiturJudul: "Yang membuatnya melatih",
     fitur1Judul: "Tangga rating progresif",
     fitur1Isi:
-      "Kurva soal bergerak mulus dari pola dasar ber-rating 400 menuju kombinasi tingkat lanjut hingga 2400 tanpa mengulang soal yang sama dalam satu sesi.",
+      "Kurva soal bergerak mulus dari pola dasar ber-rating 800 menuju kombinasi tingkat lanjut hingga 2400 tanpa mengulang soal yang sama dalam satu sesi.",
     fitur2Judul: "Keputusan di bawah krisis waktu",
     fitur2Isi:
       "Batas 3 menit menuntut refleks pola seketika, sedangkan durasi 5 menit memberi ruang kalkulasi dua sampai tiga cabang saat memasuki soal menengah-atas.",

@@ -333,14 +333,14 @@ console.log("\nRegresi mode soal (Skakmat Klasik <-> Taktik Campuran), balapan u
 {
   const dataUtamaAsli = JSON.parse(readFileSync(path.join(ROOT, "public", "data", "teka-teki.json"), "utf8"));
   const dataVideoAsli = JSON.parse(readFileSync(path.join(ROOT, "public", "data", "teka-teki-video.json"), "utf8"));
-  // Satu soal skakmat ber-rating tinggi (2200) vs satu soal taktik ber-rating awal (400):
-  // saat Rush mulai (targetRating=400), kolam 'skakmat' pasti memuat soalSkakmat,
-  // sedangkan kolam 'campuran' pasti memilih soalTaktik di pita 400±100.
+  // Satu soal skakmat ber-rating tinggi (2200) vs satu soal taktik di rating awal sesi (800):
+  // saat Rush mulai (mulaiRating=800, pita 650..950), kolam 'skakmat' pasti memuat soalSkakmatUji,
+  // sedangkan kolam 'campuran' pasti memilih soalTaktikUji secara deterministik.
   const soalSkakmatUji = { ...dataUtamaAsli.problems[0], problemid: 1, rating: 2200 };
   const soalTaktikUji = {
     ...dataVideoAsli.problems.find((p) => p.fen !== soalSkakmatUji.fen),
     problemid: 5487,
-    rating: 400,
+    rating: 800,
   };
 
   const dom2 = new JSDOM('<!doctype html><html><body><div id="root"></div></body></html>', {
