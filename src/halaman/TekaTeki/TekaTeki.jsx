@@ -2140,8 +2140,6 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
               </Link>
             </div>
           </div>
-          </>
-          )}
         </aside>
 
         {/* ═══════════════════════════════════════════════════════ */}
@@ -2927,6 +2925,8 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
               </button>
             </div>
           </div>
+          </>
+          )}
         </aside>
       </div>
     </div>
