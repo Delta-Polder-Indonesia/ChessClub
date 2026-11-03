@@ -2810,9 +2810,8 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
                 aria-label={t("tekaTeki.balikPapan")}
                 className="flex flex-col items-center gap-1.5 p-2.5 bg-[#262421] hover:bg-[#312e2b] hover:text-white rounded-lg transition border border-[#312e2b] cursor-pointer"
               >
-                <svg className="w-5 h-5" viewBox="0 0 120 120" fill="currentColor">
-                  <path d="M 21.475246,117.78677 H 73.154894 L 56.373294,98.524495 H 40.73752 V 35.922099 H 59.999794 L 31.106383,2.2131167 2.2129751,35.922099 H 21.475246 Z" />
-                  <path d="m 98.524909,2.2132354 -51.679643,0 16.781593,19.2622766 15.635776,0 V 84.077908 H 60.00036 L 88.893772,117.78689 117.78718,84.077908 H 98.524909 Z" />
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
+                  <path d="M12,22q-3.57,0-6.32-2.25T2.2,14H4.25q0.7,2.65 2.85,4.32T12,20q2.15,0 4-1.06T18.9,16H16V14h6v6H20V18q-1.43,1.9-3.52,2.95T12,22ZM9.88,14.13Q9,13.25 9,12T9.88,9.88T12,9t2.13,0.88T15,12t-0.88,2.13T12,15T9.88,14.13ZM2,10V4H4V6Q5.43,4.1 7.53,3.05T12,2q3.58,0 6.32,2.25Q21.08,6.5 21.8,10H19.75q-0.7-2.65-2.85-4.32T12,4Q9.85,4 8,5.06T5.1,8H8v2H2Z" />
                 </svg>
                 <span>{t("tekaTeki.balikPapan")}</span>
               </button>
