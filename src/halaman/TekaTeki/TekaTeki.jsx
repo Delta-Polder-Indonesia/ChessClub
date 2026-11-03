@@ -2833,14 +2833,19 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
                   Suara
                 </span>
               </button>
-              {selesai && !memuat && !memuatKoleksi && onBukaAnalisa && (
+              {onBukaAnalisa && (
                 <button
                   type="button"
                   data-aksi="buka-analisa"
                   onClick={onBukaAnalisa}
+                  disabled={!selesai || memuat || memuatKoleksi}
                   aria-label="Analisa"
                   title="Analisa"
-                  className="flex flex-col items-center gap-1.5 p-2.5 bg-[#262421] hover:bg-[#312e2b] hover:text-white rounded-lg transition border border-[#312e2b] cursor-pointer"
+                  className={`flex flex-col items-center gap-1.5 p-2.5 rounded-lg transition border border-[#312e2b] ${
+                    selesai && !memuat && !memuatKoleksi
+                      ? "bg-[#262421] hover:bg-[#312e2b] hover:text-white cursor-pointer"
+                      : "bg-[#262421] text-gray-500 opacity-50 cursor-not-allowed"
+                  }`}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor" aria-hidden="true">
                     <path d="M19.6,21l-6.3-6.3q-0.75,0.6-1.72,0.95T9.5,16q-2.72,0-4.61-1.89Q3,12.23 3,9.5Q3,6.77 4.89,4.89T9.5,3t4.61,1.89T16,9.5q0,1.1-0.35,2.07T14.7,13.3L21,19.6L19.6,21ZM9.5,14q1.88,0 3.19-1.31T14,9.5T12.69,6.31T9.5,5T6.31,6.31T5,9.5t1.31,3.19T9.5,14Zm-2-1.5l0.75-2.45l-2-1.6H8.7L9.5,6l0.8,2.45h2.45l-2,1.6L11.5,12.5l-2-1.55l-2,1.55Z"/>
