@@ -1,23 +1,26 @@
 #!/usr/bin/env node
 /**
  * Generator korpus komentar master (`public/data/komentator-master.json`)
- * yang diolah dari koleksi PGN beranotasi `ValdemarOrn/Chess`
- * (`Annotated Games/*.pgn` & `TestData/HumansVsComputers.pgn`).
+ * berbasis indeks transisi posisi-langkah faktual dari pohon permainan PGN
+ * `ValdemarOrn/Chess` (`scripts/data-sumber/valdemar-komentar-mentah.json`).
  *
- * Setiap entri memetakan hash kompak 16-heks dari `${epdSebelum}|${san}` ke
- * pasangan komentar murni seputar posisi papan:
- *   [teksId, teksEn]
- * Tanpa label arsip, tanpa nama turnamen/pemain yang tidak relevan dengan
- * partai pengguna, sehingga dapat langsung diucapkan secara alami oleh
- * komentator di `/papan-interaktif` maupun `/papan-interaktif/manusia-vs-mesin`.
+ * Catatan lisensi & sumber:
+ * Repositori `ValdemarOrn/Chess` tidak menyertakan berkas `LICENSE` sumber
+ * terbuka di akar repositori dan anotasi `{ ... }` di dalamnya memuat teks
+ * pihak ketiga. Karena itu hanya statistik transisi faktual `(epd, san, ply, freq)`
+ * yang diindeks, sedangkan seluruh kalimat komentar `[teksId, teksEn]` di
+ * `public/data/komentator-master.json` ditulis secara orisinal dalam dua bahasa
+ * (Indonesia & Inggris) dan diverifikasi terhadap papan lewat `chess.js`.
  */
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { Chess } from "chess.js";
+import { faktaLangkah } from "../src/lib/komentator.js";
 
 const AKAR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const BERKAS_SUMBER = path.join(AKAR, "scripts/data-sumber/valdemar-komentar-mentah.json");
+const BERKAS_BUKU = path.join(AKAR, "public/data/buku-analisa.json");
 const BERKAS_KELUARAN = path.join(AKAR, "public/data/komentator-master.json");
 
 function kunciEpd(fen) {
@@ -56,13 +59,9 @@ function bersihkanTeks(teks) {
   return s;
 }
 
-/** Saring catatan mentah agar hanya menyisakan ulasan posisi objektif (tanpa curhat pemain/jam/turnamen). */
-const POLA_META_PARTAI =
-  /\b(I|my|me|we|our|this game|in the game|the game|player|players|veteran|century|computer|computers|champion|championship|tournament|match|round|clock|minutes|hours|resign|resigned|adjourn|point of view|surprise|surprising|know|she|he|his|her|him|himself|herself|anderssen|tartakower|kasparov|karpov|kramnik|anand|polgar|shirov|ivanchuk|morphy|fischer|spassky|tal|botvinnik|capablanca|alekhine|bronstein|korchnoi|timman|svidler|adams|topalov|ponomariov|bareev|leko|short|deep blue|fritz|junior|hydra|rebel)\b/i;
-
 /**
- * Kurasi dwibahasa murni posisi (ID & EN) untuk 120+ jalur pembukaan, gambit,
- * perangkap taktis, dan tabiya babak tengah yang diolah dari `ValdemarOrn/Chess`.
+ * Kurasi dwibahasa murni posisi (ID & EN) untuk 90 jalur pembukaan, gambit,
+ * perangkap taktis, dan tabiya babak tengah utama.
  */
 const KURASI_DWIBAHASA = [
   // === Langkah Pertama Putih ===
@@ -183,7 +182,7 @@ const KURASI_DWIBAHASA = [
   {
     jalur: ["e4", "e5", "Nf3", "Nc6", "Bb5", "a6", "Ba4", "Nf6", "O-O"],
     id: "Putih rokade dan membiarkan e4 tampak bebas; bila Hitam menyambar 5...Nxe4, lajur e yang terbuka akan menggempur raja Hitam lewat d4 dan Re1.",
-    en: "White castles and leaves e4 indirectlyprotected: capturing it opens the central e-file dangerously after d4 and Re1.",
+    en: "White castles and leaves e4 indirectly protected: capturing it opens the central e-file dangerously after d4 and Re1.",
   },
   {
     jalur: ["e4", "e5", "Nf3", "Nc6", "Bb5", "a6", "Ba4", "Nf6", "O-O", "Be7"],
@@ -220,7 +219,7 @@ const KURASI_DWIBAHASA = [
   {
     jalur: ["e4", "e5", "Nf3", "Nc6", "Bc4", "Bc5", "c3"],
     id: "4.c3 menyiapkan pondasi kokoh untuk mendorong d2-d4 guna merebut pusat penuh dengan tempo.",
-    en: "4.c3 builds a pawnlaunchpad to strike in the center with d2-d4 on the very next turn.",
+    en: "4.c3 builds a pawn launchpad to strike in the center with d2-d4 on the very next turn.",
   },
   {
     jalur: ["e4", "e5", "Nf3", "Nc6", "Bc4", "Bc5", "d3"],
@@ -534,52 +533,365 @@ const KURASI_DWIBAHASA = [
   },
 ];
 
-const dataMentah = JSON.parse(fs.readFileSync(BERKAS_SUMBER, "utf8"));
-const peta = {};
-const cekTabrakan = new Map();
+const NAMA_BIDAK_ID = {
+  p: "pion",
+  n: "kuda",
+  b: "gajah",
+  r: "benteng",
+  q: "menteri",
+  k: "raja",
+};
 
-// 1. Masukkan catatan objektif berbahasa Inggris dari arsip ValdemarOrn/Chess.
-for (const item of dataMentah) {
-  if (POLA_META_PARTAI.test(item.en)) continue;
-  const enBersih = bersihkanTeks(item.en);
-  if (enBersih.length < 24 || enBersih.length > 220) continue;
-  const h = hashPosisiLangkah(item.epd, item.san);
-  const idAsli = `${item.epd}|${item.san}`;
-  if (cekTabrakan.has(h) && cekTabrakan.get(h) !== idAsli) {
-    throw new Error(`Tabrakan hash terdeteksi antara "${cekTabrakan.get(h)}" dan "${idAsli}"`);
-  }
-  cekTabrakan.set(h, idAsli);
-  peta[h] = ["", enBersih];
+const NAMA_BIDAK_EN = {
+  p: "pawn",
+  n: "knight",
+  b: "bishop",
+  r: "rook",
+  q: "queen",
+  k: "king",
+};
+
+const NILAI_MATERI = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 0 };
+
+function pilihIndeks(kunciHex, n) {
+  return parseInt(kunciHex.slice(0, 8), 16) % n;
 }
 
-// 2. Timpa/tambahkan seluruh jalur kurasi dwibahasa murni posisi (terverifikasi chess.js).
-for (const kurasi of KURASI_DWIBAHASA) {
-  const game = new Chess();
-  let epdSebelum = "";
-  let sanTerakhir = "";
-  for (const san of kurasi.jalur) {
-    epdSebelum = kunciEpd(game.fen());
-    const langkah = game.move(san);
-    if (!langkah) {
-      throw new Error(`Jalur kurasi tidak sah pada "${san}" dalam ${kurasi.jalur.join(" ")}`);
+/**
+ * Susun pasangan ulasan posisional dwibahasa `[id, en]` yang orisinal dan
+ * terikat fakta papan `(epd, san)` berdasarkan analisis `faktaLangkah` +
+ * kamus ECO `buku-analisa.json`.
+ */
+function susunKomentarPosisiMaster(item, bukuAnalisa, kunciHex) {
+  const nomorLangkah = Math.max(1, Math.ceil((Number(item.ply) || 1) / 2));
+  const fenSebelum = `${item.epd} 0 ${nomorLangkah}`;
+  const f = faktaLangkah(fenSebelum, item.san);
+  if (!f) return null;
+
+  const epdSesudah = kunciEpd(f.fenSesudah);
+  const labelBuku = bukuAnalisa[epdSesudah] || (item.ply <= 16 ? bukuAnalisa[item.epd] : "") || "";
+  const pihakId = f.warna === "w" ? "Putih" : "Hitam";
+  const pihakEn = f.warna === "w" ? "White" : "Black";
+  const lawanId = f.warna === "w" ? "Hitam" : "Putih";
+  const lawanEn = f.warna === "w" ? "Black" : "White";
+  const bidakId = NAMA_BIDAK_ID[f.bidak] || "perwira";
+  const bidakEn = NAMA_BIDAK_EN[f.bidak] || "piece";
+  const korbanId = f.tangkap ? NAMA_BIDAK_ID[f.tangkap] || "perwira" : "";
+  const korbanEn = f.tangkap ? NAMA_BIDAK_EN[f.tangkap] || "piece" : "";
+  const lajur = f.ke[0];
+  const v = pilihIndeks(kunciHex, 3);
+
+  if (f.skakmat) {
+    return [
+      `${f.san} menuntaskan serangan langsung dengan skakmat di petak ${f.ke}.`,
+      `${f.san} concludes the attack immediately with checkmate on ${f.ke}.`,
+    ];
+  }
+
+  if (f.skakBayangan) {
+    return [
+      `${f.san} membuka garis skak bayangan berbahaya yang memaksa ${lawanId} membenahi perlindungan rajanya terlebih dahulu.`,
+      `${f.san} unleashes a discovered check that forces ${lawanEn} to address king safety before anything else.`,
+    ];
+  }
+
+  if (f.fork) {
+    return [
+      `${f.san} menempatkan ${bidakId} di ${f.ke} dengan ancaman ganda yang menekan koordinasi pertahanan ${lawanId}.`,
+      `${f.san} lands the ${bidakEn} on ${f.ke} with a double attack that stretches ${lawanEn}'s defensive coordination.`,
+    ];
+  }
+
+  if (f.promosi) {
+    const promId = NAMA_BIDAK_ID[f.promosi] || "menteri";
+    const promEn = NAMA_BIDAK_EN[f.promosi] || "queen";
+    return [
+      `${f.san} menukar keunggulan pion bebas di ${f.ke} menjadi ${promId} baru yang mengubah keseimbangan materi.`,
+      `${f.san} converts the passed pawn on ${f.ke} into a new ${promEn}, decisively shifting the material balance.`,
+    ];
+  }
+
+  if (f.rokade === "pendek") {
+    if (labelBuku) {
+      return [
+        `Dalam jalur ${labelBuku}, rokade pendek (${f.san}) mengamankan raja ${pihakId} sekaligus menyiapkan benteng menuju lajur tengah.`,
+        `In the ${labelBuku} structure, kingside castling (${f.san}) tucks ${pihakEn}'s king away and readies the rook for central files.`,
+      ];
     }
-    sanTerakhir = langkah.san;
+    const idOpsi = [
+      `${f.san} mengamankan raja ${pihakId} ke sayap raja dan mengaktifkan benteng menuju perebutan lajur pusat.`,
+      `Rokade pendek (${f.san}) menuntaskan pengamanan raja ${pihakId} agar perwira berat leluasa bekerja di tengah.`,
+      `Lewat ${f.san}, ${pihakId} merapikan keselamatan raja sekaligus menghubungkan kedua benteng di baris belakang.`,
+    ];
+    const enOpsi = [
+      `${f.san} shelters ${pihakEn}'s king on the kingside and brings the rook closer to the central files.`,
+      `Kingside castling (${f.san}) completes king safety so ${pihakEn}'s heavy pieces can contest the center freely.`,
+      `With ${f.san}, ${pihakEn} secures the king and prepares smooth rook coordination along the back rank.`,
+    ];
+    return [idOpsi[v], enOpsi[v]];
   }
-  const h = hashPosisiLangkah(epdSebelum, sanTerakhir);
-  const idAsli = `${epdSebelum}|${sanTerakhir}`;
-  if (cekTabrakan.has(h) && cekTabrakan.get(h) !== idAsli) {
-    throw new Error(`Tabrakan hash kurasi pada "${idAsli}"`);
+
+  if (f.rokade === "panjang") {
+    return [
+      `Rokade panjang (${f.san}) mengamankan raja ${pihakId} ke sayap menteri sekaligus menempatkan benteng langsung di lajur pusat d.`,
+      `Queenside castling (${f.san}) tucks ${pihakEn}'s king away while placing a rook directly onto the central d-file.`,
+    ];
   }
-  cekTabrakan.set(h, idAsli);
-  peta[h] = [bersihkanTeks(kurasi.id), bersihkanTeks(kurasi.en)];
+
+  if (f.skak && f.tangkap) {
+    return [
+      `${f.san} memukul ${korbanId} di ${f.ke} sambil memberi skak sehingga ${lawanId} kehilangan tempo untuk membalas di sektor lain.`,
+      `${f.san} captures the ${korbanEn} on ${f.ke} with check, denying ${lawanEn} time to counterattack elsewhere.`,
+    ];
+  }
+
+  if (f.skak) {
+    return [
+      `${f.san} mengganggu kedudukan raja ${lawanId} dengan skak dari ${f.ke} untuk merebut tempo inisiatif.`,
+      `${f.san} probes ${lawanEn}'s king with check from ${f.ke}, seizing an important tempo for the initiative.`,
+    ];
+  }
+
+  if (f.tukarMenteri) {
+    return [
+      `${f.san} mengajak pertukaran menteri di ${f.ke} untuk meredam potensi serangan langsung dan menguji struktur akhir babak.`,
+      `${f.san} initiates a queen trade on ${f.ke}, steering play away from direct king attacks toward structural technique.`,
+    ];
+  }
+
+  if (f.tangkap) {
+    const untungBersih =
+      (NILAI_MATERI[f.tangkap] || 0) - (f.bisaDirebut ? NILAI_MATERI[f.bidak] || 0 : 0);
+    if (f.tukarGajahKuda) {
+      return [
+        `${f.san} menukar gajah dengan kuda di ${f.ke} untuk mengubah struktur pion dan memperjelas sasaran posisi berikutnya.`,
+        `${f.san} trades bishop for knight on ${f.ke}, reshaping the pawn structure around clear long-term targets.`,
+      ];
+    }
+    if (untungBersih >= 1) {
+      return [
+        `${f.san} memetik ${korbanId} di ${f.ke} dan mengonversi tekanan taktis ${pihakId} menjadi keunggulan materi nyata.`,
+        `${f.san} collects the ${korbanEn} on ${f.ke}, turning ${pihakEn}'s tactical pressure into concrete material gain.`,
+      ];
+    }
+    if (labelBuku) {
+      return [
+        `Dalam ${labelBuku}, pertukaran ${f.san} di ${f.ke} membuka jalur perwira dan memperjelas struktur pusat kedua pihak.`,
+        `Within ${labelBuku}, the capture ${f.san} on ${f.ke} clarifies the central tension and opens lines for piece play.`,
+      ];
+    }
+    const idTukar = [
+      `${f.san} menyelesaikan ketegangan di petak ${f.ke} untuk membuka garis kerja perwira di sekitar lajur ${lajur}.`,
+      `Pertukaran lewat ${f.san} di ${f.ke} menata ulang keseimbangan pusat serta membuka ruang manuver baru bagi ${pihakId}.`,
+      `${f.san} merebut di ${f.ke} agar lajur dan diagonal di sekitar petak tersebut terbuka bagi perwira aktif.`,
+    ];
+    const enTukar = [
+      `${f.san} resolves the tension on ${f.ke}, opening lines for active piece play around the ${lajur}-file.`,
+      `The capture ${f.san} on ${f.ke} clarifies the central balance and frees fresh maneuvering squares for ${pihakEn}.`,
+      `${f.san} captures on ${f.ke} to open diagonals and files around that sector of the board.`,
+    ];
+    return [idTukar[v], enTukar[v]];
+  }
+
+  if (labelBuku && item.ply <= 20) {
+    const idBuku = [
+      `Jalur ${labelBuku}: ${f.san} memperkuat koordinasi perwira ${pihakId} di sekitar petak ${f.ke} sesuai rencana pembukaan.`,
+      `Dalam struktur ${labelBuku}, ${f.san} menata kendali petak ${f.ke} sebelum kedua pihak memasuki benturan babak tengah.`,
+      `${f.san} melanjutkan bangunan ${labelBuku} dengan menjaga kelenturan susunan perwira dan pusat pion ${pihakId}.`,
+    ];
+    const enBuku = [
+      `${labelBuku}: ${f.san} reinforces ${pihakEn}'s coordination around ${f.ke} in keeping with the opening plan.`,
+      `In the ${labelBuku} tabiya, ${f.san} contests control around ${f.ke} ahead of the middlegame transition.`,
+      `${f.san} continues the ${labelBuku} setup while keeping ${pihakEn}'s central structure and piece play flexible.`,
+    ];
+    return [idBuku[v], enBuku[v]];
+  }
+
+  if (f.bentengBarisTujuh) {
+    return [
+      `${f.san} menempatkan benteng di baris ketujuh lawan pada ${f.ke} untuk menekan pion dasar dan membatasi ruang raja ${lawanId}.`,
+      `${f.san} plants a rook on the seventh rank at ${f.ke}, pressuring base pawns and restricting ${lawanEn}'s king.`,
+    ];
+  }
+
+  if (f.kudaPosTerdepan) {
+    return [
+      `${f.san} menancapkan kuda di pos terdepan ${f.ke} yang sulit diusir pion ${lawanId}, memberi pijakan strategis jangka panjang.`,
+      `${f.san} anchors a knight on the ${f.ke} outpost where enemy pawns cannot easily dislodge it.`,
+    ];
+  }
+
+  if (f.pionBebas) {
+    return [
+      `${f.san} mendorong pion bebas maju ke ${f.ke}, mengikat perwira ${lawanId} agar terus berjaga terhadap ancaman promosi.`,
+      `${f.san} advances the passed pawn to ${f.ke}, tying down ${lawanEn}'s pieces to blockade duty.`,
+    ];
+  }
+
+  if (f.gandakanBenteng) {
+    return [
+      `${f.san} menggandakan benteng di lajur ${lajur} untuk melipatgandakan tekanan vertikal ke pertahanan ${lawanId}.`,
+      `${f.san} doubles rooks along the ${lajur}-file to intensify vertical pressure against ${lawanEn}'s camp.`,
+    ];
+  }
+
+  if (f.bentengLajurTerbuka) {
+    return [
+      `${f.san} menggeser benteng ke lajur ${lajur} guna menguasai jalur vertikal penting menuju wilayah lawan.`,
+      `${f.san} brings the rook onto the ${lajur}-file to contest a key vertical highway into enemy territory.`,
+    ];
+  }
+
+  if (f.gajahPin) {
+    return [
+      `${f.san} menempatkan gajah di ${f.ke} untuk memaku perwira ${lawanId} dan menghambat kelancaran koordinasi lawan.`,
+      `${f.san} posts the bishop on ${f.ke} to pin an enemy piece and hamper ${lawanEn}'s coordination.`,
+    ];
+  }
+
+  if (f.incarTitikLemah) {
+    return [
+      `${f.san} mengarahkan tekanan langsung dari ${f.ke} ke petak lemah di dekat raja ${lawanId}.`,
+      `${f.san} aims direct pressure from ${f.ke} toward the vulnerable f-pawn shield near ${lawanEn}'s king.`,
+    ];
+  }
+
+  if (f.dobrakPusat) {
+    return [
+      `${f.san} melancarkan dobrakan pion di ${f.ke} untuk menantang rantai pusat ${lawanId} dan membuka garis perwira.`,
+      `${f.san} launches a central pawn break on ${f.ke}, challenging ${lawanEn}'s pawn chain and opening lines.`,
+    ];
+  }
+
+  if (f.fianchetto) {
+    return [
+      `${f.san} menyelesaikan fianchetto gajah di ${f.ke} agar mengawasi diagonal panjang menembus petak-petak pusat.`,
+      `${f.san} completes the bishop fianchetto on ${f.ke}, exerting long-range influence across the central diagonal.`,
+    ];
+  }
+
+  if (f.hubungkanBenteng) {
+    return [
+      `${f.san} memindahkan ${bidakId} ke ${f.ke} sekaligus menghubungkan kedua benteng ${pihakId} di baris belakang.`,
+      `${f.san} places the ${bidakEn} on ${f.ke} and connects ${pihakEn}'s rooks cleanly along the back rank.`,
+    ];
+  }
+
+  if (f.rajaAktifAkhir) {
+    return [
+      `Memasuki fase akhir permainan, ${f.san} mengaktifkan raja ${pihakId} menuju ${f.ke} untuk mengawal petak-petak kunci.`,
+      `With queens off the board, ${f.san} activates ${pihakEn}'s king toward ${f.ke} to contest key endgame squares.`,
+    ];
+  }
+
+  if (f.profilaksisSayap) {
+    return [
+      `Langkah profilaksis ${f.san} mengendalikan petak sayap di sekitar ${f.ke} untuk meredam paku atau lompatan perwira ${lawanId}.`,
+      `The prophylactic move ${f.san} covers key wing squares near ${f.ke}, ruling out annoying pins or piece jumps.`,
+    ];
+  }
+
+  if (f.kuasaiPusat) {
+    return [
+      `${f.san} memperkuat cengkeraman ${pihakId} atas petak pusat ${f.ke} dan membatasi ruang gerak perwira ${lawanId}.`,
+      `${f.san} strengthens ${pihakEn}'s grip on the central ${f.ke} square while cramping ${lawanEn}'s piece mobility.`,
+    ];
+  }
+
+  if (f.kembangPerwira) {
+    return [
+      `${f.san} mengembangkan ${bidakId} secara alami ke ${f.ke} untuk menambah kendali pusat dan mempercepat kesiapan rokade.`,
+      `${f.san} develops the ${bidakEn} naturally to ${f.ke}, adding central control and bringing castling closer.`,
+    ];
+  }
+
+  if (f.bidak === "p") {
+    const idPion = [
+      `Dorongan pion ${f.san} meraih ruang di lajur ${lajur} serta memperbaiki penataan petak dukung bagi perwira ${pihakId}.`,
+      `${f.san} memperkuat struktur pion ${pihakId} di sekitar petak ${f.ke} sambil menyiapkan rencana ekspansi berikutnya.`,
+      `Lewat ${f.san}, ${pihakId} menata rantai pion di petak ${f.ke} untuk membatasi sasaran aktif perwira ${lawanId}.`,
+    ];
+    const enPion = [
+      `The pawn push ${f.san} claims useful space on the ${lajur}-file and supports ${pihakEn}'s piece coordination.`,
+      `${f.san} shores up ${pihakEn}'s pawn structure around ${f.ke} while preparing the next positional plan.`,
+      `With ${f.san}, ${pihakEn} adjusts the pawn chain on ${f.ke} to limit active targets for ${lawanEn}'s pieces.`,
+    ];
+    return [idPion[v], enPion[v]];
+  }
+
+  const idManuver = [
+    `${f.san} memosisikan ulang ${bidakId} ke petak ${f.ke} agar mengawasi jalur-jalur penting di babak tengah.`,
+    `Manuver ${f.san} menempatkan ${bidakId} ${pihakId} secara harmonis di ${f.ke} untuk meningkatkan koordinasi posisi.`,
+    `Lewat ${f.san}, ${bidakId} ${pihakId} beralih ke petak aktif ${f.ke} guna menekan petak lemah di kubu ${lawanId}.`,
+  ];
+  const enManuver = [
+    `${f.san} repositions the ${bidakEn} to ${f.ke}, improving its scope over key middlegame lines.`,
+    `The maneuver ${f.san} posts ${pihakEn}'s ${bidakEn} harmoniously on ${f.ke} to upgrade piece coordination.`,
+    `With ${f.san}, ${pihakEn} reroutes the ${bidakEn} to ${f.ke} to keep constructive pressure on ${lawanEn}'s camp.`,
+  ];
+  return [idManuver[v], enManuver[v]];
 }
 
-const urut = Object.fromEntries(Object.entries(peta).sort(([a], [b]) => a.localeCompare(b)));
-const isiJson = JSON.stringify(urut);
-fs.writeFileSync(BERKAS_KELUARAN, isiJson);
+export function bangunKorpusMaster() {
+  const dataMentah = JSON.parse(fs.readFileSync(BERKAS_SUMBER, "utf8"));
+  const bukuAnalisa = fs.existsSync(BERKAS_BUKU)
+    ? JSON.parse(fs.readFileSync(BERKAS_BUKU, "utf8"))
+    : {};
+  const peta = {};
+  const cekTabrakan = new Map();
 
-const ukuranKb = (Buffer.byteLength(isiJson) / 1024).toFixed(1);
-const jumlahDwibahasa = Object.values(urut).filter((v) => v[0]).length;
-console.log(
-  `  ✓ komentator-master.json siap: ${Object.keys(urut).length} posisi unik (${jumlahDwibahasa} dwibahasa ID+EN, ${ukuranKb} KB)`
-);
+  // 1. Susun komentar dwibahasa orisinal untuk setiap transisi posisi-langkah faktual.
+  for (const item of dataMentah) {
+    const epd = kunciEpd(item.epd);
+    const san = String(item.san || "").trim();
+    if (!epd || !san) continue;
+    const h = hashPosisiLangkah(epd, san);
+    const idAsli = `${epd}|${san}`;
+    if (cekTabrakan.has(h) && cekTabrakan.get(h) !== idAsli) {
+      throw new Error(`Tabrakan hash terdeteksi antara "${cekTabrakan.get(h)}" dan "${idAsli}"`);
+    }
+    const pasangan = susunKomentarPosisiMaster({ ...item, epd, san }, bukuAnalisa, h);
+    if (!pasangan) continue;
+    cekTabrakan.set(h, idAsli);
+    peta[h] = [bersihkanTeks(pasangan[0]), bersihkanTeks(pasangan[1])];
+  }
+
+  // 2. Timpa/tambahkan seluruh jalur kurasi dwibahasa pembukaan & tabiya utama (terverifikasi chess.js).
+  for (const kurasi of KURASI_DWIBAHASA) {
+    const game = new Chess();
+    let epdSebelum = "";
+    let sanTerakhir = "";
+    for (const san of kurasi.jalur) {
+      epdSebelum = kunciEpd(game.fen());
+      const langkah = game.move(san);
+      if (!langkah) {
+        throw new Error(`Jalur kurasi tidak sah pada "${san}" dalam ${kurasi.jalur.join(" ")}`);
+      }
+      sanTerakhir = langkah.san;
+    }
+    const h = hashPosisiLangkah(epdSebelum, sanTerakhir);
+    const idAsli = `${epdSebelum}|${sanTerakhir}`;
+    if (cekTabrakan.has(h) && cekTabrakan.get(h) !== idAsli) {
+      throw new Error(`Tabrakan hash kurasi pada "${idAsli}"`);
+    }
+    cekTabrakan.set(h, idAsli);
+    peta[h] = [bersihkanTeks(kurasi.id), bersihkanTeks(kurasi.en)];
+  }
+
+  return Object.fromEntries(Object.entries(peta).sort(([a], [b]) => a.localeCompare(b)));
+}
+
+const adalahUtama =
+  Boolean(process.argv[1]) && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+
+if (adalahUtama) {
+  const urut = bangunKorpusMaster();
+  const isiJson = JSON.stringify(urut);
+  fs.writeFileSync(BERKAS_KELUARAN, isiJson);
+
+  const ukuranKb = (Buffer.byteLength(isiJson) / 1024).toFixed(1);
+  const jumlahDwibahasa = Object.values(urut).filter((v) => v[0] && v[1]).length;
+  console.log(
+    `  ✓ komentator-master.json siap: ${Object.keys(urut).length} posisi unik (${jumlahDwibahasa} dwibahasa ID+EN, ${ukuranKb} KB)`
+  );
+}

@@ -37,8 +37,12 @@ import {
   GAYA_KOMENTATOR,
   TEMA_DISEBUT,
 } from "../src/lib/komentator.js";
-import { cariCatatanMaster, hashPosisiLangkah } from "../src/lib/korpusKomentarMaster.js";
+import { cariCatatanMaster, hashPosisiLangkah, muatKorpusMaster } from "../src/lib/korpusKomentarMaster.js";
+import { hashPosisiLangkah as hashGenerator } from "./buat-komentator-master.mjs";
 import { dialogMesin } from "../src/halaman/ManusiaVsMesin/dialogMesin.js";
+import { pluginGlobAset } from "./loader-jsx.mjs";
+import { createRequire } from "node:module";
+import { tmpdir } from "node:os";
 
 let gagal = 0;
 let lulus = 0;
@@ -1135,18 +1139,25 @@ console.log("\n10) Korpus komentar posisi (public/data/komentator-master.json)")
       continue;
     }
     const [id, en] = nilai;
-    if (typeof id !== "string" || typeof en !== "string" || !en.trim()) artefakBuruk++;
+    if (typeof id !== "string" || typeof en !== "string" || !id.trim() || !en.trim()) {
+      artefakBuruk++;
+    }
     const gabungan = `${id} ${en}`;
     if (
-      /\bW[1-9]\b|\bB[1-9]\b|Bereits|:\)|;\)/.test(gabungan) ||
-      /Deep Blue|Kasparov|Arsip Manusia vs Mesin/i.test(gabungan)
+      /\bW[1-9]\b|\bB[1-9]\b|Bereits|Einen Weg|Un pedone|White resigns|Black resigns|:\)|;\)|\d+\.\.\.$/.test(
+        gabungan
+      ) ||
+      /Deep Blue|Arsip Manusia vs Mesin|\bvs\.?\s+[A-Z]/i.test(gabungan)
     ) {
       artefakBuruk++;
     }
-    if (id && id.length > 15) jumlahDwibahasa++;
+    if (id && id.length > 15 && en && en.length > 15) jumlahDwibahasa++;
   }
   ok(artefakBuruk === 0, `korpus posisi murni bebas metadata partai/pemain/artefak (temuan: ${artefakBuruk})`);
-  ok(jumlahDwibahasa >= 85, `minimal 85 jalur pembukaan/tabiya dwibahasa (ada ${jumlahDwibahasa})`);
+  ok(
+    jumlahDwibahasa === entri.length,
+    `seluruh ${entri.length} posisi korpus wajib tersedia dwibahasa ID+EN (ada ${jumlahDwibahasa})`
+  );
 
   const catE4 = cariCatatanMaster(korpus, AWAL, "e4");
   ok(
@@ -1158,6 +1169,24 @@ console.log("\n10) Korpus komentar posisi (public/data/komentator-master.json)")
   const catC5 = cariCatatanMaster(korpus, gSisilia.fen(), "c5");
   ok(Boolean(catC5 && catC5.id.includes("Sisilia")), "1.e4 c5 memuat ulasan Sisilia bahasa Indonesia");
   ok(hashPosisiLangkah(AWAL, "e4") === catE4?.kunci, "hashPosisiLangkah konsisten dengan kunci korpus");
+  ok(
+    hashGenerator(AWAL, "e4") === hashPosisiLangkah(AWAL, "e4") &&
+      hashGenerator(gSisilia.fen(), "c5") === hashPosisiLangkah(gSisilia.fen(), "c5"),
+    "hashPosisiLangkah generator identik dengan pembaca runtime"
+  );
+
+  // Kegagalan fetch korpus tidak boleh melempar galat — harus kembali {} dengan mulus.
+  const fetchLama = globalThis.fetch;
+  try {
+    globalThis.fetch = () => Promise.reject(new Error("jaringan putus"));
+    const hasilGagal = await muatKorpusMaster();
+    ok(
+      hasilGagal && typeof hasilGagal === "object" && Object.keys(hasilGagal).length === 0,
+      "kegagalan unduh korpus ditangani mulus sebagai objek kosong"
+    );
+  } finally {
+    globalThis.fetch = fetchLama;
+  }
 
   // Pastikan UI tidak lagi menampilkan lencana "Arsip Manusia vs Mesin" di kedua halaman.
   const srcKartu = readFileSync(path.join(AKAR, "src/components/KartuKomentator.jsx"), "utf8");
@@ -1283,6 +1312,178 @@ console.log("\n11) Dialog Manusia vs Mesin berbasis fakta papan & korpus posisi"
   ok(
     dTinjau.teks.includes("Nf3") && !polaSisa.test(dTinjau.teks),
     "mode tinjau riwayat mengulas langkah aktif Nf3 dengan bersih"
+  );
+
+  // Perspektif warna Stockfish: saat mesin Putih (warnaMesin="w") unggul cpPutih=+260,
+  // mesin mengenali keunggulan dirinya; saat cpPutih=-260 (pemain Hitam unggul), mesin bertahan.
+  const fPutihJalan = faktaDasar(
+    "r1bq1rk1/ppp1ppbp/2np1np1/8/2PPP3/2N2N2/PP2BPPP/R1BQ1RK1 w - - 4 7",
+    "Kh1"
+  );
+  const dPutihTekan = dialogMesin({
+    statusMesin: "pemain",
+    hasil: null,
+    warnaMesin: "w",
+    langkahDialog: { san: "Kh1", oleh: "mesin", tangkap: false, skak: false, rokade: false, promosi: false, petak: "h1" },
+    fakta: fPutihJalan,
+    evaluasi: { cpPutih: 260, matePutih: null },
+    benih: 4,
+    t: tEn,
+  });
+  const dPutihBertahan = dialogMesin({
+    statusMesin: "pemain",
+    hasil: null,
+    warnaMesin: "w",
+    langkahDialog: { san: "Kh1", oleh: "mesin", tangkap: false, skak: false, rokade: false, promosi: false, petak: "h1" },
+    fakta: fPutihJalan,
+    evaluasi: { cpPutih: -260, matePutih: null },
+    benih: 4,
+    t: tEn,
+  });
+  ok(
+    dPutihTekan.gambar.includes("smug") &&
+      dPutihBertahan.gambar.includes("nervous") &&
+      /positional|cramping/i.test(dPutihTekan.teks) &&
+      /defen[cs]es|counterchance/i.test(dPutihBertahan.teks),
+    "perspektif evaluasi Stockfish benar saat mesin memegang Putih maupun Hitam"
+  );
+}
+
+/* ---------------- 12. render nyata komponen <KartuKomentator /> (avatar & buku) */
+console.log("\n12) Render DOM <KartuKomentator /> (avatar karakter, ikon buku, atribut LCP, bahasa)");
+{
+  const req = createRequire(path.join(AKAR, "noop.js"));
+  const { build } = req("esbuild");
+  const { JSDOM } = req("jsdom");
+  const berkasKartu = path.join(tmpdir(), "kci-uji-kartu-komentator.cjs");
+  await build({
+    stdin: {
+      contents: `
+        import React from "react";
+        import { renderToStaticMarkup } from "react-dom/server";
+        import KartuKomentator from "./src/components/KartuKomentator.jsx";
+        export function renderKartu(props) {
+          return renderToStaticMarkup(React.createElement(KartuKomentator, props));
+        }
+      `,
+      resolveDir: AKAR,
+      loader: "jsx",
+      sourcefile: "uji-kartu-komentator.jsx",
+    },
+    bundle: true,
+    format: "cjs",
+    platform: "node",
+    outfile: berkasKartu,
+    loader: { ".css": "empty", ".svg": "text", ".png": "file", ".webp": "file" },
+    plugins: [pluginGlobAset()],
+    define: {
+      "process.env.NODE_ENV": '"development"',
+      "import.meta.env": JSON.stringify({ BASE_URL: "/", MODE: "test", DEV: true, PROD: false }),
+    },
+    logLevel: "error",
+  });
+
+  const { renderKartu } = req(berkasKartu);
+  const propDasar = {
+    nyala: true,
+    setNyala: () => {},
+    gaya: "santai",
+    setGaya: () => {},
+    t: tId,
+  };
+  const uraiDom = (html) => new JSDOM(`<!doctype html><body>${html}</body>`).window.document;
+
+  // a) Posisi awal → ikon buku SVG, TANPA <img> karakter
+  const domAwal = uraiDom(renderKartu({ ...propDasar, posisiAwal: true }));
+  ok(
+    Boolean(domAwal.querySelector('[data-avatar-komentator="book"] svg')) &&
+      domAwal.querySelectorAll("img").length === 0,
+    "posisiAwal=true merender ikon buku SVG tanpa <img> statis"
+  );
+
+  // b) Masih di buku pembukaan (namaPembukaan / rating='book') → ikon buku tunggal tanpa duplikasi lencana
+  const fE4 = faktaDasar(AWAL, "e4");
+  const domBuku = uraiDom(
+    renderKartu({
+      ...propDasar,
+      posisiAwal: false,
+      fakta: fE4,
+      rating: "book",
+      namaPembukaan: "King's Pawn Game",
+      engineNyala: true,
+    })
+  );
+  const gelembungBuku = domBuku.querySelector(".komentator-gelembung");
+  ok(
+    Boolean(gelembungBuku?.querySelector('[data-avatar-komentator="book"] svg')) &&
+      gelembungBuku.querySelectorAll("img").length === 0 &&
+      gelembungBuku.querySelectorAll("svg").length === 1 &&
+      !gelembungBuku.querySelector("span[title]"),
+    "selama di buku pembukaan merender tepat satu ikon buku tanpa lencana ganda"
+  );
+
+  // c) Engine mati & di luar buku → FritzConcentrated.webp, bebas coachdavid.png & tanpa fetchpriority
+  const domFritz = uraiDom(
+    renderKartu({
+      ...propDasar,
+      posisiAwal: false,
+      fakta: fE4,
+      engineNyala: false,
+    })
+  );
+  const imgFritz = domFritz.querySelector('img[data-avatar-komentator="karakter"]');
+  ok(
+    Boolean(imgFritz) &&
+      imgFritz.getAttribute("src") === GAMBAR_KOMENTATOR.fritz &&
+      !imgFritz.getAttribute("src").includes("coachdavid") &&
+      !imgFritz.hasAttribute("fetchpriority"),
+    "engine mati di luar buku merender FritzConcentrated.webp tanpa fetchpriority"
+  );
+
+  // d) Engine mati + ekspresi awan → karakter ekspresi yang sesuai
+  const domAwan = uraiDom(
+    renderKartu({
+      ...propDasar,
+      posisiAwal: false,
+      fakta: fE4,
+      engineNyala: false,
+      ekspresiAwan: "terkejut",
+    })
+  );
+  ok(
+    domAwan.querySelector("img")?.getAttribute("src") === GAMBAR_KOMENTATOR.terkejut,
+    "engine mati + ekspresiAwan='terkejut' merender catur_terkejut.png"
+  );
+
+  // e) Engine nyala: sedang menilai, langkah best, dan langkah blunder memicu karakter berbeda
+  const domMenilai = uraiDom(
+    renderKartu({ ...propDasar, posisiAwal: false, fakta: fE4, engineNyala: true, engineMenilai: true })
+  );
+  const domSenang = uraiDom(
+    renderKartu({ ...propDasar, posisiAwal: false, fakta: fE4, engineNyala: true, rating: "best" })
+  );
+  const domMarah = uraiDom(
+    renderKartu({ ...propDasar, posisiAwal: false, fakta: fE4, engineNyala: true, rating: "blunder" })
+  );
+  ok(
+    domMenilai.querySelector("img")?.getAttribute("src") === GAMBAR_KOMENTATOR.berpikir &&
+      domSenang.querySelector("img")?.getAttribute("src") === GAMBAR_KOMENTATOR.senang &&
+      domMarah.querySelector("img")?.getAttribute("src") === GAMBAR_KOMENTATOR.marah,
+    "engine nyala memetakan engineMenilai→berpikir, best→senang, blunder→marah pada DOM"
+  );
+
+  // f) Pergantian bahasa ID <-> EN langsung mengganti teks catatanMaster di KartuKomentator
+  const korpus = JSON.parse(readFileSync(path.join(AKAR, "public/data/komentator-master.json"), "utf8"));
+  const catMaster = cariCatatanMaster(korpus, AWAL, "e4");
+  const teksId = uraiDom(
+    renderKartu({ ...propDasar, posisiAwal: false, fakta: fE4, catatanMaster: catMaster, bahasa: "id", t: tId })
+  ).body.textContent;
+  const teksEn = uraiDom(
+    renderKartu({ ...propDasar, posisiAwal: false, fakta: fE4, catatanMaster: catMaster, bahasa: "en", t: tEn })
+  ).body.textContent;
+  ok(
+    teksId.includes(catMaster.id) && teksEn.includes(catMaster.en) && teksId !== teksEn,
+    "pergantian bahasa ID <-> EN langsung memperbarui teks komentar KartuKomentator"
   );
 }
 

@@ -72,10 +72,21 @@ SOAL_CATUR.forEach((s, i) => {
     }
     cek(Boolean(papan), `[${n}] FEN diagram kuis tidak sah.`);
     if (papan && Array.isArray(s.pilihan)) {
+      cek(
+        s.orientasi === papan.turn(),
+        `[${n}] orientasi diagram (${s.orientasi}) harus cocok dengan giliran FEN (${papan.turn()}).`
+      );
+      if (/\bPutih melangkah\b/i.test(s.soal)) {
+        cek(papan.turn() === "w", `[${n}] teks menyebut Putih melangkah tetapi giliran FEN Hitam.`);
+      }
+      if (/\bHitam melangkah\b/i.test(s.soal)) {
+        cek(papan.turn() === "b", `[${n}] teks menyebut Hitam melangkah tetapi giliran FEN Putih.`);
+      }
       const langkahLegal = new Set(papan.moves());
       for (const san of s.pilihan) {
         cek(langkahLegal.has(san), `[${n}] pilihan "${san}" bukan langkah legal pada FEN soal.`);
       }
+      cek(Boolean(s.langkahBenar), `[${n}] soal berdiagram wajib menyertakan langkahBenar.`);
       if (s.langkahBenar) {
         const detail = papan
           .moves({ verbose: true })

@@ -1021,15 +1021,23 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
     if (
       konteksLangkahAktif.langkahAktif?.oleh !== "pemain" ||
       !konteksLangkahAktif.fenSebelum ||
-      !evaluasiAktif ||
-      typeof evaluasiAktif.cpPutih !== "number"
+      !evaluasiAktif
     ) {
       return null;
     }
-    const sebelum = jejakEvaluasiRef.current.get(konteksLangkahAktif.fenSebelum);
-    if (!sebelum || typeof sebelum.cpPutih !== "number") return null;
+    const keCpPutih = (ev) => {
+      if (!ev) return null;
+      if (typeof ev.cpPutih === "number") return ev.cpPutih;
+      if (typeof ev.matePutih === "number") {
+        return ev.matePutih > 0 ? 10000 - ev.matePutih * 100 : -10000 - ev.matePutih * 100;
+      }
+      return null;
+    };
+    const sesudahCp = keCpPutih(evaluasiAktif);
+    const sebelumCp = keCpPutih(jejakEvaluasiRef.current.get(konteksLangkahAktif.fenSebelum));
+    if (sesudahCp === null || sebelumCp === null) return null;
     const tanda = warnaPemain === "w" ? 1 : -1;
-    return (evaluasiAktif.cpPutih - sebelum.cpPutih) * tanda;
+    return (sesudahCp - sebelumCp) * tanda;
   }, [konteksLangkahAktif, evaluasiAktif, warnaPemain]);
 
   // Daftar disusun dari riwayat lengkap agar langkah yang sedang ditelusuri

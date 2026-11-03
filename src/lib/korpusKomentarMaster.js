@@ -1,6 +1,6 @@
 /**
- * Pencari korpus komentar posisi (`public/data/komentator-master.json`) yang
- * diolah dari koleksi PGN beranotasi `ValdemarOrn/Chess`.
+ * Pencari korpus komentar posisi (`public/data/komentator-master.json`)
+ * berbasis indeks transisi posisi faktual dari pohon permainan master.
  *
  * Dimuat sekali secara malas (lazy) saat `/papan-interaktif` atau
  * `/papan-interaktif/manusia-vs-mesin` dibuka, lalu dicari secara sinkron O(1)
@@ -8,7 +8,7 @@
  * (uji Node) ditelan diam-diam agar komentator posisional tetap berjalan mulus.
  */
 
-const VERSI_KORPUS = "2026-11-03-v2";
+const VERSI_KORPUS = "2026-11-03-v3";
 
 let janjiKorpus = null;
 let cacheKorpus = null;

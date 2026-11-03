@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Bangun `public/data/teka-teki-video.json` dari arsip mentah
- * `public/data/puzzle/all.json`.
+ * `scripts/data-sumber/puzzle-all.json`.
  *
  * Setiap entri diverifikasi ulang lewat `parsePgnTekaTeki()` + `chess.js`
  * sehingga langkah korup, token hasil partai yang bocor ke array langkah,

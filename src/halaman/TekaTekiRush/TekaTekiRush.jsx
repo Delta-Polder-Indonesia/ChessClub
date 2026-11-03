@@ -239,8 +239,12 @@ export default function TekaTekiRush() {
   const soalLichessRef = useRef([]);
   const soalTambahanRef = useRef(null);
   const semuaSoalRef = useRef([]);
+  const modeSoalRef = useRef("skakmat");
+  const janjiTambahanRef = useRef(null);
+  const hidupRushRef = useRef(true);
   const [modeSoal, setModeSoal] = useState("skakmat");
   const [memuatCampuran, setMemuatCampuran] = useState(false);
+  const [galatCampuran, setGalatCampuran] = useState("");
   const [gagalMuat, setGagalMuat] = useState(false);
   const [siap, setSiap] = useState(false);
   // Tombol "Coba lagi" pada layar galat mengulang pemuatan data soal.
@@ -330,6 +334,22 @@ export default function TekaTekiRush() {
   }, [warnaPapan]);
 
   /* --------------------------------------------------- muat data teka-teki */
+  const sinkronkanKolamSoal = useCallback(() => {
+    const dasar = soalLichessRef.current;
+    const tambahan = soalTambahanRef.current;
+    semuaSoalRef.current =
+      modeSoalRef.current === "campuran" && Array.isArray(tambahan) && tambahan.length > 0
+        ? [...dasar, ...tambahan]
+        : dasar;
+  }, []);
+
+  useEffect(() => {
+    hidupRushRef.current = true;
+    return () => {
+      hidupRushRef.current = false;
+    };
+  }, []);
+
   useEffect(() => {
     let aktif = true;
     setGagalMuat(false);
@@ -344,10 +364,7 @@ export default function TekaTekiRush() {
         const daftar = data.problems || [];
         if (!daftar.length) throw new Error("data kosong");
         soalLichessRef.current = daftar;
-        semuaSoalRef.current =
-          modeSoal === "campuran" && soalTambahanRef.current
-            ? [...daftar, ...soalTambahanRef.current]
-            : daftar;
+        sinkronkanKolamSoal();
         setTerbaik(bacaTerbaik());
         setSiap(true);
       })
@@ -357,37 +374,60 @@ export default function TekaTekiRush() {
     return () => {
       aktif = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [percobaan]);
+  }, [percobaan, sinkronkanKolamSoal]);
 
-  const pilihModeSoal = useCallback((modeBaru) => {
-    setModeSoal(modeBaru);
-    if (modeBaru === "skakmat") {
-      semuaSoalRef.current = soalLichessRef.current;
-      return;
-    }
-    if (soalTambahanRef.current) {
-      semuaSoalRef.current = [...soalLichessRef.current, ...soalTambahanRef.current];
-      return;
-    }
-    setMemuatCampuran(true);
-    fetch(`${import.meta.env.BASE_URL}data/teka-teki-video.json`)
-      .then((respon) => {
-        if (!respon.ok) throw new Error(`HTTP ${respon.status}`);
-        return respon.json();
-      })
-      .then((data) => {
-        const tambahan = data?.problems || [];
-        soalTambahanRef.current = tambahan;
-        semuaSoalRef.current = [...soalLichessRef.current, ...tambahan];
+  const pilihModeSoal = useCallback(
+    (modeBaru) => {
+      modeSoalRef.current = modeBaru;
+      setModeSoal(modeBaru);
+      setGalatCampuran("");
+      if (modeBaru === "skakmat") {
         setMemuatCampuran(false);
-      })
-      .catch(() => {
-        setModeSoal("skakmat");
-        semuaSoalRef.current = soalLichessRef.current;
+        sinkronkanKolamSoal();
+        return;
+      }
+      if (Array.isArray(soalTambahanRef.current) && soalTambahanRef.current.length > 0) {
         setMemuatCampuran(false);
-      });
-  }, []);
+        sinkronkanKolamSoal();
+        return;
+      }
+      setMemuatCampuran(true);
+      if (!janjiTambahanRef.current) {
+        janjiTambahanRef.current = fetch(`${import.meta.env.BASE_URL}data/teka-teki-video.json`)
+          .then((respon) => {
+            if (!respon.ok) throw new Error(`HTTP ${respon.status}`);
+            return respon.json();
+          })
+          .then((data) => {
+            const tambahan = data?.problems || [];
+            if (!tambahan.length) throw new Error("data tambahan kosong");
+            soalTambahanRef.current = tambahan;
+            return tambahan;
+          })
+          .catch((err) => {
+            janjiTambahanRef.current = null;
+            throw err;
+          });
+      }
+      janjiTambahanRef.current
+        .then(() => {
+          if (!hidupRushRef.current) return;
+          sinkronkanKolamSoal();
+          setMemuatCampuran(false);
+        })
+        .catch(() => {
+          if (!hidupRushRef.current) return;
+          setMemuatCampuran(false);
+          if (modeSoalRef.current === "campuran") {
+            modeSoalRef.current = "skakmat";
+            setModeSoal("skakmat");
+            sinkronkanKolamSoal();
+            setGalatCampuran(t("tekaTeki.gagalMuat"));
+          }
+        });
+    },
+    [sinkronkanKolamSoal, t]
+  );
 
   /* ------------------------------------------------------- judul halaman */
   useEffect(() => {
@@ -1164,6 +1204,11 @@ export default function TekaTekiRush() {
               );
             })}
           </div>
+          {galatCampuran && (
+            <p data-galat-campuran="1" className="mt-2 text-xs text-amber-300">
+              {galatCampuran}
+            </p>
+          )}
 
           <button
             type="button"

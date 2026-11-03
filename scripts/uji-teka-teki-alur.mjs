@@ -385,7 +385,7 @@ function terpecahkan() {
 }
 
 /** Buka soal lewat input nomor (tanpa saringan aktif, nomor = problemid). */
-async function bukaNomor(id) {
+async function bukaNomor(id, fenTarget = problems[id - 1]?.fen) {
   const input = dok.querySelector('input[type="number"]');
   if (!input) return false;
   const setter = Object.getOwnPropertyDescriptor(
@@ -396,7 +396,7 @@ async function bukaNomor(id) {
   input.dispatchEvent(new window.Event("input", { bubbles: true }));
   const form = input.closest("form");
   form.dispatchEvent(new window.Event("submit", { bubbles: true, cancelable: true }));
-  return tungguSampai(() => papanSama(problems[id - 1].fen), 3000);
+  return fenTarget ? tungguSampai(() => papanSama(fenTarget), 3000) : true;
 }
 
 /* ------------------------------------------------------------------ mulai */
@@ -814,6 +814,31 @@ judul("panel video pembahasan: menggantikan Syzygy, terkunci sebelum selesai, ta
     "setelah soal selesai: tombol 'Bedah di Papan Analisa' tampil",
     !!dok.querySelector('[data-aksi="buka-analisa"]')
   );
+
+  // Kegagalan muat media (<video> error) harus jatuh ke pesan cadangan tanpa merusak UI,
+  // lalu di-reset bersih ketika berpindah ke soal video berikutnya.
+  elVideo.dispatchEvent(new window.Event("error"));
+  await tunggu(80);
+  uji(
+    "galat pemutaran <video> menampilkan pesan cadangan + tautan sumber tanpa <video> rusak",
+    !dok.querySelector("video") &&
+      dok.body.textContent.includes(kamus.videoGagal) &&
+      dok.body.textContent.includes(kamus.videoBukaSumber)
+  );
+  const soalVideoKedua = soalTambahanVideo.find(
+    (p) => Boolean(p.video) && p.problemid !== soalVideoPertama.problemid
+  );
+  if (soalVideoKedua) {
+    const indeksVideoKedua =
+      soalTambahanVideo.filter((p) => Boolean(p.video)).findIndex((p) => p.problemid === soalVideoKedua.problemid) + 1;
+    await bukaNomor(indeksVideoKedua, soalVideoKedua.fen);
+    const tuntasKedua = await selesaikan(soalVideoKedua);
+    uji(
+      "status galat video di-reset bersih saat berpindah ke soal video lain",
+      tuntasKedua && !!dok.querySelector("video") && !dok.body.textContent.includes(kamus.videoGagal)
+    );
+  }
+
   uji(
     "filter pelatih muncul pada koleksi Taktik + Video",
     !!dok.querySelector("#wadah-pelatih") &&
@@ -1105,6 +1130,94 @@ judul("pemulihan soal selesai vs deep-link eksplisit");
   uji(
     "deep-link berbeda dari posisi tersimpan tetap membuka soal yang diminta",
     await tungguSampai(() => papanSama(problems[0].fen), 6000)
+  );
+}
+
+judul("keamanan URL video & balapan unduhan koleksi tambahan");
+{
+  // 1) Balapan koleksi: memilih 'video' lalu segera kembali ke 'lichess' sebelum
+  //    unduhan teka-teki-video.json selesai TIDAK boleh menimpa soal 'lichess'.
+  pasangDomBaru();
+  let selesaikanUnduhVideo = null;
+  const fetchDasar = window.fetch;
+  window.fetch = (url) => {
+    if (String(url).includes("teka-teki-video.json")) {
+      return new Promise((resolve) => {
+        selesaikanUnduhVideo = () => resolve(fetchDasar(url));
+      });
+    }
+    return fetchDasar(url);
+  };
+  globalThis.fetch = window.fetch;
+
+  delete require.cache[berkasBundel];
+  require(berkasBundel).mount(dok.getElementById("root"));
+  await tungguSampai(() => papanSama(problems[0].fen), 6000);
+
+  const pilihKoleksiRace = dok.querySelector("#wadah-koleksi");
+  const setterKoleksi = Object.getOwnPropertyDescriptor(
+    window.HTMLSelectElement.prototype,
+    "value"
+  ).set;
+  setterKoleksi.call(pilihKoleksiRace, "video");
+  pilihKoleksiRace.dispatchEvent(new window.Event("change", { bubbles: true }));
+  await tunggu(60);
+
+  // Batalkan niat: kembali ke 'lichess' selagi teka-teki-video.json masih mengambang.
+  setterKoleksi.call(pilihKoleksiRace, "lichess");
+  pilihKoleksiRace.dispatchEvent(new window.Event("change", { bubbles: true }));
+  await tunggu(60);
+
+  if (selesaikanUnduhVideo) selesaikanUnduhVideo();
+  await tunggu(200);
+  uji(
+    "balapan 'video' -> 'lichess' saat mengunduh tidak menimpa koleksi aktif",
+    pilihKoleksiRace.value === "lichess" && papanSama(problems[0].fen)
+  );
+
+  // 2) Sanitasi URL video runtime: domain di luar daftar izin ditolak dan tak pernah dirender.
+  pasangDomBaru();
+  const fetchDasar2 = window.fetch;
+  const soalPalsu = {
+    ...soalTambahanVideo.find((p) => Boolean(p.video)),
+    video: "https://evil.example/exploit.mp4",
+    tanggal: "2026-99-99<script>",
+  };
+  window.fetch = (url) => {
+    if (String(url).includes("teka-teki-video.json")) {
+      const badan = JSON.stringify({ problems: [soalPalsu] });
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        text: () => Promise.resolve(badan),
+        json: () => Promise.resolve({ problems: [soalPalsu] }),
+      });
+    }
+    return fetchDasar2(url);
+  };
+  globalThis.fetch = window.fetch;
+
+  delete require.cache[berkasBundel];
+  require(berkasBundel).mount(dok.getElementById("root"));
+  await tungguSampai(() => papanSama(problems[0].fen), 6000);
+
+  const pilihKoleksiJahil = dok.querySelector("#wadah-koleksi");
+  const setterJahil = Object.getOwnPropertyDescriptor(
+    window.HTMLSelectElement.prototype,
+    "value"
+  ).set;
+  setterJahil.call(pilihKoleksiJahil, "semua");
+  pilihKoleksiJahil.dispatchEvent(new window.Event("change", { bubbles: true }));
+  await tungguSampai(() => dok.querySelector('input[type="number"]')?.placeholder?.includes("5487"), 3000);
+  await bukaNomor(5487, soalPalsu.fen);
+  const tuntasJahil = await selesaikan(soalPalsu);
+  uji(
+    "URL video domain asing ditolak di runtime (status kosong & tanpa elemen <video>)",
+    tuntasJahil &&
+      !!dok.querySelector('[data-status-video="kosong"]') &&
+      !dok.querySelector("video") &&
+      !dok.body.innerHTML.includes("evil.example") &&
+      !dok.body.textContent.includes("2026-99-99")
   );
 }
 

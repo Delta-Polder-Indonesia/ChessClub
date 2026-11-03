@@ -797,7 +797,7 @@ export const SOAL_CATUR = [
     fen: "8/8/8/1Q6/3N2K1/kp2P3/3n1PP1/4q3 w - - 0 55",
     orientasi: "w",
     langkahBenar: { from: "b5", to: "b3" },
-    soal: "Magnus Carlsen vs Wesley So (Superbet Poland Rapid) — Putih melangkah. Pengorbanan menteri mengejutkan mana yang dimainkan Carlsen?",
+    soal: "Magnus Carlsen vs Wesley So (Superbet Rapid & Blitz Poland 2023) — Putih melangkah. Pengorbanan menteri mengejutkan mana yang dimainkan Carlsen?",
     pilihan: ["Qxb3+", "Nxb3", "Qa6+", "Qc5+"],
     kunci: 0,
   },

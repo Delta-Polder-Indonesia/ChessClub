@@ -518,27 +518,55 @@ export default function TekaTeki() {
     cobaLangkah(pindah.from, pindah.to, pindah.promotion);
   }
 
-  const unduhKoleksiTambahan = useCallback(async () => {
-    const respon = await fetch(`${import.meta.env.BASE_URL}data/teka-teki-video.json`);
-    if (!respon.ok) throw new Error(`HTTP ${respon.status}`);
-    const data = await respon.json();
-    const mentah = data?.problems || [];
-    if (!mentah.length) throw new Error("data tambahan kosong");
-    return mentah.map((item) =>
-      item?.pembukaan
-        ? { ...item, pembukaan: standarkanNamaPembukaan(item.pembukaan) }
-        : item
-    );
+  const janjiKoleksiRef = useRef(null);
+  const koleksiDimintaRef = useRef("lichess");
+  const hidupKoleksiRef = useRef(true);
+  useEffect(() => {
+    hidupKoleksiRef.current = true;
+    return () => {
+      hidupKoleksiRef.current = false;
+    };
+  }, []);
+
+  const unduhKoleksiTambahan = useCallback(() => {
+    if (janjiKoleksiRef.current) return janjiKoleksiRef.current;
+    const janji = fetch(`${import.meta.env.BASE_URL}data/teka-teki-video.json`)
+      .then((respon) => {
+        if (!respon.ok) throw new Error(`HTTP ${respon.status}`);
+        return respon.json();
+      })
+      .then((data) => {
+        const mentah = data?.problems || [];
+        if (!mentah.length) throw new Error("data tambahan kosong");
+        return mentah.map((item) => {
+          const videoBersih = urlVideoSah(item?.video);
+          const tanggalBersih = tanggalVideoSah(item?.tanggal);
+          return {
+            ...item,
+            ...(item?.pembukaan ? { pembukaan: standarkanNamaPembukaan(item.pembukaan) } : {}),
+            video: videoBersih || undefined,
+            tanggal: tanggalBersih || undefined,
+          };
+        });
+      })
+      .catch((err) => {
+        janjiKoleksiRef.current = null;
+        throw err;
+      });
+    janjiKoleksiRef.current = janji;
+    return janji;
   }, []);
 
   const pilihKoleksi = useCallback(
     (koleksiBaru) => {
-      if (koleksiBaru === filterKoleksi) return;
+      if (koleksiBaru === filterKoleksi && !memuatKoleksi) return;
+      koleksiDimintaRef.current = koleksiBaru;
       window.clearTimeout(timerOtomatis.current);
       setGalatNomor(null);
       setNomorSoal("");
       setFilterPelatih("semua");
       if (koleksiBaru === "lichess") {
+        setMemuatKoleksi(false);
         if (filterTipe === "Mate in More" || filterTipe === "Tactical") {
           setFilterTipe("semua");
         }
@@ -546,22 +574,29 @@ export default function TekaTeki() {
         return;
       }
       if (soalTambahan) {
+        setMemuatKoleksi(false);
         setFilterKoleksi(koleksiBaru);
         return;
       }
       setMemuatKoleksi(true);
       unduhKoleksiTambahan()
         .then((daftarTambahan) => {
+          if (!hidupKoleksiRef.current) return;
           setSoalTambahan(daftarTambahan);
           setMemuatKoleksi(false);
-          setFilterKoleksi(koleksiBaru);
+          if (koleksiDimintaRef.current !== "lichess") {
+            setFilterKoleksi(koleksiDimintaRef.current);
+          }
         })
         .catch(() => {
+          if (!hidupKoleksiRef.current) return;
           setMemuatKoleksi(false);
-          setPesan({ jenis: "peringatan", teks: t("tekaTeki.gagalMuat") });
+          if (koleksiDimintaRef.current !== "lichess") {
+            setPesan({ jenis: "peringatan", teks: t("tekaTeki.gagalMuat") });
+          }
         });
     },
-    [filterKoleksi, filterTipe, soalTambahan, unduhKoleksiTambahan, t]
+    [filterKoleksi, filterTipe, memuatKoleksi, soalTambahan, unduhKoleksiTambahan, t]
   );
 
   const kolamAktif = useMemo(() => {
@@ -678,6 +713,7 @@ export default function TekaTeki() {
               const idxTarget = kolamTarget.findIndex((m) => m.problemid === idParam);
               lewatiRefilterRef.current = true;
               koleksiSebelumnyaRef.current = koleksiTarget;
+              koleksiDimintaRef.current = koleksiTarget;
               setSemuaSoal(daftar);
               setSoalTambahan(daftarTambahan);
               setFilterKoleksi(koleksiTarget);
@@ -1898,6 +1934,21 @@ const TAB = [
   },
 ];
 
+/** Validasi runtime URL video MP4 & tanggal harian agar hanya domain CSP sah yang pernah dirender. */
+const POLA_URL_VIDEO_SAH =
+  /^https:\/\/(media\.chesscomfiles\.com|chesscom-videos\.s3\.amazonaws\.com)\/[^\s"<>]+\.mp4$/i;
+const POLA_TANGGAL_VIDEO_SAH = /^\d{4}-\d{2}-\d{2}$/;
+
+function urlVideoSah(url) {
+  const bersih = typeof url === "string" ? url.trim() : "";
+  return POLA_URL_VIDEO_SAH.test(bersih) ? bersih : "";
+}
+
+function tanggalVideoSah(tanggal) {
+  const bersih = typeof tanggal === "string" ? tanggal.trim() : "";
+  return POLA_TANGGAL_VIDEO_SAH.test(bersih) ? bersih : "";
+}
+
 /** Opsi tema cadangan bila tidak dikirim dari halaman utama. */
 const OPSI_TEMA_BAWAAN = [
   { grup: "Skakmat", isi: [["backRankMate", "Back Rank Mate"], ["smotheredMate", "Smothered Mate"], ["promotion", "Promotion"]] },
@@ -1912,8 +1963,10 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
   const papanStatic = papanSampel();
   const file = ["a", "b", "c", "d", "e", "f", "g", "h"];
   const daftarTema = opsiTema.length ? opsiTema : OPSI_TEMA_BAWAAN;
-  const tautanSumberVideo = videoTanggal
-    ? `https://www.chess.com/daily-chess-puzzle/${videoTanggal}`
+  const videoUrlAman = urlVideoSah(videoUrl);
+  const videoTanggalAman = tanggalVideoSah(videoTanggal);
+  const tautanSumberVideo = videoTanggalAman
+    ? `https://www.chess.com/daily-chess-puzzle/${videoTanggalAman}`
     : "https://www.chess.com/daily-chess-puzzle";
 
   // Pengaturan (gear): state-nya milik halaman (lihat `bukaPengaturan` di
@@ -2648,11 +2701,15 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
               </div>
             )}
 
+            {/* Penguncian antarmuka (UI anti-spoiler): URL MP4 berasal dari
+                dataset publik `data/teka-teki-video.json`, sehingga menunda
+                render `<video>` hingga `selesai === true` bertujuan mencegah
+                bocoran solusi di antarmuka latihan, bukan kontrol akses server. */}
             {memuat || memuatKoleksi ? (
               <p className="text-xs font-medium text-gray-400">
                 {t("tekaTeki.videoMemuatKoleksi")}
               </p>
-            ) : videoUrl ? (
+            ) : videoUrlAman ? (
               !selesai ? (
                 <div
                   data-status-video="terkunci"
@@ -2685,11 +2742,11 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
                     </div>
                   ) : (
                     <video
-                      key={videoUrl}
+                      key={videoUrlAman}
                       controls
                       preload="none"
                       playsInline
-                      src={videoUrl}
+                      src={videoUrlAman}
                       onPlay={onPutarVideo || undefined}
                       onError={onGalatVideo || undefined}
                       className="w-full aspect-square max-h-72 rounded-md border border-[#312e2b] bg-black object-contain select-auto"
@@ -2705,8 +2762,8 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
                       {t("tekaTeki.videoSumber")}
                       <ExternalLink className="size-3" aria-hidden="true" />
                     </a>
-                    {videoTanggal && (
-                      <span className="font-mono text-xs text-gray-400">{videoTanggal}</span>
+                    {videoTanggalAman && (
+                      <span className="font-mono text-xs text-gray-400">{videoTanggalAman}</span>
                     )}
                   </div>
                 </div>
