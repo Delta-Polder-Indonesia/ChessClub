@@ -2351,56 +2351,6 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
               </div>
             </div>
 
-            {/* Kolom kanan: tombol kontrol papan (posisi asli di atas) */}
-            <div className="flex flex-col items-center gap-2 pt-14">
-              {onGantiSuara && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    // Bunyikan saat dinyalakan supaya terdengar contohnya.
-                    if (!nilaiSuara) mainkanSuara(SUARA.tesSuara);
-                    onGantiSuara(!nilaiSuara);
-                  }}
-                  aria-pressed={nilaiSuara}
-                  className={`p-2 rounded-md transition ${
-                    nilaiSuara
-                      ? "text-gray-300 hover:text-white hover:bg-[#312e2b]"
-                      : "text-[#b33430] hover:bg-[#312e2b]"
-                  }`}
-                  aria-label={nilaiSuara ? t("tekaTeki.suaraMatikan") : t("tekaTeki.suaraHidupkan")}
-                  title={nilaiSuara ? t("tekaTeki.suaraMatikan") : t("tekaTeki.suaraHidupkan")}
-                >
-                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M11 5 6 9H2v6h4l5 4z" />
-                    {nilaiSuara ? (
-                      <>
-                        <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
-                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
-                      </>
-                    ) : (
-                      <>
-                        <line x1="22" y1="9" x2="16" y2="15" />
-                        <line x1="16" y1="9" x2="22" y2="15" />
-                      </>
-                    )}
-                  </svg>
-                </button>
-              )}
-
-              <button
-                type="button"
-                onClick={onFlip}
-                className="p-2 rounded-md text-gray-300 hover:text-white hover:bg-[#312e2b] transition"
-                aria-label={t("tekaTeki.balikPapan")}
-                title={t("tekaTeki.balikPapan")}
-              >
-                <svg className="w-5 h-5" viewBox="0 0 120 120" fill="currentColor">
-                  <path d="M 21.475246,117.78677 H 73.154894 L 56.373294,98.524495 H 40.73752 V 35.922099 H 59.999794 L 31.106383,2.2131167 2.2129751,35.922099 H 21.475246 Z" />
-                  <path d="m 98.524909,2.2132354 -51.679643,0 16.781593,19.2622766 15.635776,0 V 84.077908 H 60.00036 L 88.893772,117.78689 117.78718,84.077908 H 98.524909 Z" />
-                </svg>
-              </button>
-
-            </div>
           </div>
         </main>
 
