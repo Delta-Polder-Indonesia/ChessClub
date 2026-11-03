@@ -2149,7 +2149,7 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
             <div className="flex-1 flex min-h-0 min-w-0 flex-col justify-between">
 
               {/* ─── PROFIL PEMAIN HITAM (ATAS) ─── */}
-              <div className="flex flex-row justify-between items-center pl-[44px] pr-1">
+              <div className={`relative z-10 flex flex-row justify-between items-center pl-[44px] pr-1 flex-shrink-0 ${orientasi === "w" ? "order-1" : "order-3"}`}>
                 <div className="flex flex-row items-center gap-3 min-w-0 flex-1">
                   {/* Avatar Hitam */}
                   <div className="h-10 w-10 flex-shrink-0 flex flex-row justify-center items-end bg-[#474542] rounded-md shadow-md">
@@ -2199,7 +2199,7 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
               </div>
 
               {/* ─── TENGAH: BAR EVALUASI + PAPAN (mengisi sisa tinggi) ─── */}
-              <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-2">
+              <div className="order-2 flex min-h-0 flex-1 flex-col items-center justify-center gap-2">
               <div className="flex w-full flex-row items-stretch gap-2">
                 {/* Bar Evaluasi */}
                 {barEvaluasi ? (
@@ -2229,7 +2229,7 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
                 )}
 
                 {/* Papan Catur */}
-                <div className="flex-1 aspect-square shadow-2xl rounded-md overflow-hidden relative">
+                <div className="relative aspect-square max-h-full max-w-full min-h-0 min-w-0 flex-1 shadow-2xl rounded-md overflow-hidden">
                   {papan ? (
                     papan
                   ) : memuat ? (
@@ -2307,7 +2307,7 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
               </div>
 
               {/* ─── PROFIL PEMAIN PUTIH (BAWAH) ─── */}
-              <div className="flex flex-row justify-between items-center pl-[44px] pr-1">
+              <div className={`relative z-10 flex flex-row justify-between items-center pl-[44px] pr-1 flex-shrink-0 ${orientasi === "w" ? "order-3" : "order-1"}`}>
                 <div className="flex flex-row items-center gap-3 min-w-0 flex-1">
                   {/* Avatar Putih */}
                   <div className="h-10 w-10 flex-shrink-0 flex flex-row justify-center items-end bg-[#dbd9d6] rounded-md shadow-md">
