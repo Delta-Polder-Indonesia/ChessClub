@@ -1,5 +1,3 @@
-          {tabPanelAktif === "main" && (
-          <>
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { Chess } from "chess.js";
@@ -2779,6 +2777,8 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
             </div>
           )}
 
+          {tabPanelAktif === "main" && (
+          <>
           {engineNyala && (
             <div className="flex-shrink-0 border-b border-[#312e2b] bg-[#1e1c18] px-3 py-2 space-y-2">
               <div className="flex items-center justify-between gap-3">
