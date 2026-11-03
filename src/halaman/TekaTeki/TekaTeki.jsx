@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { Chess } from "chess.js";
-import { ExternalLink, Lock, Search, Video } from "lucide-react";
+import { ExternalLink, Lock, Video } from "lucide-react";
 import { ArrowRightIcon, ChevronStartIcon, ChevronLeftIcon, ChevronRightIcon, ChevronEndIcon } from "../../components/icons.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 import { ChessPiece } from "../../components/chess/ChessPiece.jsx";
@@ -2476,17 +2476,7 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
                   </div>
                 )}
 
-                {onBukaAnalisa && (
-                  <button
-                    type="button"
-                    data-aksi="buka-analisa"
-                    onClick={onBukaAnalisa}
-                    className="w-full inline-flex items-center justify-center gap-2 rounded-md border border-[#81b64c]/50 bg-[#81b64c]/15 hover:bg-[#81b64c]/25 px-3 py-2 text-xs font-semibold text-[#b8dc8e] transition cursor-pointer"
-                  >
-                    <Search className="size-3.5 shrink-0" aria-hidden="true" />
-                    {t("tekaTeki.bukaPapanAnalisa")}
-                  </button>
-                )}
+
               </div>
             )}
           </div>
@@ -2845,25 +2835,21 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
                   Suara
                 </span>
               </button>
-              <button
-                type="button"
-                onClick={() => onGantiOtomatis && onGantiOtomatis(!nilaiOtomatis)}
-                aria-pressed={nilaiOtomatis}
-                aria-label={nilaiOtomatis ? t("tekaTeki.otomatisMatikan") : t("tekaTeki.otomatisNyalakan")}
-                title={t("tekaTeki.lanjutOtomatis")}
-                className="flex flex-col items-center gap-1.5 p-2.5 bg-[#262421] hover:bg-[#312e2b] rounded-lg transition border border-[#312e2b] cursor-pointer"
-              >
-                <svg className="w-5 h-5 text-gray-400" viewBox="0 0 24 24" fill="currentColor" stroke="none">
-                  {nilaiOtomatis ? (
-                    <path d="M6 5h4v14H6zM14 5h4v14h-4z" />
-                  ) : (
-                    <path d="M8 5.5v13l11-6.5-11-6.5z" />
-                  )}
-                </svg>
-                <span className={`text-xs font-semibold ${nilaiOtomatis ? "text-[#81b64c]" : "text-white"}`}>
-                  {nilaiOtomatis ? t("tekaTeki.jeda") : t("tekaTeki.autoLanjut")}
-                </span>
-              </button>
+              {selesai && !memuat && !memuatKoleksi && onBukaAnalisa && (
+                <button
+                  type="button"
+                  data-aksi="buka-analisa"
+                  onClick={onBukaAnalisa}
+                  aria-label="Analisa"
+                  title="Analisa"
+                  className="flex flex-col items-center gap-1.5 p-2.5 bg-[#262421] hover:bg-[#312e2b] hover:text-white rounded-lg transition border border-[#312e2b] cursor-pointer"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor" aria-hidden="true">
+                    <path d="M19.6,21l-6.3-6.3q-0.75,0.6-1.72,0.95T9.5,16q-2.72,0-4.61-1.89Q3,12.23 3,9.5Q3,6.77 4.89,4.89T9.5,3t4.61,1.89T16,9.5q0,1.1-0.35,2.07T14.7,13.3L21,19.6L19.6,21ZM9.5,14q1.88,0 3.19-1.31T14,9.5T12.69,6.31T9.5,5T6.31,6.31T5,9.5t1.31,3.19T9.5,14Zm-2-1.5l0.75-2.45l-2-1.6H8.7L9.5,6l0.8,2.45h2.45l-2,1.6L11.5,12.5l-2-1.55l-2,1.55Z"/>
+                  </svg>
+                  <span>Analisa</span>
+                </button>
+              )}
               <button
                 type="button"
                 onClick={onAcak}
