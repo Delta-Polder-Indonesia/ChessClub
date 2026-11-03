@@ -485,24 +485,95 @@ export const rushLanding = {
 export const kuisLanding = {
     judul: "Chess Quiz",
     deskripsi:
-      "Test your chess understanding with themed multiple-choice questions — from basic rules to strategy and history.",
+      "Test your chess understanding across 115 multiple-choice questions in 11 categories, from basic rules and notation to diagrammed grandmaster moves.",
     metaDeskripsi:
-      "Indonesian Chess Community Chess Quiz — multiple-choice questions across ten categories: rules, pieces, mating patterns, tactics, openings, strategy, endgame, notation, history, and general.",
-    introJudul: "Learn While You Test Yourself",
+      "Komunitas Catur Indonesia Chess Quiz: 115 multiple-choice questions across 11 categories, from rules and tactics to grandmaster board positions.",
+    introJudul: "Test Your Chess Theory and History Beyond the Board",
     intro1:
-      "The Chess Quiz presents multiple-choice questions with a single correct answer. Every question comes with instant feedback, so you don't just guess — you understand why an answer is right or wrong.",
+      "The Komunitas Catur Indonesia Chess Quiz brings together 115 verified multiple-choice questions organized into 11 thematic categories. Topics range from official FIDE rules, piece values, and algebraic notation to opening lines, middlegame planning, endgame principles, world championship history, and 15 board-diagram questions from classic grandmaster games.",
     intro2:
-      "The material spans the whole game — from official rules and piece movement, to tactical motifs and mating patterns, through opening principles, middlegame strategy, endgame technique, notation, and chess history.",
-    kategoriJudul: "Ten categories",
-    caraJudul: "How to play",
-    langkah1: "Enter your name, choose a category, and set a mistake limit: 3 or 5 wrong answers.",
-    langkah2: "Read each question, then pick one answer from the available options.",
-    langkah3: "Feedback appears instantly — right or wrong — along with the move to the next question.",
-    langkah4: "The quiz ends when all questions are answered or the mistake limit is reached; your final score is shown on screen.",
-    ctaJudul: "How deep is your understanding?",
-    ctaIsi:
-      "Choose a favourite category or test them all at once, then prove your chess knowledge.",
+      "Every session runs directly in your browser with no account required. Both question order and the A-through-D answer slots are shuffled anew on each run, paired with instant right-or-wrong feedback so you immediately spot which concepts are solid and which deserve another look.",
     cta: "Start Chess Quiz",
+    contohKategori: "Sample question · Grandmaster Moves",
+    contohAriaPapan:
+      "Chessboard position from Adolf Anderssen versus Jean Dufresne in Berlin, 1852: White to move with a queen on a4, bishops on a3 and d3, and rook on d1.",
+    contohSoal:
+      "Adolf Anderssen vs Jean Dufresne (Berlin, 1852) — White to move. Which queen sacrifice launches the winning combination?",
+    contohCaption:
+      "All fifteen questions in the Grandmaster Moves category pair a real game diagram with four legal candidate moves and highlight the winning move once answered.",
+    kategoriJudul: "Eleven subject categories",
+    kategoriLead:
+      "Pick an individual category for focused study or select All to draw all 115 questions in randomized order within a single run.",
+    kolomKategori: "Category",
+    kolomJumlah: "Questions",
+    kolomCakupan: "Topics covered",
+    kat1Nama: "Rules",
+    kat1Jumlah: "13",
+    kat1Isi:
+      "Board setup, turn order, castling conditions, en passant captures, pawn promotion, stalemate, and threefold-repetition draw claims.",
+    kat2Nama: "Pieces",
+    kat2Jumlah: "13",
+    kat2Isi:
+      "Movement geometry of all six pieces, knight jump mechanics, single-color bishop scope, and standard material values.",
+    kat3Nama: "Checkmate Patterns",
+    kat3Jumlah: "9",
+    kat3Isi:
+      "Fool's Mate, Scholar's Mate, two-rook ladder mate, back-rank mate, smothered knight mate, Boden's Mate, and Arabian Mate.",
+    kat4Nama: "Tactics",
+    kat4Jumlah: "10",
+    kat4Isi:
+      "Forks, skewers, absolute and relative pins, discovered attacks, double checks, deflections, and intermediate moves (zwischenzug).",
+    kat5Nama: "Openings",
+    kat5Jumlah: "10",
+    kat5Isi:
+      "Defining moves of the Ruy Lopez, Sicilian Defense, Queen's Gambit, Caro-Kann, French Defense, Italian Game, King's Indian, and opening development rules.",
+    kat6Nama: "Strategy",
+    kat6Jumlah: "10",
+    kat6Isi:
+      "Central control, knight outposts, open rook files, isolated pawn weaknesses, and the bishop-pair advantage.",
+    kat7Nama: "Endgame",
+    kat7Jumlah: "10",
+    kat7Isi:
+      "King opposition, passed pawns, rule of the square, Lucena and Philidor rook endgames, and king activation.",
+    kat8Nama: "Chess Notation",
+    kat8Jumlah: "10",
+    kat8Isi:
+      "Standard algebraic piece letters, capture symbols (x), kingside and queenside castling (O-O / O-O-O), check (+), checkmate (#), and move evaluation marks.",
+    kat9Nama: "History",
+    kat9Jumlah: "8",
+    kat9Isi:
+      "Origins in Indian chaturanga and Persian shatranj, the founding of FIDE, first official world champion Wilhelm Steinitz, and the 1997 Deep Blue match.",
+    kat10Nama: "General",
+    kat10Jumlah: "7",
+    kat10Isi:
+      "Over-the-board (OTB) play, blindfold chess, simultaneous exhibitions, underpromotion, blitz/rapid/classical time controls, and Elo ratings.",
+    kat11Nama: "Grandmaster Moves",
+    kat11Jumlah: "15",
+    kat11Isi:
+      "Board-diagram questions drawn from games by Anderssen, Morphy, Capablanca, Tal, Fischer, Spassky, Kasparov, Kramnik, Anand, Judit Polgar, Ivanchuk, and Carlsen.",
+    kategoriCatatan:
+      "Total bank: 115 verified questions (100 conceptual text questions and 15 board-diagram positions).",
+    caraJudul: "Session rules and local scoring",
+    caraSubjudul: "How a run works",
+    langkah1:
+      "Choose a category in the left sidebar or leave All selected, enter a display name, and pick a mistake limit of 3 wrong or 5 wrong answers.",
+    langkah2:
+      "Read the prompt (and side-to-move orientation on diagram questions), then select one of the four shuffled answer choices.",
+    langkah3:
+      "The interface immediately marks the correct option with a green check and highlights the winning move on diagrammed boards before you press Next.",
+    langkah4:
+      "A session finishes automatically once every question in the selected pool is answered or your wrong-answer limit is reached; Give Up ends a run early at any point.",
+    skorSubjudul: "Local leaderboard & suggested study order",
+    skor1:
+      "The top ten scores are saved locally in your browser (localStorage), keeping only the best result per player name without sending data to a server. Your most recent right-and-wrong tally stays visible in the right-hand panel between runs.",
+    skor2:
+      "Newer players can clear Rules, Pieces, and Chess Notation with the 5-mistake limit before attempting the full 115-question pool. Intermediate players can switch to the 3-mistake limit across Tactics, Strategy, Endgame, and Grandmaster Moves.",
+    penutupJudul: "Review topics you missed",
+    penutupAwal:
+      "Whenever a specific subject trips you up, study its structured chapters in",
+    penutupTengah1: "inspect opening move trees on",
+    penutupTengah2: "or drill tactical execution directly on the board in",
+    penutupAkhir: "before starting your next quiz run.",
 };
 
 

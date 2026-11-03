@@ -489,24 +489,95 @@ export const rushLanding = {
 export const kuisLanding = {
     judul: "Kuis Catur",
     deskripsi:
-      "Uji pemahaman catur Anda lewat soal pilihan ganda bertema — dari peraturan dasar sampai strategi dan sejarah.",
+      "Uji pemahaman catur melalui 115 soal pilihan ganda dalam 11 kategori, dari peraturan dasar dan notasi hingga langkah grandmaster berdiagram.",
     metaDeskripsi:
-      "Kuis Catur Komunitas Catur Indonesia — soal pilihan ganda dari sepuluh kategori: peraturan, bidak, pola skakmat, taktik, pembukaan, strategi, endgame, notasi, sejarah, dan umum.",
-    introJudul: "Belajar sambil Menguji Diri",
+      "Kuis Catur Komunitas Catur Indonesia: 115 soal pilihan ganda dalam 11 kategori, mencakup peraturan, taktik, endgame, hingga posisi grandmaster.",
+    introJudul: "Uji Pemahaman Teori dan Sejarah di Luar Papan",
     intro1:
-      "Kuis Catur menyajikan pertanyaan pilihan ganda dengan satu jawaban benar. Setiap soal disertai umpan balik langsung, sehingga Anda tidak sekadar menebak, tetapi memahami mengapa sebuah jawaban tepat atau keliru.",
+      "Kuis Catur Komunitas Catur Indonesia menghimpun 115 pertanyaan pilihan ganda terverifikasi yang dibagi ke dalam 11 kategori tematis. Materinya merentang dari aturan resmi FIDE, nilai perwira, dan pembacaan notasi aljabar hingga pola pembukaan, strategi tengah permainan, prinsip babak akhir, sejarah kejuaraan dunia, serta 15 soal berdiagram dari partai grandmaster.",
     intro2:
-      "Materinya menjangkau seluruh aspek permainan — mulai dari aturan resmi dan gerak bidak, motif taktik dan pola skakmat, hingga prinsip pembukaan, strategi tengah permainan, teknik babak akhir, notasi, dan sejarah catur.",
-    kategoriJudul: "Sepuluh kategori",
-    caraJudul: "Cara bermain",
-    langkah1: "Masukkan nama Anda, pilih kategori, dan tentukan batas kesalahan: 3 atau 5 jawaban salah.",
-    langkah2: "Baca setiap soal, lalu pilih satu jawaban dari opsi yang tersedia.",
-    langkah3: "Umpan balik muncul seketika — benar atau salah — beserta perpindahan ke soal berikutnya.",
-    langkah4: "Kuis selesai saat semua soal terjawab atau batas kesalahan tercapai; skor akhir muncul di layar.",
-    ctaJudul: "Seberapa dalam pemahaman Anda?",
-    ctaIsi:
-      "Pilih satu kategori favorit atau uji semuanya sekaligus, lalu buktikan pengetahuan catur Anda.",
+      "Seluruh sesi berjalan langsung di peramban tanpa memerlukan akun. Urutan kemunculan soal maupun letak opsi jawaban A sampai D diacak ulang setiap kali sesi dimulai, diikuti penanda benar atau salah seketika sehingga Anda langsung mengetahui konsep mana yang sudah matang dan bagian mana yang masih perlu ditinjau ulang.",
     cta: "Mulai Kuis Catur",
+    contohKategori: "Contoh soal · Kategori Langkah Grandmaster",
+    contohAriaPapan:
+      "Diagram papan catur Adolf Anderssen melawan Jean Dufresne di Berlin tahun 1852: Putih melangkah dengan menteri di a4, gajah di a3 dan d3, serta benteng di d1.",
+    contohSoal:
+      "Adolf Anderssen vs Jean Dufresne (Berlin, 1852) — Putih melangkah. Pengorbanan menteri mana yang mengawali rangkaian kemenangan?",
+    contohCaption:
+      "Lima belas soal pada kategori Langkah Grandmaster menampilkan diagram posisi partai asli dan menyorot langkah kunci di papan begitu opsi dipilih.",
+    kategoriJudul: "Sebelas kategori materi",
+    kategoriLead:
+      "Anda dapat memilih satu topik spesifik untuk latihan terarah atau memilih mode Semua untuk mengerjakan seluruh 115 soal secara acak dalam satu rangkaian.",
+    kolomKategori: "Kategori",
+    kolomJumlah: "Soal",
+    kolomCakupan: "Pokok materi yang diujikan",
+    kat1Nama: "Peraturan",
+    kat1Jumlah: "13",
+    kat1Isi:
+      "Susunan petak awal, giliran melangkah, syarat rokade, penangkapan en passant, promosi pion, pat (stalemate), dan klaim remis tiga kali pengulangan.",
+    kat2Nama: "Bidak",
+    kat2Jumlah: "13",
+    kat2Isi:
+      "Arah gerak keenam jenis bidak, keunikan lompatan kuda, keterbatasan gajah petak sewarna, serta perbandingan nilai materi dasar.",
+    kat3Nama: "Pola Skakmat",
+    kat3Jumlah: "9",
+    kat3Isi:
+      "Fool's Mate, Scholar's Mate, mat tangga dua benteng, mat baris belakang, smothered mate kuda, Boden's Mate, dan Arabian Mate.",
+    kat4Nama: "Taktik",
+    kat4Jumlah: "10",
+    kat4Isi:
+      "Garpu (fork), tusuk sate (skewer), paku mutlak maupun relatif (pin), serangan terbuka, skak ganda, defleksi, dan langkah sela (zwischenzug).",
+    kat5Nama: "Pembukaan",
+    kat5Jumlah: "10",
+    kat5Isi:
+      "Langkah pengenal Ruy Lopez, Pertahanan Sisilia, Gambit Menteri, Caro-Kann, Prancis, Permainan Italia, India Raja, serta disiplin perkembangan awal.",
+    kat6Nama: "Strategi",
+    kat6Jumlah: "10",
+    kat6Isi:
+      "Penguasaan petak pusat, petak outpost kuda, penguasaan lajur terbuka oleh benteng, kelemahan pion terisolasi, serta keunggulan pasangan gajah.",
+    kat7Nama: "Endgame",
+    kat7Jumlah: "10",
+    kat7Isi:
+      "Oposisi raja, pion bebas (passed pawn), aturan kotak pion, posisi kunci Lucena dan Philidor pada akhir benteng, serta sentralisasi raja.",
+    kat8Nama: "Notasi Catur",
+    kat8Jumlah: "10",
+    kat8Isi:
+      "Huruf perwira dalam notasi aljabar standar, simbol tangkapan (x), rokade pendek dan panjang (O-O / O-O-O), tanda skak (+), skakmat (#), dan evaluasi langkah.",
+    kat9Nama: "Sejarah",
+    kat9Jumlah: "8",
+    kat9Isi:
+      "Asal-usul permainan dari chaturanga di India dan shatranj di Persia, pendirian FIDE, juara dunia resmi pertama Wilhelm Steinitz, hingga duel Deep Blue 1997.",
+    kat10Nama: "Umum",
+    kat10Jumlah: "7",
+    kat10Isi:
+      "Istilah pertandingan over-the-board (OTB), catur buta, ekshibisi simultan, underpromotion, pembagian waktu blitz/rapid/klasik, dan sistem rating Elo.",
+    kat11Nama: "Langkah Grandmaster",
+    kat11Jumlah: "15",
+    kat11Isi:
+      "Soal bergambar diagram papan dari partai Anderssen, Morphy, Capablanca, Tal, Fischer, Spassky, Kasparov, Kramnik, Anand, Judit Polgar, Ivanchuk, hingga Carlsen.",
+    kategoriCatatan:
+      "Total keseluruhan: 115 soal terverifikasi (100 soal konseptual teks dan 15 soal posisi berdiagram papan).",
+    caraJudul: "Aturan sesi dan pencatatan skor",
+    caraSubjudul: "Alur bermain",
+    langkah1:
+      "Pilih satu kategori di bilah kiri atau pilih Semua, ketik nama panggilan Anda, lalu tentukan batas toleransi 3 jawaban salah atau 5 jawaban salah.",
+    langkah2:
+      "Baca pertanyaan (beserta orientasi giliran pada soal berdiagram), lalu klik salah satu dari empat pilihan jawaban yang telah diacak urutannya.",
+    langkah3:
+      "Antarmuka langsung menandai kunci jawaban yang tepat dengan centang hijau dan memperlihatkan langkah kunci di papan sebelum Anda menekan Lanjut.",
+    langkah4:
+      "Kuis berakhir otomatis begitu seluruh soal kategori terpilih habis terjawab atau jumlah kekeliruan mencapai batas salah; tombol Menyerah tersedia bila Anda ingin mengakhiri sesi lebih awal.",
+    skorSubjudul: "Peringkat lokal & urutan belajar yang disarankan",
+    skor1:
+      "Sepuluh nilai tertinggi dicatat langsung di peramban perangkat Anda (localStorage) dengan menyisakan skor terbaik untuk setiap nama, tanpa pengiriman data ke server. Rekap jawaban benar dan salah dari sesi terakhir tetap tampil di panel kanan agar Anda mudah memantau perkembangan.",
+    skor2:
+      "Bagi pemula, tuntaskan lebih dulu kategori Peraturan, Bidak, dan Notasi Catur dengan batas 5 salah sebelum mencoba mode gabungan Semua. Pemain menengah dapat langsung memilih batas 3 salah pada Taktik, Strategi, Endgame, dan Langkah Grandmaster.",
+    penutupJudul: "Perdalam materi yang belum dikuasai",
+    penutupAwal:
+      "Apabila Anda masih sering keliru pada topik tertentu, pelajari bab terkait secara runtut melalui",
+    penutupTengah1: "telusuri jalur langkah awalnya di halaman",
+    penutupTengah2: "atau latih penerapan taktiknya langsung di papan melalui",
+    penutupAkhir: "sebelum mengulang kuis kembali.",
 };
 
 
