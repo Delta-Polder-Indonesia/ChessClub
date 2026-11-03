@@ -116,89 +116,82 @@ export const bermainCatur = {
 export const tipsTekaTeki = {
     judul: "Chess Puzzles & Tips",
     deskripsi:
-      "Tactics training with 5,486 checkmate puzzles from real games in the Lichess puzzle database — filter by level and theme, and solve them right in your browser.",
+      "Untimed tactical calculation across 12,037 numbered puzzles from real Lichess games, coach videos, world legends, and endgame studies.",
     metaDeskripsi:
-      "The chess puzzle trainer of Komunitas Catur Indonesia: 5,486 mate-in-1 to mate-in-3 puzzles from real games in the Lichess puzzle database, with level and theme filters plus hints.",
-    introJudul:
-      "Master chess tactics with puzzles from real tournament games",
+      "Komunitas Catur Indonesia puzzle trainer: 12,037 positions (rated 600–2,567) across five tactical sets, 18 themes, and post-solve coach videos.",
+    introJudul: "Train Calculation from Real Tournament Positions",
     intro1:
-      "Chess Puzzles & Tips introduces the tactics trainer of Komunitas Catur Indonesia. The collection holds 5,486 puzzles asking for mate in one to three moves, all taken from real games in the Lichess puzzle database. Each puzzle carries a rating, theme tags, and the players and opening of its source game.",
+      "The Komunitas Catur Indonesia puzzle trainer brings together 12,037 numbered positions (#1 through #12,037) with no clock pressure, giving you room to calculate forcing lines to the end before touching a piece. The default set holds 5,486 forced one- to three-move checkmates from CC0-licensed Lichess games, joined by four curated collections covering material-winning combinations, historic master games, endgame studies, and coach video breakdowns.",
     intro2:
-      "Training runs directly in the browser, with no account required. Filter puzzles by level, tactical theme, or the side to move; when you are stuck, the hint button highlights the first move's origin and destination squares. Your progress is saved automatically on your device.",
+      "Training runs directly in your browser without creating an account. Filter positions across five rating bands (600–2,567), move lengths, 18 tactical themes, coach authors, or side to move; solved puzzle counts and your last visited number stay saved on your device.",
     ctaUtama: "Start Puzzle Training",
-    ctaHarian: "Daily Puzzle",
-    ctaRush: "Puzzle Rush — the timed mode",
-    demoJudul: "One puzzle, shown in full",
-    demoPengantar:
-      "Everything below — the position, rating, themes, and source game — is taken verbatim from the puzzle file, exactly as the trainer shows it. Press the button to play through the solution move by move.",
-    demoGiliran: "White to move",
-    demoPutar: "Play the solution",
-    demoLanjut: "Next move",
-    demoUlangi: "Replay from the start",
-    demoNarasi0: "White to move. Find the mate in two.",
-    demoNarasi1: "25. Rxe8+ — the rook is offered as bait.",
-    demoNarasi2: "25… Kxe8 — the only legal reply; the king is pulled to e8.",
-    demoNarasi3: "26. Qa8# — checkmate along the back rank.",
-    demoAriaPapan:
-      "Chess board with the position of puzzle #4457: white to move, mate in two.",
     pengantarAriaPapan:
-      "Chess board with the position of puzzle #1927: white to move.",
-    labelNomor: "Puzzle number",
-    labelJenis: "Type",
-    labelRating: "Puzzle rating",
-    labelLevel: "Level",
-    labelTema: "Themes",
-    labelPartai: "Source game",
-    labelPembukaan: "Opening",
-    labelSumber: "Source",
-    nilaiJenis: "Mate in two",
-    nilaiRating: "1,619",
-    nilaiLevel: "Level 4 — Difficult",
-    nilaiTema: "Sacrifice · Attraction (bait) · Back-rank mate",
-    nilaiPembukaan: "English Opening, Symmetrical Variation",
-    demoBuka: "Open puzzle #4457 in the trainer",
-    statJudul: "What the collection holds",
-    statPengantar:
-      "Counted directly from the puzzle data file used by the trainer.",
-    statBaris1: "Mate in one",
-    statNilai1: "1,377",
-    statBaris2: "Mate in two",
-    statNilai2: "2,991",
-    statBaris3: "Mate in three",
-    statNilai3: "1,118",
-    statTotalLabel: "Total puzzles",
-    statTotalNilai: "5,486",
-    statPitaLabel: "Puzzle rating range",
-    statPitaNilai: "600–2,567",
-    statGiliranLabel: "Side to move",
-    statGiliranNilai: "2,923 white to move · 2,563 black to move",
-    statSumberLabel: "Data source",
-    statSumberNilai: "Lichess puzzle database — real games",
-    caraJudul: "How training works",
+      "Chessboard showing puzzle #1927: White to move with a bishop on d3, knight on g5, and queen on c2 aimed at Black's castled kingside.",
+    pengantarCaption:
+      "Puzzle #1,927 from the Lichess Checkmates set (rating 1,095, French Defense): White to move and finish the kingside attack in two moves.",
+    pengantarTautan: "Try puzzle #1,927 in the trainer",
+    koleksiJudul: "Five collections in one workspace",
+    koleksiLead:
+      "Every figure below is counted directly from the data files loaded by the trainer. Extended archive files download only when you switch away from the default collection so the initial load stays fast.",
+    kolomKoleksi: "Collection",
+    kolomJumlah: "Puzzles",
+    kolomFokus: "Scope & training focus",
+    kol1Nama: "Lichess Checkmates",
+    kol1Jumlah: "5,486",
+    kol1Fokus:
+      "Default set (#1–#5,486): 1,377 mate-in-one, 2,991 mate-in-two, and 1,118 mate-in-three positions from real games (2,923 White to move, 2,563 Black to move).",
+    kol2Nama: "Tactics + Video",
+    kol2Jumlah: "1,681",
+    kol2Fokus:
+      "Selected tactical positions paired with English-language coach video explanations that unlock only after you solve the puzzle.",
+    kol3Nama: "World Legends",
+    kol3Jumlah: "222",
+    kol3Fokus:
+      "Combinative turning points from historic games by world champions and classical masters to sharpen attacking calculation.",
+    kol4Nama: "Endgame Studies",
+    kol4Jumlah: "86",
+    kol4Fokus:
+      "Curated endgame compositions demanding quiet moves, king opposition calculation, and accurate pawn promotion lines.",
+    kol5Nama: "Tactics Archive",
+    kol5Jumlah: "6,551",
+    kol5Fokus:
+      "The complete extended pool (#5,487–#12,037), including 3,267 non-mate tactical combinations, 1,383 mate-in-4+ problems, and per-coach filters.",
+    koleksiCatatan:
+      "Combined catalog: 12,037 uniquely numbered puzzles spanning ratings 600–2,567.",
+    caraJudul: "How to train and review positions",
+    caraSubjudul: "Solving workflow",
     cara1:
-      "Filter the puzzles you want: levels 1–5 follow the puzzle rating bands, mate length from one to three moves, tactical theme, or the side to move.",
+      "Select a collection, level band 1–5 (from under 1,000 up to 1,900+), move length, tactical motif, or side to move inside the settings panel.",
     cara2:
-      "Play your move on the board by clicking or dragging the piece. Once your move is correct, the opponent's reply is played automatically.",
+      "Right-click squares or right-drag across the board to sketch highlight circles and candidate arrows while calculating, then click or drag your piece to play.",
     cara3:
-      "Stuck? Press the hint to see the origin and destination squares of the first move, or jump straight to any puzzle number from 1 to 5,486.",
+      "Each accurate move is answered automatically by the defender's strongest reply until the line concludes; when stuck, the Hint button marks the first move's origin and target squares.",
     cara4:
-      "Solved puzzles are marked and counted automatically. The list is stored in your browser, not on a server.",
-    tipsJudul: "Tips for solving puzzles",
-    tips1Judul: "Start with every check",
+      "Every puzzle writes its number straight into the page URL (/teka-teki/problem/:id), making positions easy to bookmark or share with clubmates.",
+    bantuSubjudul: "Post-solve analysis tools",
+    bantu1:
+      "Once a combination finishes, the commentator card summarizes the motif behind your winning move. In the Tactics + Video set, the coach's recorded breakdown unlocks for manual playback so you can compare your candidate lines against the main idea.",
+    bantu2:
+      "To test why an alternative sacrifice fails, toggle Stockfish 18 directly in the sidebar or press Open in Analysis Board to send the full PGN and variations into the analysis workspace.",
+    tipsJudul: "Four habits for cleaner calculation",
+    tips1Judul: "Order checks, captures, and threats",
     tips1Isi:
-      "In mate puzzles the strongest candidate is almost always a check. Examine every available check before considering a quiet move.",
-    tips2Judul: "Recognize the motif instead of memorizing moves",
+      "Start with the moves that restrict the defender most: examine every legal check first, then captures, and only afterward quiet threats.",
+    tips2Judul: "Calculate the defender's best reply to the end",
     tips2Isi:
-      "The example above uses attraction: a rook is sacrificed to pull the king onto a square the queen can attack. Once the pattern is familiar, similar puzzles read faster.",
-    tips3Judul: "One theme per session",
+      "Avoid playing the first attractive check on impulse. Verify your answer against every legal block, king flight square, and recapture before moving.",
+    tips3Judul: "Drill one tactical motif per session",
     tips3Isi:
-      "Use the theme filter to drill a single motif — say the back-rank mate or the smothered mate — until the pattern is recognized at a glance.",
-    tips4Judul: "Move up after you are consistent",
+      "Filter by a single theme such as pins, forks, deflections, attractions, or smothered mates until the piece geometry registers at a glance.",
+    tips4Judul: "Step up a band after clean streaks",
     tips4Isi:
-      "Work at a level you can finish several in a row without hints, then step up one band. If a puzzle keeps beating you, note its number — any puzzle can be reopened at any time.",
-    penutupJudul: "Start solving now",
-    penutupIsi:
-      "The trainer opens straight in the browser with no sign-up. Every puzzle is numbered from 1 to 5,486 and its address can be shared, which makes the set easy to use for training with a friend.",
+      "Stay in a rating band you can solve consecutively without hints or guesses before moving up, and jot down missed puzzle numbers to revisit days later.",
+    penutupJudul: "Test your speed or dig deeper",
+    penutupAwal:
+      "Once core motifs read cleanly without clock pressure, test your pattern speed over 3- or 5-minute runs in",
+    penutupTengah: "or explore defensive sidelines with the engine on the",
+    tautanAnalisa: "Analysis Board",
+    penutupAkhir: "whenever a position deserves a second look.",
   }
 
 export const bukuPembukaan = {
