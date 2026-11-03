@@ -1,3 +1,5 @@
+          {tabPanelAktif === "main" && (
+          <>
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { Chess } from "chess.js";
@@ -2658,6 +2660,8 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
             )}
           </div>
 
+          </>
+          )}
           {tabPanelAktif === "video" && (
             <div role="tabpanel" data-panel="video" className="flex-1 min-h-0" />
           )}
