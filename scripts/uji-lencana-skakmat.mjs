@@ -407,45 +407,57 @@ function klik(el) {
   el?.dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true, button: 0 }));
 }
 
-// Sakelar gaya komentator tidak lagi duduk di badan kartu: kontrolnya pindah ke
-// popup "Pengaturan" di samping papan. Jadi alurnya = buka popup → klik "Formal"
-// → kalimat komentator berganti register & preferensi tersimpan.
+// Kontrol gaya komentator ada di tab Pengaturan. Ganti gaya di sana, lalu
+// kembali ke tab utama untuk memastikan kalimat berubah dan preferensi tersimpan.
 {
-  const tombolPengaturan = wadahHalaman.querySelector('button[aria-label="Pengaturan"]');
-  klik(tombolPengaturan);
-  await tunggu(150);
+  const teksSebelum = teksKomentator(wadahHalaman);
+  const ambilPanelPengaturan = () => wadahHalaman.querySelector('[data-panel="pengaturan"]');
+  const radioGaya = (akar = wadahHalaman) =>
+    [...akar.querySelectorAll('section[aria-label="Komentator Papan"] [role="radio"]')];
+  const tabPengaturan = wadahHalaman.querySelector('[data-tab="pengaturan"]');
+  klik(tabPengaturan);
+  await tungguHingga(() => !!ambilPanelPengaturan(), 1000);
 
-  const popup = wadahHalaman.querySelector('div[role="dialog"][aria-label="Pengaturan"]');
-  const radioGaya = (akar) =>
-    [...(akar ?? wadahHalaman).querySelectorAll('section[aria-label="Komentator Papan"] [role="radio"]')];
+  const panelPengaturan = ambilPanelPengaturan();
+  const semuaRadio = radioGaya();
   uji(
-    "kontrol komentator ada di dalam popup Pengaturan (santai + formal + Gen Z)",
-    !!popup && radioGaya(popup).length === 3
+    "tab Pengaturan memuat tiga kontrol gaya komentator",
+    !!tabPengaturan && !!panelPengaturan && radioGaya(panelPengaturan).length === 3
   );
   uji(
-    "kartu komentator di panel kanan tidak lagi memuat kontrol",
-    radioGaya().every((r) => popup?.contains(r))
+    "kontrol gaya komentator hanya ada di tab Pengaturan",
+    !!panelPengaturan && semuaRadio.length === 3 && semuaRadio.every((r) => panelPengaturan.contains(r))
   );
 
-  const tombolFormal = popup?.querySelector(
+  const tombolFormal = panelPengaturan?.querySelector(
     'section[aria-label="Komentator Papan"] [role="radio"][aria-checked="false"]'
   );
-  const sebelum = teksKomentator(wadahHalaman);
   klik(tombolFormal);
-  await tunggu(150);
+  await tungguHingga(() => dom.window.localStorage.getItem("kci-komentator-gaya") === "formal", 1000);
+
+  const tabMain = wadahHalaman.querySelector('[data-tab="main"]');
+  klik(tabMain);
+  await tungguHingga(
+    () => tabMain?.getAttribute("aria-selected") === "true" && !!teksKomentator(wadahHalaman),
+    1000
+  );
   uji(
     "komentator: ganti gaya mengubah kalimat & menyimpan preferensi",
     !!tombolFormal &&
-      teksKomentator(wadahHalaman) !== sebelum &&
+      teksKomentator(wadahHalaman) !== teksSebelum &&
       dom.window.localStorage.getItem("kci-komentator-gaya") === "formal"
   );
-  // kembalikan ke santai agar uji berikutnya (papan interaktif) tidak bergantung urutan
-  klik(
-    popup?.querySelector('section[aria-label="Komentator Papan"] [role="radio"][aria-checked="false"]')
+
+  // Kembalikan ke santai agar uji berikutnya (papan interaktif) tidak bergantung urutan.
+  klik(tabPengaturan);
+  await tungguHingga(() => !!ambilPanelPengaturan(), 1000);
+  const tombolSantai = ambilPanelPengaturan()?.querySelector(
+    'section[aria-label="Komentator Papan"] [role="radio"][aria-checked="false"]'
   );
-  await tunggu(100);
-  klik(wadahHalaman.querySelector('button[aria-label="Pengaturan"]')); // tutup popup
-  await tunggu(100);
+  klik(tombolSantai);
+  await tungguHingga(() => dom.window.localStorage.getItem("kci-komentator-gaya") === "santai", 1000);
+  klik(tabMain);
+  await tungguHingga(() => tabMain?.getAttribute("aria-selected") === "true", 1000);
 }
 const ikonLangkahHalaman = [...wadahHalaman.querySelectorAll("[title]")].filter((e) =>
   /Langkah terbaik|Satu-satunya langkah|Langkah buku/.test(e.getAttribute("title"))

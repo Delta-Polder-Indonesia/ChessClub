@@ -2370,7 +2370,7 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, orientasi = "w", tab
             {[
               ["main", "Main"],
               ["video", "Video"],
-              ["pengaturan", "Pengaturan"],
+              ["pengaturan", t("tekaTeki.pengaturan")],
             ].map(([kunci, label]) => {
               const aktif = tabPanelAktif === kunci;
               return (
