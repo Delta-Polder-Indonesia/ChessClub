@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { Chess } from "chess.js";
-import { ExternalLink, Lock, Video } from "lucide-react";
+import { ExternalLink, Lock, Pause, Play, Video } from "lucide-react";
 import { ArrowRightIcon, ChevronStartIcon, ChevronLeftIcon, ChevronRightIcon, ChevronEndIcon } from "../../components/icons.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 import { ChessPiece } from "../../components/chess/ChessPiece.jsx";
@@ -1769,6 +1769,8 @@ export default function TekaTeki() {
               onGantiSuara={setSuaraNyala}
               onAcak={pilihAcak}
               onLewati={() => pindahSoal(indeks + 1)}
+              nilaiOtomatis={otomatis}
+              onGantiOtomatis={setOtomatis}
               engineNyala={engineNyala}
               onGantiEngine={() => (engineNyala ? matikanEngine() : nyalakanEngine())}
               tampilPanahMesin={tampilPanahMesin}
@@ -1941,7 +1943,7 @@ const OPSI_TEMA_BAWAAN = [
   { grup: "Karakteristik", isi: [["endgame", "Endgame"], ["middlegame", "Middlegame"], ["opening", "Opening"]] },
 ];
 
-function LayoutTekaTeki({ papan = null, barEvaluasi = null, orientasi = "w", tabPanelAktif = "main", onGantiTabPanel = null, onFlip = null, giliran = "putih", jumlahLangkah = 1, bukanSkakmat = false, selesai = false, videoUrl = "", videoPelatih = "", videoJudulSoal = "", videoTurnamen = "", videoTanggal = "", videoGagal = false, catatanLangkah = null, jumlahVariasi = 0, simbolNag = "", memuatKoleksi = false, onPutarVideo = null, onGalatVideo = null, onBukaKoleksiVideo = null, onBukaAnalisa = null, nilaiKoleksi = "lichess", onGantiKoleksi = null, daftarPelatih = [], nilaiPelatih = "semua", onGantiPelatih = null, teksSoal = "", teksTingkat = "", teksTipe = "", teksTerpecahkan = "", teksCekmat = "", teksSudah = "", daftarSet = [], nilaiSetBidak = "merida", onGantiSetBidak = null, pilihanWarnaPapan = [], nilaiWarnaPapan = "green", onGantiWarnaPapan = null, nilaiSuara = true, onGantiSuara = null, onAcak = null, onLewati = null, engineNyala = false, onGantiEngine = null, tampilPanahMesin = true, onGantiPanahMesin = null, teksPanahMesin = "", nilaiLevel = "semua", onGantiLevel = null, nilaiLangkah = "semua", onGantiLangkah = null, nilaiTema = "semua", opsiTema = [], onGantiTema = null, nilaiGiliran = "semua", onGantiGiliran = null, nilaiNomorSoal = "", nilaiTotalSoal = 0, onGantiNomorSoal = null, nilaiIngatPosisi = true, onGantiIngatPosisi = null, teksPosisiTersimpan = "", teksIngatNonaktif = "", teksGalatNomor = "", onBukaNomor = null, bisaHint = false, onHint = null, teksSalah = "", teksPeringatan = "", kartuKomentator = null, kecepatanEngine = 800, opsiKecepatan = [], onGantiKecepatan = null, pvSanEngine = [], onMainkanSaran = null, onKeAwal = null, onMundur = null, onMaju = null, onKeAkhir = null, bisaMundur = false, bisaMaju = false, eloSoal = 1500, namaHitam = "", eloHitam = 0, namaPutih = "", eloPutih = 0, teksPembukaan = "", komentatorNyala = false, memuat = false }) {
+function LayoutTekaTeki({ papan = null, barEvaluasi = null, orientasi = "w", tabPanelAktif = "main", onGantiTabPanel = null, onFlip = null, giliran = "putih", jumlahLangkah = 1, bukanSkakmat = false, selesai = false, videoUrl = "", videoPelatih = "", videoJudulSoal = "", videoTurnamen = "", videoTanggal = "", videoGagal = false, catatanLangkah = null, jumlahVariasi = 0, simbolNag = "", memuatKoleksi = false, onPutarVideo = null, onGalatVideo = null, onBukaKoleksiVideo = null, onBukaAnalisa = null, nilaiKoleksi = "lichess", onGantiKoleksi = null, daftarPelatih = [], nilaiPelatih = "semua", onGantiPelatih = null, teksSoal = "", teksTingkat = "", teksTipe = "", teksTerpecahkan = "", teksCekmat = "", teksSudah = "", daftarSet = [], nilaiSetBidak = "merida", onGantiSetBidak = null, pilihanWarnaPapan = [], nilaiWarnaPapan = "green", onGantiWarnaPapan = null, nilaiSuara = true, onGantiSuara = null, onAcak = null, onLewati = null, nilaiOtomatis = false, onGantiOtomatis = null, engineNyala = false, onGantiEngine = null, tampilPanahMesin = true, onGantiPanahMesin = null, teksPanahMesin = "", nilaiLevel = "semua", onGantiLevel = null, nilaiLangkah = "semua", onGantiLangkah = null, nilaiTema = "semua", opsiTema = [], onGantiTema = null, nilaiGiliran = "semua", onGantiGiliran = null, nilaiNomorSoal = "", nilaiTotalSoal = 0, onGantiNomorSoal = null, nilaiIngatPosisi = true, onGantiIngatPosisi = null, teksPosisiTersimpan = "", teksIngatNonaktif = "", teksGalatNomor = "", onBukaNomor = null, bisaHint = false, onHint = null, teksSalah = "", teksPeringatan = "", kartuKomentator = null, kecepatanEngine = 800, opsiKecepatan = [], onGantiKecepatan = null, pvSanEngine = [], onMainkanSaran = null, onKeAwal = null, onMundur = null, onMaju = null, onKeAkhir = null, bisaMundur = false, bisaMaju = false, eloSoal = 1500, namaHitam = "", eloHitam = 0, namaPutih = "", eloPutih = 0, teksPembukaan = "", komentatorNyala = false, memuat = false }) {
   const { t } = useI18n();
   // Default prop sengaja kosong: teksnya selalu dari kamus.
   const labelPanahMesin = teksPanahMesin || t("papan.enginePanahToggle");
@@ -2651,6 +2653,20 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, orientasi = "w", tab
                               />
                             </label>
                           )}
+                          {onGantiEngine && (
+                            <label className="flex cursor-pointer items-center justify-between gap-3">
+                              <span className="text-xs font-semibold text-gray-400">
+                                {t("papan.engine")}
+                              </span>
+                              <input
+                                type="checkbox"
+                                data-aksi="toggle-engine"
+                                checked={engineNyala}
+                                onChange={() => onGantiEngine()}
+                                className="h-4 w-4 accent-[#81b64c]"
+                              />
+                            </label>
+                          )}
                           {onGantiPanahMesin && (
                             <label className="flex cursor-pointer items-center justify-between gap-3">
                               <span className="text-xs font-semibold text-gray-400">
@@ -2792,7 +2808,7 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, orientasi = "w", tab
             </div>
 
             {/* Action buttons */}
-            <div className="grid grid-cols-5 gap-2 text-xs font-semibold text-gray-400">
+            <div className="grid grid-cols-6 gap-2 text-xs font-semibold text-gray-400">
               <button
                 type="button"
                 onClick={onFlip}
@@ -2835,6 +2851,34 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, orientasi = "w", tab
                   Suara
                 </span>
               </button>
+              {onGantiOtomatis && (
+                <button
+                  type="button"
+                  data-aksi="toggle-otomatis"
+                  onClick={() => onGantiOtomatis(!nilaiOtomatis)}
+                  aria-label={
+                    nilaiOtomatis
+                      ? t("tekaTeki.otomatisMatikan")
+                      : t("tekaTeki.otomatisNyalakan")
+                  }
+                  aria-pressed={nilaiOtomatis}
+                  title={t("tekaTeki.lanjutOtomatis")}
+                  className={`flex flex-col items-center gap-1.5 rounded-lg border border-[#312e2b] p-2.5 transition cursor-pointer ${
+                    nilaiOtomatis
+                      ? "bg-[#81b64c]/20 text-[#a3d168]"
+                      : "bg-[#262421] text-gray-400 hover:bg-[#312e2b] hover:text-white"
+                  }`}
+                >
+                  {nilaiOtomatis ? (
+                    <Pause className="h-5 w-5" aria-hidden="true" />
+                  ) : (
+                    <Play className="h-5 w-5" aria-hidden="true" />
+                  )}
+                  <span className="text-xs font-semibold">
+                    {nilaiOtomatis ? t("tekaTeki.jeda") : t("tekaTeki.autoLanjut")}
+                  </span>
+                </button>
+              )}
               {onBukaAnalisa && (
                 <button
                   type="button"
