@@ -2378,7 +2378,7 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, orientasi = "w", tab
                   role="tab"
                   aria-selected={aktif}
                   data-tab={kunci}
-                  onClick={() => setTabPanelAktif(kunci)}
+                  onClick={() => onGantiTabPanel?.(kunci)}
                   className={`rounded-md px-2 py-1.5 text-xs font-bold transition ${
                     aktif
                       ? "bg-[#3d3a37] text-white shadow-sm"
