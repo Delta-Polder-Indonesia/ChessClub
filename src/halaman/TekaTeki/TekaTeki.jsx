@@ -2399,47 +2399,45 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, orientasi = "w", tab
             </div>
           ) : null}
 
-          {/* Ringkasan soal: bidak, giliran, tingkat kesulitan, dan rating Elo. */}
-          <div className="flex-shrink-0 border-b border-[#312e2b] bg-[#1e1c18] px-4 py-3">
+          {/* Ringkasan soal disusun bertingkat seperti piramida. */}
+          <div className="flex-shrink-0 border-b border-[#312e2b] bg-[#1e1c18] px-4 py-4">
             <div
               data-testid="main-turn-status"
-              className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2"
+              className="flex flex-col items-center gap-2.5 text-center"
             >
-              <div className="flex min-w-0 items-center gap-2.5">
-                <span
-                  data-testid="main-turn-icon"
-                  data-side={memuat ? undefined : giliran}
-                  data-piece={memuat ? undefined : giliran === "putih" ? "P" : "p"}
-                  aria-hidden="true"
-                  className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md ${
-                    memuat
-                      ? "bg-[#312e2b]"
-                      : giliran === "putih"
-                        ? "bg-[#474542]"
-                        : "bg-[#dedcd9]"
-                  }`}
-                >
-                  {!memuat && (
-                    <ChessPiece
-                      piece={giliran === "putih" ? "P" : "p"}
-                      set={nilaiSetBidak}
-                      className="h-7 w-7 object-contain"
-                    />
-                  )}
-                </span>
-                <span
-                  data-testid="main-turn-label"
-                  aria-live="polite"
-                  className="truncate text-sm font-semibold text-[#fffaec]"
-                >
-                  {memuat
-                    ? "—"
+              <span
+                data-testid="main-turn-icon"
+                data-side={memuat ? undefined : giliran}
+                data-piece={memuat ? undefined : giliran === "putih" ? "P" : "p"}
+                aria-hidden="true"
+                className={`flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full ${
+                  memuat
+                    ? "bg-[#312e2b]"
                     : giliran === "putih"
-                      ? t("tekaTeki.giliranPutih")
-                      : t("tekaTeki.giliranHitam")}
-                </span>
-              </div>
-              <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
+                      ? "bg-[#dedcd9]/20"
+                      : "bg-[#dedcd9]/20"
+                }`}
+              >
+                {!memuat && (
+                  <ChessPiece
+                    piece={giliran === "putih" ? "P" : "p"}
+                    set={nilaiSetBidak}
+                    className="h-11 w-11 object-contain"
+                  />
+                )}
+              </span>
+              <span
+                data-testid="main-turn-label"
+                aria-live="polite"
+                className="text-sm font-semibold text-[#fffaec]"
+              >
+                {memuat
+                  ? "—"
+                  : giliran === "putih"
+                    ? t("tekaTeki.giliranPutih")
+                    : t("tekaTeki.giliranHitam")}
+              </span>
+              <div className="flex flex-wrap items-center justify-center gap-2">
                 {!memuat && teksTingkat && (
                   <span
                     data-testid="main-turn-difficulty"
