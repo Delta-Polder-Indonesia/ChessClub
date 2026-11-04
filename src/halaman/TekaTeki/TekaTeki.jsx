@@ -2148,7 +2148,8 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, orientasi = "w", tab
         {/* AREA UTAMA: PAPAN + BAR EVALUASI                       */}
         {/* ═══════════════════════════════════════════════════════ */}
         <main className="flex-1 flex items-stretch justify-center p-6 bg-[#262421] min-w-0 overflow-hidden">
-          <div className="flex flex-row items-stretch gap-3 w-full max-w-[720px] lg:max-w-[calc(100vh_-_72px)] lg:translate-x-4 min-h-0">
+          {/* Sisakan ruang untuk padding dan dua profil; offset menyeimbangkan bilah evaluasi. */}
+          <div className="flex flex-row items-stretch gap-3 w-full max-w-[720px] lg:max-w-[calc(100vh_-_106px)] lg:-translate-x-5 min-h-0">
 
             {/* Kolom kiri setinggi panel: profil atas → papan → profil bawah */}
             <div className="flex-1 flex min-h-0 min-w-0 flex-col justify-between">
