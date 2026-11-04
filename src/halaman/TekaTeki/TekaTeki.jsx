@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { Chess } from "chess.js";
-import { ExternalLink, Lock, Pause, Play, Video } from "lucide-react";
+import { ExternalLink, Pause, Play } from "lucide-react";
 import { ArrowRightIcon, ChevronStartIcon, ChevronLeftIcon, ChevronRightIcon, ChevronEndIcon } from "../../components/icons.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 import { ChessPiece } from "../../components/chess/ChessPiece.jsx";
@@ -2496,7 +2496,9 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, orientasi = "w", tab
             <div role="tabpanel" data-panel="video" className="flex-1 overflow-y-auto min-h-0 p-4 space-y-3 text-sm">
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 min-w-0">
-                  <Video className="size-4 shrink-0 text-[#81b64c]" aria-hidden="true" />
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24" fill="#e3e3e3" className="size-6 shrink-0" aria-hidden="true">
+                    <path d="M11.5,14.5l7-4.5l-7-4.5v9ZM8,18q-0.82,0-1.41-0.59T6,16V4Q6,3.17 6.59,2.59T8,2H20q0.83,0 1.41,0.59T22,4V16q0,0.82-0.59,1.41T20,18H8Zm0-2H20V4H8V16ZM4,22q-0.82,0-1.41-0.59T2,20V6H4V20H18v2H4ZM8,4V16V4Z"/>
+                  </svg>
                   <span className="text-xs font-bold text-gray-200 uppercase tracking-wider truncate">
                     {t("tekaTeki.videoJudul")}
                   </span>
@@ -2551,7 +2553,9 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, orientasi = "w", tab
                     data-status-video="terkunci"
                     className="relative z-10 mx-3 flex items-start gap-2.5 rounded-md border border-[#49443b] bg-[#1e1c18]/95 p-3 shadow-lg"
                   >
-                    <Lock className="mt-0.5 size-4 shrink-0 text-amber-400" aria-hidden="true" />
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24" fill="#e3e3e3" className="mt-0.5 size-6 shrink-0" aria-hidden="true">
+                      <path d="M12,20q-1.2-0.95-2.6-1.48T6.5,18q-1.05,0-2.06,0.27T2.5,19.05q-0.52 0.27-1.01-0.03Q1,18.73 1,18.15V6.1Q1,5.82 1.14,5.57Q1.28,5.32 1.55,5.2Q2.7,4.6 3.95,4.3T6.5,4Q7.95 4 9.34 4.38T12 5.5V17.6q1.28-0.8 2.68-1.2T17.5 16q0.9 0 1.76 0.15T21 16.6V4.6q0.38 0.13 0.74 0.26T22.45 5.2q0.27 0.13 0.41 0.38T23 6.1V18.15q0 0.58-0.49 0.88q-0.49 0.3-1.01 0.03q-0.92-0.5-1.94-0.78T17.5 18q-1.5 0-2.9 0.52T12 20Zm2-5V5.5l5-5v10L14 15Zm-4 1.63V6.72Q9.18 6.38 8.29 6.19T6.5 6Q5.58 6 4.7 6.18T3 6.7v9.93q0.88-0.32 1.74-0.48T6.5 16t1.76 0.15T10 16.63Zm0 0V6.72v9.9Z"/>
+                  </svg>
                     <p className="text-xs leading-5 text-gray-200">
                       {t("tekaTeki.videoTerkunci")}
                     </p>
