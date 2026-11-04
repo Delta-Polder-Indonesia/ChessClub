@@ -1939,6 +1939,9 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, orientasi = "w", tab
   const file = ["a", "b", "c", "d", "e", "f", "g", "h"];
   const daftarTema = opsiTema.length ? opsiTema : OPSI_TEMA_BAWAAN;
   const videoUrlAman = urlVideoSah(videoUrl);
+  const videoTerkunci = Boolean(
+    videoUrlAman && !selesai && !memuat && !memuatKoleksi
+  );
   const [videoSiap, setVideoSiap] = useState(false);
   useEffect(
     () => setVideoSiap(false),
@@ -2545,12 +2548,15 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, orientasi = "w", tab
                       src="/images/ProgramKami/DirrTemplet.gif"
                       alt=""
                       aria-hidden="true"
-                      className={`pointer-events-none absolute inset-0 ${kelasLapisanPlaceholder} h-full w-full object-cover opacity-35`}
+                      className={`pointer-events-none absolute inset-0 ${kelasLapisanPlaceholder} h-full w-full object-cover ${videoTerkunci ? "opacity-80" : "opacity-35"}`}
                     />
-                    <div
-                      className={`pointer-events-none absolute inset-0 ${kelasLapisanPlaceholder} bg-black/35`}
-                      aria-hidden="true"
-                    />
+                    {!videoTerkunci && (
+                      <div
+                        data-video-placeholder-shade="true"
+                        className={`pointer-events-none absolute inset-0 ${kelasLapisanPlaceholder} bg-black/35`}
+                        aria-hidden="true"
+                      />
+                    )}
                   </>
                 )}
 
@@ -2563,12 +2569,15 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, orientasi = "w", tab
                 ) : videoUrlAman && !selesai ? (
                   <div
                     data-status-video="terkunci"
-                    className="relative z-10 mx-3 flex flex-col items-center gap-3 rounded-md border border-[#49443b] bg-[#1e1c18]/95 px-4 py-5 text-center shadow-lg"
+                    className="relative z-10 mx-3 flex flex-col items-center gap-3 px-3 py-4 text-center"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="60" width="60" fill="#e3e3e3" className="size-[60px] shrink-0" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="60" width="60" fill="#e3e3e3" className="size-[60px] shrink-0" style={{ filter: "drop-shadow(0 2px 5px rgba(0, 0, 0, 0.9))" }} aria-hidden="true">
                       <path d="M12,20q-1.2-0.95-2.6-1.48T6.5,18q-1.05,0-2.06,0.27T2.5,19.05q-0.52,0.27-1.01-0.03Q1,18.73 1,18.15V6.1Q1,5.82 1.14,5.57Q1.28,5.32 1.55,5.2Q2.7,4.6 3.95,4.3T6.5,4Q7.95 4 9.34 4.38T12 5.5V17.6q1.28-0.8 2.68-1.2T17.5 16q0.9 0 1.76 0.15T21 16.6V4.6q0.38 0.13 0.74 0.26T22.45 5.2q0.27 0.13 0.41 0.38T23 6.1V18.15q0 0.58-0.49 0.88q-0.49 0.3-1.01 0.03q-0.92-0.5-1.94-0.78T17.5 18q-1.5 0-2.9 0.52T12 20Zm2-5V5.5l5-5v10L14 15Zm-4 1.63V6.72Q9.18 6.38 8.29 6.19T6.5 6Q5.58 6 4.7 6.18T3 6.7v9.93q0.88-0.32 1.74-0.48T6.5 16t1.76 0.15T10 16.63Zm0 0V6.72v9.9Z"/>
                   </svg>
-                    <p className="text-sm leading-6 text-gray-200">
+                    <p
+                      className="max-w-[15rem] text-sm font-semibold leading-6 text-white"
+                      style={{ textShadow: "0 1px 3px rgba(0, 0, 0, 0.95), 0 0 8px rgba(0, 0, 0, 0.8)" }}
+                    >
                       {t("tekaTeki.videoTerkunci")}
                     </p>
                   </div>

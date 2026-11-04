@@ -910,6 +910,17 @@ judul("panel video pembahasan: menggantikan Syzygy, terkunci sebelum selesai, ta
       !dok.querySelector("video") &&
       dok.body.textContent.includes(kamus.videoTerkunci)
   );
+  const statusVideoTerkunci = dok.querySelector('[data-status-video="terkunci"]');
+  const kelasStatusVideoTerkunci = Array.from(statusVideoTerkunci?.classList || []);
+  uji(
+    "pesan video terkunci tampil langsung di atas GIF tanpa kartu gelap",
+    !!statusVideoTerkunci &&
+      !!dok.querySelector('[data-video-placeholder="true"]')?.classList.contains("opacity-80") &&
+      !dok.querySelector('[data-video-placeholder-shade="true"]') &&
+      !kelasStatusVideoTerkunci.some((kelas) =>
+        ["rounded-md", "border", "bg-[#1e1c18]/95", "shadow-lg"].includes(kelas)
+      )
+  );
 
   // Selesaikan soal video pertama (taktik multi-langkah)
   const tuntasVideo = await selesaikan(soalVideoPertama);
