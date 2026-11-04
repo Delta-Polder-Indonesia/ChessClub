@@ -886,9 +886,10 @@ judul("panel video pembahasan: menggantikan Syzygy, terkunci sebelum selesai, ta
     `${tembakanSyzygy.length} permintaan`
   );
   uji(
-    "soal Lichess tanpa video menampilkan status kosong + tombol buka koleksi video",
+    "soal Lichess tanpa video menampilkan status kosong tanpa GIF placeholder",
     !!dok.querySelector('[data-status-video="kosong"]') &&
-      dok.body.textContent.includes(kamus.videoTidakTersedia)
+      dok.body.textContent.includes(kamus.videoTidakTersedia) &&
+      !dok.querySelector('[data-video-placeholder="true"]')
   );
 
   // Beralih ke koleksi Taktik + Video
@@ -914,7 +915,7 @@ judul("panel video pembahasan: menggantikan Syzygy, terkunci sebelum selesai, ta
   const tuntasVideo = await selesaikan(soalVideoPertama);
   uji("soal taktik ber-video berhasil dituntaskan", tuntasVideo);
 
-  const elVideo = dok.querySelector("video");
+  let elVideo = dok.querySelector("video");
   uji(
     "setelah soal selesai: elemen <video> muncul dengan URL mp4 yang sesuai",
     !!elVideo && elVideo.getAttribute("src") === soalVideoPertama.video
@@ -932,6 +933,27 @@ judul("panel video pembahasan: menggantikan Syzygy, terkunci sebelum selesai, ta
     "setelah soal selesai: tombol 'Bedah di Papan Analisa' tampil",
     !!dok.querySelector('[data-aksi="buka-analisa"]')
   );
+  const gifPlaceholder = () => dok.querySelector('[data-video-placeholder="true"]');
+  uji(
+    "GIF placeholder terlihat di atas video sampai video siap diputar",
+    !!elVideo && gifPlaceholder()?.classList.contains("z-20")
+  );
+  if (elVideo) {
+    elVideo.dispatchEvent(new window.Event("canplay"));
+    await tungguSampai(() => !gifPlaceholder(), 500);
+  }
+  uji("GIF placeholder hilang setelah video siap diputar", !!elVideo && !gifPlaceholder());
+
+  const tabMainVideo = dok.querySelector('[data-tab="main"]');
+  if (tabMainVideo) klikEl(tabMainVideo);
+  await tungguSampai(() => tabMainVideo?.getAttribute("aria-selected") === "true", 1000);
+  if (tabVideo) klikEl(tabVideo);
+  const kembaliKeVideo = await tungguSampai(
+    () => !!dok.querySelector("video") && !!gifPlaceholder(),
+    1000
+  );
+  uji("GIF placeholder muncul lagi saat kembali ke tab Video", kembaliKeVideo);
+  elVideo = dok.querySelector("video");
 
   // Kegagalan muat media (<video> error) harus jatuh ke pesan cadangan tanpa merusak UI,
   // lalu di-reset bersih ketika berpindah ke soal video berikutnya.

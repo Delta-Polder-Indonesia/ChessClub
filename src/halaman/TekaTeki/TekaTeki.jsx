@@ -1940,7 +1940,15 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, orientasi = "w", tab
   const daftarTema = opsiTema.length ? opsiTema : OPSI_TEMA_BAWAAN;
   const videoUrlAman = urlVideoSah(videoUrl);
   const [videoSiap, setVideoSiap] = useState(false);
-  useEffect(() => setVideoSiap(false), [videoUrlAman]);
+  useEffect(
+    () => setVideoSiap(false),
+    [videoUrlAman, tabPanelAktif, selesai, memuat, memuatKoleksi]
+  );
+  const tampilkanPlaceholderVideo =
+    !videoSiap && Boolean(videoUrlAman || memuat || memuatKoleksi);
+  const placeholderVideoDiDepan =
+    Boolean(videoUrlAman && selesai && !videoGagal && !memuat && !memuatKoleksi);
+  const kelasLapisanPlaceholder = placeholderVideoDiDepan ? "z-20" : "z-0";
   const videoTanggalAman = tanggalVideoSah(videoTanggal);
   const tautanSumberVideo = videoTanggalAman
     ? `https://www.chess.com/daily-chess-puzzle/${videoTanggalAman}`
@@ -2530,15 +2538,19 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, orientasi = "w", tab
                 data-video-stage="true"
                 className="relative isolate mx-auto flex aspect-square w-full max-w-[288px] items-center justify-center overflow-hidden rounded-lg border border-[#312e2b] bg-[#171614]"
               >
-                {!videoSiap && (
+                {tampilkanPlaceholderVideo && (
                   <>
                     <img
+                      data-video-placeholder="true"
                       src="/images/ProgramKami/DirrTemplet.gif"
                       alt=""
                       aria-hidden="true"
-                      className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-35"
+                      className={`pointer-events-none absolute inset-0 ${kelasLapisanPlaceholder} h-full w-full object-cover opacity-35`}
                     />
-                    <div className="pointer-events-none absolute inset-0 bg-black/35" aria-hidden="true" />
+                    <div
+                      className={`pointer-events-none absolute inset-0 ${kelasLapisanPlaceholder} bg-black/35`}
+                      aria-hidden="true"
+                    />
                   </>
                 )}
 
@@ -2586,7 +2598,7 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, orientasi = "w", tab
                     playsInline
                     src={videoUrlAman}
                     onPlay={onPutarVideo || undefined}
-                    onLoadedData={() => setVideoSiap(true)}
+                    onCanPlay={() => setVideoSiap(true)}
                     onError={(event) => {
                       setVideoSiap(false);
                       onGalatVideo?.(event);
