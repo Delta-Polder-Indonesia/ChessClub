@@ -2423,7 +2423,7 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, orientasi = "w", tab
               <span
                 data-testid="main-turn-label"
                 aria-live="polite"
-                className="text-sm font-semibold text-[#fffaec]"
+                className="text-2xl font-semibold text-[#fffaec]"
               >
                 {memuat
                   ? "—"
