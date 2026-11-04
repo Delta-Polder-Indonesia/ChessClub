@@ -1474,6 +1474,20 @@ console.log("\n12) Render DOM <KartuKomentator /> (avatar karakter, ikon buku, a
       domMarah.querySelector("img")?.getAttribute("src") === GAMBAR_KOMENTATOR.marah,
     "engine nyala memetakan engineMenilai→berpikir, best→senang, blunder→marah pada DOM"
   );
+  for (const [rating, domRating] of [["best", domSenang], ["blunder", domMarah]]) {
+    const gelembung = domRating.querySelector(".komentator-gelembung .relative");
+    ok(
+      Boolean(gelembung?.querySelector("p")?.textContent.trim()) &&
+        !gelembung.querySelector("span[title]") &&
+        !gelembung.querySelector("svg"),
+      `gelembung ${rating} hanya memuat teks komentator, tanpa lencana rating`
+    );
+  }
+  const pesanMenilai = domMenilai.querySelector(".komentator-gelembung .relative p")?.textContent || "";
+  ok(
+    !pesanMenilai.includes(tId("papan.komentator.menilai")),
+    "teks status mesin tidak menempel pada kalimat komentator"
+  );
 
   // f) Pergantian bahasa ID <-> EN langsung mengganti teks catatanMaster di KartuKomentator
   const korpus = JSON.parse(readFileSync(path.join(AKAR, "public/data/komentator-master.json"), "utf8"));

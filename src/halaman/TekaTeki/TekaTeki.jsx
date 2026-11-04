@@ -1494,15 +1494,6 @@ export default function TekaTeki() {
       benih: masalah.problemid,
     });
   }, [komentar, masalah, langkahPenuh.length, sisa.length, sudahPecah, preferensiKomentator.gaya]);
-  const ikonKomentar =
-    komentar?.tahap === "selesai"
-      ? "best"
-      : komentar?.tahap === "salah" && komentar.legal !== false
-        ? "blunder"
-        : komentar?.tahap === "benar" || komentar?.tahap === "tinjau"
-          ? "best"
-          : null;
-
   // Papan re-usable untuk ditempatkan di wadah gelap.
   /** Label tema dari kamus — dipakai keadaan memuat DAN keadaan siap supaya
    *  daftar tema tidak sempat tampil dalam bahasa Inggris bawaan
@@ -1829,7 +1820,6 @@ export default function TekaTeki() {
               kartuKomentator={
                 <KartuKomentator
                   segmen={segmenKomentar}
-                  ikon={ikonKomentar}
                   posisiAwal={false}
                   nyala={preferensiKomentator.nyala}
                   setNyala={preferensiKomentator.setNyala}
