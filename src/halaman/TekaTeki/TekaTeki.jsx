@@ -42,6 +42,7 @@ const KUNCI_OTOMATIS = "kci-teka-teki-otomatis";
  * kendali dan tanpa pemberitahuan.
  */
 const KUNCI_INGAT_POSISI = "kci-teka-teki-ingat-posisi";
+const DURASI_KLIK_SINTETIS = 500;
 /**
  * Peta tipe soal → kunci kamus label singkatnya (ditampilkan di baris status).
  * Kunci lengkap dengan awalan `tekaTeki.` supaya `t()` benar-benar menemukan
@@ -351,6 +352,24 @@ export default function TekaTeki() {
   // Sedang menyeret bidak (klik kiri tahan). Klik kanan membatalkan.
   const [sedangSeret, setSedangSeret] = useState(false);
   const abaikanKlikRef = useRef(false);
+  const timerAbaikanKlikRef = useRef(null);
+  const batalkanAbaikanKlik = useCallback(() => {
+    if (timerAbaikanKlikRef.current !== null) {
+      window.clearTimeout(timerAbaikanKlikRef.current);
+      timerAbaikanKlikRef.current = null;
+    }
+    abaikanKlikRef.current = false;
+  }, []);
+  const telanKlikBerikutnya = useCallback(() => {
+    batalkanAbaikanKlik();
+    abaikanKlikRef.current = true;
+    const timer = window.setTimeout(() => {
+      if (timerAbaikanKlikRef.current !== timer) return;
+      timerAbaikanKlikRef.current = null;
+      abaikanKlikRef.current = false;
+    }, DURASI_KLIK_SINTETIS);
+    timerAbaikanKlikRef.current = timer;
+  }, [batalkanAbaikanKlik]);
 
   // Bidak sampai di baris terakhir → pemain wajib memilih bidak promosi.
   const [promosi, setPromosi] = useState(null); // { from, to, warna }
@@ -824,13 +843,15 @@ export default function TekaTeki() {
     return () => window.clearTimeout(timer);
   }, [pesan]);
 
-  useEffect(
-    () => () => {
+  useEffect(() => {
+    document.addEventListener("pointerdown", batalkanAbaikanKlik, true);
+    return () => {
+      document.removeEventListener("pointerdown", batalkanAbaikanKlik, true);
+      batalkanAbaikanKlik();
       window.clearTimeout(timerSalah.current);
       window.clearTimeout(timerOtomatis.current);
-    },
-    []
-  );
+    };
+  }, [batalkanAbaikanKlik]);
 
   useEffect(() => {
     coba(
@@ -872,6 +893,7 @@ export default function TekaTeki() {
    * selesai beserta pesan tuntas dibiarkan supaya tombol maju & video tetap aktif.
    */
   const terapkanSoal = useCallback((m, { pertahankanSelesai = false } = {}) => {
+    batalkanAbaikanKlik();
     setFen(m.fen);
     setSisa(m.moves.split(";"));
     setJalurFen([m.fen]);
@@ -891,7 +913,7 @@ export default function TekaTeki() {
     setPromosi(null);
     setVideoGagal(false);
     setKomentar({ tahap: "mulai", fakta: null, fen: m.fen });
-  }, [hapusSemuaTanda]);
+  }, [hapusSemuaTanda, batalkanAbaikanKlik]);
 
   const pindahSoal = useCallback(
     (indeksBaru, izinkanTerpecahkan = false) => {
@@ -950,9 +972,9 @@ export default function TekaTeki() {
   }
 
   function klikPetak(petak) {
-    // Klik sisa setelah drag-drop atau klik-kanan-batal tidak boleh jadi langkah.
+    // Klik sintetik sesudah pointerup tidak boleh membatalkan pilihan hasil tap.
     if (abaikanKlikRef.current) {
-      abaikanKlikRef.current = false;
+      batalkanAbaikanKlik();
       return;
     }
     // Bersihkan panah/tanda lebih dulu — termasuk saat mengklik bidak
@@ -1408,19 +1430,19 @@ export default function TekaTeki() {
 
   // Klik kanan saat drag → bidak kembali ke petak asal (perilaku chess.com).
   const batalkanSeret = useCallback(() => {
-    abaikanKlikRef.current = true;
+    telanKlikBerikutnya();
     setSedangSeret(false);
     setTerpilih(null);
     setSasaran([]);
-  }, []);
+  }, [telanKlikBerikutnya]);
 
   const mulaiSeret = useCallback(
     (petak) => {
+      batalkanAbaikanKlik();
       if (!masalah || komputer || selesai || !fen) return;
       const game = new Chess(fen);
       const bidak = game.get(petak);
       if (bidak && bidak.color === game.turn()) {
-        abaikanKlikRef.current = false;
         setSedangSeret(true);
         pilihPetak(petak);
       }
@@ -1429,12 +1451,13 @@ export default function TekaTeki() {
     // keduanya hanya dipakai pilihPetak untuk membersihkan panah/petak;
     // keadaan yang menggerbangi seret sudah ada di daftar ini.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [masalah, komputer, selesai, fen]
+    [masalah, komputer, selesai, fen, batalkanAbaikanKlik]
   );
 
   const selesaiSeret = useCallback(
     (from, to, klikUlang) => {
       setSedangSeret(false);
+      telanKlikBerikutnya();
       if (!masalah || komputer || selesai || !fen) return;
       if (klikUlang) {
         setTerpilih(null);
@@ -1445,14 +1468,13 @@ export default function TekaTeki() {
         // Dijatuhkan di petak asal / di luar papan → tetap terpilih.
         return;
       }
-      abaikanKlikRef.current = true;
       cobaLangkah(from, to);
     },
     // Dependensi yang sengaja dilepas: cobaLangkah (fungsi biasa, identitasnya
     // berubah tiap render); keadaan yang menggerbangi penjatuhan bidak sudah
     // tercantum di daftar ini.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [masalah, komputer, selesai, fen, sisa, terpilih, sasaran]
+    [masalah, komputer, selesai, fen, sisa, terpilih, sasaran, telanKlikBerikutnya]
   );
 
   const _crumbs = [

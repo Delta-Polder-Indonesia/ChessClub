@@ -323,6 +323,30 @@ function klikEl(el) {
   el.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
 }
 
+function buatPeristiwaPointer(jenis, pointerId) {
+  const peristiwa = new window.Event(jenis, { bubbles: true, cancelable: true });
+  Object.defineProperties(peristiwa, {
+    button: { value: 0 },
+    buttons: { value: jenis === "pointerdown" ? 1 : 0 },
+    clientX: { value: 0 },
+    clientY: { value: 0 },
+    pointerId: { value: pointerId },
+    pointerType: { value: "touch" },
+  });
+  return peristiwa;
+}
+
+async function ketukPetakDenganSentuh(sq, pointerId) {
+  const el = petak(sq);
+  if (!el) throw new Error(`petak ${sq} tidak ada`);
+  el.dispatchEvent(buatPeristiwaPointer("pointerdown", pointerId));
+  await tunggu(0);
+  el.dispatchEvent(buatPeristiwaPointer("pointerup", pointerId));
+  await tunggu(0);
+  klikEl(el);
+  await tunggu(0);
+}
+
 function tombolJudul(teks) {
   return [...dok.querySelectorAll("button")].find(
     (b) => (b.getAttribute("title") || b.getAttribute("aria-label") || "").trim() === teks
@@ -438,6 +462,26 @@ uji(
     judulMeta.includes(kamus.metaJudul),
     `judul: ${judulMeta}`
   );
+}
+
+judul("sentuh: pilihan petak bertahan setelah jari dilepas");
+{
+  const soal = CONTOH["Mate in One-White to Move"];
+  const langkah = parseLangkah(soal.moves.split(";")[0]);
+  const termuat = await bukaNomor(soal.problemid);
+  uji(`soal sentuh #${soal.problemid} termuat`, termuat);
+  if (termuat) {
+    const adaSasaran = () => Boolean(petak(langkah.to)?.querySelector("span.rounded-full"));
+
+    await ketukPetakDenganSentuh(langkah.from, 1);
+    uji("tap pertama mempertahankan penanda langkah legal setelah click sintetis", adaSasaran());
+
+    await ketukPetakDenganSentuh(langkah.from, 2);
+    uji("tap kedua pada petak terpilih membatalkan pilihan", !adaSasaran());
+
+    await ketukPetakDenganSentuh(langkah.from, 3);
+    uji("tap berikutnya tetap dapat memilih bidak", adaSasaran());
+  }
 }
 
 judul("menuntaskan soal untuk setiap jenis & giliran");
