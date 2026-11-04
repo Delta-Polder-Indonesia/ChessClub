@@ -339,6 +339,10 @@ function papanSama(fen) {
   return true;
 }
 
+function papanTerkunci() {
+  return !!domSiap.querySelector('[data-petak][aria-disabled="true"]');
+}
+
 /** Mainkan satu langkah lewat dua klik: pilih petak asal, lalu petak tujuan. */
 async function mainkan(from, to) {
   const asal = domSiap.querySelector(`[data-petak="${from}"]`);
@@ -373,7 +377,10 @@ uji(
   "papan 64 petak tampil",
   await tungguSampai(() => domSiap.querySelectorAll("[data-petak]").length === 64, 5000)
 );
-uji("posisi awal sesuai data soal", papanSama(soalUji.soal.fen));
+uji(
+  "posisi awal sesuai data soal setelah langkah pembuka lawan selesai",
+  await tungguSampai(() => papanSama(soalUji.soal.fen) && !papanTerkunci(), 5000)
+);
 
 console.log("\nlangkah pemain pertama dan balasan komputer:");
 await mainkan(soalUji.pertama.from, soalUji.pertama.to);

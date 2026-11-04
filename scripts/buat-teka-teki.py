@@ -12,7 +12,9 @@ Skema keluaran (kompatibel dengan TekaTeki.jsx):
                karena dipakai parameter URL ?id= dan form nomor soal)
   first      : "White to Move" | "Black to Move"
   type       : "Mate in One" | "Mate in Two" | "Mate in Three"
-  fen        : posisi awal SETELAH langkah persiapan pihak lawan
+  fenSebelum : posisi tepat SEBELUM langkah persiapan pihak lawan
+  langkahPersiapan: "e7-e5" — langkah lawan yang membawa papan ke posisi teka-teki
+  fen        : posisi awal teka-teki, SETELAH langkah persiapan pihak lawan
   moves      : "e2-e4;d7-d5;..." — langkah pemain & balasan lawan bergantian,
                dipisah ";", promosi ditulis menempel (c7-c8q)
   + metadata tambahan: rating, tema, sumberId, pemain/elo, pembukaan
@@ -80,6 +82,7 @@ def olah_baris(baris: str):
     if len(uci) < 2:
         return None
     try:
+        fen_sebelum = papan.fen()
         papan.push_uci(uci[0])  # langkah persiapan lawan
         for m in uci[1:]:
             papan.push_uci(m)
@@ -112,6 +115,8 @@ def olah_baris(baris: str):
     return {
         "first": "White to Move" if awal.turn == chess.WHITE else "Black to Move",
         "type": TIPE_TEKS[jumlah],
+        "fenSebelum": fen_sebelum,
+        "langkahPersiapan": format_uci(uci[0]),
         "fen": awal.fen(),
         "moves": ";".join(format_uci(m) for m in uci[1:]),
         "rating": int(p["Rating"]),
