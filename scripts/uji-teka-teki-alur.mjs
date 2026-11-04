@@ -484,7 +484,7 @@ judul("sentuh: pilihan petak bertahan setelah jari dilepas");
   }
 }
 
-judul("status Main: giliran, tanggal, dan tingkat soal");
+judul("ringkasan Main: giliran, tingkat soal, dan rating Elo");
 {
   const soal = problems.find((p) => p.type === "Mate in One");
   const termuat = await bukaNomor(soal.problemid, soal.fen);
@@ -508,13 +508,11 @@ judul("status Main: giliran, tanggal, dan tingkat soal");
       (sisi === "putih" ? kamus.giliranPutih : kamus.giliranHitam)
   );
 
-  const tanggal = dok.querySelector('[data-testid="main-turn-date"]');
-  const tanggalDiharapkan = new Intl.DateTimeFormat("id-ID", {
-    timeZone: "Asia/Jakarta",
-    day: "numeric",
-    month: "long",
-  }).format(new Date());
-  uji("tanggal status mengikuti tanggal hari ini dalam bahasa Indonesia", tanggal?.textContent.trim() === tanggalDiharapkan);
+  uji("tanggal tidak ditampilkan pada ringkasan giliran", !dok.querySelector('[data-testid="main-turn-date"]'));
+  uji(
+    "rating Elo teka-teki ditampilkan sesuai rating soal",
+    dok.querySelector('[data-testid="main-turn-rating"]')?.textContent.trim() === `Elo ${soal.rating ?? 0}`
+  );
 
   const rating = soal.rating ?? 0;
   const tingkatDiharapkan =
@@ -1046,13 +1044,7 @@ judul("locale EN: label dari kamus Inggris, bukan teks mentah");
     "status giliran menggunakan terjemahan Inggris",
     labelGiliranEn === "White to move" || labelGiliranEn === "Black to move"
   );
-  const tanggalEn = dok.querySelector('[data-testid="main-turn-date"]');
-  const tanggalEnDiharapkan = new Intl.DateTimeFormat("en-US", {
-    timeZone: "Asia/Jakarta",
-    day: "numeric",
-    month: "long",
-  }).format(new Date());
-  uji("tanggal status mengikuti locale Inggris", tanggalEn?.textContent.trim() === tanggalEnDiharapkan);
+  uji("tanggal tidak ditampilkan pada ringkasan giliran EN", !dok.querySelector('[data-testid="main-turn-date"]'));
   uji(
     "tingkat kesulitan status memakai terjemahan Inggris",
     ["Very easy", "Easy", "Medium", "Hard", "Very hard"].includes(
