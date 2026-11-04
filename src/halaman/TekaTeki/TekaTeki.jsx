@@ -2395,6 +2395,22 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, orientasi = "w", tab
           </div>
           {tabPanelAktif === "main" && (
           <>
+          {/* Komentator menggantikan nama opening book saat diaktifkan. */}
+          {komentatorNyala && kartuKomentator ? (
+            <div className="flex-shrink-0 min-w-0 border-b border-[#312e2b] bg-[#1e1c18] px-4 py-2">
+              {React.cloneElement(kartuKomentator, {
+                hanyaKontrol: false,
+                sembunyikanKontrol: true,
+                className: "w-full min-w-0",
+              })}
+            </div>
+          ) : teksPembukaan ? (
+            <div className="flex-shrink-0 min-w-0 border-b border-[#312e2b] bg-[#1e1c18] px-4 py-2 flex items-baseline gap-2">
+              <span className="text-[10px] font-semibold text-gray-300 uppercase tracking-wider flex-shrink-0">{t("papan.pembukaan")}</span>
+              <span className="text-[11px] font-medium text-gray-300 truncate min-w-0" title={teksPembukaan}>{teksPembukaan}</span>
+            </div>
+          ) : null}
+
           {/* Status utama: sisi yang melangkah, tanggal lokal, dan level soal. */}
           <div className="flex-shrink-0 border-b border-[#312e2b] bg-[#1e1c18] px-4 py-3">
             <div
@@ -2454,22 +2470,6 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, orientasi = "w", tab
               </div>
             </div>
           </div>
-
-          {/* Komentator menggantikan nama opening book saat diaktifkan. */}
-          {komentatorNyala && kartuKomentator ? (
-            <div className="flex-shrink-0 min-w-0 border-b border-[#312e2b] bg-[#1e1c18] px-4 py-2">
-              {React.cloneElement(kartuKomentator, {
-                hanyaKontrol: false,
-                sembunyikanKontrol: true,
-                className: "w-full min-w-0",
-              })}
-            </div>
-          ) : teksPembukaan ? (
-            <div className="flex-shrink-0 min-w-0 border-b border-[#312e2b] bg-[#1e1c18] px-4 py-2 flex items-baseline gap-2">
-              <span className="text-[10px] font-semibold text-gray-300 uppercase tracking-wider flex-shrink-0">{t("papan.pembukaan")}</span>
-              <span className="text-[11px] font-medium text-gray-300 truncate min-w-0" title={teksPembukaan}>{teksPembukaan}</span>
-            </div>
-          ) : null}
 
           {/* Konten utama panel dipertahankan seperti sebelumnya. */}
           <div className="flex-1 overflow-y-auto min-h-0 p-4 space-y-3 text-sm">
