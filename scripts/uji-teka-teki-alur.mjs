@@ -484,6 +484,17 @@ judul("sentuh: pilihan petak bertahan setelah jari dilepas");
   }
 }
 
+judul("baris status Teka-Teki dihapus");
+{
+  const soal = problems.find((p) => p.type === "Mate in One");
+  const termuat = await bukaNomor(soal.problemid, soal.fen);
+  uji("soal Mate in One termuat untuk pengecekan tampilan", termuat);
+  const teksHalaman = dok.body.textContent;
+  uji("nomor soal dan jumlah total tidak ditampilkan", !/Soal #\d+ dari \d+/.test(teksHalaman));
+  uji("label tipe skakmat tidak ditampilkan", !teksHalaman.includes(kamus.skakmat1));
+  uji("titik hijau status tidak ditampilkan", !dok.querySelector('[class~="bg-green-500"]'));
+}
+
 judul("menuntaskan soal untuk setiap jenis & giliran");
 for (const [nama, soal] of Object.entries(CONTOH)) {
   if (!soal) continue;
@@ -560,7 +571,7 @@ judul("langkah salah & ilegal");
     .find((m) => !(m.from === langkah[0].from && m.to === langkah[0].to));
   await mainkan(salah.from, salah.to);
   await tunggu(150);
-  uji("pesan salah muncul", dok.body.textContent.includes(kamus.salah));
+  uji("pesan status salah tidak ditampilkan setelah baris dihapus", !dok.body.textContent.includes(kamus.salah));
   uji("posisi TIDAK berubah oleh langkah salah", papanSama(soal.fen));
   uji("soal tidak tercatat terpecahkan", !terpecahkan().includes(soal.problemid));
 
@@ -1040,25 +1051,14 @@ function pasangUlangDomId() {
   return mod;
 }
 
-judul("tipe soal tampil di baris status (dari KUNCI_TIPE)");
+judul("ingat posisi: bisa dimatikan & tidak menyimpan pilihan baru");
 {
   pasangUlangDomId();
   const siap = await tungguSampai(
     () => dok.querySelectorAll("[data-petak]").length === 64,
     8000
   );
-  uji("halaman ID termuat ulang", siap);
-  const soal = problems.find((p) => p.type === "Mate in One");
-  await bukaNomor(soal.problemid);
-  uji(
-    `tipe "${soal.type}" tampil lewat kamus`,
-    dok.body.textContent.includes(kamus.skakmat1),
-    `tidak menemukan "${kamus.skakmat1}"`
-  );
-}
-
-judul("ingat posisi: bisa dimatikan & tidak menyimpan pilihan baru");
-{
+  uji("halaman ID termuat ulang untuk tes pengaturan", siap);
   // Panel pengaturan → sakelar "Ingat posisi".
   const tabPengaturan = dok.querySelector('[data-tab="pengaturan"]');
   uji("tab pengaturan tersedia", !!tabPengaturan);
@@ -1103,7 +1103,7 @@ judul("ingat posisi: bisa dimatikan & tidak menyimpan pilihan baru");
   }
 }
 
-judul("skakmat alternatif: skakmat sah di luar solusi diberi pesan khusus");
+judul("skakmat alternatif: skakmat ditolak tanpa baris status");
 {
   // Cari soal yang pada langkah penutupnya punya >1 skakmat, lalu mainkan
   // salah satu yang BUKAN langkah data. Kebijakan penilaian tetap ketat,
@@ -1170,9 +1170,9 @@ judul("skakmat alternatif: skakmat sah di luar solusi diberi pesan khusus");
         }
       }
       uji(
-        `pesan khusus skakmat alternatif muncul (soal #${kandidat.problemid})`,
-        dok.body.textContent.includes(kamus.mateAlternatif),
-        "pesan 'belum tepat' masih ditampilkan"
+        `pesan status skakmat alternatif tidak ditampilkan (soal #${kandidat.problemid})`,
+        !dok.body.textContent.includes(kamus.mateAlternatif),
+        "baris status yang memuat pesan telah dihapus"
       );
       // Skakmat alternatif tetap TIDAK menuntaskan soal (kebijakan tetap ketat).
       const langkahTersisa = sebelum.moves().length;

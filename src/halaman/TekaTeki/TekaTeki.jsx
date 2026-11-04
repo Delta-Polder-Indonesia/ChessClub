@@ -44,20 +44,6 @@ const KUNCI_OTOMATIS = "kci-teka-teki-otomatis";
 const KUNCI_INGAT_POSISI = "kci-teka-teki-ingat-posisi";
 const DURASI_KLIK_SINTETIS = 500;
 /**
- * Peta tipe soal → kunci kamus label singkatnya (ditampilkan di baris status).
- * Kunci lengkap dengan awalan `tekaTeki.` supaya `t()` benar-benar menemukan
- * entrinya — nilai tanpa awalan akan dikembalikan apa adanya oleh fallback
- * kamus, sehingga badge menampilkan "skakmat1" alih-alih "Skakmat dalam 1
- * Langkah".
- */
-const KUNCI_TIPE = {
-  "Mate in One": "tekaTeki.skakmat1",
-  "Mate in Two": "tekaTeki.skakmat2",
-  "Mate in Three": "tekaTeki.skakmat3",
-  "Mate in More": "tekaTeki.skakmatPanjang",
-  Tactical: "tekaTeki.tipeTaktik",
-};
-/**
  * Kunci kamus label level (1–5) sesuai pita rating NACCL — sama dengan pilihan
  * selector Level. Dulu teksnya ditulis mentah sehingga pengguna EN melihat
  * "Sangat Mudah" walau selector-nya sudah "Very easy".
@@ -1768,9 +1754,7 @@ export default function TekaTeki() {
               daftarPelatih={daftarPelatih}
               nilaiPelatih={filterPelatih}
               onGantiPelatih={setFilterPelatih}
-              teksSoal={masalah ? t("tekaTeki.soal", { n: indeks + 1, total: soal.length }) : ""}
               teksTingkat={masalah ? t(KUNCI_LEVEL[bandLevel(masalah.rating ?? 0)]) : ""}
-              teksTipe={masalah ? t(KUNCI_TIPE[masalah.type] || "") : ""}
               eloSoal={masalah ? masalah.rating : 1500}
               namaHitam={masalah ? masalah.pemainHitam : ""}
               eloHitam={masalah ? masalah.eloHitam : 0}
@@ -1780,7 +1764,6 @@ export default function TekaTeki() {
               komentatorNyala={preferensiKomentator.nyala}
               teksTerpecahkan={t("tekaTeki.totalTerpecahkan", { n: terpecahkan.size })}
               teksCekmat={pesan?.jenis === "selesai" ? pesan.teks : ""}
-              teksSudah={!pesan && sudahPecah ? t("tekaTeki.sudahTerpecahkan") : ""}
               daftarSet={DAFTAR_SET}
               nilaiSetBidak={setBidak}
               onGantiSetBidak={setSetBidak}
@@ -1848,8 +1831,6 @@ export default function TekaTeki() {
               onBukaNomor={bukaNomor}
               bisaHint={!selesai && !komputer && !promosi && sisa.length > 0}
               onHint={tampilPetunjuk}
-              teksSalah={pesan?.jenis === "salah" ? pesan.teks : ""}
-              teksPeringatan={pesan?.jenis === "peringatan" ? pesan.teks : ""}
               kartuKomentator={
                 <KartuKomentator
                   segmen={segmenKomentar}
@@ -1965,7 +1946,7 @@ const OPSI_TEMA_BAWAAN = [
   { grup: "Karakteristik", isi: [["endgame", "Endgame"], ["middlegame", "Middlegame"], ["opening", "Opening"]] },
 ];
 
-function LayoutTekaTeki({ papan = null, barEvaluasi = null, orientasi = "w", tabPanelAktif = "main", onGantiTabPanel = null, onFlip = null, giliran = "putih", jumlahLangkah = 1, bukanSkakmat = false, selesai = false, videoUrl = "", videoPelatih = "", videoJudulSoal = "", videoTurnamen = "", videoTanggal = "", videoGagal = false, catatanLangkah = null, jumlahVariasi = 0, simbolNag = "", memuatKoleksi = false, onPutarVideo = null, onGalatVideo = null, onBukaKoleksiVideo = null, onBukaAnalisa = null, nilaiKoleksi = "lichess", onGantiKoleksi = null, daftarPelatih = [], nilaiPelatih = "semua", onGantiPelatih = null, teksSoal = "", teksTingkat = "", teksTipe = "", teksTerpecahkan = "", teksCekmat = "", teksSudah = "", daftarSet = [], nilaiSetBidak = "merida", onGantiSetBidak = null, pilihanWarnaPapan = [], nilaiWarnaPapan = "green", onGantiWarnaPapan = null, nilaiSuara = true, onGantiSuara = null, onAcak = null, onLewati = null, nilaiOtomatis = false, onGantiOtomatis = null, engineNyala = false, onGantiEngine = null, tampilPanahMesin = true, onGantiPanahMesin = null, teksPanahMesin = "", nilaiLevel = "semua", onGantiLevel = null, nilaiLangkah = "semua", onGantiLangkah = null, nilaiTema = "semua", opsiTema = [], onGantiTema = null, nilaiGiliran = "semua", onGantiGiliran = null, nilaiNomorSoal = "", nilaiTotalSoal = 0, onGantiNomorSoal = null, nilaiIngatPosisi = true, onGantiIngatPosisi = null, teksPosisiTersimpan = "", teksIngatNonaktif = "", teksGalatNomor = "", onBukaNomor = null, bisaHint = false, onHint = null, teksSalah = "", teksPeringatan = "", kartuKomentator = null, kecepatanEngine = 800, opsiKecepatan = [], onGantiKecepatan = null, pvSanEngine = [], onMainkanSaran = null, onKeAwal = null, onMundur = null, onMaju = null, onKeAkhir = null, bisaMundur = false, bisaMaju = false, eloSoal = 1500, namaHitam = "", eloHitam = 0, namaPutih = "", eloPutih = 0, teksPembukaan = "", komentatorNyala = false, memuat = false }) {
+function LayoutTekaTeki({ papan = null, barEvaluasi = null, orientasi = "w", tabPanelAktif = "main", onGantiTabPanel = null, onFlip = null, giliran = "putih", jumlahLangkah = 1, bukanSkakmat = false, selesai = false, videoUrl = "", videoPelatih = "", videoJudulSoal = "", videoTurnamen = "", videoTanggal = "", videoGagal = false, catatanLangkah = null, jumlahVariasi = 0, simbolNag = "", memuatKoleksi = false, onPutarVideo = null, onGalatVideo = null, onBukaKoleksiVideo = null, onBukaAnalisa = null, nilaiKoleksi = "lichess", onGantiKoleksi = null, daftarPelatih = [], nilaiPelatih = "semua", onGantiPelatih = null, teksTingkat = "", teksTerpecahkan = "", teksCekmat = "", daftarSet = [], nilaiSetBidak = "merida", onGantiSetBidak = null, pilihanWarnaPapan = [], nilaiWarnaPapan = "green", onGantiWarnaPapan = null, nilaiSuara = true, onGantiSuara = null, onAcak = null, onLewati = null, nilaiOtomatis = false, onGantiOtomatis = null, engineNyala = false, onGantiEngine = null, tampilPanahMesin = true, onGantiPanahMesin = null, teksPanahMesin = "", nilaiLevel = "semua", onGantiLevel = null, nilaiLangkah = "semua", onGantiLangkah = null, nilaiTema = "semua", opsiTema = [], onGantiTema = null, nilaiGiliran = "semua", onGantiGiliran = null, nilaiNomorSoal = "", nilaiTotalSoal = 0, onGantiNomorSoal = null, nilaiIngatPosisi = true, onGantiIngatPosisi = null, teksPosisiTersimpan = "", teksIngatNonaktif = "", teksGalatNomor = "", onBukaNomor = null, bisaHint = false, onHint = null, kartuKomentator = null, kecepatanEngine = 800, opsiKecepatan = [], onGantiKecepatan = null, pvSanEngine = [], onMainkanSaran = null, onKeAwal = null, onMundur = null, onMaju = null, onKeAkhir = null, bisaMundur = false, bisaMaju = false, eloSoal = 1500, namaHitam = "", eloHitam = 0, namaPutih = "", eloPutih = 0, teksPembukaan = "", komentatorNyala = false, memuat = false }) {
   const { t } = useI18n();
   // Default prop sengaja kosong: teksnya selalu dari kamus.
   const labelPanahMesin = teksPanahMesin || t("papan.enginePanahToggle");
@@ -2417,25 +2398,6 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, orientasi = "w", tab
           </div>
           {tabPanelAktif === "main" && (
           <>
-          {/* Nomor soal + status (di bawah teks soal) */}
-          {(teksSoal || teksCekmat || teksSudah || teksSalah || teksPeringatan) && (
-            <div className="flex-shrink-0 px-4 py-2 border-b border-[#312e2b] bg-[#262421] flex flex-col gap-1">
-              <div className="flex flex-wrap items-center gap-x-3">
-                <span className="w-2.5 h-2.5 rounded-full bg-green-500 flex-shrink-0"></span>
-                {teksSoal && <span className="text-[13px] font-bold text-white">{teksSoal}</span>}
-                {teksTipe && (
-                  <span className="rounded bg-[#312e2b] px-1.5 py-0.5 text-[11px] font-semibold text-emerald-300">
-                    {teksTipe}
-                  </span>
-                )}
-                {teksCekmat && <span className="text-[13px] font-bold text-gray-300">{teksCekmat}</span>}
-                {teksSudah && <span className="text-xs font-semibold text-emerald-300">{teksSudah}</span>}
-                {teksSalah && <span className="text-[13px] font-bold text-red-400">{teksSalah}</span>}
-                {teksPeringatan && <span className="text-[13px] font-semibold text-amber-400">{teksPeringatan}</span>}
-              </div>
-            </div>
-          )}
-
           {/* Baris: giliran */}
           <div className="flex-shrink-0 px-4 py-2.5 border-b border-[#312e2b] bg-[#1e1c18] flex items-center justify-between gap-3">
             <div className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-wider min-w-0">
