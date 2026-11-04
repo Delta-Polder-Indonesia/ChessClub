@@ -353,10 +353,14 @@ console.log("\nrender PapanTekaTeki:");
 console.log("\nalur halaman TekaTeki (soal Mate in One, id=6):");
 const wadahHalaman = domSiap.getElementById("root");
 modul.mountTekaTeki(wadahHalaman, 6);
-// Tunggu data soal termuat & papan ter-render — polling, bukan jeda tetap.
-await tungguHingga(() => wadahHalaman.querySelectorAll("[data-petak]").length === 64);
+// Tunggu data soal, langkah pembuka lawan, dan papan yang sudah terbuka.
+const papanTerkunci = (wadah) => !!wadah.querySelector('[data-petak][aria-disabled="true"]');
+await tungguHingga(
+  () => wadahHalaman.querySelectorAll("[data-petak]").length === 64 && !papanTerkunci(wadahHalaman),
+  5000
+);
 
-uji("papan teka-teki ter-render", wadahHalaman.querySelectorAll("[data-petak]").length === 64);
+uji("papan teka-teki ter-render setelah langkah pembuka lawan", wadahHalaman.querySelectorAll("[data-petak]").length === 64 && !papanTerkunci(wadahHalaman));
 uji("belum ada lencana sebelum langkah mat", lencanaSkakmat(wadahHalaman).length === 0);
 
 /** Teks kartu komentator (section aria-label="Komentator Papan"). */
