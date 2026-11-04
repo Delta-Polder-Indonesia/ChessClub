@@ -91,33 +91,6 @@ function validasiDaftar(problems, { namaBerkas, idAwal, izinkanTaktik = false })
       fail.push(`${label}: nilai first tidak dikenal (${String(p.first)})`);
     }
 
-    if (!izinkanTaktik) {
-      if (typeof p.fenSebelum !== "string" || !p.fenSebelum.trim()) {
-        fail.push(`${label}: fenSebelum kosong atau bukan string`);
-      }
-      const pembuka = /^([a-h][1-8])-([a-h][1-8])([qrbn])?$/.exec(p.langkahPersiapan || "");
-      if (!pembuka) {
-        fail.push(`${label}: langkahPersiapan kosong atau formatnya tidak sah`);
-      } else if (typeof p.fenSebelum === "string" && p.fenSebelum.trim()) {
-        try {
-          const sebelumPembuka = new Chess(p.fenSebelum);
-          const [, from, to, promotion] = pembuka;
-          const hasilPembuka = sebelumPembuka.move({
-            from,
-            to,
-            ...(promotion ? { promotion } : {}),
-          });
-          if (!hasilPembuka) {
-            fail.push(`${label}: langkahPersiapan ilegal (${p.langkahPersiapan})`);
-          } else if (sebelumPembuka.fen() !== p.fen) {
-            fail.push(`${label}: fenSebelum + langkahPersiapan tidak menghasilkan fen`);
-          }
-        } catch (error) {
-          fail.push(`${label}: FEN/langkah persiapan tidak sah (${error.message})`);
-        }
-      }
-    }
-
     const boardTurn = p.fen.trim().split(/\s+/).slice(0, 2).join(" ");
     if (seenBoardTurns.has(boardTurn)) {
       if (izinkanTaktik) {

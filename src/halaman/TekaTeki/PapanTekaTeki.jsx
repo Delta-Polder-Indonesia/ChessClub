@@ -200,7 +200,6 @@ const Petak = memo(function Petak({
   kolom,
   bidak,
   bisaSeret,
-  terkunci,
   dipilih,
   jadiSasaran,
   jadiTangkap,
@@ -234,7 +233,6 @@ const Petak = memo(function Petak({
     <button
       type="button"
       data-petak={sq}
-      aria-disabled={terkunci}
       aria-label={t(
         bidak ? "tekaTeki.ariaPetakBidak" : "tekaTeki.ariaPetakKosong",
         {
@@ -1063,7 +1061,6 @@ export default function PapanTekaTeki({
               kolom={kolom}
               bidak={bidak}
               bisaSeret={!!bidak && warnaBidak === giliran && !terkunci}
-              terkunci={terkunci}
               dipilih={terpilih === sq}
               jadiSasaran={sasaran.includes(sq)}
               jadiTangkap={sasaranTangkap.includes(sq)}

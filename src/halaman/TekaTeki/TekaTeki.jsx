@@ -30,7 +30,6 @@ import {
   apakahLangkahSesuai,
 } from "../../lib/tekaTeki.js";
 import { useTandaBantu } from "../../lib/tandaBantu.js";
-import { DURASI_GESER } from "./animasiBidak.js";
 
 const KUNCI_SELESAI = "kci-teka-teki-terpecahkan";
 const KUNCI_POSISI = "kci-teka-teki-posisi";
@@ -314,9 +313,6 @@ export default function TekaTeki() {
   const [komentar, setKomentar] = useState(null);
   const preferensiKomentator = usePreferensiKomentator();
   const [komputer, setKomputer] = useState(false);
-  // Fase langkah pembuka lawan: tampilkan posisi sebelumnya tanpa animasi,
-  // lalu animasikan langkah persiapan sebelum papan dibuka untuk pemain.
-  const [fasePembuka, setFasePembuka] = useState(null);
   const [selesai, setSelesai] = useState(false);
   const [terpecahkan, setTerpecahkan] = useState(bacaTerpecahkan);
 
@@ -366,7 +362,6 @@ export default function TekaTeki() {
 
   const timerSalah = useRef(null);
   const timerOtomatis = useRef(null);
-  const tokenPembukaRef = useRef(0);
   // Dibaca `simpanPosisi` (useCallback ber-dependensi kosong) supaya preferensi
   // terbaru selalu terpakai tanpa memasang ulang callback-nya.
   const ingatPosisiRef = useRef(ingatPosisi);
@@ -385,7 +380,7 @@ export default function TekaTeki() {
     setTampilPanahMesin,
     nyalakanEngine,
     matikanEngine,
-  } = useEngineCatur(fasePembuka?.fen || fen);
+  } = useEngineCatur(fen);
 
   // Hasil evaluasi terakhir ditahan selama analisis posisi baru berjalan,
   // agar bar evaluasi tidak goyang. Bar tampil selama engine menyala dan
@@ -883,35 +878,9 @@ export default function TekaTeki() {
    * setelah soal tuntas: papan kembali ke posisi awal soal, tetapi status
    * selesai beserta pesan tuntas dibiarkan supaya tombol maju & video tetap aktif.
    */
-  const terapkanSoal = useCallback((m, { pertahankanSelesai = false, mainkanPembuka = true } = {}) => {
+  const terapkanSoal = useCallback((m, { pertahankanSelesai = false } = {}) => {
     batalkanAbaikanKlik();
-    const tokenPembuka = tokenPembukaRef.current + 1;
-    tokenPembukaRef.current = tokenPembuka;
-
-    // Metadata langkah pembuka dipakai hanya bila langkahnya legal dan benar-
-    // benar membawa FEN sebelum pembuka ke posisi awal teka-teki. Jika tidak,
-    // soal tetap bisa dimainkan dari FEN yang sudah ada.
-    let langkahPembuka = null;
-    if (
-      mainkanPembuka &&
-      typeof m.fenSebelum === "string" &&
-      typeof m.langkahPersiapan === "string"
-    ) {
-      try {
-        const d = parseLangkah(m.langkahPersiapan);
-        const awal = new Chess(m.fenSebelum);
-        const pindah = awal.move({
-          from: d.from,
-          to: d.to,
-          ...(d.promo ? { promotion: d.promo } : {}),
-        });
-        if (pindah && awal.fen() === m.fen) langkahPembuka = { from: d.from, to: d.to };
-      } catch {
-        // Abaikan metadata yang rusak; posisi puzzle tersimpan tetap sah.
-      }
-    }
-
-    setFen(langkahPembuka ? m.fenSebelum : m.fen);
+    setFen(m.fen);
     setSisa(m.moves.split(";"));
     setJalurFen([m.fen]);
     setOrientasi(m.first === "Black to Move" ? "b" : "w");
@@ -924,52 +893,13 @@ export default function TekaTeki() {
       setPesan(null);
       setSelesai(false);
     }
-    setKomputer(!!langkahPembuka);
-    setFasePembuka(
-      langkahPembuka
-        ? {
-            fase: "siap",
-            token: tokenPembuka,
-            fen: m.fen,
-            langkah: langkahPembuka,
-          }
-        : null
-    );
+    setKomputer(false);
     hapusSemuaTanda();
     setSedangSeret(false);
     setPromosi(null);
     setVideoGagal(false);
-    setKomentar(langkahPembuka ? null : { tahap: "mulai", fakta: null, fen: m.fen });
+    setKomentar({ tahap: "mulai", fakta: null, fen: m.fen });
   }, [hapusSemuaTanda, batalkanAbaikanKlik]);
-
-  useEffect(() => {
-    if (!fasePembuka) return undefined;
-    const { fase, token, fen: fenSoal, langkah } = fasePembuka;
-
-    if (fase === "siap") {
-      // Beri PapanTekaTeki satu render untuk memuat FEN sebelum pembuka tanpa
-      // mengira pergantian soal ini sebagai langkah bidak yang harus dianimasikan.
-      const timer = window.setTimeout(() => {
-        if (tokenPembukaRef.current !== token) return;
-        setFen(fenSoal);
-        setLangkahAkhir(langkah);
-        setFasePembuka((aktif) =>
-          aktif?.token === token ? { ...aktif, fase: "bergerak" } : aktif
-        );
-      }, 80);
-      return () => window.clearTimeout(timer);
-    }
-
-    // Kunci papan selama luncuran lawan agar pemain baru bisa menjawab setelah
-    // bidak mendarat. Durasi mengikuti animasi yang sama dengan papan lainnya.
-    const timer = window.setTimeout(() => {
-      if (tokenPembukaRef.current !== token) return;
-      setFasePembuka(null);
-      setKomputer(false);
-      setKomentar({ tahap: "mulai", fakta: null, fen: fenSoal });
-    }, DURASI_GESER + 50);
-    return () => window.clearTimeout(timer);
-  }, [fasePembuka]);
 
   const pindahSoal = useCallback(
     (indeksBaru, izinkanTerpecahkan = false) => {
@@ -1200,7 +1130,7 @@ export default function TekaTeki() {
   }, [promosi]);
 
   useEffect(() => {
-    if (!komputer || fasePembuka || selesai || !sisa.length) return;
+    if (!komputer || selesai || !sisa.length) return;
     const timer = window.setTimeout(() => {
       const diharapkan = parseLangkah(sisa[0]);
       try {
@@ -1228,7 +1158,7 @@ export default function TekaTeki() {
       }
     }, 700);
     return () => window.clearTimeout(timer);
-  }, [komputer, fasePembuka, fen, sisa, selesai, masalah, terapkanSoal, bunyikanLangkah]);
+  }, [komputer, fen, sisa, selesai, masalah, terapkanSoal, bunyikanLangkah]);
 
   function tampilPetunjuk() {
     if (!sisa.length || selesai || komputer || promosi) return;
@@ -1270,7 +1200,7 @@ export default function TekaTeki() {
     window.clearTimeout(timerOtomatis.current);
     // Setelah cekmat (mode review) status selesai dipertahankan; sebelumnya
     // cabang ini menyalin ulang seluruh setter terapkanSoal.
-    terapkanSoal(masalah, { pertahankanSelesai: selesai, mainkanPembuka: false });
+    terapkanSoal(masalah, { pertahankanSelesai: selesai });
   }
 
   /** < — mundur satu langkah. */
@@ -1608,9 +1538,8 @@ export default function TekaTeki() {
         }
         ikonSkakmat={kesalahan ? null : ikonSkakmat}
         ikonMahkota={kesalahan ? null : ikonMahkota}
-        terkunci={komputer || selesai || !!promosi || !!fasePembuka}
-        membeku={komputer || !!fasePembuka}
-        animasi={fasePembuka?.fase !== "siap"}
+        terkunci={komputer || selesai || !!promosi}
+        membeku={komputer}
         setBidak={setBidak}
         tema={warnaPapan}
         sedangSeret={sedangSeret}

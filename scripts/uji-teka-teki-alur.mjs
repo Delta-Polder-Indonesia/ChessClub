@@ -315,10 +315,6 @@ function papanSama(fen) {
   return true;
 }
 
-function papanTerkunci() {
-  return !!dok.querySelector('[data-petak][aria-disabled="true"]');
-}
-
 function petak(sq) {
   return dok.querySelector(`[data-petak="${sq}"]`);
 }
@@ -412,8 +408,8 @@ function terpecahkan() {
   }
 }
 
-/** Kirim nomor soal lewat input (tanpa saringan aktif, nomor = problemid). */
-function kirimNomor(id) {
+/** Buka soal lewat input nomor (tanpa saringan aktif, nomor = problemid). */
+async function bukaNomor(id, fenTarget = problems[id - 1]?.fen) {
   const input = dok.querySelector('input[type="number"]');
   if (!input) return false;
   const setter = Object.getOwnPropertyDescriptor(
@@ -424,15 +420,7 @@ function kirimNomor(id) {
   input.dispatchEvent(new window.Event("input", { bubbles: true }));
   const form = input.closest("form");
   form.dispatchEvent(new window.Event("submit", { bubbles: true, cancelable: true }));
-  return true;
-}
-
-/** Buka soal dan tunggu langkah pembukanya selesai sebelum menggerakkan pemain. */
-async function bukaNomor(id, fenTarget = problems[id - 1]?.fen) {
-  if (!kirimNomor(id)) return false;
-  return fenTarget
-    ? tungguSampai(() => papanSama(fenTarget) && !papanTerkunci(), 5000)
-    : true;
+  return fenTarget ? tungguSampai(() => papanSama(fenTarget), 3000) : true;
 }
 
 /* ------------------------------------------------------------------ mulai */
@@ -455,11 +443,8 @@ mount(dok.getElementById("root"));
 
 judul("pemuatan awal & metadata halaman");
 uji(
-  "soal #1 tampil setelah langkah pembuka lawan selesai",
-  await tungguSampai(
-    () => dok.querySelectorAll("[data-petak]").length === 64 && papanSama(problems[0].fen) && !papanTerkunci(),
-    5000
-  ),
+  "papan tampil dengan soal #1 dari URL kanonik /teka-teki/problem/1",
+  await tungguSampai(() => dok.querySelectorAll("[data-petak]").length === 64 && papanSama(problems[0].fen)),
   "URL /teka-teki/problem/1"
 );
 {
@@ -477,22 +462,6 @@ uji(
     judulMeta.includes(kamus.metaJudul),
     `judul: ${judulMeta}`
   );
-}
-
-judul("langkah persiapan lawan dimainkan sebelum solusi");
-{
-  const soal = problems.find((p) => p.problemid > 1 && p.fenSebelum && p.langkahPersiapan);
-  const dikirim = soal && kirimNomor(soal.problemid);
-  const tampilSebelum = await tungguSampai(() => papanSama(soal.fenSebelum), 1000);
-  uji(
-    "papan lebih dulu menampilkan posisi sebelum langkah pembuka dan terkunci",
-    !!dikirim && tampilSebelum && papanTerkunci()
-  );
-  const dibuka = await tungguSampai(
-    () => papanSama(soal.fen) && !papanTerkunci(),
-    2000
-  );
-  uji("langkah lawan membawa papan ke FEN teka-teki sebelum pemain bisa menjawab", dibuka);
 }
 
 judul("sentuh: pilihan petak bertahan setelah jari dilepas");
