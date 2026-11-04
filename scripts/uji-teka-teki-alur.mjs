@@ -484,6 +484,48 @@ judul("sentuh: pilihan petak bertahan setelah jari dilepas");
   }
 }
 
+judul("ringkasan Main: giliran, tingkat soal, dan rating Elo");
+{
+  const soal = problems.find((p) => p.type === "Mate in One");
+  const termuat = await bukaNomor(soal.problemid, soal.fen);
+  uji("soal Mate in One termuat untuk pengecekan tampilan", termuat);
+  const teksHalaman = dok.body.textContent;
+  uji("nomor soal dan jumlah total tidak ditampilkan", !/Soal #\d+ dari \d+/.test(teksHalaman));
+  uji("label tipe skakmat tidak ditampilkan", !teksHalaman.includes(kamus.skakmat1));
+  uji("titik hijau status tidak ditampilkan", !dok.querySelector('[class~="bg-green-500"]'));
+
+  const sisi = soal.fen.split(" ")[1] === "b" ? "hitam" : "putih";
+  const ikonGiliran = dok.querySelector('[data-testid="main-turn-icon"]');
+  uji(
+    "ikon bidak sesuai sisi yang mendapat giliran",
+    ikonGiliran?.dataset.side === sisi &&
+      ikonGiliran?.dataset.piece === (sisi === "putih" ? "P" : "p")
+  );
+  const labelGiliran = dok.querySelector('[data-testid="main-turn-label"]');
+  uji(
+    "teks giliran memakai terjemahan dan state FEN",
+    labelGiliran?.textContent.trim() ===
+      (sisi === "putih" ? kamus.giliranPutih : kamus.giliranHitam)
+  );
+
+  uji("tanggal tidak ditampilkan pada ringkasan giliran", !dok.querySelector('[data-testid="main-turn-date"]'));
+  uji(
+    "rating Elo teka-teki ditampilkan sesuai rating soal",
+    dok.querySelector('[data-testid="main-turn-rating"]')?.textContent.trim() === `Elo ${soal.rating ?? 0}`
+  );
+
+  const rating = soal.rating ?? 0;
+  const tingkatDiharapkan =
+    rating < 1000 ? "Sangat mudah" :
+    rating < 1250 ? "Mudah" :
+    rating < 1550 ? "Normal" :
+    rating < 1900 ? "Sulit" : "Sangat sulit";
+  uji(
+    "tingkat kesulitan di status berasal dari rating soal",
+    dok.querySelector('[data-testid="main-turn-difficulty"]')?.textContent.trim() === tingkatDiharapkan
+  );
+}
+
 judul("menuntaskan soal untuk setiap jenis & giliran");
 for (const [nama, soal] of Object.entries(CONTOH)) {
   if (!soal) continue;
@@ -560,7 +602,7 @@ judul("langkah salah & ilegal");
     .find((m) => !(m.from === langkah[0].from && m.to === langkah[0].to));
   await mainkan(salah.from, salah.to);
   await tunggu(150);
-  uji("pesan salah muncul", dok.body.textContent.includes(kamus.salah));
+  uji("pesan status salah tidak ditampilkan setelah baris dihapus", !dok.body.textContent.includes(kamus.salah));
   uji("posisi TIDAK berubah oleh langkah salah", papanSama(soal.fen));
   uji("soal tidak tercatat terpecahkan", !terpecahkan().includes(soal.problemid));
 
@@ -844,9 +886,10 @@ judul("panel video pembahasan: menggantikan Syzygy, terkunci sebelum selesai, ta
     `${tembakanSyzygy.length} permintaan`
   );
   uji(
-    "soal Lichess tanpa video menampilkan status kosong + tombol buka koleksi video",
+    "soal Lichess tanpa video menampilkan status kosong tanpa GIF placeholder",
     !!dok.querySelector('[data-status-video="kosong"]') &&
-      dok.body.textContent.includes(kamus.videoTidakTersedia)
+      dok.body.textContent.includes(kamus.videoTidakTersedia) &&
+      !dok.querySelector('[data-video-placeholder="true"]')
   );
 
   // Beralih ke koleksi Taktik + Video
@@ -867,12 +910,23 @@ judul("panel video pembahasan: menggantikan Syzygy, terkunci sebelum selesai, ta
       !dok.querySelector("video") &&
       dok.body.textContent.includes(kamus.videoTerkunci)
   );
+  const statusVideoTerkunci = dok.querySelector('[data-status-video="terkunci"]');
+  const kelasStatusVideoTerkunci = Array.from(statusVideoTerkunci?.classList || []);
+  uji(
+    "pesan video terkunci tampil langsung di atas GIF tanpa kartu gelap",
+    !!statusVideoTerkunci &&
+      !!dok.querySelector('[data-video-placeholder="true"]')?.classList.contains("opacity-80") &&
+      !dok.querySelector('[data-video-placeholder-shade="true"]') &&
+      !kelasStatusVideoTerkunci.some((kelas) =>
+        ["rounded-md", "border", "bg-[#1e1c18]/95", "shadow-lg"].includes(kelas)
+      )
+  );
 
   // Selesaikan soal video pertama (taktik multi-langkah)
   const tuntasVideo = await selesaikan(soalVideoPertama);
   uji("soal taktik ber-video berhasil dituntaskan", tuntasVideo);
 
-  const elVideo = dok.querySelector("video");
+  let elVideo = dok.querySelector("video");
   uji(
     "setelah soal selesai: elemen <video> muncul dengan URL mp4 yang sesuai",
     !!elVideo && elVideo.getAttribute("src") === soalVideoPertama.video
@@ -890,6 +944,27 @@ judul("panel video pembahasan: menggantikan Syzygy, terkunci sebelum selesai, ta
     "setelah soal selesai: tombol 'Bedah di Papan Analisa' tampil",
     !!dok.querySelector('[data-aksi="buka-analisa"]')
   );
+  const gifPlaceholder = () => dok.querySelector('[data-video-placeholder="true"]');
+  uji(
+    "GIF placeholder terlihat di atas video sampai video siap diputar",
+    !!elVideo && gifPlaceholder()?.classList.contains("z-20")
+  );
+  if (elVideo) {
+    elVideo.dispatchEvent(new window.Event("canplay"));
+    await tungguSampai(() => !gifPlaceholder(), 500);
+  }
+  uji("GIF placeholder hilang setelah video siap diputar", !!elVideo && !gifPlaceholder());
+
+  const tabMainVideo = dok.querySelector('[data-tab="main"]');
+  if (tabMainVideo) klikEl(tabMainVideo);
+  await tungguSampai(() => tabMainVideo?.getAttribute("aria-selected") === "true", 1000);
+  if (tabVideo) klikEl(tabVideo);
+  const kembaliKeVideo = await tungguSampai(
+    () => !!dok.querySelector("video") && !!gifPlaceholder(),
+    1000
+  );
+  uji("GIF placeholder muncul lagi saat kembali ke tab Video", kembaliKeVideo);
+  elVideo = dok.querySelector("video");
 
   // Kegagalan muat media (<video> error) harus jatuh ke pesan cadangan tanpa merusak UI,
   // lalu di-reset bersih ketika berpindah ke soal video berikutnya.
@@ -997,6 +1072,18 @@ judul("locale EN: label dari kamus Inggris, bukan teks mentah");
     6000
   );
   uji("halaman EN termuat", siapEn);
+  const labelGiliranEn = dok.querySelector('[data-testid="main-turn-label"]')?.textContent.trim();
+  uji(
+    "status giliran menggunakan terjemahan Inggris",
+    labelGiliranEn === "White to move" || labelGiliranEn === "Black to move"
+  );
+  uji("tanggal tidak ditampilkan pada ringkasan giliran EN", !dok.querySelector('[data-testid="main-turn-date"]'));
+  uji(
+    "tingkat kesulitan status memakai terjemahan Inggris",
+    ["Very easy", "Easy", "Medium", "Hard", "Very hard"].includes(
+      dok.querySelector('[data-testid="main-turn-difficulty"]')?.textContent.trim()
+    )
+  );
   const tombolEn = tombolTeks("Hint");
   uji("label petunjuk EN memakai kamus (Hint)", !!tombolEn);
   uji(
@@ -1040,25 +1127,14 @@ function pasangUlangDomId() {
   return mod;
 }
 
-judul("tipe soal tampil di baris status (dari KUNCI_TIPE)");
+judul("ingat posisi: bisa dimatikan & tidak menyimpan pilihan baru");
 {
   pasangUlangDomId();
   const siap = await tungguSampai(
     () => dok.querySelectorAll("[data-petak]").length === 64,
     8000
   );
-  uji("halaman ID termuat ulang", siap);
-  const soal = problems.find((p) => p.type === "Mate in One");
-  await bukaNomor(soal.problemid);
-  uji(
-    `tipe "${soal.type}" tampil lewat kamus`,
-    dok.body.textContent.includes(kamus.skakmat1),
-    `tidak menemukan "${kamus.skakmat1}"`
-  );
-}
-
-judul("ingat posisi: bisa dimatikan & tidak menyimpan pilihan baru");
-{
+  uji("halaman ID termuat ulang untuk tes pengaturan", siap);
   // Panel pengaturan → sakelar "Ingat posisi".
   const tabPengaturan = dok.querySelector('[data-tab="pengaturan"]');
   uji("tab pengaturan tersedia", !!tabPengaturan);
@@ -1103,7 +1179,7 @@ judul("ingat posisi: bisa dimatikan & tidak menyimpan pilihan baru");
   }
 }
 
-judul("skakmat alternatif: skakmat sah di luar solusi diberi pesan khusus");
+judul("skakmat alternatif: skakmat ditolak tanpa baris status");
 {
   // Cari soal yang pada langkah penutupnya punya >1 skakmat, lalu mainkan
   // salah satu yang BUKAN langkah data. Kebijakan penilaian tetap ketat,
@@ -1170,9 +1246,9 @@ judul("skakmat alternatif: skakmat sah di luar solusi diberi pesan khusus");
         }
       }
       uji(
-        `pesan khusus skakmat alternatif muncul (soal #${kandidat.problemid})`,
-        dok.body.textContent.includes(kamus.mateAlternatif),
-        "pesan 'belum tepat' masih ditampilkan"
+        `pesan status skakmat alternatif tidak ditampilkan (soal #${kandidat.problemid})`,
+        !dok.body.textContent.includes(kamus.mateAlternatif),
+        "baris status yang memuat pesan telah dihapus"
       );
       // Skakmat alternatif tetap TIDAK menuntaskan soal (kebijakan tetap ketat).
       const langkahTersisa = sebelum.moves().length;

@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { Chess } from "chess.js";
-import { ExternalLink, Lock, Pause, Play, Video } from "lucide-react";
+import { ExternalLink, Pause, Play } from "lucide-react";
 import { ArrowRightIcon, ChevronStartIcon, ChevronLeftIcon, ChevronRightIcon, ChevronEndIcon } from "../../components/icons.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 import { ChessPiece } from "../../components/chess/ChessPiece.jsx";
@@ -43,20 +43,6 @@ const KUNCI_OTOMATIS = "kci-teka-teki-otomatis";
  */
 const KUNCI_INGAT_POSISI = "kci-teka-teki-ingat-posisi";
 const DURASI_KLIK_SINTETIS = 500;
-/**
- * Peta tipe soal → kunci kamus label singkatnya (ditampilkan di baris status).
- * Kunci lengkap dengan awalan `tekaTeki.` supaya `t()` benar-benar menemukan
- * entrinya — nilai tanpa awalan akan dikembalikan apa adanya oleh fallback
- * kamus, sehingga badge menampilkan "skakmat1" alih-alih "Skakmat dalam 1
- * Langkah".
- */
-const KUNCI_TIPE = {
-  "Mate in One": "tekaTeki.skakmat1",
-  "Mate in Two": "tekaTeki.skakmat2",
-  "Mate in Three": "tekaTeki.skakmat3",
-  "Mate in More": "tekaTeki.skakmatPanjang",
-  Tactical: "tekaTeki.tipeTaktik",
-};
 /**
  * Kunci kamus label level (1–5) sesuai pita rating NACCL — sama dengan pilihan
  * selector Level. Dulu teksnya ditulis mentah sehingga pengguna EN melihat
@@ -1493,10 +1479,6 @@ export default function TekaTeki() {
     if (!komentar || !masalah) return null;
     const giliranSoal = masalah.first === "Black to Move" ? "b" : "w";
     const jumlahLangkahSoal = Math.ceil(langkahPenuh.length / 2);
-    const evalEngine =
-      engineNyala && hasilTertahan && komentar.fen === fen
-        ? { matePutih: hasilTertahan.matePutih ?? null }
-        : null;
     return susunKomentarTekaTeki({
       tahap: komentar.tahap,
       gaya: preferensiKomentator.gaya,
@@ -1509,19 +1491,9 @@ export default function TekaTeki() {
       legal: komentar.legal !== false,
       tema: masalah.tema ? String(masalah.tema).split(/\s+/) : [],
       petunjuk: komentar.petunjuk || null,
-      evalEngine,
       benih: masalah.problemid,
     });
-  }, [komentar, masalah, langkahPenuh.length, sisa.length, sudahPecah, preferensiKomentator.gaya, engineNyala, hasilTertahan, fen]);
-  const ikonKomentar =
-    komentar?.tahap === "selesai"
-      ? "best"
-      : komentar?.tahap === "salah" && komentar.legal !== false
-        ? "blunder"
-        : komentar?.tahap === "benar" || komentar?.tahap === "tinjau"
-          ? "best"
-          : null;
-
+  }, [komentar, masalah, langkahPenuh.length, sisa.length, sudahPecah, preferensiKomentator.gaya]);
   // Papan re-usable untuk ditempatkan di wadah gelap.
   /** Label tema dari kamus — dipakai keadaan memuat DAN keadaan siap supaya
    *  daftar tema tidak sempat tampil dalam bahasa Inggris bawaan
@@ -1768,9 +1740,7 @@ export default function TekaTeki() {
               daftarPelatih={daftarPelatih}
               nilaiPelatih={filterPelatih}
               onGantiPelatih={setFilterPelatih}
-              teksSoal={masalah ? t("tekaTeki.soal", { n: indeks + 1, total: soal.length }) : ""}
               teksTingkat={masalah ? t(KUNCI_LEVEL[bandLevel(masalah.rating ?? 0)]) : ""}
-              teksTipe={masalah ? t(KUNCI_TIPE[masalah.type] || "") : ""}
               eloSoal={masalah ? masalah.rating : 1500}
               namaHitam={masalah ? masalah.pemainHitam : ""}
               eloHitam={masalah ? masalah.eloHitam : 0}
@@ -1780,7 +1750,6 @@ export default function TekaTeki() {
               komentatorNyala={preferensiKomentator.nyala}
               teksTerpecahkan={t("tekaTeki.totalTerpecahkan", { n: terpecahkan.size })}
               teksCekmat={pesan?.jenis === "selesai" ? pesan.teks : ""}
-              teksSudah={!pesan && sudahPecah ? t("tekaTeki.sudahTerpecahkan") : ""}
               daftarSet={DAFTAR_SET}
               nilaiSetBidak={setBidak}
               onGantiSetBidak={setSetBidak}
@@ -1848,12 +1817,9 @@ export default function TekaTeki() {
               onBukaNomor={bukaNomor}
               bisaHint={!selesai && !komputer && !promosi && sisa.length > 0}
               onHint={tampilPetunjuk}
-              teksSalah={pesan?.jenis === "salah" ? pesan.teks : ""}
-              teksPeringatan={pesan?.jenis === "peringatan" ? pesan.teks : ""}
               kartuKomentator={
                 <KartuKomentator
                   segmen={segmenKomentar}
-                  ikon={ikonKomentar}
                   posisiAwal={false}
                   nyala={preferensiKomentator.nyala}
                   setNyala={preferensiKomentator.setNyala}
@@ -1965,7 +1931,7 @@ const OPSI_TEMA_BAWAAN = [
   { grup: "Karakteristik", isi: [["endgame", "Endgame"], ["middlegame", "Middlegame"], ["opening", "Opening"]] },
 ];
 
-function LayoutTekaTeki({ papan = null, barEvaluasi = null, orientasi = "w", tabPanelAktif = "main", onGantiTabPanel = null, onFlip = null, giliran = "putih", jumlahLangkah = 1, bukanSkakmat = false, selesai = false, videoUrl = "", videoPelatih = "", videoJudulSoal = "", videoTurnamen = "", videoTanggal = "", videoGagal = false, catatanLangkah = null, jumlahVariasi = 0, simbolNag = "", memuatKoleksi = false, onPutarVideo = null, onGalatVideo = null, onBukaKoleksiVideo = null, onBukaAnalisa = null, nilaiKoleksi = "lichess", onGantiKoleksi = null, daftarPelatih = [], nilaiPelatih = "semua", onGantiPelatih = null, teksSoal = "", teksTingkat = "", teksTipe = "", teksTerpecahkan = "", teksCekmat = "", teksSudah = "", daftarSet = [], nilaiSetBidak = "merida", onGantiSetBidak = null, pilihanWarnaPapan = [], nilaiWarnaPapan = "green", onGantiWarnaPapan = null, nilaiSuara = true, onGantiSuara = null, onAcak = null, onLewati = null, nilaiOtomatis = false, onGantiOtomatis = null, engineNyala = false, onGantiEngine = null, tampilPanahMesin = true, onGantiPanahMesin = null, teksPanahMesin = "", nilaiLevel = "semua", onGantiLevel = null, nilaiLangkah = "semua", onGantiLangkah = null, nilaiTema = "semua", opsiTema = [], onGantiTema = null, nilaiGiliran = "semua", onGantiGiliran = null, nilaiNomorSoal = "", nilaiTotalSoal = 0, onGantiNomorSoal = null, nilaiIngatPosisi = true, onGantiIngatPosisi = null, teksPosisiTersimpan = "", teksIngatNonaktif = "", teksGalatNomor = "", onBukaNomor = null, bisaHint = false, onHint = null, teksSalah = "", teksPeringatan = "", kartuKomentator = null, kecepatanEngine = 800, opsiKecepatan = [], onGantiKecepatan = null, pvSanEngine = [], onMainkanSaran = null, onKeAwal = null, onMundur = null, onMaju = null, onKeAkhir = null, bisaMundur = false, bisaMaju = false, eloSoal = 1500, namaHitam = "", eloHitam = 0, namaPutih = "", eloPutih = 0, teksPembukaan = "", komentatorNyala = false, memuat = false }) {
+function LayoutTekaTeki({ papan = null, barEvaluasi = null, orientasi = "w", tabPanelAktif = "main", onGantiTabPanel = null, onFlip = null, giliran = "putih", jumlahLangkah = 1, bukanSkakmat = false, selesai = false, videoUrl = "", videoPelatih = "", videoJudulSoal = "", videoTurnamen = "", videoTanggal = "", videoGagal = false, catatanLangkah = null, jumlahVariasi = 0, simbolNag = "", memuatKoleksi = false, onPutarVideo = null, onGalatVideo = null, onBukaKoleksiVideo = null, onBukaAnalisa = null, nilaiKoleksi = "lichess", onGantiKoleksi = null, daftarPelatih = [], nilaiPelatih = "semua", onGantiPelatih = null, teksTingkat = "", teksTerpecahkan = "", teksCekmat = "", daftarSet = [], nilaiSetBidak = "merida", onGantiSetBidak = null, pilihanWarnaPapan = [], nilaiWarnaPapan = "green", onGantiWarnaPapan = null, nilaiSuara = true, onGantiSuara = null, onAcak = null, onLewati = null, nilaiOtomatis = false, onGantiOtomatis = null, engineNyala = false, onGantiEngine = null, tampilPanahMesin = true, onGantiPanahMesin = null, teksPanahMesin = "", nilaiLevel = "semua", onGantiLevel = null, nilaiLangkah = "semua", onGantiLangkah = null, nilaiTema = "semua", opsiTema = [], onGantiTema = null, nilaiGiliran = "semua", onGantiGiliran = null, nilaiNomorSoal = "", nilaiTotalSoal = 0, onGantiNomorSoal = null, nilaiIngatPosisi = true, onGantiIngatPosisi = null, teksPosisiTersimpan = "", teksIngatNonaktif = "", teksGalatNomor = "", onBukaNomor = null, bisaHint = false, onHint = null, kartuKomentator = null, kecepatanEngine = 800, opsiKecepatan = [], onGantiKecepatan = null, pvSanEngine = [], onMainkanSaran = null, onKeAwal = null, onMundur = null, onMaju = null, onKeAkhir = null, bisaMundur = false, bisaMaju = false, eloSoal = 1500, namaHitam = "", eloHitam = 0, namaPutih = "", eloPutih = 0, teksPembukaan = "", komentatorNyala = false, memuat = false }) {
   const { t } = useI18n();
   // Default prop sengaja kosong: teksnya selalu dari kamus.
   const labelPanahMesin = teksPanahMesin || t("papan.enginePanahToggle");
@@ -1973,6 +1939,19 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, orientasi = "w", tab
   const file = ["a", "b", "c", "d", "e", "f", "g", "h"];
   const daftarTema = opsiTema.length ? opsiTema : OPSI_TEMA_BAWAAN;
   const videoUrlAman = urlVideoSah(videoUrl);
+  const videoTerkunci = Boolean(
+    videoUrlAman && !selesai && !memuat && !memuatKoleksi
+  );
+  const [videoSiap, setVideoSiap] = useState(false);
+  useEffect(
+    () => setVideoSiap(false),
+    [videoUrlAman, tabPanelAktif, selesai, memuat, memuatKoleksi]
+  );
+  const tampilkanPlaceholderVideo =
+    !videoSiap && Boolean(videoUrlAman || memuat || memuatKoleksi);
+  const placeholderVideoDiDepan =
+    Boolean(videoUrlAman && selesai && !videoGagal && !memuat && !memuatKoleksi);
+  const kelasLapisanPlaceholder = placeholderVideoDiDepan ? "z-20" : "z-0";
   const videoTanggalAman = tanggalVideoSah(videoTanggal);
   const tautanSumberVideo = videoTanggalAman
     ? `https://www.chess.com/daily-chess-puzzle/${videoTanggalAman}`
@@ -2417,42 +2396,6 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, orientasi = "w", tab
           </div>
           {tabPanelAktif === "main" && (
           <>
-          {/* Nomor soal + status (di bawah teks soal) */}
-          {(teksSoal || teksCekmat || teksSudah || teksSalah || teksPeringatan) && (
-            <div className="flex-shrink-0 px-4 py-2 border-b border-[#312e2b] bg-[#262421] flex flex-col gap-1">
-              <div className="flex flex-wrap items-center gap-x-3">
-                <span className="w-2.5 h-2.5 rounded-full bg-green-500 flex-shrink-0"></span>
-                {teksSoal && <span className="text-[13px] font-bold text-white">{teksSoal}</span>}
-                {teksTipe && (
-                  <span className="rounded bg-[#312e2b] px-1.5 py-0.5 text-[11px] font-semibold text-emerald-300">
-                    {teksTipe}
-                  </span>
-                )}
-                {teksCekmat && <span className="text-[13px] font-bold text-gray-300">{teksCekmat}</span>}
-                {teksSudah && <span className="text-xs font-semibold text-emerald-300">{teksSudah}</span>}
-                {teksSalah && <span className="text-[13px] font-bold text-red-400">{teksSalah}</span>}
-                {teksPeringatan && <span className="text-[13px] font-semibold text-amber-400">{teksPeringatan}</span>}
-              </div>
-            </div>
-          )}
-
-          {/* Baris: giliran */}
-          <div className="flex-shrink-0 px-4 py-2.5 border-b border-[#312e2b] bg-[#1e1c18] flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-wider min-w-0">
-              <div className={`h-3 w-3 rounded-sm flex-shrink-0 ${!memuat && giliran === "putih" ? "bg-white border border-gray-400" : "bg-[#312e2b] border border-gray-600"}`}></div>
-              {/* Saat data belum ada, sisi yang melangkah belum diketahui —
-                  jangan tampilkan "Putih melangkah" yang bisa keliru untuk
-                  soal Black-to-move. */}
-              <span className={!memuat && giliran === "putih" ? "text-white" : "text-gray-300"}>
-                {memuat
-                  ? "—"
-                  : giliran === "putih"
-                    ? t("tekaTeki.giliranPutih")
-                    : t("tekaTeki.giliranHitam")}
-              </span>
-            </div>
-          </div>
-
           {/* Komentator menggantikan nama opening book saat diaktifkan. */}
           {komentatorNyala && kartuKomentator ? (
             <div className="flex-shrink-0 min-w-0 border-b border-[#312e2b] bg-[#1e1c18] px-4 py-2">
@@ -2469,8 +2412,59 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, orientasi = "w", tab
             </div>
           ) : null}
 
+          {/* Ringkasan soal disusun bertingkat seperti piramida. */}
+          <div className="flex-1 min-h-0 flex items-center justify-center px-4 py-4">
+            <div
+              data-testid="main-turn-status"
+              className="flex flex-col items-center gap-2.5 text-center"
+            >
+              <span
+                data-testid="main-turn-icon"
+                data-side={memuat ? undefined : giliran}
+                data-piece={memuat ? undefined : giliran === "putih" ? "P" : "p"}
+                aria-hidden="true"
+                className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-white"
+              >
+                {!memuat && (
+                  <ChessPiece
+                    piece={giliran === "putih" ? "P" : "p"}
+                    set={nilaiSetBidak}
+                    className="h-11 w-11 object-contain"
+                  />
+                )}
+              </span>
+              <span
+                data-testid="main-turn-label"
+                aria-live="polite"
+                className="text-2xl font-semibold text-[#fffaec]"
+              >
+                {memuat
+                  ? "—"
+                  : giliran === "putih"
+                    ? t("tekaTeki.giliranPutih")
+                    : t("tekaTeki.giliranHitam")}
+              </span>
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                {!memuat && teksTingkat && (
+                  <span
+                    data-testid="main-turn-difficulty"
+                    className="rounded-md bg-transparent px-2.5 py-1 text-xs font-semibold text-white"
+                  >
+                    {teksTingkat}
+                  </span>
+                )}
+                <span
+                  data-testid="main-turn-rating"
+                  className="rounded-md bg-[#312e2b] px-2.5 py-1 text-xs font-semibold text-white"
+                >
+                  Elo {memuat ? "—" : eloSoal}
+                </span>
+              </div>
+            </div>
+          </div>
+
           {/* Konten utama panel dipertahankan seperti sebelumnya. */}
-          <div className="flex-1 overflow-y-auto min-h-0 p-4 space-y-3 text-sm">
+          <div className={`${selesai && !memuat && !memuatKoleksi ? "flex-1" : "hidden"} overflow-y-auto min-h-0 p-4 space-y-3 text-sm`}>
             {selesai && !memuat && !memuatKoleksi && (
               <div className="space-y-2.5 pt-1">
                 {(Array.isArray(catatanLangkah) && catatanLangkah.length > 0 || jumlahVariasi > 0 || simbolNag) && (
@@ -2511,122 +2505,152 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, orientasi = "w", tab
           )}
           {tabPanelAktif === "video" && (
             <div role="tabpanel" data-panel="video" className="flex-1 overflow-y-auto min-h-0 p-4 space-y-3 text-sm">
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2 min-w-0">
-                <Video className="size-4 shrink-0 text-[#81b64c]" aria-hidden="true" />
-                <span className="text-xs font-bold text-gray-200 uppercase tracking-wider truncate">
-                  {t("tekaTeki.videoJudul")}
-                </span>
-              </div>
-              {videoPelatih && (
-                <span className="text-xs font-medium text-gray-300 truncate">
-                  {t("tekaTeki.videoOleh", { pelatih: videoPelatih })}
-                </span>
-              )}
-            </div>
-
-            {(videoJudulSoal || videoTurnamen) && (
-              <div className="rounded-md border border-[#312e2b] bg-[#1e1c18] px-3 py-2 space-y-0.5">
-                {videoJudulSoal && (
-                  <p className="text-xs font-semibold text-white truncate" title={videoJudulSoal}>
-                    {videoJudulSoal}
-                  </p>
-                )}
-                {videoTurnamen && (
-                  <p className="text-xs text-gray-400 truncate" title={videoTurnamen}>
-                    {videoTurnamen}
-                  </p>
-                )}
-              </div>
-            )}
-
-            {/* Penguncian antarmuka (UI anti-spoiler): URL MP4 berasal dari
-                dataset publik `data/teka-teki-video.json`, sehingga menunda
-                render `<video>` hingga `selesai === true` bertujuan mencegah
-                bocoran solusi di antarmuka latihan, bukan kontrol akses server. */}
-            {memuat || memuatKoleksi ? (
-              <p className="text-xs font-medium text-gray-400">
-                {t("tekaTeki.videoMemuatKoleksi")}
-              </p>
-            ) : videoUrlAman ? (
-              !selesai ? (
-                <div
-                  data-status-video="terkunci"
-                  className="flex items-start gap-2.5 rounded-md border border-[#312e2b] bg-[#1e1c18] p-3"
-                >
-                  <Lock className="mt-0.5 size-4 shrink-0 text-amber-400" aria-hidden="true" />
-                  <p className="text-xs leading-5 text-gray-300">
-                    {t("tekaTeki.videoTerkunci")}
-                  </p>
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="24" width="24" fill="#e3e3e3" className="size-6 shrink-0" aria-hidden="true">
+                    <path d="M11.5,14.5l7-4.5l-7-4.5v9ZM8,18q-0.82,0-1.41-0.59T6,16V4Q6,3.17 6.59,2.59T8,2H20q0.83,0 1.41,0.59T22,4V16q0,0.82-0.59,1.41T20,18H8Zm0-2H20V4H8V16ZM4,22q-0.82,0-1.41-0.59T2,20V6H4V20H18v2H4ZM8,4V16V4Z"/>
+                  </svg>
+                  <span className="text-xs font-bold text-gray-200 uppercase tracking-wider truncate">
+                    {t("tekaTeki.videoJudul")}
+                  </span>
                 </div>
-              ) : (
-                <div data-status-video="terbuka" className="space-y-2.5">
-                  <p className="text-xs leading-5 text-gray-300">
-                    {t("tekaTeki.videoSiap")}
-                  </p>
-                  {videoGagal ? (
-                    <div className="rounded-md border border-[#312e2b] bg-[#1e1c18] p-3 space-y-2">
-                      <p className="text-xs leading-5 text-gray-300">
-                        {t("tekaTeki.videoGagal")}
-                      </p>
-                      <a
-                        href={tautanSumberVideo}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#a3d168] hover:underline"
-                      >
-                        {t("tekaTeki.videoBukaSumber")}
-                        <ExternalLink className="size-3.5" aria-hidden="true" />
-                      </a>
-                    </div>
-                  ) : (
-                    <video
-                      key={videoUrlAman}
-                      controls
-                      preload="none"
-                      playsInline
-                      src={videoUrlAman}
-                      onPlay={onPutarVideo || undefined}
-                      onError={onGalatVideo || undefined}
-                      className="w-full aspect-square max-h-72 rounded-md border border-[#312e2b] bg-black object-contain select-auto"
-                    />
+                {videoPelatih && (
+                  <span className="text-xs font-medium text-gray-300 truncate">
+                    {t("tekaTeki.videoOleh", { pelatih: videoPelatih })}
+                  </span>
+                )}
+              </div>
+
+              {(videoJudulSoal || videoTurnamen) && (
+                <div className="rounded-md border border-[#312e2b] bg-[#1e1c18] px-3 py-2 space-y-0.5">
+                  {videoJudulSoal && (
+                    <p className="text-xs font-semibold text-white truncate" title={videoJudulSoal}>
+                      {videoJudulSoal}
+                    </p>
                   )}
-                  <div className="flex items-center justify-between gap-2 pt-0.5">
+                  {videoTurnamen && (
+                    <p className="text-xs text-gray-400 truncate" title={videoTurnamen}>
+                      {videoTurnamen}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* Area media terpisah agar GIF tidak bertumpuk dengan judul dan metadata. */}
+              <div
+                data-video-stage="true"
+                className="relative isolate mx-auto flex aspect-square w-full max-w-[288px] items-center justify-center overflow-hidden rounded-lg border border-[#312e2b] bg-[#171614]"
+              >
+                {tampilkanPlaceholderVideo && (
+                  <>
+                    <img
+                      data-video-placeholder="true"
+                      src="/images/ProgramKami/DirrTemplet.gif"
+                      alt=""
+                      aria-hidden="true"
+                      className={`pointer-events-none absolute inset-0 ${kelasLapisanPlaceholder} h-full w-full object-cover ${videoTerkunci ? "opacity-80" : "opacity-35"}`}
+                    />
+                    {!videoTerkunci && (
+                      <div
+                        data-video-placeholder-shade="true"
+                        className={`pointer-events-none absolute inset-0 ${kelasLapisanPlaceholder} bg-black/35`}
+                        aria-hidden="true"
+                      />
+                    )}
+                  </>
+                )}
+
+                {/* Penguncian antarmuka (UI anti-spoiler): URL MP4 berasal dari
+                    dataset publik data/teka-teki-video.json. */}
+                {memuat || memuatKoleksi ? (
+                  <p data-status-video="memuat" className="relative z-10 rounded-md bg-[#1e1c18]/90 px-4 py-3 text-center text-xs font-medium text-gray-200 shadow-lg">
+                    {t("tekaTeki.videoMemuatKoleksi")}
+                  </p>
+                ) : videoUrlAman && !selesai ? (
+                  <div
+                    data-status-video="terkunci"
+                    className="relative z-10 mx-3 flex flex-col items-center gap-3 px-3 py-4 text-center"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" height="60" width="60" fill="#e3e3e3" className="size-[60px] shrink-0" style={{ filter: "drop-shadow(0 2px 5px rgba(0, 0, 0, 0.9))" }} aria-hidden="true">
+                      <path d="M12,20q-1.2-0.95-2.6-1.48T6.5,18q-1.05,0-2.06,0.27T2.5,19.05q-0.52,0.27-1.01-0.03Q1,18.73 1,18.15V6.1Q1,5.82 1.14,5.57Q1.28,5.32 1.55,5.2Q2.7,4.6 3.95,4.3T6.5,4Q7.95 4 9.34 4.38T12 5.5V17.6q1.28-0.8 2.68-1.2T17.5 16q0.9 0 1.76 0.15T21 16.6V4.6q0.38 0.13 0.74 0.26T22.45 5.2q0.27 0.13 0.41 0.38T23 6.1V18.15q0 0.58-0.49 0.88q-0.49 0.3-1.01 0.03q-0.92-0.5-1.94-0.78T17.5 18q-1.5 0-2.9 0.52T12 20Zm2-5V5.5l5-5v10L14 15Zm-4 1.63V6.72Q9.18 6.38 8.29 6.19T6.5 6Q5.58 6 4.7 6.18T3 6.7v9.93q0.88-0.32 1.74-0.48T6.5 16t1.76 0.15T10 16.63Zm0 0V6.72v9.9Z"/>
+                  </svg>
+                    <p
+                      className="max-w-[15rem] text-sm font-semibold leading-6 text-white"
+                      style={{ textShadow: "0 1px 3px rgba(0, 0, 0, 0.95), 0 0 8px rgba(0, 0, 0, 0.8)" }}
+                    >
+                      {t("tekaTeki.videoTerkunci")}
+                    </p>
+                  </div>
+                ) : videoUrlAman && selesai && videoGagal ? (
+                  <div
+                    data-status-video="gagal"
+                    className="relative z-10 mx-3 space-y-2 rounded-md border border-[#49443b] bg-[#1e1c18]/95 p-3 shadow-lg"
+                  >
+                    <p className="text-xs leading-5 text-gray-200">
+                      {t("tekaTeki.videoGagal")}
+                    </p>
                     <a
                       href={tautanSumberVideo}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-gray-200 hover:underline"
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#a3d168] hover:underline"
                     >
-                      {t("tekaTeki.videoSumber")}
-                      <ExternalLink className="size-3" aria-hidden="true" />
+                      {t("tekaTeki.videoBukaSumber")}
+                      <ExternalLink className="size-3.5" aria-hidden="true" />
                     </a>
-                    {videoTanggalAman && (
-                      <span className="font-mono text-xs text-gray-400">{videoTanggalAman}</span>
+                  </div>
+                ) : videoUrlAman && selesai ? (
+                  <video
+                    key={videoUrlAman}
+                    controls
+                    preload="none"
+                    playsInline
+                    src={videoUrlAman}
+                    onPlay={onPutarVideo || undefined}
+                    onCanPlay={() => setVideoSiap(true)}
+                    onError={(event) => {
+                      setVideoSiap(false);
+                      onGalatVideo?.(event);
+                    }}
+                    className="relative z-10 h-full w-full bg-transparent object-contain select-auto"
+                  />
+                ) : (
+                  <div
+                    data-status-video="kosong"
+                    className="relative z-10 mx-3 space-y-3 rounded-md border border-[#49443b] bg-[#1e1c18]/95 p-3 text-center shadow-lg"
+                  >
+                    <p className="text-xs leading-5 text-gray-200">
+                      {t("tekaTeki.videoTidakTersedia")}
+                    </p>
+                    {nilaiKoleksi !== "video" && onBukaKoleksiVideo && (
+                      <button
+                        type="button"
+                        onClick={onBukaKoleksiVideo}
+                        className="w-full rounded-md bg-[#363431] hover:bg-[#45423e] px-3 py-2 text-xs font-semibold text-white transition cursor-pointer"
+                      >
+                        {t("tekaTeki.videoBukaKoleksi")}
+                      </button>
                     )}
                   </div>
-                </div>
-              )
-            ) : (
-              <div
-                data-status-video="kosong"
-                className="rounded-md border border-[#312e2b] bg-[#1e1c18] p-3 space-y-3"
-              >
-                <p className="text-xs leading-5 text-gray-300">
-                  {t("tekaTeki.videoTidakTersedia")}
-                </p>
-                {nilaiKoleksi !== "video" && onBukaKoleksiVideo && (
-                  <button
-                    type="button"
-                    onClick={onBukaKoleksiVideo}
-                    className="w-full rounded-md bg-[#363431] hover:bg-[#45423e] px-3 py-2 text-xs font-semibold text-white transition cursor-pointer"
-                  >
-                    {t("tekaTeki.videoBukaKoleksi")}
-                  </button>
                 )}
               </div>
-            )}
 
+              {videoUrlAman && selesai && !videoGagal && (
+                <div className="mx-auto flex w-full max-w-[288px] items-center justify-between gap-2 pt-0.5">
+                  <a
+                    href={tautanSumberVideo}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-gray-200 hover:underline"
+                  >
+                    {t("tekaTeki.videoSumber")}
+                    <ExternalLink className="size-3" aria-hidden="true" />
+                  </a>
+                  {videoTanggalAman && (
+                    <span className="font-mono text-xs text-gray-400">{videoTanggalAman}</span>
+                  )}
+                </div>
+              )}
             </div>
           )}
 

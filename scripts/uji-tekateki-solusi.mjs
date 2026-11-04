@@ -6,8 +6,7 @@
  * yang menuntut solusi persis (docs/REVIEW-PERBAIKAN-LATIHAN.md A1). Uji ini
  * mengunci perilaku baru: pada posisi langkah terakhir, mate alternatif
  * ditolak (tidak menuntaskan soal), hanya langkah solusi yang menuntaskan
- * soal, dan pesan yang tampil menjelaskan situasinya (`tekaTeki.mateAlternatif`)
- * alih-alih menyebut langkah itu salah.
+ * soal, dan pesan status tidak ditampilkan karena baris status dihapus.
  *
  * Caranya: halaman TekaTeki sungguhan dipasang di jsdom dengan `fetch` palsu
  * yang membaca dari `public/`. Langkah dimainkan lewat klik petak
@@ -388,15 +387,11 @@ await mainkan(soalUji.alternatif.from, soalUji.alternatif.to);
 await tunggu(400);
 uji("mate alternatif tidak mengubah posisi", papanSama(soalUji.fenAkhir));
 /*
- * Sejak audit bagian 6 (A14), penilaian tetap ketat — mate alternatif TIDAK
- * menyelesaikan soal — tetapi pesannya tidak lagi "salah" polos: pemain diberi
- * tahu bahwa langkahnya memang skakmat, hanya bukan langkah yang dinilai data.
+ * Mate alternatif tetap dibedakan secara logika, tetapi pesan statusnya tidak
+ * dirender karena baris status teka-teki sudah dihapus.
  */
-uji("pesan khusus mate alternatif muncul", domSiap.body.textContent.includes(kamus.mateAlternatif));
-uji(
-  "pesan 'belum tepat' tidak muncul untuk mate alternatif",
-  !domSiap.body.textContent.includes(kamus.salah)
-);
+uji("pesan mate alternatif tidak ditampilkan", !domSiap.body.textContent.includes(kamus.mateAlternatif));
+uji("pesan salah tidak ditampilkan", !domSiap.body.textContent.includes(kamus.salah));
 uji("soal belum tercatat terpecahkan", !terpecahkan().includes(soalUji.soal.problemid));
 
 await mainkan(soalUji.solusi.from, soalUji.solusi.to);

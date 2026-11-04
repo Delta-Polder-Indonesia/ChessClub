@@ -30,7 +30,6 @@ import {
  *        Daftar kunci kalimat yang SUDAH disusun pemanggil (mis. halaman
  *        Teka-Teki lewat susunKomentarTekaTeki). Bila diberikan, `fakta` &
  *        opsi engine di bawah diabaikan — kartu hanya menerjemahkan.
- * @param {string|null} [p.ikon]         paksa ikon rating tertentu (mode segmen)
  * @param {object|null} p.fakta          hasil faktaLangkah() untuk langkah terakhir
  * @param {string|null} p.rating         label penilaian (book/best/blunder/…)
  * @param {object|null} p.evalSesudah    { cpPutih, matePutih } posisi saat ini
@@ -49,7 +48,6 @@ import {
  */
 export default function KartuKomentator({
   segmen = null,
-  ikon = null,
   fakta = null,
   rating = null,
   evalSesudah = null,
@@ -111,7 +109,6 @@ export default function KartuKomentator({
     setKunciAnimasi((k) => k + 1);
   }, [teksTampil]);
 
-  const ikonRating = ikon || (rating && rating !== "forced" ? rating : null);
   // Avatar karakter: engine mati → Fritz berkonsentrasi, KECUALI bila ada
   // ekspresi dari skor basis data awan (ekspresiAwan) yang membuat wajah
   // bereaksi seperti mode engine; selama masih di buku pembukaan → ikon buku;
@@ -126,10 +123,7 @@ export default function KartuKomentator({
     fakta,
     ekspresiAwan,
   });
-  // Saat avatar sudah berupa ikon buku, lencana penilaian disembunyikan agar
-  // tidak ada dua ikon buku berdampingan.
   const avatarBuku = gambarAvatar === AVATAR_BUKU;
-  const lencanaRating = avatarBuku ? null : ikonRating;
 
   return (
     <section aria-label={t("papan.komentator.judul")} className={className}>
@@ -208,17 +202,7 @@ export default function KartuKomentator({
               aria-hidden="true"
               className="absolute -left-[5px] top-5 h-2.5 w-2.5 rotate-45 border-b border-l border-[#3b3935] bg-[#262421]"
             />
-            {lencanaRating && !avatarBuku && (
-              <span className="mb-1 inline-block shrink-0" title={t(`analisa.penilaian.${lencanaRating}`)}>
-                <RatingSVG rating={lencanaRating} size={18} />
-              </span>
-            )}
-            <p className="m-0 min-w-0 text-[13px] leading-5 text-gray-200">
-              {teksTampil}
-              {!posisiAwal && engineMenilai && (
-                <span className="ml-1 text-xs italic text-gray-500">{t("papan.komentator.menilai")}</span>
-              )}
-            </p>
+            <p className="m-0 min-w-0 text-[13px] leading-5 text-gray-200">{teksTampil}</p>
           </div>
         </section>
       )}

@@ -364,10 +364,11 @@ const teksKomentator = (wadah) =>
   (wadah.querySelector('section[aria-label="Komentator Papan"] [aria-live]')?.textContent || "")
     .replace(/\s+/g, " ")
     .trim();
+const sapaanKomentator = teksKomentator(wadahHalaman);
 uji(
-  "komentator teka-teki menyapa soal baru (mat dalam 1, Hitam jalan)",
-  /dalam (?:1|satu) langkah/i.test(teksKomentator(wadahHalaman)) &&
-    /Hitam/.test(teksKomentator(wadahHalaman))
+  "komentator teka-teki menyapa soal baru (mat satu, Hitam jalan)",
+  /\b(?:mat\s+(?:dalam\s+)?(?:1|satu)|mate\s+in\s+one)\b/i.test(sapaanKomentator) &&
+    /\bhitam\b/i.test(sapaanKomentator)
 );
 
 /** Klik satu petak (alur klik-pilih → klik-tujuan, sama seperti pengguna). */
