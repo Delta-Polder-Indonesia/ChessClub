@@ -628,6 +628,7 @@ console.log("5) Komentator teka-teki (tahap soal)");
     ["lawan", { fakta: fRxc8, sisa: 1 }],
     ["salah", { fakta: fSalahSkak, sisa: 3 }],
     ["salah", { fakta: fSalahTangkap, sisa: 3 }],
+    ["salah", { fakta: faktaDasar(FEN_SOAL, "Kf1"), sisa: 3 }],
     ["salah", { fakta: faktaDasar(FEN_SOAL, "Kf1"), sisa: 1 }],
     ["salah", { legal: false, fakta: null }],
     ["ilegal", {}],
@@ -635,16 +636,16 @@ console.log("5) Komentator teka-teki (tahap soal)");
     ["selesai", { fakta: fRxd8 }],
     ["selesai", { fakta: fRxd8, tema: ["mate", "short"] }],
     ["tinjau", { fakta: fQc8, nomor: 1 }],
-    ["benar", { fakta: fQc8, sisa: 2, evalEngine: { matePutih: 3 } }],
   ];
   const kunciTT = new Set();
   for (const [tahap, opsi] of skenarioTT) {
     for (const gaya of GAYA_KOMENTATOR) {
       const d = susunKomentarTekaTeki({ tahap, gaya, ...dasar, ...opsi });
-      ok(d.length >= 1 && d.length <= 4, `${tahap}/${gaya}: 1–4 segmen (dapat ${d.length})`);
+      ok(d.length === 1, `${tahap}/${gaya}: tepat satu komentar ringkas (dapat ${d.length})`);
       d.forEach(({ kunci }) => kunciTT.add(kunci));
       for (const t of [tId, tEn]) {
         const teks = render(t, d);
+        ok(teks.length <= 90, `TT komentar terlalu panjang (${tahap}/${gaya}, ${teks.length} karakter): "${teks}"`);
         ok(!polaSisa.test(teks), `TT placeholder tersisa (${tahap}/${gaya}): "${teks}"`);
         ok(!/komentator\./.test(teks), `TT kunci mentah bocor (${tahap}/${gaya}): "${teks}"`);
       }
@@ -669,7 +670,7 @@ console.log("5) Komentator teka-teki (tahap soal)");
     }
   }
   // Placeholder kamus teka-teki harus dikenal.
-  const bolehTT = new Set([...bolehPlaceholder, "n", "sisa", "nomor", "jalan", "dari", "tema"]);
+  const bolehTT = new Set([...bolehPlaceholder, "n", "sisa", "nomor", "san", "jalan", "dari", "tema"]);
   for (const [label, kamus] of [["ID", ID], ["EN", EN]]) {
     for (const gaya of GAYA_KOMENTATOR) {
       const blok = ambil(kamus, `tekaTeki.komentator.${gaya}`);
@@ -696,30 +697,32 @@ console.log("5) Komentator teka-teki (tahap soal)");
   d = susunKomentarTekaTeki({ tahap: "mulai", ...dasar, sudahPecah: true });
   ok(punyaTT(d, "mulaiSudah"), "sudah pernah dipecahkan → disebut");
   d = susunKomentarTekaTeki({ tahap: "benar", ...dasar, fakta: fQc8, sisa: 2 });
-  ok(punyaTT(d, "pengorbanan") && punyaTT(d, "benar"), `benar + pengorbanan: ${d.map((x) => x.kunci.split(".")[3]).join("+")}`);
-  ok(/menteri/.test(render(tId, d)) && /c8/.test(render(tId, d)), `teks pengorbanan menyebut menteri c8: "${render(tId, d)}"`);
+  ok(d.length === 1 && punyaTT(d, "pengorbanan"), `fakta pengorbanan diprioritaskan: ${d.map((x) => x.kunci.split(".")[3]).join("+")}`);
+  ok(/menteri/i.test(render(tId, d)) && /c8/.test(render(tId, d)), `teks pengorbanan menyebut menteri c8: "${render(tId, d)}"`);
   d = susunKomentarTekaTeki({ tahap: "lawan", ...dasar, fakta: fRxc8, sisa: 1 });
   ok(punyaTT(d, "lawanTerakhir"), "balasan lawan sebelum langkah penutup → lawanTerakhir");
   d = susunKomentarTekaTeki({ tahap: "salah", ...dasar, fakta: fSalahSkak, sisa: 3 });
   ok(punyaTT(d, "salahSkak") && /skak/i.test(render(tId, d)), `salah tapi skak → salahSkak: "${render(tId, d)}"`);
-  // Varian pertama salahSkak menyebut jumlah jalan lolos — pastikan terisi angka.
-  ok(/\d+ jalan/.test(tId("tekaTeki.komentator.santai.salahSkak.0", { jalan: "3", lawan: "Hitam" })), "placeholder {jalan} terisi pada varian ber-angka");
+  const dSkakTerakhir = susunKomentarTekaTeki({ tahap: "salah", ...dasar, fakta: fSalahSkak, sisa: 1 });
+  ok(punyaTT(dSkakTerakhir, "salahSkak"), "skak yang gagal di langkah akhir tetap diberi alasan spesifik");
+  // Varian pertama menyebut jumlah balasan legal — pastikan angkanya terisi.
+  ok(/3 balasan legal/.test(tId("tekaTeki.komentator.santai.salahSkak.0", { jalan: "3", lawan: "Hitam" })), "placeholder {jalan} terisi pada varian ber-angka");
   d = susunKomentarTekaTeki({ tahap: "salah", ...dasar, fakta: fSalahTangkap, sisa: 3 });
   ok(punyaTT(d, "salahTangkap") && /kuda/.test(render(tId, d)), `salah karena tergoda makan kuda: "${render(tId, d)}"`);
+  d = susunKomentarTekaTeki({ tahap: "salah", ...dasar, fakta: faktaDasar(FEN_SOAL, "Kf1"), sisa: 3 });
+  ok(punyaTT(d, "salah") && /Kf1/.test(render(tId, d)), `langkah keliru disebut langsung: "${render(tId, d)}"`);
   d = susunKomentarTekaTeki({ tahap: "salah", ...dasar, fakta: faktaDasar(FEN_SOAL, "Kf1"), sisa: 1 });
-  ok(punyaTT(d, "salah") && punyaTT(d, "salahTerakhir"), "salah pada langkah terakhir → pengingat harus mat");
+  ok(d.length === 1 && punyaTT(d, "salahTerakhir") && /Kf1/.test(render(tId, d)), `langkah terakhir salah disebut langsung: "${render(tId, d)}"`);
   d = susunKomentarTekaTeki({ tahap: "salah", ...dasar, legal: false });
   ok(punyaTT(d, "ilegal") && d.length === 1, "tidak legal → hanya kalimat ilegal");
   d = susunKomentarTekaTeki({ tahap: "petunjuk", ...dasar, petunjuk: { from: "c4", to: "c8", bidak: "q" } });
   ok(/menteri/.test(render(tId, d)) && /c4/.test(render(tId, d)), `petunjuk menyebut menteri di c4: "${render(tId, d)}"`);
   d = susunKomentarTekaTeki({ tahap: "selesai", ...dasar, fakta: fRxd8 });
-  ok(punyaTT(d, "selesai") && punyaTT(d, "selesaiTema"), "selesai + tema dikenal");
+  ok(d.length === 1 && punyaTT(d, "selesaiTema"), "selesai + tema dikenal → satu komentar tema");
   ok(/Skakmat punggung/.test(render(tId, d)) && /Back-rank|back rank|Back rank/i.test(render(tEn, d)), `nama tema diterjemahkan: ID "${render(tId, d)}" | EN "${render(tEn, d)}"`);
-  ok(!punyaTT(d, "tangkap"), "kalimat tangkapan tidak ikut pada skakmat (pembuka fakta dilewati saat mat)");
+  ok(!punyaTT(d, "tangkap"), "kalimat tangkapan tidak ikut pada skakmat");
   d = susunKomentarTekaTeki({ tahap: "selesai", ...dasar, fakta: fRxd8, tema: ["mate", "short"] });
-  ok(!punyaTT(d, "selesaiTema"), "tema generik tidak disebut");
-  d = susunKomentarTekaTeki({ tahap: "benar", ...dasar, fakta: fQc8, sisa: 2, evalEngine: { matePutih: 3 } });
-  ok(punyaTT(d, "engineMat") && /3/.test(render(tId, d)), "engine mate → catatan engineMat");
+  ok(punyaTT(d, "selesai") && !punyaTT(d, "selesaiTema"), "tema generik tidak disebut; gunakan komentar selesai");
   d = susunKomentarTekaTeki({ tahap: "tinjau", ...dasar, fakta: fQc8, nomor: 1 });
   ok(punyaTT(d, "tinjau") && /1/.test(render(tId, d)), "tinjau menyebut nomor langkah");
   // Deterministik

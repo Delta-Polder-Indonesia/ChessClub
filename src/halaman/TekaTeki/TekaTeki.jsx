@@ -1479,10 +1479,6 @@ export default function TekaTeki() {
     if (!komentar || !masalah) return null;
     const giliranSoal = masalah.first === "Black to Move" ? "b" : "w";
     const jumlahLangkahSoal = Math.ceil(langkahPenuh.length / 2);
-    const evalEngine =
-      engineNyala && hasilTertahan && komentar.fen === fen
-        ? { matePutih: hasilTertahan.matePutih ?? null }
-        : null;
     return susunKomentarTekaTeki({
       tahap: komentar.tahap,
       gaya: preferensiKomentator.gaya,
@@ -1495,10 +1491,9 @@ export default function TekaTeki() {
       legal: komentar.legal !== false,
       tema: masalah.tema ? String(masalah.tema).split(/\s+/) : [],
       petunjuk: komentar.petunjuk || null,
-      evalEngine,
       benih: masalah.problemid,
     });
-  }, [komentar, masalah, langkahPenuh.length, sisa.length, sudahPecah, preferensiKomentator.gaya, engineNyala, hasilTertahan, fen]);
+  }, [komentar, masalah, langkahPenuh.length, sisa.length, sudahPecah, preferensiKomentator.gaya]);
   const ikonKomentar =
     komentar?.tahap === "selesai"
       ? "best"
