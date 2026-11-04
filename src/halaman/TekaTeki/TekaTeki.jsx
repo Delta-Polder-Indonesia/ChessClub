@@ -2435,14 +2435,14 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, orientasi = "w", tab
                 {!memuat && teksTingkat && (
                   <span
                     data-testid="main-turn-difficulty"
-                    className="rounded-md bg-[#81b64c]/15 px-2.5 py-1 text-xs font-semibold text-[#a3d168]"
+                    className="rounded-md bg-transparent px-2.5 py-1 text-xs font-semibold text-white"
                   >
                     {teksTingkat}
                   </span>
                 )}
                 <span
                   data-testid="main-turn-rating"
-                  className="rounded-md bg-[#312e2b] px-2.5 py-1 text-xs font-semibold text-gray-300"
+                  className="rounded-md bg-[#312e2b] px-2.5 py-1 text-xs font-semibold text-white"
                 >
                   Elo {memuat ? "—" : eloSoal}
                 </span>
