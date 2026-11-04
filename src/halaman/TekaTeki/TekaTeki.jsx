@@ -2400,7 +2400,7 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, orientasi = "w", tab
           ) : null}
 
           {/* Ringkasan soal disusun bertingkat seperti piramida. */}
-          <div className="flex-shrink-0 px-4 py-4">
+          <div className="flex-1 min-h-0 flex items-center justify-center px-4 py-4">
             <div
               data-testid="main-turn-status"
               className="flex flex-col items-center gap-2.5 text-center"
@@ -2451,7 +2451,7 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, orientasi = "w", tab
           </div>
 
           {/* Konten utama panel dipertahankan seperti sebelumnya. */}
-          <div className="flex-1 overflow-y-auto min-h-0 p-4 space-y-3 text-sm">
+          <div className={`${selesai && !memuat && !memuatKoleksi ? "flex-1" : "hidden"} overflow-y-auto min-h-0 p-4 space-y-3 text-sm`}>
             {selesai && !memuat && !memuatKoleksi && (
               <div className="space-y-2.5 pt-1">
                 {(Array.isArray(catatanLangkah) && catatanLangkah.length > 0 || jumlahVariasi > 0 || simbolNag) && (
