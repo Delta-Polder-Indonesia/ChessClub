@@ -2410,13 +2410,7 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, orientasi = "w", tab
                 data-side={memuat ? undefined : giliran}
                 data-piece={memuat ? undefined : giliran === "putih" ? "P" : "p"}
                 aria-hidden="true"
-                className={`flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full ${
-                  memuat
-                    ? "bg-[#312e2b]"
-                    : giliran === "putih"
-                      ? "bg-[#dedcd9]/20"
-                      : "bg-[#dedcd9]/20"
-                }`}
+                className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-[#dedcd9]/20"
               >
                 {!memuat && (
                   <ChessPiece
