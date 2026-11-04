@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { Chess } from "chess.js";
-import { ExternalLink, Lock, Search, Video } from "lucide-react";
+import { ExternalLink, Lock, Pause, Play, Video } from "lucide-react";
 import { ArrowRightIcon, ChevronStartIcon, ChevronLeftIcon, ChevronRightIcon, ChevronEndIcon } from "../../components/icons.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 import { ChessPiece } from "../../components/chess/ChessPiece.jsx";
@@ -306,6 +306,7 @@ export default function TekaTeki() {
   const [langkahAkhir, setLangkahAkhir] = useState(null);
   const [jalurFen, setJalurFen] = useState([]);
   const [orientasi, setOrientasi] = useState("w");
+  const [tabPanelAktif, setTabPanelAktif] = useState("main");
   const [pesan, setPesan] = useState(null);
   /**
    * ID dari URL saat mount: bila bukan angka yang sah (di luar rentang soal)
@@ -337,13 +338,6 @@ export default function TekaTeki() {
   const [warnaPapan, setWarnaPapan] = useState(bacaWarnaPapan);
   const [otomatis, setOtomatis] = useState(bacaOtomatis);
   const [ingatPosisi, setIngatPosisi] = useState(bacaIngatPosisi);
-  /**
-   * Panel pengaturan (gear) hidup di `LayoutTekaTeki`, tetapi nilainya dipegang
-   * halaman: gerbang pintasan keyboard (`blokir`) dan panel harus membaca
-   * state yang sama, kalau tidak panah tetap menggerakkan papan saat panel
-   * terbuka.
-   */
-  const [bukaPengaturan, setBukaPengaturan] = useState(false);
 
   // Suara papan (MP3 di public/SoundChess) — sakelarnya dibagi dengan
   // halaman Papan Interaktif lewat localStorage.
@@ -1344,7 +1338,7 @@ export default function TekaTeki() {
     keAwal: keAwalLangkah,
     keAkhir: keAkhirLangkah,
     adaSoal: !!langkahPenuh?.length,
-    blokir: !!promosi || !!bukaPengaturan,
+    blokir: !!promosi || tabPanelAktif === "pengaturan",
   };
   useEffect(() => {
     let terakhirDitekan = 0;
@@ -1723,8 +1717,9 @@ export default function TekaTeki() {
         <LayoutTekaTeki
               papan={papanWadah}
               barEvaluasi={barEvaluasiWadah}
-              bukaPengaturan={bukaPengaturan}
-              onGantiPengaturan={setBukaPengaturan}
+              orientasi={orientasi}
+              tabPanelAktif={tabPanelAktif}
+              onGantiTabPanel={setTabPanelAktif}
               giliran={(fen && fen.split(" ")[1] === "b") ? "hitam" : "putih"}
               // langkahPenuh menyimpan setengah-langkah (ply), sedangkan label
               // "Skak dalam N langkah" harus menghitung langkah pihak yang
@@ -1773,10 +1768,9 @@ export default function TekaTeki() {
               nilaiSuara={suaraNyala}
               onGantiSuara={setSuaraNyala}
               onAcak={pilihAcak}
-              onPertama={() => pindahSoal(0)}
               onLewati={() => pindahSoal(indeks + 1)}
               nilaiOtomatis={otomatis}
-              onGantiOtomatis={(v) => setOtomatis(v)}
+              onGantiOtomatis={setOtomatis}
               engineNyala={engineNyala}
               onGantiEngine={() => (engineNyala ? matikanEngine() : nyalakanEngine())}
               tampilPanahMesin={tampilPanahMesin}
@@ -1927,13 +1921,6 @@ function KerangkaBilahEvaluasi() {
   );
 }
 
-const TAB = [
-  {
-    kunci: "tekaTeki.tabAtribusi",
-    tautan: "https://delta-polder-indonesia.github.io/BintangToba/index.html",
-  },
-];
-
 /** Validasi runtime URL video MP4 & tanggal harian agar hanya domain CSP sah yang pernah dirender. */
 const POLA_URL_VIDEO_SAH =
   /^https:\/\/(media\.chesscomfiles\.com|chesscom-videos\.s3\.amazonaws\.com)\/[^\s"<>]+\.mp4$/i;
@@ -1956,7 +1943,7 @@ const OPSI_TEMA_BAWAAN = [
   { grup: "Karakteristik", isi: [["endgame", "Endgame"], ["middlegame", "Middlegame"], ["opening", "Opening"]] },
 ];
 
-function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = false, onGantiPengaturan = null, onFlip = null, giliran = "putih", jumlahLangkah = 1, bukanSkakmat = false, selesai = false, videoUrl = "", videoPelatih = "", videoJudulSoal = "", videoTurnamen = "", videoTanggal = "", videoGagal = false, catatanLangkah = null, jumlahVariasi = 0, simbolNag = "", memuatKoleksi = false, onPutarVideo = null, onGalatVideo = null, onBukaKoleksiVideo = null, onBukaAnalisa = null, nilaiKoleksi = "lichess", onGantiKoleksi = null, daftarPelatih = [], nilaiPelatih = "semua", onGantiPelatih = null, teksSoal = "", teksTingkat = "", teksTipe = "", teksTerpecahkan = "", teksCekmat = "", teksSudah = "", daftarSet = [], nilaiSetBidak = "merida", onGantiSetBidak = null, pilihanWarnaPapan = [], nilaiWarnaPapan = "green", onGantiWarnaPapan = null, nilaiSuara = true, onGantiSuara = null, onAcak = null, onLewati = null, nilaiOtomatis = false, onGantiOtomatis = null, engineNyala = false, onGantiEngine = null, tampilPanahMesin = true, onGantiPanahMesin = null, teksPanahMesin = "", nilaiLevel = "semua", onGantiLevel = null, nilaiLangkah = "semua", onGantiLangkah = null, nilaiTema = "semua", opsiTema = [], onGantiTema = null, nilaiGiliran = "semua", onGantiGiliran = null, nilaiNomorSoal = "", nilaiTotalSoal = 0, onGantiNomorSoal = null, nilaiIngatPosisi = true, onGantiIngatPosisi = null, teksPosisiTersimpan = "", teksIngatNonaktif = "", teksGalatNomor = "", onBukaNomor = null, bisaHint = false, onHint = null, teksSalah = "", teksPeringatan = "", kartuKomentator = null, kecepatanEngine = 800, opsiKecepatan = [], onGantiKecepatan = null, pvSanEngine = [], onMainkanSaran = null, onKeAwal = null, onMundur = null, onMaju = null, onKeAkhir = null, bisaMundur = false, bisaMaju = false, onPertama = null, eloSoal = 1500, namaHitam = "", eloHitam = 0, namaPutih = "", eloPutih = 0, teksPembukaan = "", komentatorNyala = false, memuat = false }) {
+function LayoutTekaTeki({ papan = null, barEvaluasi = null, orientasi = "w", tabPanelAktif = "main", onGantiTabPanel = null, onFlip = null, giliran = "putih", jumlahLangkah = 1, bukanSkakmat = false, selesai = false, videoUrl = "", videoPelatih = "", videoJudulSoal = "", videoTurnamen = "", videoTanggal = "", videoGagal = false, catatanLangkah = null, jumlahVariasi = 0, simbolNag = "", memuatKoleksi = false, onPutarVideo = null, onGalatVideo = null, onBukaKoleksiVideo = null, onBukaAnalisa = null, nilaiKoleksi = "lichess", onGantiKoleksi = null, daftarPelatih = [], nilaiPelatih = "semua", onGantiPelatih = null, teksSoal = "", teksTingkat = "", teksTipe = "", teksTerpecahkan = "", teksCekmat = "", teksSudah = "", daftarSet = [], nilaiSetBidak = "merida", onGantiSetBidak = null, pilihanWarnaPapan = [], nilaiWarnaPapan = "green", onGantiWarnaPapan = null, nilaiSuara = true, onGantiSuara = null, onAcak = null, onLewati = null, nilaiOtomatis = false, onGantiOtomatis = null, engineNyala = false, onGantiEngine = null, tampilPanahMesin = true, onGantiPanahMesin = null, teksPanahMesin = "", nilaiLevel = "semua", onGantiLevel = null, nilaiLangkah = "semua", onGantiLangkah = null, nilaiTema = "semua", opsiTema = [], onGantiTema = null, nilaiGiliran = "semua", onGantiGiliran = null, nilaiNomorSoal = "", nilaiTotalSoal = 0, onGantiNomorSoal = null, nilaiIngatPosisi = true, onGantiIngatPosisi = null, teksPosisiTersimpan = "", teksIngatNonaktif = "", teksGalatNomor = "", onBukaNomor = null, bisaHint = false, onHint = null, teksSalah = "", teksPeringatan = "", kartuKomentator = null, kecepatanEngine = 800, opsiKecepatan = [], onGantiKecepatan = null, pvSanEngine = [], onMainkanSaran = null, onKeAwal = null, onMundur = null, onMaju = null, onKeAkhir = null, bisaMundur = false, bisaMaju = false, eloSoal = 1500, namaHitam = "", eloHitam = 0, namaPutih = "", eloPutih = 0, teksPembukaan = "", komentatorNyala = false, memuat = false }) {
   const { t } = useI18n();
   // Default prop sengaja kosong: teksnya selalu dari kamus.
   const labelPanahMesin = teksPanahMesin || t("papan.enginePanahToggle");
@@ -1968,17 +1955,6 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
   const tautanSumberVideo = videoTanggalAman
     ? `https://www.chess.com/daily-chess-puzzle/${videoTanggalAman}`
     : "https://www.chess.com/daily-chess-puzzle";
-
-  // Pengaturan (gear): state-nya milik halaman (lihat `bukaPengaturan` di
-  // komponen halaman) supaya pintasan panah ikut terkunci saat panel terbuka.
-  useEffect(() => {
-    if (!bukaPengaturan || !onGantiPengaturan) return;
-    const saatEscape = (e) => {
-      if (e.key === "Escape") onGantiPengaturan(false);
-    };
-    window.addEventListener("keydown", saatEscape);
-    return () => window.removeEventListener("keydown", saatEscape);
-  }, [bukaPengaturan, onGantiPengaturan]);
 
   return (
     <div className="flex flex-col min-h-screen lg:h-screen overflow-hidden bg-[#262421] text-gray-200 font-sans select-none">
@@ -2172,13 +2148,14 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
         {/* AREA UTAMA: PAPAN + BAR EVALUASI                       */}
         {/* ═══════════════════════════════════════════════════════ */}
         <main className="flex-1 flex items-stretch justify-center p-6 bg-[#262421] min-w-0 overflow-hidden">
-          <div className="flex flex-row items-stretch gap-3 w-full max-w-[720px] lg:max-w-[calc(100vh_-_72px)] lg:translate-x-4 min-h-0">
+          {/* Sisakan ruang untuk padding dan dua profil; offset menyeimbangkan bilah evaluasi. */}
+          <div className="flex flex-row items-stretch gap-3 w-full max-w-[720px] lg:max-w-[calc(100vh_-_106px)] lg:-translate-x-5 min-h-0">
 
             {/* Kolom kiri setinggi panel: profil atas → papan → profil bawah */}
             <div className="flex-1 flex min-h-0 min-w-0 flex-col justify-between">
 
               {/* ─── PROFIL PEMAIN HITAM (ATAS) ─── */}
-              <div className="flex flex-row justify-between items-center pl-[44px] pr-1">
+              <div className={`relative z-10 flex flex-row justify-between items-center pl-[44px] pr-1 flex-shrink-0 ${orientasi === "w" ? "order-1" : "order-3"}`}>
                 <div className="flex flex-row items-center gap-3 min-w-0 flex-1">
                   {/* Avatar Hitam */}
                   <div className="h-10 w-10 flex-shrink-0 flex flex-row justify-center items-end bg-[#474542] rounded-md shadow-md">
@@ -2228,7 +2205,7 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
               </div>
 
               {/* ─── TENGAH: BAR EVALUASI + PAPAN (mengisi sisa tinggi) ─── */}
-              <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-2">
+              <div className="order-2 flex min-h-0 flex-1 flex-col items-center justify-center gap-2">
               <div className="flex w-full flex-row items-stretch gap-2">
                 {/* Bar Evaluasi */}
                 {barEvaluasi ? (
@@ -2258,7 +2235,7 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
                 )}
 
                 {/* Papan Catur */}
-                <div className="flex-1 aspect-square shadow-2xl rounded-md overflow-hidden relative">
+                <div className="relative aspect-square max-h-full max-w-full min-h-0 min-w-0 flex-1 shadow-2xl rounded-md overflow-hidden">
                   {papan ? (
                     papan
                   ) : memuat ? (
@@ -2336,7 +2313,7 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
               </div>
 
               {/* ─── PROFIL PEMAIN PUTIH (BAWAH) ─── */}
-              <div className="flex flex-row justify-between items-center pl-[44px] pr-1">
+              <div className={`relative z-10 flex flex-row justify-between items-center pl-[44px] pr-1 flex-shrink-0 ${orientasi === "w" ? "order-3" : "order-1"}`}>
                 <div className="flex flex-row items-center gap-3 min-w-0 flex-1">
                   {/* Avatar Putih */}
                   <div className="h-10 w-10 flex-shrink-0 flex flex-row justify-center items-end bg-[#dbd9d6] rounded-md shadow-md">
@@ -2378,213 +2355,6 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
               </div>
             </div>
 
-            {/* Kolom kanan: tombol kontrol papan (posisi asli di atas) */}
-            <div className="flex flex-col items-center gap-2 pt-14">
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() =>
-                    onGantiPengaturan && onGantiPengaturan(!bukaPengaturan)
-                  }
-                  aria-expanded={bukaPengaturan}
-                  className={`p-2 rounded-md transition ${
-                    bukaPengaturan
-                      ? "text-white bg-[#312e2b]"
-                      : "text-gray-300 hover:text-white hover:bg-[#312e2b]"
-                  }`}
-                  aria-label={t("tekaTeki.pengaturan")}
-                  title={t("tekaTeki.pengaturan")}
-                >
-                  <svg className="w-5 h-5" viewBox="0 0 512 512" fill="currentColor">
-                    <path d="M502.325,307.303l-39.006-30.805c-6.215-4.908-9.665-12.429-9.668-20.348c0-0.084,0-0.168,0-0.252
-                      c-0.014-7.936,3.44-15.478,9.667-20.396l39.007-30.806c8.933-7.055,12.093-19.185,7.737-29.701l-17.134-41.366
-                      c-4.356-10.516-15.167-16.86-26.472-15.532l-49.366,5.8c-7.881,0.926-15.656-1.966-21.258-7.586
-                      c-0.059-0.06-0.118-0.119-0.177-0.178c-5.597-5.602-8.476-13.36-7.552-21.225l5.799-49.363
-                      c1.328-11.305-5.015-22.116-15.531-26.472L337.004,1.939c-10.516-4.356-22.646-1.196-29.701,7.736l-30.805,39.005
-                      c-4.908,6.215-12.43,9.665-20.349,9.668c-0.084,0-0.168,0-0.252,0c-7.935,0.014-15.477-3.44-20.395-9.667L204.697,9.675
-                      c-7.055-8.933-19.185-12.092-29.702-7.736L133.63,19.072c-10.516,4.356-16.86,15.167-15.532,26.473l5.799,49.366
-                      c0.926,7.881-1.964,15.656-7.585,21.257c-0.059,0.059-0.118,0.118-0.178,0.178c-5.602,5.598-13.36,8.477-21.226,7.552
-                      l-49.363-5.799c-11.305-1.328-22.116,5.015-26.472,15.531L1.939,174.996c-4.356,10.516-1.196,22.646,7.736,29.701l39.006,30.805
-                      c6.215,4.908,9.665,12.429,9.668,20.348c0,0.084,0,0.167,0,0.251c0.014,7.935-3.44,15.477-9.667,20.395L9.675,307.303
-                      c-8.933,7.055-12.092,19.185-7.736,29.701l17.134,41.365c4.356,10.516,15.168,16.86,26.472,15.532l49.366-5.799
-                      c7.882-0.926,15.656,1.965,21.258,7.586c0.059,0.059,0.118,0.119,0.178,0.178c5.597,5.603,8.476,13.36,7.552,21.226l-5.799,49.364
-                      c-1.328,11.305,5.015,22.116,15.532,26.472l41.366,17.134c10.516,4.356,22.646,1.196,29.701-7.736l30.804-39.005
-                      c4.908-6.215,12.43-9.665,20.348-9.669c0.084,0,0.168,0,0.251,0c7.936-0.014,15.478,3.44,20.396,9.667l30.806,39.007
-                      c7.055,8.933,19.185,12.093,29.701,7.736l41.366-17.134c10.516-4.356,16.86-15.168,15.532-26.472l-5.8-49.366
-                      c-0.926-7.881,1.965-15.656,7.586-21.257c0.059-0.059,0.119-0.119,0.178-0.178c5.602-5.597,13.36-8.476,21.225-7.552l49.364,5.799
-                      c11.305,1.328,22.117-5.015,26.472-15.531l17.134-41.365C514.418,326.488,511.258,314.358,502.325,307.303z M281.292,329.698
-                      c-39.68,16.436-85.172-2.407-101.607-42.087c-16.436-39.68,2.407-85.171,42.087-101.608c39.68-16.436,85.172,2.407,101.608,42.088
-                      C339.815,267.771,320.972,313.262,281.292,329.698z" />
-                  </svg>
-                </button>
-
-                {bukaPengaturan && (
-                  <>
-                    <div
-                      aria-hidden="true"
-                      className="fixed inset-0 z-40"
-                      onClick={() => onGantiPengaturan && onGantiPengaturan(false)}
-                    />
-                    <div
-                      role="dialog"
-                      aria-modal="false"
-                      aria-label={t("tekaTeki.pengaturan")}
-                      className="absolute right-full top-0 z-50 mr-3 w-64 max-w-[90vw] rounded-lg border border-[#312e2b] bg-[#1e1c18] p-4 shadow-xl ring-1 ring-black/50"
-                    >
-                      <p className="mb-3 text-sm font-bold text-white">
-                        {t("tekaTeki.pengaturan")}
-                      </p>
-                      <div className="flex flex-col gap-3">
-                        {daftarSet.length > 0 && onGantiSetBidak && (
-                          <div className="flex items-center justify-between gap-3">
-                            <label
-                              htmlFor="sampel-pilih-set-bidak"
-                              className="text-xs font-semibold text-gray-400"
-                            >
-                              {t("papan.setBidak")}
-                            </label>
-                            <select
-                              id="sampel-pilih-set-bidak"
-                              value={nilaiSetBidak}
-                              onChange={(e) => onGantiSetBidak(e.target.value)}
-                              className="w-32 shrink-0 rounded-md border border-[#363431] bg-[#262421] px-2 py-1.5 text-sm text-gray-200 outline-none transition focus:border-[#81b64c] focus:ring-2 focus:ring-[#81b64c]/20"
-                            >
-                              {daftarSet.map((s) => (
-                                <option key={s.id} value={s.id}>
-                                  {s.nama}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                        )}
-                        {onGantiSuara && (
-                          <label className="flex cursor-pointer items-center justify-between gap-3">
-                            <span className="text-xs font-semibold text-gray-400">
-                              {t("papan.suara")}
-                            </span>
-                            <input
-                              type="checkbox"
-                              checked={nilaiSuara}
-                              onChange={(e) => onGantiSuara(e.target.checked)}
-                              className="h-4 w-4 accent-[#81b64c]"
-                            />
-                          </label>
-                        )}
-                        {onGantiPanahMesin && (
-                          <label className="flex cursor-pointer items-center justify-between gap-3">
-                            <span className="text-xs font-semibold text-gray-400">
-                              {labelPanahMesin}
-                            </span>
-                            <input
-                              type="checkbox"
-                              checked={tampilPanahMesin}
-                              onChange={(e) => onGantiPanahMesin(e.target.checked)}
-                              aria-label={labelPanahMesin}
-                              className="h-4 w-4 accent-[#81b64c]"
-                            />
-                          </label>
-                        )}
-                        {onGantiIngatPosisi && (
-                          <div className="grid gap-1">
-                            <label className="flex cursor-pointer items-center justify-between gap-3">
-                              <span className="text-xs font-semibold text-gray-400">
-                                {t("tekaTeki.ingatPosisi")}
-                              </span>
-                              <input
-                                type="checkbox"
-                                checked={nilaiIngatPosisi}
-                                onChange={(e) => onGantiIngatPosisi(e.target.checked)}
-                                className="h-4 w-4 accent-[#81b64c]"
-                              />
-                            </label>
-                            {(teksPosisiTersimpan || teksIngatNonaktif) && (
-                              <p className="text-[11px] text-gray-500">
-                                {teksPosisiTersimpan || teksIngatNonaktif}
-                              </p>
-                            )}
-                          </div>
-                        )}
-                        {kartuKomentator && (
-                          <div className="border-t border-[#312e2b] pt-3">
-                            {kartuKomentator}
-                          </div>
-                        )}
-                        {pilihanWarnaPapan.length > 0 && onGantiWarnaPapan && (
-                          <div className="flex items-center justify-between gap-3">
-                            <label
-                              htmlFor="sampel-warna-papan"
-                              className="text-xs font-semibold text-gray-400"
-                            >
-                              {t("papan.warnaPapan")}
-                            </label>
-                            <select
-                              id="sampel-warna-papan"
-                              value={nilaiWarnaPapan}
-                              onChange={(e) => onGantiWarnaPapan(e.target.value)}
-                              className="w-32 shrink-0 rounded-md border border-[#363431] bg-[#262421] px-2 py-1.5 text-sm text-gray-200 outline-none transition focus:border-[#81b64c] focus:ring-2 focus:ring-[#81b64c]/20"
-                            >
-                              {pilihanWarnaPapan.map(([nilai, label]) => (
-                                <option key={nilai} value={nilai}>
-                                  {label}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
-
-              {onGantiSuara && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    // Bunyikan saat dinyalakan supaya terdengar contohnya.
-                    if (!nilaiSuara) mainkanSuara(SUARA.tesSuara);
-                    onGantiSuara(!nilaiSuara);
-                  }}
-                  aria-pressed={nilaiSuara}
-                  className={`p-2 rounded-md transition ${
-                    nilaiSuara
-                      ? "text-gray-300 hover:text-white hover:bg-[#312e2b]"
-                      : "text-[#b33430] hover:bg-[#312e2b]"
-                  }`}
-                  aria-label={nilaiSuara ? t("tekaTeki.suaraMatikan") : t("tekaTeki.suaraHidupkan")}
-                  title={nilaiSuara ? t("tekaTeki.suaraMatikan") : t("tekaTeki.suaraHidupkan")}
-                >
-                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M11 5 6 9H2v6h4l5 4z" />
-                    {nilaiSuara ? (
-                      <>
-                        <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
-                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
-                      </>
-                    ) : (
-                      <>
-                        <line x1="22" y1="9" x2="16" y2="15" />
-                        <line x1="16" y1="9" x2="22" y2="15" />
-                      </>
-                    )}
-                  </svg>
-                </button>
-              )}
-
-              <button
-                type="button"
-                onClick={onFlip}
-                className="p-2 rounded-md text-gray-300 hover:text-white hover:bg-[#312e2b] transition"
-                aria-label={t("tekaTeki.balikPapan")}
-                title={t("tekaTeki.balikPapan")}
-              >
-                <svg className="w-5 h-5" viewBox="0 0 120 120" fill="currentColor">
-                  <path d="M 21.475246,117.78677 H 73.154894 L 56.373294,98.524495 H 40.73752 V 35.922099 H 59.999794 L 31.106383,2.2131167 2.2129751,35.922099 H 21.475246 Z" />
-                  <path d="m 98.524909,2.2132354 -51.679643,0 16.781593,19.2622766 15.635776,0 V 84.077908 H 60.00036 L 88.893772,117.78689 117.78718,84.077908 H 98.524909 Z" />
-                </svg>
-              </button>
-
-            </div>
           </div>
         </main>
 
@@ -2592,32 +2362,39 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
         {/* PANEL KANAN                                            */}
         {/* ═══════════════════════════════════════════════════════ */}
         <aside className="w-full lg:w-[480px] h-full bg-[#211f1c] border-t lg:border-t-0 lg:border-l border-[#312e2b] flex flex-col flex-shrink-0 min-h-0">
-          {/* Tabs */}
-          <div className="flex-shrink-0 flex border-b border-[#312e2b] bg-[#1e1c18]">
-            {TAB.map((tab) =>
-              tab.tautan ? (
-                <a
-                  key={tab.kunci}
-                  href={tab.tautan}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  title={t(tab.kunci)}
-                  className="flex-1 px-2 py-3.5 flex items-center justify-center gap-2 text-center text-xs font-bold uppercase tracking-wider transition border-b-2 border-[#81b64c] text-white bg-[#262421] hover:bg-[#2c2926] hover:underline cursor-pointer"
-                >
-                  {t(tab.kunci)}
-                </a>
-              ) : (
+          {/* Tab panel kanan — pola visual mengikuti Teka-teki Harian. */}
+          <div
+            role="tablist"
+            aria-label="Panel teka-teki"
+            className="grid grid-cols-3 gap-1 rounded-lg border border-[#312e2b] bg-[#262421] p-1 m-3 mb-0"
+          >
+            {[
+              ["main", "Main"],
+              ["video", "Video"],
+              ["pengaturan", t("tekaTeki.pengaturan")],
+            ].map(([kunci, label]) => {
+              const aktif = tabPanelAktif === kunci;
+              return (
                 <button
-                  key={tab.kunci}
+                  key={kunci}
                   type="button"
-                  className="flex-1 py-3.5 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-wider transition border-b-2 border-[#81b64c] text-white bg-[#262421]"
+                  role="tab"
+                  aria-selected={aktif}
+                  data-tab={kunci}
+                  onClick={() => onGantiTabPanel?.(kunci)}
+                  className={`rounded-md px-2 py-1.5 text-xs font-bold transition ${
+                    aktif
+                      ? "bg-[#3d3a37] text-white shadow-sm"
+                      : "text-gray-400 hover:text-gray-200"
+                  }`}
                 >
-                  {t(tab.kunci)}
+                  {label}
                 </button>
-              )
-            )}
+              );
+            })}
           </div>
-
+          {tabPanelAktif === "main" && (
+          <>
           {/* Nomor soal + status (di bawah teks soal) */}
           {(teksSoal || teksCekmat || teksSudah || teksSalah || teksPeringatan) && (
             <div className="flex-shrink-0 px-4 py-2 border-b border-[#312e2b] bg-[#262421] flex flex-col gap-1">
@@ -2670,8 +2447,48 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
             </div>
           ) : null}
 
-          {/* Panel Video Pembahasan */}
+          {/* Konten utama panel dipertahankan seperti sebelumnya. */}
           <div className="flex-1 overflow-y-auto min-h-0 p-4 space-y-3 text-sm">
+            {selesai && !memuat && !memuatKoleksi && (
+              <div className="space-y-2.5 pt-1">
+                {(Array.isArray(catatanLangkah) && catatanLangkah.length > 0 || jumlahVariasi > 0 || simbolNag) && (
+                  <div
+                    data-catatan-pgn="ada"
+                    className="rounded-md border border-[#312e2b] bg-[#1e1c18] p-3 space-y-1.5"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-300">
+                        {t("tekaTeki.catatanPelatihJudul")}
+                      </span>
+                      {simbolNag && (
+                        <span className="rounded bg-[#81b64c]/20 px-1.5 py-0.5 font-mono text-[11px] font-bold text-[#a3d168]">
+                          {simbolNag}
+                        </span>
+                      )}
+                    </div>
+                    {Array.isArray(catatanLangkah) &&
+                      catatanLangkah.map((teks, idxCatatan) => (
+                        <p key={idxCatatan} className="text-xs leading-5 text-gray-300">
+                          {teks}
+                        </p>
+                      ))}
+                    {jumlahVariasi > 0 && (
+                      <p className="text-xs text-gray-400">
+                        {t("tekaTeki.variasiCabang", { n: jumlahVariasi })}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+
+              </div>
+            )}
+          </div>
+
+          </>
+          )}
+          {tabPanelAktif === "video" && (
+            <div role="tabpanel" data-panel="video" className="flex-1 overflow-y-auto min-h-0 p-4 space-y-3 text-sm">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 min-w-0">
                 <Video className="size-4 shrink-0 text-[#81b64c]" aria-hidden="true" />
@@ -2788,51 +2605,135 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
               </div>
             )}
 
-            {selesai && !memuat && !memuatKoleksi && (
-              <div className="space-y-2.5 pt-1">
-                {(Array.isArray(catatanLangkah) && catatanLangkah.length > 0 || jumlahVariasi > 0 || simbolNag) && (
-                  <div
-                    data-catatan-pgn="ada"
-                    className="rounded-md border border-[#312e2b] bg-[#1e1c18] p-3 space-y-1.5"
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-300">
-                        {t("tekaTeki.catatanPelatihJudul")}
-                      </span>
-                      {simbolNag && (
-                        <span className="rounded bg-[#81b64c]/20 px-1.5 py-0.5 font-mono text-[11px] font-bold text-[#a3d168]">
-                          {simbolNag}
-                        </span>
-                      )}
-                    </div>
-                    {Array.isArray(catatanLangkah) &&
-                      catatanLangkah.map((teks, idxCatatan) => (
-                        <p key={idxCatatan} className="text-xs leading-5 text-gray-300">
-                          {teks}
-                        </p>
-                      ))}
-                    {jumlahVariasi > 0 && (
-                      <p className="text-xs text-gray-400">
-                        {t("tekaTeki.variasiCabang", { n: jumlahVariasi })}
-                      </p>
-                    )}
-                  </div>
-                )}
+            </div>
+          )}
 
-                {onBukaAnalisa && (
-                  <button
-                    type="button"
-                    data-aksi="buka-analisa"
-                    onClick={onBukaAnalisa}
-                    className="w-full inline-flex items-center justify-center gap-2 rounded-md border border-[#81b64c]/50 bg-[#81b64c]/15 hover:bg-[#81b64c]/25 px-3 py-2 text-xs font-semibold text-[#b8dc8e] transition cursor-pointer"
-                  >
-                    <Search className="size-3.5 shrink-0" aria-hidden="true" />
-                    {t("tekaTeki.bukaPapanAnalisa")}
-                  </button>
-                )}
+          {tabPanelAktif === "pengaturan" && (
+            <div
+              role="tabpanel"
+              data-panel="pengaturan"
+              className="flex-1 overflow-y-auto min-h-0 p-4"
+            >
+              <p className="mb-3 text-sm font-bold text-white">
+                {t("tekaTeki.pengaturan")}
+              </p>
+              <div className="flex flex-col gap-3">
+                        <div className="flex flex-col gap-3">
+                          {daftarSet.length > 0 && onGantiSetBidak && (
+                            <div className="flex items-center justify-between gap-3">
+                              <label
+                                htmlFor="sampel-pilih-set-bidak"
+                                className="text-xs font-semibold text-gray-400"
+                              >
+                                {t("papan.setBidak")}
+                              </label>
+                              <select
+                                id="sampel-pilih-set-bidak"
+                                value={nilaiSetBidak}
+                                onChange={(e) => onGantiSetBidak(e.target.value)}
+                                className="w-32 shrink-0 rounded-md border border-[#363431] bg-[#262421] px-2 py-1.5 text-sm text-gray-200 outline-none transition focus:border-[#81b64c] focus:ring-2 focus:ring-[#81b64c]/20"
+                              >
+                                {daftarSet.map((s) => (
+                                  <option key={s.id} value={s.id}>
+                                    {s.nama}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          )}
+                          {onGantiSuara && (
+                            <label className="flex cursor-pointer items-center justify-between gap-3">
+                              <span className="text-xs font-semibold text-gray-400">
+                                {t("papan.suara")}
+                              </span>
+                              <input
+                                type="checkbox"
+                                checked={nilaiSuara}
+                                onChange={(e) => onGantiSuara(e.target.checked)}
+                                className="h-4 w-4 accent-[#81b64c]"
+                              />
+                            </label>
+                          )}
+                          {onGantiEngine && (
+                            <label className="flex cursor-pointer items-center justify-between gap-3">
+                              <span className="text-xs font-semibold text-gray-400">
+                                {t("papan.engine")}
+                              </span>
+                              <input
+                                type="checkbox"
+                                data-aksi="toggle-engine"
+                                checked={engineNyala}
+                                onChange={() => onGantiEngine()}
+                                className="h-4 w-4 accent-[#81b64c]"
+                              />
+                            </label>
+                          )}
+                          {onGantiPanahMesin && (
+                            <label className="flex cursor-pointer items-center justify-between gap-3">
+                              <span className="text-xs font-semibold text-gray-400">
+                                {labelPanahMesin}
+                              </span>
+                              <input
+                                type="checkbox"
+                                checked={tampilPanahMesin}
+                                onChange={(e) => onGantiPanahMesin(e.target.checked)}
+                                aria-label={labelPanahMesin}
+                                className="h-4 w-4 accent-[#81b64c]"
+                              />
+                            </label>
+                          )}
+                          {onGantiIngatPosisi && (
+                            <div className="grid gap-1">
+                              <label className="flex cursor-pointer items-center justify-between gap-3">
+                                <span className="text-xs font-semibold text-gray-400">
+                                  {t("tekaTeki.ingatPosisi")}
+                                </span>
+                                <input
+                                  type="checkbox"
+                                  checked={nilaiIngatPosisi}
+                                  onChange={(e) => onGantiIngatPosisi(e.target.checked)}
+                                  className="h-4 w-4 accent-[#81b64c]"
+                                />
+                              </label>
+                              {(teksPosisiTersimpan || teksIngatNonaktif) && (
+                                <p className="text-[11px] text-gray-500">
+                                  {teksPosisiTersimpan || teksIngatNonaktif}
+                                </p>
+                              )}
+                            </div>
+                          )}
+                          {kartuKomentator && (
+                            <div className="border-t border-[#312e2b] pt-3">
+                              {kartuKomentator}
+                            </div>
+                          )}
+                          {pilihanWarnaPapan.length > 0 && onGantiWarnaPapan && (
+                            <div className="flex items-center justify-between gap-3">
+                              <label
+                                htmlFor="sampel-warna-papan"
+                                className="text-xs font-semibold text-gray-400"
+                              >
+                                {t("papan.warnaPapan")}
+                              </label>
+                              <select
+                                id="sampel-warna-papan"
+                                value={nilaiWarnaPapan}
+                                onChange={(e) => onGantiWarnaPapan(e.target.value)}
+                                className="w-32 shrink-0 rounded-md border border-[#363431] bg-[#262421] px-2 py-1.5 text-sm text-gray-200 outline-none transition focus:border-[#81b64c] focus:ring-2 focus:ring-[#81b64c]/20"
+                              >
+                                {pilihanWarnaPapan.map(([nilai, label]) => (
+                                  <option key={nilai} value={nilai}>
+                                    {label}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          )}
+                        </div>
+  
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
           {engineNyala && (
             <div className="flex-shrink-0 border-b border-[#312e2b] bg-[#1e1c18] px-3 py-2 space-y-2">
@@ -2908,57 +2809,97 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
             </div>
 
             {/* Action buttons */}
-            <div className="grid grid-cols-5 gap-2 text-xs font-semibold text-gray-400">
+            <div className="grid grid-cols-6 gap-2 text-xs font-semibold text-gray-400">
               <button
                 type="button"
-                onClick={onPertama}
-                title={t("tekaTeki.soalPertama")}
-                aria-label={t("tekaTeki.soalPertama")}
+                onClick={onFlip}
+                title={t("tekaTeki.balikPapan")}
+                aria-label={t("tekaTeki.balikPapan")}
                 className="flex flex-col items-center gap-1.5 p-2.5 bg-[#262421] hover:bg-[#312e2b] hover:text-white rounded-lg transition border border-[#312e2b] cursor-pointer"
               >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
+                  <path d="M12,22q-3.57,0-6.32-2.25T2.2,14H4.25q0.7,2.65 2.85,4.32T12,20q2.15,0 4-1.06T18.9,16H16V14h6v6H20V18q-1.43,1.9-3.52,2.95T12,22ZM9.88,14.13Q9,13.25 9,12T9.88,9.88T12,9t2.13,0.88T15,12t-0.88,2.13T12,15T9.88,14.13ZM2,10V4H4V6Q5.43,4.1 7.53,3.05T12,2q3.58,0 6.32,2.25Q21.08,6.5 21.8,10H19.75q-0.7-2.65-2.85-4.32T12,4Q9.85,4 8,5.06T5.1,8H8v2H2Z" />
+                </svg>
+                <span>Balik</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!onGantiSuara) return;
+                  if (!nilaiSuara) mainkanSuara(SUARA.tesSuara);
+                  onGantiSuara(!nilaiSuara);
+                }}
+                aria-pressed={nilaiSuara}
+                aria-label={nilaiSuara ? t("tekaTeki.suaraMatikan") : t("tekaTeki.suaraHidupkan")}
+                title={nilaiSuara ? t("tekaTeki.suaraMatikan") : t("tekaTeki.suaraHidupkan")}
+                className={`flex flex-col items-center gap-1.5 p-2.5 bg-[#262421] hover:bg-[#312e2b] rounded-lg transition border border-[#312e2b] cursor-pointer ${nilaiSuara ? "text-white" : "text-[#b33430]"}`}
+              >
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 5v14M5 12h14" />
-                </svg>
-                <span>{t("tekaTeki.baru")}</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => onGantiEngine && onGantiEngine()}
-                aria-pressed={engineNyala}
-                aria-label={t("papan.engine")}
-                title={t("papan.engine")}
-                className="flex flex-col items-center gap-1.5 p-2.5 bg-[#262421] hover:bg-[#312e2b] rounded-lg transition border border-[#312e2b] cursor-pointer"
-              >
-                <svg className="w-5 h-5 text-gray-400" viewBox="0 0 24 24" fill="currentColor" stroke="none">
-                  {engineNyala ? (
-                    <path d="M6 5h4v14H6zM14 5h4v14h-4z" />
+                  <path d="M11 5 6 9H2v6h4l5 4z" />
+                  {nilaiSuara ? (
+                    <>
+                      <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+                      <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+                    </>
                   ) : (
-                    <path d="M8 5.5v13l11-6.5-11-6.5z" />
+                    <>
+                      <line x1="22" y1="9" x2="16" y2="15" />
+                      <line x1="16" y1="9" x2="22" y2="15" />
+                    </>
                   )}
                 </svg>
-                <span className={`text-xs font-semibold ${engineNyala ? "text-[#81b64c]" : "text-white"}`}>
-                  Engine
+                <span className="text-xs font-semibold">
+                  Suara
                 </span>
               </button>
-              <button
-                type="button"
-                onClick={() => onGantiOtomatis && onGantiOtomatis(!nilaiOtomatis)}
-                aria-pressed={nilaiOtomatis}
-                aria-label={nilaiOtomatis ? t("tekaTeki.otomatisMatikan") : t("tekaTeki.otomatisNyalakan")}
-                title={t("tekaTeki.lanjutOtomatis")}
-                className="flex flex-col items-center gap-1.5 p-2.5 bg-[#262421] hover:bg-[#312e2b] rounded-lg transition border border-[#312e2b] cursor-pointer"
-              >
-                <svg className="w-5 h-5 text-gray-400" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+              {onGantiOtomatis && (
+                <button
+                  type="button"
+                  data-aksi="toggle-otomatis"
+                  onClick={() => onGantiOtomatis(!nilaiOtomatis)}
+                  aria-label={
+                    nilaiOtomatis
+                      ? t("tekaTeki.otomatisMatikan")
+                      : t("tekaTeki.otomatisNyalakan")
+                  }
+                  aria-pressed={nilaiOtomatis}
+                  title={t("tekaTeki.lanjutOtomatis")}
+                  className={`flex flex-col items-center gap-1.5 rounded-lg border border-[#312e2b] p-2.5 transition cursor-pointer ${
+                    nilaiOtomatis
+                      ? "bg-[#81b64c]/20 text-[#a3d168]"
+                      : "bg-[#262421] text-gray-400 hover:bg-[#312e2b] hover:text-white"
+                  }`}
+                >
                   {nilaiOtomatis ? (
-                    <path d="M6 5h4v14H6zM14 5h4v14h-4z" />
+                    <Pause className="h-5 w-5" aria-hidden="true" />
                   ) : (
-                    <path d="M8 5.5v13l11-6.5-11-6.5z" />
+                    <Play className="h-5 w-5" aria-hidden="true" />
                   )}
-                </svg>
-                <span className={`text-xs font-semibold ${nilaiOtomatis ? "text-[#81b64c]" : "text-white"}`}>
-                  {nilaiOtomatis ? t("tekaTeki.jeda") : t("tekaTeki.autoLanjut")}
-                </span>
-              </button>
+                  <span className="text-xs font-semibold">
+                    {nilaiOtomatis ? t("tekaTeki.jeda") : t("tekaTeki.autoLanjut")}
+                  </span>
+                </button>
+              )}
+              {onBukaAnalisa && (
+                <button
+                  type="button"
+                  data-aksi="buka-analisa"
+                  onClick={onBukaAnalisa}
+                  disabled={!selesai || memuat || memuatKoleksi}
+                  aria-label="Analisa"
+                  title="Analisa"
+                  className={`flex flex-col items-center gap-1.5 p-2.5 rounded-lg transition border border-[#312e2b] ${
+                    selesai && !memuat && !memuatKoleksi
+                      ? "bg-[#262421] hover:bg-[#312e2b] hover:text-white cursor-pointer"
+                      : "bg-[#262421] text-gray-500 opacity-50 cursor-not-allowed"
+                  }`}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor" aria-hidden="true">
+                    <path d="M19.6,21l-6.3-6.3q-0.75,0.6-1.72,0.95T9.5,16q-2.72,0-4.61-1.89Q3,12.23 3,9.5Q3,6.77 4.89,4.89T9.5,3t4.61,1.89T16,9.5q0,1.1-0.35,2.07T14.7,13.3L21,19.6L19.6,21ZM9.5,14q1.88,0 3.19-1.31T14,9.5T12.69,6.31T9.5,5T6.31,6.31T5,9.5t1.31,3.19T9.5,14Zm-2-1.5l0.75-2.45l-2-1.6H8.7L9.5,6l0.8,2.45h2.45l-2,1.6L11.5,12.5l-2-1.55l-2,1.55Z"/>
+                  </svg>
+                  <span>Analisa</span>
+                </button>
+              )}
               <button
                 type="button"
                 onClick={onAcak}

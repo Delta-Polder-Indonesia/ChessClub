@@ -722,10 +722,18 @@ judul("lanjut otomatis berhenti saat pemain meninjau solusi");
   // Aktifkan mode lanjut otomatis lewat tombol aksi.
   await bukaNomor(soal.problemid);
   const tombolAuto = tombolJudul(kamus.lanjutOtomatis);
-  uji("tombol lanjut otomatis ada", !!tombolAuto);
+  uji(
+    "tombol lanjut otomatis ada dan mulai nonaktif",
+    !!tombolAuto && tombolAuto.getAttribute("aria-pressed") === "false"
+  );
   if (tombolAuto) {
     klikEl(tombolAuto);
     await tunggu(60);
+    uji(
+      "tombol mengaktifkan lanjut otomatis dan menyimpan preferensi",
+      tombolAuto.getAttribute("aria-pressed") === "true" &&
+        window.localStorage.getItem("kci-teka-teki-otomatis") === "1"
+    );
   }
   await bukaNomor(soal.problemid);
   await selesaikan(soal);
@@ -742,10 +750,30 @@ judul("lanjut otomatis berhenti saat pemain meninjau solusi");
     masihSoalSama,
     "papan berpindah ke soal lain"
   );
-  if (tombolAuto) {
-    const tombolAuto2 = tombolJudul(kamus.lanjutOtomatis);
-    if (tombolAuto2) klikEl(tombolAuto2);
+  const tombolAuto2 = tombolJudul(kamus.lanjutOtomatis);
+  if (tombolAuto2?.getAttribute("aria-pressed") === "true") klikEl(tombolAuto2);
+  await tunggu(60);
+  uji(
+    "lanjut otomatis dapat dimatikan kembali",
+    tombolAuto2?.getAttribute("aria-pressed") === "false" &&
+      window.localStorage.getItem("kci-teka-teki-otomatis") === "0"
+  );
+}
+
+judul("kontrol mesin analisis tersedia di Pengaturan");
+{
+  const tabPengaturan = dok.querySelector('[data-tab="pengaturan"]');
+  if (tabPengaturan) klikEl(tabPengaturan);
+  await tungguSampai(() => !!dok.querySelector('[data-panel="pengaturan"]'), 1000);
+  const toggleEngine = dok.querySelector('[data-aksi="toggle-engine"]');
+  uji("sakelar mesin analisis tersedia", !!toggleEngine && !toggleEngine.checked);
+  if (toggleEngine) {
+    klikEl(toggleEngine);
     await tunggu(60);
+    uji("sakelar menyalakan mesin analisis", toggleEngine.checked);
+    klikEl(toggleEngine);
+    await tunggu(60);
+    uji("sakelar mematikan mesin analisis", !toggleEngine.checked);
   }
 }
 
@@ -761,6 +789,10 @@ judul("panel video pembahasan: menggantikan Syzygy, terkunci sebelum selesai, ta
   permintaanJaringan.length = 0;
   await bukaNomor(1);
   await tunggu(350);
+  const tabVideo = dok.querySelector('[data-tab="video"]');
+  uji("tab Video tersedia", !!tabVideo);
+  if (tabVideo) klikEl(tabVideo);
+  await tungguSampai(() => !!dok.querySelector('[data-panel="video"]'), 1000);
   const tembakanSyzygy = permintaanJaringan.filter((u) => u.includes("tablebase.lichess.ovh"));
   uji(
     "panel Syzygy telah dihapus (tanpa permintaan tablebase.lichess.ovh)",
@@ -817,14 +849,22 @@ judul("panel video pembahasan: menggantikan Syzygy, terkunci sebelum selesai, ta
 
   // Kegagalan muat media (<video> error) harus jatuh ke pesan cadangan tanpa merusak UI,
   // lalu di-reset bersih ketika berpindah ke soal video berikutnya.
-  elVideo.dispatchEvent(new window.Event("error"));
-  await tunggu(80);
-  uji(
-    "galat pemutaran <video> menampilkan pesan cadangan + tautan sumber tanpa <video> rusak",
-    !dok.querySelector("video") &&
-      dok.body.textContent.includes(kamus.videoGagal) &&
-      dok.body.textContent.includes(kamus.videoBukaSumber)
-  );
+  if (elVideo) {
+    elVideo.dispatchEvent(new window.Event("error"));
+    await tunggu(80);
+    uji(
+      "galat pemutaran <video> menampilkan pesan cadangan + tautan sumber tanpa <video> rusak",
+      !dok.querySelector("video") &&
+        dok.body.textContent.includes(kamus.videoGagal) &&
+        dok.body.textContent.includes(kamus.videoBukaSumber)
+    );
+  } else {
+    uji(
+      "galat pemutaran <video> menampilkan pesan cadangan + tautan sumber tanpa <video> rusak",
+      false,
+      "elemen <video> tidak ditemukan setelah soal tuntas"
+    );
+  }
   const soalVideoKedua = soalTambahanVideo.find(
     (p) => Boolean(p.video) && p.problemid !== soalVideoPertama.problemid
   );
@@ -919,12 +959,13 @@ judul("locale EN: label dari kamus Inggris, bukan teks mentah");
     "tautan atribusi EN dari kamus bersama",
     dok.body.textContent.includes("License & attribution")
   );
-  const gearEn = tombolJudul("Settings");
-  uji("tombol pengaturan EN berlabel kamus", !!gearEn);
-  if (gearEn) {
-    klikEl(gearEn);
-    await tunggu(120);
-  }
+  const tabPengaturanEn = dok.querySelector('[data-tab="pengaturan"]');
+  uji(
+    "tab pengaturan EN berlabel kamus",
+    tabPengaturanEn?.textContent.trim() === "Settings"
+  );
+  if (tabPengaturanEn) klikEl(tabPengaturanEn);
+  await tungguSampai(() => !!dok.querySelector('[data-panel="pengaturan"]'), 1000);
   const panelEn = dok.body.textContent;
   uji(
     "label panel pengaturan EN dari kamus",
@@ -975,11 +1016,11 @@ judul("tipe soal tampil di baris status (dari KUNCI_TIPE)");
 judul("ingat posisi: bisa dimatikan & tidak menyimpan pilihan baru");
 {
   // Panel pengaturan → sakelar "Ingat posisi".
-  const gear = tombolJudul(kamus.pengaturan);
-  uji("tombol pengaturan tersedia", !!gear);
-  if (gear) {
-    klikEl(gear);
-    await tunggu(120);
+  const tabPengaturan = dok.querySelector('[data-tab="pengaturan"]');
+  uji("tab pengaturan tersedia", !!tabPengaturan);
+  if (tabPengaturan) {
+    klikEl(tabPengaturan);
+    await tungguSampai(() => !!dok.querySelector('[data-panel="pengaturan"]'), 1000);
     const label = [...dok.querySelectorAll("label")].find((l) =>
       (l.textContent || "").includes(kamus.ingatPosisi)
     );
@@ -1012,11 +1053,9 @@ judul("ingat posisi: bisa dimatikan & tidak menyimpan pilihan baru");
         );
       }
     }
-    const gear2 = tombolJudul(kamus.pengaturan);
-    if (gear2) {
-      klikEl(gear2);
-      await tunggu(80);
-    }
+    const tabMain = dok.querySelector('[data-tab="main"]');
+    if (tabMain) klikEl(tabMain);
+    await tungguSampai(() => tabMain?.getAttribute("aria-selected") === "true", 1000);
   }
 }
 
@@ -1209,6 +1248,9 @@ judul("keamanan URL video & balapan unduhan koleksi tambahan");
   setterJahil.call(pilihKoleksiJahil, "semua");
   pilihKoleksiJahil.dispatchEvent(new window.Event("change", { bubbles: true }));
   await tungguSampai(() => dok.querySelector('input[type="number"]')?.placeholder?.includes("5487"), 3000);
+  const tabVideoJahil = dok.querySelector('[data-tab="video"]');
+  if (tabVideoJahil) klikEl(tabVideoJahil);
+  await tungguSampai(() => !!dok.querySelector('[data-panel="video"]'), 1000);
   await bukaNomor(5487, soalPalsu.fen);
   const tuntasJahil = await selesaikan(soalPalsu);
   uji(
