@@ -484,7 +484,7 @@ judul("sentuh: pilihan petak bertahan setelah jari dilepas");
   }
 }
 
-judul("baris status Teka-Teki dihapus");
+judul("status Main: giliran, tanggal, dan tingkat soal");
 {
   const soal = problems.find((p) => p.type === "Mate in One");
   const termuat = await bukaNomor(soal.problemid, soal.fen);
@@ -493,6 +493,39 @@ judul("baris status Teka-Teki dihapus");
   uji("nomor soal dan jumlah total tidak ditampilkan", !/Soal #\d+ dari \d+/.test(teksHalaman));
   uji("label tipe skakmat tidak ditampilkan", !teksHalaman.includes(kamus.skakmat1));
   uji("titik hijau status tidak ditampilkan", !dok.querySelector('[class~="bg-green-500"]'));
+
+  const sisi = soal.fen.split(" ")[1] === "b" ? "hitam" : "putih";
+  const ikonGiliran = dok.querySelector('[data-testid="main-turn-icon"]');
+  uji(
+    "ikon bidak sesuai sisi yang mendapat giliran",
+    ikonGiliran?.dataset.side === sisi &&
+      ikonGiliran?.dataset.piece === (sisi === "putih" ? "P" : "p")
+  );
+  const labelGiliran = dok.querySelector('[data-testid="main-turn-label"]');
+  uji(
+    "teks giliran memakai terjemahan dan state FEN",
+    labelGiliran?.textContent.trim() ===
+      (sisi === "putih" ? kamus.giliranPutih : kamus.giliranHitam)
+  );
+
+  const tanggal = dok.querySelector('[data-testid="main-turn-date"]');
+  const tanggalDiharapkan = new Intl.DateTimeFormat("id-ID", {
+    timeZone: "Asia/Jakarta",
+    day: "numeric",
+    month: "long",
+  }).format(new Date());
+  uji("tanggal status mengikuti tanggal hari ini dalam bahasa Indonesia", tanggal?.textContent.trim() === tanggalDiharapkan);
+
+  const rating = soal.rating ?? 0;
+  const tingkatDiharapkan =
+    rating < 1000 ? "Sangat mudah" :
+    rating < 1250 ? "Mudah" :
+    rating < 1550 ? "Normal" :
+    rating < 1900 ? "Sulit" : "Sangat sulit";
+  uji(
+    "tingkat kesulitan di status berasal dari rating soal",
+    dok.querySelector('[data-testid="main-turn-difficulty"]')?.textContent.trim() === tingkatDiharapkan
+  );
 }
 
 judul("menuntaskan soal untuk setiap jenis & giliran");
@@ -1008,6 +1041,24 @@ judul("locale EN: label dari kamus Inggris, bukan teks mentah");
     6000
   );
   uji("halaman EN termuat", siapEn);
+  const labelGiliranEn = dok.querySelector('[data-testid="main-turn-label"]')?.textContent.trim();
+  uji(
+    "status giliran menggunakan terjemahan Inggris",
+    labelGiliranEn === "White to move" || labelGiliranEn === "Black to move"
+  );
+  const tanggalEn = dok.querySelector('[data-testid="main-turn-date"]');
+  const tanggalEnDiharapkan = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Jakarta",
+    day: "numeric",
+    month: "long",
+  }).format(new Date());
+  uji("tanggal status mengikuti locale Inggris", tanggalEn?.textContent.trim() === tanggalEnDiharapkan);
+  uji(
+    "tingkat kesulitan status memakai terjemahan Inggris",
+    ["Very easy", "Easy", "Medium", "Hard", "Very hard"].includes(
+      dok.querySelector('[data-testid="main-turn-difficulty"]')?.textContent.trim()
+    )
+  );
   const tombolEn = tombolTeks("Hint");
   uji("label petunjuk EN memakai kamus (Hint)", !!tombolEn);
   uji(

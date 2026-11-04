@@ -7,6 +7,7 @@ import { useI18n } from "../../lib/i18n.jsx";
 import { ChessPiece } from "../../components/chess/ChessPiece.jsx";
 import { DAFTAR_SET } from "../../components/chess/pemuatBidak.js";
 import { antrekanLatar } from "../../lib/waktuSenggang.js";
+import { hariIniLokal, ZONA_KOMUNITAS } from "../../lib/waktu.js";
 import PapanTekaTeki from "./PapanTekaTeki.jsx";
 import MetaHalaman from "../../components/MetaHalaman.jsx";
 import { useEngineCatur } from "../../lib/gunakanEngineCatur.js";
@@ -1932,7 +1933,18 @@ const OPSI_TEMA_BAWAAN = [
 ];
 
 function LayoutTekaTeki({ papan = null, barEvaluasi = null, orientasi = "w", tabPanelAktif = "main", onGantiTabPanel = null, onFlip = null, giliran = "putih", jumlahLangkah = 1, bukanSkakmat = false, selesai = false, videoUrl = "", videoPelatih = "", videoJudulSoal = "", videoTurnamen = "", videoTanggal = "", videoGagal = false, catatanLangkah = null, jumlahVariasi = 0, simbolNag = "", memuatKoleksi = false, onPutarVideo = null, onGalatVideo = null, onBukaKoleksiVideo = null, onBukaAnalisa = null, nilaiKoleksi = "lichess", onGantiKoleksi = null, daftarPelatih = [], nilaiPelatih = "semua", onGantiPelatih = null, teksTingkat = "", teksTerpecahkan = "", teksCekmat = "", daftarSet = [], nilaiSetBidak = "merida", onGantiSetBidak = null, pilihanWarnaPapan = [], nilaiWarnaPapan = "green", onGantiWarnaPapan = null, nilaiSuara = true, onGantiSuara = null, onAcak = null, onLewati = null, nilaiOtomatis = false, onGantiOtomatis = null, engineNyala = false, onGantiEngine = null, tampilPanahMesin = true, onGantiPanahMesin = null, teksPanahMesin = "", nilaiLevel = "semua", onGantiLevel = null, nilaiLangkah = "semua", onGantiLangkah = null, nilaiTema = "semua", opsiTema = [], onGantiTema = null, nilaiGiliran = "semua", onGantiGiliran = null, nilaiNomorSoal = "", nilaiTotalSoal = 0, onGantiNomorSoal = null, nilaiIngatPosisi = true, onGantiIngatPosisi = null, teksPosisiTersimpan = "", teksIngatNonaktif = "", teksGalatNomor = "", onBukaNomor = null, bisaHint = false, onHint = null, kartuKomentator = null, kecepatanEngine = 800, opsiKecepatan = [], onGantiKecepatan = null, pvSanEngine = [], onMainkanSaran = null, onKeAwal = null, onMundur = null, onMaju = null, onKeAkhir = null, bisaMundur = false, bisaMaju = false, eloSoal = 1500, namaHitam = "", eloHitam = 0, namaPutih = "", eloPutih = 0, teksPembukaan = "", komentatorNyala = false, memuat = false }) {
-  const { t } = useI18n();
+  const { bahasa, t } = useI18n();
+  const formatTanggalHarian = useMemo(
+    () =>
+      new Intl.DateTimeFormat(bahasa === "en" ? "en-US" : "id-ID", {
+        timeZone: ZONA_KOMUNITAS,
+        day: "numeric",
+        month: "long",
+      }),
+    [bahasa]
+  );
+  const tanggalHarian = formatTanggalHarian.format(new Date());
+  const tanggalHarianIso = hariIniLokal();
   // Default prop sengaja kosong: teksnya selalu dari kamus.
   const labelPanahMesin = teksPanahMesin || t("papan.enginePanahToggle");
   const papanStatic = papanSampel();
@@ -2383,20 +2395,63 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, orientasi = "w", tab
           </div>
           {tabPanelAktif === "main" && (
           <>
-          {/* Baris: giliran */}
-          <div className="flex-shrink-0 px-4 py-2.5 border-b border-[#312e2b] bg-[#1e1c18] flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-wider min-w-0">
-              <div className={`h-3 w-3 rounded-sm flex-shrink-0 ${!memuat && giliran === "putih" ? "bg-white border border-gray-400" : "bg-[#312e2b] border border-gray-600"}`}></div>
-              {/* Saat data belum ada, sisi yang melangkah belum diketahui —
-                  jangan tampilkan "Putih melangkah" yang bisa keliru untuk
-                  soal Black-to-move. */}
-              <span className={!memuat && giliran === "putih" ? "text-white" : "text-gray-300"}>
-                {memuat
-                  ? "—"
-                  : giliran === "putih"
-                    ? t("tekaTeki.giliranPutih")
-                    : t("tekaTeki.giliranHitam")}
-              </span>
+          {/* Status utama: sisi yang melangkah, tanggal lokal, dan level soal. */}
+          <div className="flex-shrink-0 border-b border-[#312e2b] bg-[#1e1c18] px-4 py-3">
+            <div
+              data-testid="main-turn-status"
+              className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2"
+            >
+              <div className="flex min-w-0 items-center gap-2.5">
+                <span
+                  data-testid="main-turn-icon"
+                  data-side={memuat ? undefined : giliran}
+                  data-piece={memuat ? undefined : giliran === "putih" ? "P" : "p"}
+                  aria-hidden="true"
+                  className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md ${
+                    memuat
+                      ? "bg-[#312e2b]"
+                      : giliran === "putih"
+                        ? "bg-[#474542]"
+                        : "bg-[#dedcd9]"
+                  }`}
+                >
+                  {!memuat && (
+                    <ChessPiece
+                      piece={giliran === "putih" ? "P" : "p"}
+                      set={nilaiSetBidak}
+                      className="h-7 w-7 object-contain"
+                    />
+                  )}
+                </span>
+                <span
+                  data-testid="main-turn-label"
+                  aria-live="polite"
+                  className="truncate text-sm font-semibold text-[#fffaec]"
+                >
+                  {memuat
+                    ? "—"
+                    : giliran === "putih"
+                      ? t("tekaTeki.giliranPutih")
+                      : t("tekaTeki.giliranHitam")}
+                </span>
+              </div>
+              <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
+                <time
+                  data-testid="main-turn-date"
+                  dateTime={tanggalHarianIso}
+                  className="rounded-md bg-[#312e2b] px-2.5 py-1 text-xs font-medium text-gray-300"
+                >
+                  {tanggalHarian}
+                </time>
+                {!memuat && teksTingkat && (
+                  <span
+                    data-testid="main-turn-difficulty"
+                    className="rounded-md bg-[#81b64c]/15 px-2.5 py-1 text-xs font-semibold text-[#a3d168]"
+                  >
+                    {teksTingkat}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 
