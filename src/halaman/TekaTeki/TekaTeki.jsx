@@ -1939,6 +1939,8 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, orientasi = "w", tab
   const file = ["a", "b", "c", "d", "e", "f", "g", "h"];
   const daftarTema = opsiTema.length ? opsiTema : OPSI_TEMA_BAWAAN;
   const videoUrlAman = urlVideoSah(videoUrl);
+  const [videoSiap, setVideoSiap] = useState(false);
+  useEffect(() => setVideoSiap(false), [videoUrlAman]);
   const videoTanggalAman = tanggalVideoSah(videoTanggal);
   const tautanSumberVideo = videoTanggalAman
     ? `https://www.chess.com/daily-chess-puzzle/${videoTanggalAman}`
@@ -2491,8 +2493,16 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, orientasi = "w", tab
           </>
           )}
           {tabPanelAktif === "video" && (
-            <div role="tabpanel" data-panel="video" className="flex-1 overflow-y-auto min-h-0 p-4 space-y-3 text-sm">
-            <div className="flex items-center justify-between gap-2">
+            <div role="tabpanel" data-panel="video" className="relative isolate flex-1 overflow-y-auto min-h-0 p-4 space-y-3 text-sm">
+            {!videoSiap && (
+              <img
+                src="/images/ProgramKami/DirrTemplet.gif"
+                alt=""
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 z-0 m-auto h-full w-full max-h-[360px] object-contain opacity-25"
+              />
+            )}
+            <div className="relative z-10 flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 min-w-0">
                 <Video className="size-4 shrink-0 text-[#81b64c]" aria-hidden="true" />
                 <span className="text-xs font-bold text-gray-200 uppercase tracking-wider truncate">
@@ -2507,7 +2517,7 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, orientasi = "w", tab
             </div>
 
             {(videoJudulSoal || videoTurnamen) && (
-              <div className="rounded-md border border-[#312e2b] bg-[#1e1c18] px-3 py-2 space-y-0.5">
+              <div className="relative z-10 rounded-md border border-[#312e2b] bg-[#1e1c18] px-3 py-2 space-y-0.5">
                 {videoJudulSoal && (
                   <p className="text-xs font-semibold text-white truncate" title={videoJudulSoal}>
                     {videoJudulSoal}
@@ -2526,14 +2536,14 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, orientasi = "w", tab
                 render `<video>` hingga `selesai === true` bertujuan mencegah
                 bocoran solusi di antarmuka latihan, bukan kontrol akses server. */}
             {memuat || memuatKoleksi ? (
-              <p className="text-xs font-medium text-gray-400">
+              <p className="relative z-10 text-xs font-medium text-gray-400">
                 {t("tekaTeki.videoMemuatKoleksi")}
               </p>
             ) : videoUrlAman ? (
               !selesai ? (
                 <div
                   data-status-video="terkunci"
-                  className="flex items-start gap-2.5 rounded-md border border-[#312e2b] bg-[#1e1c18] p-3"
+                  className="relative z-10 flex items-start gap-2.5 rounded-md border border-[#312e2b] bg-[#1e1c18] p-3"
                 >
                   <Lock className="mt-0.5 size-4 shrink-0 text-amber-400" aria-hidden="true" />
                   <p className="text-xs leading-5 text-gray-300">
@@ -2541,7 +2551,7 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, orientasi = "w", tab
                   </p>
                 </div>
               ) : (
-                <div data-status-video="terbuka" className="space-y-2.5">
+                <div data-status-video="terbuka" className="relative z-10 space-y-2.5">
                   <p className="text-xs leading-5 text-gray-300">
                     {t("tekaTeki.videoSiap")}
                   </p>
@@ -2568,8 +2578,9 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, orientasi = "w", tab
                       playsInline
                       src={videoUrlAman}
                       onPlay={onPutarVideo || undefined}
+                      onLoadedData={() => setVideoSiap(true)}
                       onError={onGalatVideo || undefined}
-                      className="w-full aspect-square max-h-72 rounded-md border border-[#312e2b] bg-black object-contain select-auto"
+                      className="w-full aspect-square max-h-72 rounded-md border border-[#312e2b] bg-transparent object-contain select-auto"
                     />
                   )}
                   <div className="flex items-center justify-between gap-2 pt-0.5">
@@ -2591,7 +2602,7 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, orientasi = "w", tab
             ) : (
               <div
                 data-status-video="kosong"
-                className="rounded-md border border-[#312e2b] bg-[#1e1c18] p-3 space-y-3"
+                className="relative z-10 rounded-md border border-[#312e2b] bg-[#1e1c18] p-3 space-y-3"
               >
                 <p className="text-xs leading-5 text-gray-300">
                   {t("tekaTeki.videoTidakTersedia")}
