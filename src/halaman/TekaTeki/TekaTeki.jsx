@@ -2400,7 +2400,7 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, orientasi = "w", tab
           ) : null}
 
           {/* Ringkasan soal disusun bertingkat seperti piramida. */}
-          <div className="flex-shrink-0 border-b border-[#312e2b] bg-[#1e1c18] px-4 py-4">
+          <div className="flex-shrink-0 px-4 py-4">
             <div
               data-testid="main-turn-status"
               className="flex flex-col items-center gap-2.5 text-center"
