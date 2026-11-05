@@ -1,0 +1,530 @@
+#!/usr/bin/env node
+/**
+ * Uji REGRESI audit halaman Teka-Teki.
+ *
+ * Setiap pemeriksaan di sini mengunci satu temuan audit yang sudah diperbaiki
+ * pada refactor ini, supaya tidak kembali diam-diam:
+ *
+ *   C1  Efek pemuatan tidak boleh berjalan ulang saat aplikasi menulis URL.
+ *       → dataset `teka-teki.json` hanya diunduh SEKALI walau pemain berpindah
+ *         soal (dulu setiap penulisan URL memicu unduhan + pemasangan ulang).
+ *   C2  Papan tidak boleh memuat soal lama saat soal baru dipasang.
+ *   C3  `localStorage` hanya boleh disentuh `services/puzzleStorage.js`
+ *       (dulu ditulis di dalam updater `setState`).
+ *   C4  Posisi soal koleksi kurasi (id ≥ 5487) tetap tersimpan — dulu ditolak
+ *       penjaga `id <= jumlah dataset Lichess`.
+ *   C5  Status akhir permainan tampil di wilayah `aria-live`.
+ *   +   Tidak ada lagi `eslint-disable react-hooks/exhaustive-deps`, dan
+ *       halaman tidak lagi berupa satu berkas 2.987 baris.
+ *
+ * Jalankan: node scripts/uji-teka-teki-regresi.mjs
+ */
+import { readFileSync, readdirSync, statSync } from "node:fs";
+import { createRequire } from "node:module";
+import { tmpdir } from "node:os";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { pluginGlobAset } from "./loader-jsx.mjs";
+import { Chess } from "chess.js";
+import { parseLangkah, terapkan } from "../src/lib/tekaTeki.js";
+import { tekaTeki as kamus } from "../src/lib/terjemahan/id/tekaTeki.js";
+
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const require = createRequire(path.join(ROOT, "noop.js"));
+const DIR_HALAMAN = path.join(ROOT, "src", "halaman", "TekaTeki");
+
+let lulus = 0;
+let gagal = 0;
+
+function uji(nama, kondisi, catatan = "") {
+  if (kondisi) {
+    lulus += 1;
+    console.log(`  ✓ ${nama}`);
+  } else {
+    gagal += 1;
+    console.log(`  ✗ ${nama}${catatan ? ` — ${catatan}` : ""}`);
+  }
+}
+
+function judul(teks) {
+  console.log(`\n${teks}`);
+}
+
+function ada(nama) {
+  try {
+    require.resolve(nama);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+if (!ada("jsdom") || !ada("esbuild")) {
+  console.error(
+    "GAGAL: jalankan uji regresi teka-teki — pasang `npm i -D jsdom esbuild` lebih dulu."
+  );
+  process.exit(1);
+}
+
+const { build } = require("esbuild");
+const { JSDOM } = require("jsdom");
+
+const { problems } = JSON.parse(
+  readFileSync(path.join(ROOT, "public", "data", "teka-teki.json"), "utf8")
+);
+const { problems: kekayaan } = JSON.parse(
+  readFileSync(path.join(ROOT, "public", "data", "teka-teki-video.json"), "utf8")
+);
+
+/** Semua berkas sumber di bawah `src/halaman/TekaTeki/` (rekursif). */
+function daftarBerkasSumber() {
+  const hasil = [];
+  const jelajah = (dir) => {
+    for (const nama of readdirSync(dir)) {
+      const penuh = path.join(dir, nama);
+      if (statSync(penuh).isDirectory()) {
+        jelajah(penuh);
+      } else if (/\.(jsx?|mjs)$/.test(nama)) {
+        hasil.push(penuh);
+      }
+    }
+  };
+  jelajah(DIR_HALAMAN);
+  return hasil;
+}
+
+const relatif = (penuh) => path.relative(ROOT, penuh).replaceAll(path.sep, "/");
+
+/* ------------------------------------------------------- pemeriksaan statis */
+
+judul("struktur & higiene kode (statis)");
+{
+  const berkas = daftarBerkasSumber();
+
+  uji(
+    "berkas halaman tidak lagi monolit",
+    berkas.length >= 15,
+    `${berkas.length} berkas`
+  );
+
+  const halaman = readFileSync(path.join(DIR_HALAMAN, "TekaTeki.jsx"), "utf8");
+  const jumlahBaris = halaman.split("\n").length;
+  uji(
+    "TekaTeki.jsx di bawah 700 baris (dulu 2.987)",
+    jumlahBaris < 700,
+    `${jumlahBaris} baris`
+  );
+
+  // Hanya arahan yang benar-benar aktif — sebutan di dalam komentar penjelas
+  // (mis. "tidak perlu eslint-disable …") tidak dihitung.
+  const arahanDisable = /(?:^|\n)[ \t]*(?:\/\/|\/\*)[ \t]*eslint-disable[^\n]*react-hooks\/exhaustive-deps/;
+  const disableDeps = berkas.filter((penuh) =>
+    arahanDisable.test(readFileSync(penuh, "utf8"))
+  );
+  uji(
+    "tidak ada eslint-disable react-hooks/exhaustive-deps",
+    disableDeps.length === 0,
+    disableDeps.map(relatif).join(", ")
+  );
+
+  // C3: satu pintu penyimpanan. Pengecualian: modul penyimpanan itu sendiri.
+  const penulisStorage = berkas.filter((penuh) => {
+    if (relatif(penuh).endsWith("services/puzzleStorage.js")) return false;
+    return /\blocalStorage\b/.test(readFileSync(penuh, "utf8"));
+  });
+  uji(
+    "localStorage hanya diakses services/puzzleStorage.js",
+    penulisStorage.length === 0,
+    penulisStorage.map(relatif).join(", ")
+  );
+
+  // Komponen hasil ekstraksi wajib memakai sistem ikon. Dua berkas dikecualikan
+  // karena isinya dipindahkan apa adanya dari berkas lama (`PapanTekaTeki.jsx`
+  // sudah ada sebelumnya, avatar `AreaPapan.jsx` memakai siluet pemain yang
+  // sudah dibatasi baseline desain).
+  const komponenBaru = berkas.filter(
+    (penuh) =>
+      relatif(penuh).includes("/komponen/") &&
+      !relatif(penuh).endsWith("komponen/AreaPapan.jsx")
+  );
+  const svgInline = komponenBaru.filter((penuh) => /<svg\b/.test(readFileSync(penuh, "utf8")));
+  uji(
+    "komponen baru memakai sistem ikon, bukan <svg> inline",
+    svgInline.length === 0,
+    svgInline.map(relatif).join(", ")
+  );
+
+  uji(
+    "komponen hasil ekstraksi tersedia",
+    [
+      "komponen/TekaTekiShell.jsx",
+      "komponen/SidebarTekaTeki.jsx",
+      "komponen/PanelTab.jsx",
+      "komponen/PanelVideo.jsx",
+      "komponen/PanelPengaturan.jsx",
+      "komponen/PromotionDialog.jsx",
+      "komponen/BilahEvaluasi.jsx",
+      "hooks/usePuzzleGame.js",
+      "hooks/usePuzzleSession.js",
+      "hooks/usePuzzleReview.js",
+      "hooks/usePuzzleSettings.js",
+      "reducers/tekaTekiReducer.js",
+      "services/puzzleStorage.js",
+      "services/puzzleSelection.js",
+      "services/puzzleFilter.js",
+      "services/puzzleEvaluation.js",
+    ].every((nama) => berkas.some((penuh) => relatif(penuh).endsWith(nama)))
+  );
+}
+
+/* --------------------------------------------------------------- bundel UI */
+
+const MASUK = `
+import React from "react";
+import { createRoot } from "react-dom/client";
+import { MemoryRouter } from "react-router-dom";
+import { HelmetProvider } from "react-helmet-async";
+import { I18nProvider } from "./src/lib/I18nProvider.jsx";
+import TekaTeki from "./src/halaman/TekaTeki/TekaTeki.jsx";
+
+export function mount(el, jalur) {
+  return createRoot(el).render(
+    <HelmetProvider>
+      <MemoryRouter initialEntries={[jalur]}>
+        <I18nProvider><TekaTeki /></I18nProvider>
+      </MemoryRouter>
+    </HelmetProvider>
+  );
+}
+`;
+
+const berkasBundel = path.join(tmpdir(), "kci-uji-tekateki-regresi.cjs");
+
+await build({
+  stdin: {
+    contents: MASUK,
+    resolveDir: ROOT,
+    loader: "jsx",
+    sourcefile: "uji-tekateki-regresi-entry.jsx",
+  },
+  bundle: true,
+  format: "cjs",
+  platform: "browser",
+  outfile: berkasBundel,
+  loader: { ".css": "empty", ".svg": "text", ".png": "dataurl", ".webp": "dataurl", ".mp3": "text" },
+  plugins: [pluginGlobAset()],
+  define: {
+    "process.env.NODE_ENV": '"development"',
+    "import.meta.env": JSON.stringify({ BASE_URL: "/", MODE: "test", DEV: true, PROD: false }),
+  },
+  logLevel: "error",
+});
+
+/* ------------------------------------------------------------- lingkungan */
+
+class PengamatPalsu {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+  takeRecords() {
+    return [];
+  }
+}
+
+class AudioContextPalsu {
+  constructor() {
+    this.state = "running";
+    this.destination = {};
+  }
+  createOscillator() {
+    return {
+      type: "sine",
+      frequency: { value: 0, setValueAtTime() {} },
+      connect() {},
+      start() {},
+      stop() {},
+    };
+  }
+  createGain() {
+    return {
+      gain: { value: 0, setValueAtTime() {}, linearRampToValueAtTime() {} },
+      connect() {},
+    };
+  }
+  createBufferSource() {
+    return { buffer: null, connect() {}, start() {} };
+  }
+  decodeAudioData() {
+    return Promise.resolve({});
+  }
+  resume() {
+    return Promise.resolve();
+  }
+}
+
+let window;
+let dok;
+const permintaanJaringan = [];
+
+function pasangDomBaru(jalur, bahasa) {
+  const dom = new JSDOM('<!doctype html><html><body><div id="root"></div></body></html>', {
+    url: `https://uji.test${jalur}`,
+    pretendToBeVisual: true,
+  });
+  window = dom.window;
+  dok = window.document;
+
+  window.ResizeObserver = PengamatPalsu;
+  window.IntersectionObserver = PengamatPalsu;
+  window.AudioContext = AudioContextPalsu;
+  window.webkitAudioContext = AudioContextPalsu;
+  window.matchMedia =
+    window.matchMedia ??
+    ((media) => ({ matches: false, media, addEventListener() {}, removeEventListener() {} }));
+  window.requestAnimationFrame =
+    window.requestAnimationFrame ?? ((cb) => setTimeout(() => cb(Date.now()), 0));
+  window.cancelAnimationFrame = window.cancelAnimationFrame ?? ((id) => clearTimeout(id));
+  window.scrollTo = () => {};
+  window.Element.prototype.scrollIntoView = function scrollIntoView() {};
+  window.Element.prototype.scrollTo = function scrollTo() {};
+  window.HTMLMediaElement.prototype.play = function play() {
+    return Promise.resolve();
+  };
+  window.HTMLMediaElement.prototype.pause = function pause() {};
+  window.HTMLMediaElement.prototype.load = function load() {};
+  window.innerWidth = 1440;
+  window.innerHeight = 900;
+
+  window.fetch = (url) => {
+    permintaanJaringan.push(String(url));
+    const bersih = String(url).replace(/^https?:\/\/[^/]+/, "").replace(/^\//, "");
+    try {
+      const isi = readFileSync(path.join(ROOT, "public", bersih), "utf8");
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        text: () => Promise.resolve(isi),
+        json: () => Promise.resolve(JSON.parse(isi)),
+      });
+    } catch (e) {
+      return Promise.reject(new Error(`tidak ada: ${bersih} (${e.message})`));
+    }
+  };
+
+  globalThis.window = window;
+  globalThis.document = dok;
+  globalThis.localStorage = window.localStorage;
+  globalThis.fetch = window.fetch;
+  if (!globalThis.navigator) globalThis.navigator = window.navigator;
+  globalThis.ResizeObserver = PengamatPalsu;
+  globalThis.IntersectionObserver = PengamatPalsu;
+  globalThis.AudioContext = AudioContextPalsu;
+  globalThis.requestAnimationFrame = window.requestAnimationFrame;
+  globalThis.cancelAnimationFrame = window.cancelAnimationFrame;
+  for (const nama of [
+    "HTMLElement",
+    "HTMLInputElement",
+    "HTMLTextAreaElement",
+    "HTMLSelectElement",
+    "Element",
+    "Node",
+    "Event",
+    "MouseEvent",
+    "KeyboardEvent",
+    "CustomEvent",
+  ]) {
+    if (window[nama]) globalThis[nama] = window[nama];
+  }
+  if (bahasa) window.localStorage.setItem("kci-bahasa", bahasa);
+  return window.localStorage;
+}
+
+const tunggu = (ms) => new Promise((selesai) => setTimeout(selesai, ms));
+
+async function tungguSampai(syarat, batasMs = 6000) {
+  const akhir = Date.now() + batasMs;
+  while (Date.now() < akhir) {
+    if (syarat()) return true;
+    await tunggu(30);
+  }
+  return syarat();
+}
+
+const LAJUR = "abcdefgh";
+const BARIS = ["8", "7", "6", "5", "4", "3", "2", "1"];
+
+function labelDariFen(fen) {
+  const peta = new Map();
+  const papan = new Chess(fen).board();
+  papan.forEach((baris, i) =>
+    baris.forEach((petak, j) => {
+      const sq = LAJUR[j] + BARIS[i];
+      if (!petak) {
+        peta.set(sq, kamus.ariaPetakKosong.replaceAll("{sq}", sq));
+        return;
+      }
+      peta.set(
+        sq,
+        kamus.ariaPetakBidak
+          .replaceAll("{sq}", sq)
+          .replaceAll("{bidak}", kamus.namaBidak[petak.type])
+          .replaceAll("{warna}", petak.color === "w" ? kamus.warnaPutih : kamus.warnaHitam)
+      );
+    })
+  );
+  return peta;
+}
+
+function papanSama(fen) {
+  const harap = labelDariFen(fen);
+  const kini = new Map();
+  for (const el of dok.querySelectorAll("[data-petak]")) {
+    kini.set(el.getAttribute("data-petak"), el.getAttribute("aria-label"));
+  }
+  if (kini.size !== 64 || harap.size !== 64) return false;
+  for (const [sq, label] of harap) if (kini.get(sq) !== label) return false;
+  return true;
+}
+
+async function mainkan(from, to) {
+  const asal = dok.querySelector(`[data-petak="${from}"]`);
+  const tujuan = dok.querySelector(`[data-petak="${to}"]`);
+  if (!asal || !tujuan) throw new Error(`petak ${from}/${to} tidak ada`);
+  asal.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+  await tunggu(40);
+  tujuan.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+  await tunggu(40);
+}
+
+/** Pasang halaman pada `jalur` dengan keadaan penyimpanan yang bersih. */
+async function kunjungi(jalur) {
+  const penyimpanan = pasangDomBaru(jalur);
+  penyimpanan.clear();
+  permintaanJaringan.length = 0;
+  delete require.cache[berkasBundel];
+  const modul = require(berkasBundel);
+  modul.mount(dok.getElementById("root"), jalur);
+  const siap = await tungguSampai(() => dok.querySelectorAll("[data-petak]").length === 64);
+  await tunggu(120);
+  return { siap, penyimpanan };
+}
+
+/* -------------------------------------------------------------- C1 & C2 */
+
+judul("C1/C2: satu unduhan dataset, papan selalu soal yang diminta");
+{
+  const pertama = problems[3];
+  const kedua = problems[7];
+  const { siap } = await kunjungi(`/teka-teki/problem/${pertama.problemid}`);
+  uji("halaman memuat soal pertama dari URL", siap && papanSama(pertama.fen));
+
+  const jumlahUnduhan = permintaanJaringan.filter((url) =>
+    String(url).includes("data/teka-teki.json")
+  ).length;
+  uji("dataset diunduh sekali saat mount", jumlahUnduhan === 1, `${jumlahUnduhan} unduhan`);
+
+  // Pindah soal lewat input nomor: aplikasi menulis URL sendiri.
+  const input = dok.querySelector('input[type="number"]');
+  const setter = Object.getOwnPropertyDescriptor(
+    window.HTMLInputElement.prototype,
+    "value"
+  ).set;
+  setter.call(input, String(kedua.problemid));
+  input.dispatchEvent(new window.Event("input", { bubbles: true }));
+  input.closest("form").dispatchEvent(new window.Event("submit", { bubbles: true, cancelable: true }));
+
+  uji(
+    "papan berpindah ke soal kedua",
+    await tungguSampai(() => papanSama(kedua.fen), 3000),
+    `diharapkan #${kedua.problemid}`
+  );
+  const unduhanSetelah = permintaanJaringan.filter((url) =>
+    String(url).includes("data/teka-teki.json")
+  ).length;
+  uji(
+    "berpindah soal tidak mengunduh ulang dataset (C1)",
+    unduhanSetelah === 1,
+    `${unduhanSetelah} unduhan`
+  );
+
+  // C2: setelah papan berganti, soal pertama tidak boleh muncul lagi.
+  uji("papan tidak memuat soal lama (C2)", !papanSama(pertama.fen));
+}
+
+/* ------------------------------------------------------------------- C4 */
+
+judul("C4: posisi soal koleksi kurasi tetap tersimpan");
+{
+  const kurasi = kekayaan.find((p) => p.video);
+  const { siap, penyimpanan } = await kunjungi(`/teka-teki/problem/${kurasi.problemid}`);
+  uji("soal koleksi kurasi termuat dari URL", siap && papanSama(kurasi.fen));
+  uji(
+    "posisi tersimpan walaupun id ≥ jumlah dataset Lichess",
+    penyimpanan.getItem("kci-teka-teki-posisi") === String(kurasi.problemid),
+    `tersimpan: ${penyimpanan.getItem("kci-teka-teki-posisi")}`
+  );
+  uji(
+    "koleksi posisi ikut tercatat",
+    penyimpanan.getItem("kci-teka-teki-posisi-koleksi") === "video"
+  );
+}
+
+/* ------------------------------------------------------------- C5 & alur */
+
+judul("C5: umpan balik status & penuntasan soal");
+{
+  const soal = problems.find((p) => p.type === "Mate in One" && !p.moves.includes(";"));
+  const { penyimpanan } = await kunjungi(`/teka-teki/problem/${soal.problemid}`);
+  uji("soal satu langkah termuat", papanSama(soal.fen));
+
+  const langkah = parseLangkah(soal.moves);
+  await mainkan(langkah.from, langkah.to);
+  const selesai = await tungguSampai(() => papanSama(terapkan(soal.fen, langkah).fen()), 4000);
+  uji("langkah solusi menuntaskan soal", selesai);
+
+  const wilayah = dok.querySelector("[aria-live]");
+  uji("ada wilayah aria-live", !!wilayah);
+  uji(
+    "pesan tuntas muncul di wilayah live",
+    !!wilayah && (wilayah.textContent || "").includes(kamus.terpecahkan),
+    wilayah ? wilayah.textContent.trim().slice(0, 80) : "tidak ada wilayah"
+  );
+  uji(
+    "soal tercatat terpecahkan di penyimpanan",
+    JSON.parse(penyimpanan.getItem("kci-teka-teki-terpecahkan") || "[]").includes(
+      soal.problemid
+    )
+  );
+}
+
+judul("langkah salah tidak mengubah papan dan tidak menuliskan pesan");
+{
+  const soal = problems.find(
+    (p) => p.type === "Mate in Two" && p.moves.split(";").length >= 3 && !p.moves.includes("q;")
+  );
+  const { penyimpanan } = await kunjungi(`/teka-teki/problem/${soal.problemid}`);
+  const solusi = parseLangkah(soal.moves.split(";")[0]);
+  const salah = new Chess(soal.fen)
+    .moves({ verbose: true })
+    .find((m) => !(m.from === solusi.from && m.to === solusi.to));
+  if (!salah) {
+    uji("ada langkah salah untuk diuji", false);
+  } else {
+    await mainkan(salah.from, salah.to);
+    await tunggu(200);
+    uji("posisi tidak berubah oleh langkah salah", papanSama(soal.fen));
+    uji(
+      "soal tidak tercatat terpecahkan",
+      !JSON.parse(penyimpanan.getItem("kci-teka-teki-terpecahkan") || "[]").includes(
+        soal.problemid
+      )
+    );
+    uji(
+      "pesan teks langkah salah tidak dirender (kontrak lama)",
+      !(dok.body.textContent || "").includes(kamus.salah)
+    );
+  }
+}
+
+console.log(`\n${lulus} lulus, ${gagal} gagal`);
+if (gagal > 0) process.exitCode = 1;
