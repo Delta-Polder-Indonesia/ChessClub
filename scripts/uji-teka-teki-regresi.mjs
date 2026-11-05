@@ -175,6 +175,32 @@ judul("struktur & higiene kode (statis)");
       "services/puzzleEvaluation.js",
     ].every((nama) => berkas.some((penuh) => relatif(penuh).endsWith(nama)))
   );
+
+  /*
+   * Pemasangan papan di halaman dipicu `versiSoal` (nomor pasang dari sesi),
+   * bukan identitas `masalah`. `masalah` ikut berubah setiap `soal` dihitung
+   * ulang — mis. saat koleksi kurasi selesai diunduh — sehingga pemicu berbasis
+   * `masalah` memasang papan dua kali untuk satu soal dan mengembalikan posisi
+   * ke awal tepat setelah pemain mengklik bidak pertama (gejala uji alur yang
+   * dulu hilang-timbul).
+   */
+  uji(
+    "efek pemasangan papan memakai penanda versi soal",
+    /const versiTerpasangRef = useRef\(0\);/.test(halaman) &&
+      /versiTerpasangRef\.current === versiSoal/.test(halaman) &&
+      /if \(versiSoal === 0\) return;/.test(halaman)
+  );
+  // Penjaga versi harus diperiksa SEBELUM papan dipasang, dan pemasangan hanya
+  // boleh punya satu pintu di halaman.
+  const posisiPenjaga = halaman.indexOf("versiTerpasangRef.current === versiSoal");
+  const posisiPasang = halaman.indexOf("pasangSoal(masalah)");
+  uji(
+    "penjaga versi diperiksa sebelum papan dipasang",
+    posisiPenjaga !== -1 &&
+      posisiPasang !== -1 &&
+      posisiPenjaga < posisiPasang &&
+      halaman.split("pasangSoal(masalah)").length === 2
+  );
 }
 
 /* --------------------------------------------------------------- bundel UI */
@@ -524,6 +550,39 @@ judul("langkah salah tidak mengubah papan dan tidak menuliskan pesan");
       !(dok.body.textContent || "").includes(kamus.salah)
     );
   }
+}
+
+judul("papan tidak ter-reset oleh pemasangan soal ganda (soal ber-video)");
+{
+  /*
+   * Regresi "uji alur" yang paling sulit ditangkap: soal koleksi kurasi (id di
+   * atas dataset Lichess) dulu dipasang DUA kali — sekali oleh efek pemuatan
+   * dan sekali lagi oleh permintaan URL — sehingga papan kembali ke posisi awal
+   * tepat setelah pemain mengklik bidak pertama. Pemeriksaan ini menahan papan
+   * tetap di soal yang sama setelah semua efek selesai, lalu memastikan langkah
+   * pertama pemain tidak dibatalkan oleh pemasangan susulan.
+   */
+  const kurasi = kekayaan.find((p) => p.video && p.moves.split(";").length >= 3);
+  const langkah = kurasi.moves.split(";");
+  const { siap } = await kunjungi(`/teka-teki/problem/${kurasi.problemid}`);
+  uji("soal ber-video termuat dari URL", siap && papanSama(kurasi.fen));
+
+  await tunggu(400);
+  uji(
+    "papan tetap di soal yang diminta setelah semua efek selesai",
+    papanSama(kurasi.fen)
+  );
+
+  const pertama = parseLangkah(langkah[0]);
+  const posisiSetelah = terapkan(kurasi.fen, pertama).fen();
+  await mainkan(pertama.from, pertama.to);
+  uji("langkah pertama pemain masuk ke papan", papanSama(posisiSetelah));
+
+  await tunggu(300);
+  uji(
+    "papan tidak kembali ke posisi awal soal (tanpa pemasangan ganda)",
+    !papanSama(kurasi.fen)
+  );
 }
 
 console.log(`\n${lulus} lulus, ${gagal} gagal`);

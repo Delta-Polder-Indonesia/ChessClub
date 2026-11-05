@@ -204,14 +204,25 @@ export default function TekaTeki() {
     komentar,
   } = kondisi;
 
-  /* Soal baru selalu memasang papan bersih, termasuk tanda bantu. */
   /*
-   * Papan memasang soal aktif — satu sumber kebenaran. Semua jalur (muat awal,
-   * filter, pindah soal, acak, koleksi) berakhir di `masalah`, jadi tidak ada
-   * lagi pemasangan ganda yang saling menimpa.
+   * Soal baru selalu memasang papan bersih, termasuk tanda bantu.
+   *
+   * Pemicu pemasangan papan adalah `versiSoal`, bukan `masalah`. `masalah`
+   * ikut berubah setiap `soal` dihitung ulang (mis. saat filter/koleksi
+   * berganti), padahal papan belum tentu perlu dipasang ulang; memasang pada
+   * setiap perubahan `masalah` membuat papan bisa ter-reset dua kali untuk satu
+   * soal yang sama, tepat di tengah langkah pemain.
+   *
+   * `versiSoal` hanya naik ketika sesi memasang soal secara eksplisit (muat
+   * awal, navigasi, acak, filter, buka ulang soal), dan angka itulah yang
+   * menjadi tanda "sudah dipasang".
    */
+  const versiTerpasangRef = useRef(0);
   useEffect(() => {
     if (!masalah) return;
+    if (versiSoal === 0) return;
+    if (versiTerpasangRef.current === versiSoal) return;
+    versiTerpasangRef.current = versiSoal;
     pasangSoal(masalah);
   }, [masalah, versiSoal, pasangSoal]);
 
