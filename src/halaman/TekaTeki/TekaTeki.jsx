@@ -1947,11 +1947,19 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, orientasi = "w", tab
     () => setVideoSiap(false),
     [videoUrlAman, tabPanelAktif, selesai, memuat, memuatKoleksi]
   );
-  const tampilkanPlaceholderVideo =
-    !videoSiap && Boolean(videoUrlAman || memuat || memuatKoleksi);
+  // GIF latar tetap tampil selama belum ada bingkai video yang siap — termasuk
+  // saat soal tidak punya video sama sekali — supaya panggung media tidak
+  // pernah kosong/hitam.
+  const tampilkanPlaceholderVideo = !videoSiap || !videoUrlAman;
   const placeholderVideoDiDepan =
     Boolean(videoUrlAman && selesai && !videoGagal && !memuat && !memuatKoleksi);
   const kelasLapisanPlaceholder = placeholderVideoDiDepan ? "z-20" : "z-0";
+  // Tanpa video, GIF jadi latar dekoratif (bukan penutup) → lebih redup.
+  const kelasOpasitasPlaceholder = videoTerkunci
+    ? "opacity-80"
+    : videoUrlAman
+      ? "opacity-35"
+      : "opacity-50";
   const videoTanggalAman = tanggalVideoSah(videoTanggal);
   const tautanSumberVideo = videoTanggalAman
     ? `https://www.chess.com/daily-chess-puzzle/${videoTanggalAman}`
@@ -2548,12 +2556,12 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, orientasi = "w", tab
                       src="/images/ProgramKami/DirrTemplet.gif"
                       alt=""
                       aria-hidden="true"
-                      className={`pointer-events-none absolute inset-0 ${kelasLapisanPlaceholder} h-full w-full object-cover ${videoTerkunci ? "opacity-80" : "opacity-35"}`}
+                      className={`pointer-events-none absolute inset-0 ${kelasLapisanPlaceholder} h-full w-full object-cover ${kelasOpasitasPlaceholder}`}
                     />
                     {!videoTerkunci && (
                       <div
                         data-video-placeholder-shade="true"
-                        className={`pointer-events-none absolute inset-0 ${kelasLapisanPlaceholder} bg-black/35`}
+                        className={`pointer-events-none absolute inset-0 ${kelasLapisanPlaceholder} ${videoUrlAman ? "bg-black/35" : "bg-black/45"}`}
                         aria-hidden="true"
                       />
                     )}

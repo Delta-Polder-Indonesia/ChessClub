@@ -886,10 +886,12 @@ judul("panel video pembahasan: menggantikan Syzygy, terkunci sebelum selesai, ta
     `${tembakanSyzygy.length} permintaan`
   );
   uji(
-    "soal Lichess tanpa video menampilkan status kosong tanpa GIF placeholder",
+    "soal Lichess tanpa video menampilkan status kosong berlatar GIF (bukan panggung hitam kosong)",
     !!dok.querySelector('[data-status-video="kosong"]') &&
       dok.body.textContent.includes(kamus.videoTidakTersedia) &&
-      !dok.querySelector('[data-video-placeholder="true"]')
+      !!dok.querySelector('[data-video-placeholder="true"]') &&
+      !!dok.querySelector('[data-video-placeholder-shade="true"]') &&
+      !dok.querySelector("video")
   );
 
   // Beralih ke koleksi Taktik + Video
