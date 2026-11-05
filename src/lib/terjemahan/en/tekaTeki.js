@@ -61,6 +61,13 @@ export const tekaTeki = {
     idSoalTidakDitemukan:
       "Puzzle #{id} was not found (total {total} puzzles). Showing a random puzzle instead.",
     pengaturan: "Settings",
+    tabMain: "Main",
+    tabVideo: "Video",
+    panelTekaTeki: "Puzzle panel",
+    balik: "Flip",
+    suara: "Sound",
+    analisa: "Analysis",
+    tutupStatus: "Dismiss status message",
     tidakAdaSoal:
       "No puzzles match the current Level, Moves, Theme, and Side combination. Loosen one of the filters in Settings.",
     semuaTerpecahkan:
