@@ -331,6 +331,22 @@ judul("tata letak: baris profil terpisah dari papan (regresi PR #228)");
     areaPapan.split("min-h-10").length >= 3
   );
 
+  /*
+   * Panel kanan "Main": ringkasan giliran (ikon bidak, label, Elo) dan catatan
+   * pelatih harus berbagi tinggi panel dengan pembagian yang TETAP. Dulu wadah
+   * catatan baru dipasang saat `selesai` (dengan `flex-1`), sehingga paruh atas
+   * menyusut dan ringkasan melompat naik ±112px begitu soal terpecahkan.
+   */
+  const panelUtama = tanpaKomentar(
+    readFileSync(path.join(DIR_HALAMAN, "komponen", "PanelUtama.jsx"), "utf8")
+  );
+  uji(
+    "ringkasan giliran & catatan berbagi tinggi panel secara tetap",
+    /flex min-h-0 flex-1 items-center justify-center px-4 py-4/.test(panelUtama) &&
+      /min-h-0 flex-1 overflow-y-auto p-4 space-y-3 text-sm/.test(panelUtama) &&
+      !/\? "flex-1" : "hidden"/.test(panelUtama)
+  );
+
   // Angka ajaib tinggi viewport tidak boleh lagi menanggung tata letak.
   uji(
     "tidak ada lagi kunci lebar berbasis calc(100vh)",
@@ -785,6 +801,77 @@ judul("DOM: tiga baris tata letak papan (profil atas, papan, profil bawah)");
     "tidak ada wilayah status yang tampil di area papan",
     !dok.querySelector('[data-area="papan"] [data-status-permainan]'),
     "chip status tidak boleh muncul di layar"
+  );
+}
+
+judul("panel kanan: posisi ringkasan giliran tetap saat soal selesai");
+{
+  /*
+   * Keluhan: begitu soal terpecahkan, blok giliran (lingkaran bidak, "Giliran
+   * hitam/putih", tingkat, Elo) melompat ke atas karena wadah catatan pelatih
+   * baru ikut mengambil ruang. Pemeriksaan ini merekam struktur panel sebelum
+   * dan sesudah penuntasan: jumlah anak, kelas pembungkus ringkasan, dan kelas
+   * wadah catatan harus identik — itulah syarat agar posisinya tidak bergeser
+   * (pembagian `flex-1` tidak boleh bergantung pada `selesai`).
+   */
+  // Soal satu langkah cukup untuk membalik keadaan `selesai` (pemicu pergeseran).
+  const soal = problems.find((p) => p.type === "Mate in One" && !p.moves.includes(";"));
+  const { siap, penyimpanan } = await kunjungi(`/teka-teki/problem/${soal.problemid}`);
+  uji("soal satu langkah termuat untuk uji panel", siap && papanSama(soal.fen));
+
+  const rekamStruktur = () => {
+    const panel = dok.querySelector('[data-panel="main"]');
+    const status = dok.querySelector('[data-testid="main-turn-status"]');
+    const wadahCatatan = panel ? panel.lastElementChild : null;
+    return {
+      jumlahAnak: panel ? panel.children.length : -1,
+      kelasRingkasan: status?.parentElement?.className || "",
+      kelasCatatan: wadahCatatan?.className || "",
+      adaRingkasan: Boolean(status),
+    };
+  };
+
+  const sebelum = rekamStruktur();
+  uji("panel Main menampilkan ringkasan giliran", sebelum.adaRingkasan);
+  uji(
+    "pembungkus ringkasan memakai flex-1 (bagi tinggi tetap)",
+    /\bflex-1\b/.test(sebelum.kelasRingkasan),
+    sebelum.kelasRingkasan
+  );
+  uji(
+    "wadah catatan pelatih sudah ada sebelum soal selesai",
+    /\bflex-1\b/.test(sebelum.kelasCatatan),
+    sebelum.kelasCatatan
+  );
+
+  let fenAkhir = soal.fen;
+  for (const gerak of soal.moves.split(";")) {
+    const langkah = parseLangkah(gerak);
+    await mainkan(langkah.from, langkah.to);
+    await tunggu(140);
+    fenAkhir = terapkan(fenAkhir, langkah).fen();
+  }
+  const tuntas = await tungguSampai(
+    () =>
+      papanSama(fenAkhir) &&
+      JSON.parse(penyimpanan.getItem("kci-teka-teki-terpecahkan") || "[]").includes(
+        soal.problemid
+      ),
+    4000
+  );
+  uji(
+    "soal panel tuntas oleh langkah solusi",
+    tuntas,
+    `tercatat: ${penyimpanan.getItem("kci-teka-teki-terpecahkan")}`
+  );
+
+  const sesudah = rekamStruktur();
+  uji(
+    "struktur panel identik sebelum & sesudah selesai (tanpa pergeseran)",
+    sebelum.jumlahAnak === sesudah.jumlahAnak &&
+      sebelum.kelasRingkasan === sesudah.kelasRingkasan &&
+      sebelum.kelasCatatan === sesudah.kelasCatatan,
+    `${JSON.stringify(sebelum)} -> ${JSON.stringify(sesudah)}`
   );
 }
 
