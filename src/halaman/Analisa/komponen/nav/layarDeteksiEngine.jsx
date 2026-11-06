@@ -17,7 +17,9 @@ import { hashUntukEngine } from "../../mesin/cekWasm.js";
 import { unduhLaporanPeninjauan } from "../../mesin/laporanPeninjauan.js";
 import PanelLayar from "./PanelLayar.jsx";
 import RingkasanAntiCheat from "./ringkasanAntiCheat.jsx";
-import PanelDeviasiManusia from "./PanelDeviasiManusia.jsx";
+import RingkasanDeviasiManusia from "./RingkasanDeviasiManusia.jsx";
+import SetelanDeviasiManusia from "./SetelanDeviasiManusia.jsx";
+import { useDeviasiManusia } from "./useDeviasiManusia.js";
 import SelectDaftar from "./SelectDaftar.jsx";
 import Gambar from "../Gambar.jsx";
 import {
@@ -191,9 +193,22 @@ export default function LayarDeteksiEngine({ onBukaAkun, onBukaPartai = null }) 
   const [infoTerbuka, setInfoTerbuka] = useState(null);
   const wadahDialog = useMemo(() => document.querySelector?.(".analisa-root") || undefined, []);
   const ac = useDeteksiRiwayat({ platform, username, waktu, kedalaman, papanSibuk });
+  /*
+   * Mesin terpilih memuat Stockfish DAN Maia. Maia bukan engine UCI — ia
+   * dijalankan lewat worker ONNX sendiri — jadi pilihannya ditahan di state
+   * layar dan tidak pernah diteruskan ke `mesin.gantiEngine`.
+   */
+  const [idMesin, setIdMesin] = useState(() => mesin.idEngine);
+  const modeMaia = idMesin === "maia";
+  const dm = useDeviasiManusia({ platform, username, waktu });
+  const sibuk = ac.berjalan || dm.berjalan || papanSibuk;
   const daftar = gabungkanAkun([...akunTersimpan, ...koleksi, akun]);
-  const engineAktif = cariEngine(mesin.idEngine);
-  const versiEngine = /\d+/.exec(engineAktif.label)?.[0] ?? "-";
+  const opsiMesin = [
+    ...DAFTAR_ENGINE.map((e) => ({ nilai: e.id, label: e.label })),
+    { nilai: "maia", label: t("analisa.antiCheat.riwayat.maia") },
+  ];
+  const engineAktif = cariEngine(idMesin);
+  const versiEngine = modeMaia ? "3" : (/\d+/.exec(engineAktif.label)?.[0] ?? "-");
   const akunSitus = daftar.filter((a) => a.platform === platform);
   const adaHasil = ac.hasil?.agregat.jumlahPartai > 0;
   const jumlah = ac.batas ?? BATAS_PARTAI;
@@ -310,7 +325,9 @@ export default function LayarDeteksiEngine({ onBukaAkun, onBukaPartai = null }) 
   }
 
   function pilihEngineDeteksi(id) {
-    if (id === mesin.idEngine) return;
+    setIdMesin(id);
+    // Memilih Maia tidak boleh menyalakan/mematikan mesin UCI.
+    if (id === "maia" || id === mesin.idEngine) return;
     mesin.gantiEngine?.(id);
   }
 
@@ -340,10 +357,10 @@ export default function LayarDeteksiEngine({ onBukaAkun, onBukaPartai = null }) 
                         <SelectDaftar
                           labelTeks={t("analisa.antiCheat.riwayat.namaMesin")}
                           dataUji="deteksi-engine"
-                          nilai={mesin.idEngine}
-                          opsi={DAFTAR_ENGINE.map((e) => ({ nilai: e.id, label: e.label }))}
+                          nilai={idMesin}
+                          opsi={opsiMesin}
                           onPilih={pilihEngineDeteksi}
-                          disabled={ac.berjalan || papanSibuk}
+                          disabled={sibuk}
                         />
                       </div>
                       <div className="flex min-w-0 flex-1 flex-col gap-1">
@@ -351,6 +368,7 @@ export default function LayarDeteksiEngine({ onBukaAkun, onBukaPartai = null }) 
                         <div className="rounded-borderRoundness border border-border bg-[#272727] px-2 py-1 text-sm text-foreground">{versiEngine}</div>
                       </div>
                     </div>
+                    {modeMaia ? null : (
                     <div className="flex flex-col gap-1">
                       <div className="flex items-center gap-1 text-xs font-bold text-foregroundGrey">
                         <label htmlFor={kedalamanId}>{t("analisa.antiCheat.riwayat.kedalamanAnalisis")}</label>
@@ -367,10 +385,11 @@ export default function LayarDeteksiEngine({ onBukaAkun, onBukaPartai = null }) 
                         value={teksKedalaman}
                         onChange={(e) => ubahKedalamanInput(e.currentTarget.value)}
                         onBlur={selesaikanKedalaman}
-                        disabled={ac.berjalan}
+                        disabled={sibuk}
                         className="rounded-borderRoundness border border-border bg-[#272727] px-2 py-1 text-sm text-foreground outline-none"
                       />
                     </div>
+                    )}
                   </div>
                   <Gambar src={gambar("/images/stockfish.webp")} alt="Stockfish" width={128} height={128} className="h-32 w-32 shrink-0 rounded-[0.4rem] border border-border object-cover" />
                 </div>
@@ -384,7 +403,7 @@ export default function LayarDeteksiEngine({ onBukaAkun, onBukaPartai = null }) 
                     nilai={platform}
                     opsi={[{ nilai: "chessCom", label: "Chess.com" }, { nilai: "lichessOrg", label: "Lichess.org" }]}
                     onPilih={pilihSitus}
-                    disabled={ac.berjalan}
+                    disabled={sibuk}
                   />
                 </div>
                 <div className="flex min-w-0 flex-1 flex-col gap-1 text-xs font-bold text-foregroundGrey">
@@ -408,6 +427,7 @@ export default function LayarDeteksiEngine({ onBukaAkun, onBukaPartai = null }) 
                 </div>
               ) : null}
               <div className="flex flex-row items-start gap-2">
+                {modeMaia ? null : (
                 <div className="flex min-w-0 flex-1 flex-col gap-1">
                   <div className="flex items-center gap-1">
                     <label htmlFor={jumlahId} className="text-xs font-bold text-foregroundGrey">{t("analisa.antiCheat.riwayat.jumlahPartai")}</label>
@@ -423,13 +443,14 @@ export default function LayarDeteksiEngine({ onBukaAkun, onBukaPartai = null }) 
                     value={ac.jumlahPartai}
                     onChange={(e) => ac.setJumlahPartai(e.currentTarget.value)}
                     placeholder={String(BATAS_PARTAI)}
-                    disabled={ac.berjalan}
+                    disabled={sibuk}
                     aria-invalid={ac.batas === null}
                     aria-describedby={`${jumlahId}-petunjuk${ac.batas === null ? ` ${jumlahId}-galat` : ""}`}
                     className="rounded-borderRoundness border border-border bg-[#272727] px-2 py-1 text-sm text-foreground outline-none"
                   />
                   {ac.batas === null ? <p id={`${jumlahId}-galat`} role="alert" className="text-xs leading-4 text-warning">{t("analisa.antiCheat.riwayat.jumlahTidakValid")}</p> : null}
                 </div>
+                )}
                 <div className="flex min-w-0 flex-1 flex-col gap-1 text-xs font-bold text-foregroundGrey">
                   <span>{t("analisa.statistik.waktu")}</span>
                   <SelectDaftar
@@ -441,10 +462,13 @@ export default function LayarDeteksiEngine({ onBukaAkun, onBukaPartai = null }) 
                       ...["bullet", "blitz", "rapid", "classical", "daily", "correspondence"].map((kelas) => ({ nilai: kelas, label: kelas })),
                     ]}
                     onPilih={setWaktu}
-                    disabled={ac.berjalan}
+                    disabled={sibuk}
                   />
                 </div>
               </div>
+              {modeMaia ? (
+                <SetelanDeviasiManusia setelan={dm.setelan} atur={dm.aturSetelan} nonaktif={sibuk} />
+              ) : (
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-2">
                   <span className="h-px flex-1 bg-border" />
@@ -465,7 +489,7 @@ export default function LayarDeteksiEngine({ onBukaAkun, onBukaPartai = null }) 
                       value={teksHash}
                       onChange={(e) => ubahHashInput(e.currentTarget.value)}
                       onBlur={selesaikanHash}
-                      disabled={ac.berjalan}
+                      disabled={sibuk}
                       className="rounded-borderRoundness border border-border bg-[#272727] px-2 py-1 text-sm text-foreground outline-none"
                     />
                   </div>
@@ -481,15 +505,43 @@ export default function LayarDeteksiEngine({ onBukaAkun, onBukaPartai = null }) 
                       data-uji="deteksi-threads"
                       value={threads}
                       onChange={(e) => ubahThreadsInput(e.currentTarget.value)}
-                      disabled={ac.berjalan}
+                      disabled={sibuk}
                       className="rounded-borderRoundness border border-border bg-[#272727] px-2 py-1 text-sm text-foreground outline-none"
                     />
                   </div>
                 </div>
               </div>
+              )}
               {papanSibuk ? <p role="status" className="text-xs leading-4 text-foregroundGrey">{t("analisa.antiCheat.riwayat.papanSibuk")}</p> : null}
-              {ac.berjalan ? (
-                <button type="button" onClick={ac.batalkan} disabled={ac.status === "batal"} className="w-fit cursor-pointer rounded-borderRoundness border border-border bg-backgroundBoxBox px-4 py-2 text-sm font-bold text-foreground transition-colors hover:bg-backgroundBoxBoxHighlighted disabled:cursor-not-allowed disabled:opacity-50">
+              {modeMaia ? (
+                dm.berjalan ? (
+                  <button
+                    type="button"
+                    data-uji="deviasi-batal"
+                    onClick={dm.batalkan}
+                    disabled={dm.status === "batal"}
+                    className="w-fit cursor-pointer rounded-borderRoundness border border-border bg-backgroundBoxBox px-4 py-2 text-sm font-bold text-foreground transition-colors hover:bg-backgroundBoxBoxHighlighted disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {t("analisa.antiCheat.riwayat.batal")}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    data-uji="deviasi-mulai"
+                    onClick={dm.mulai}
+                    disabled={!username || papanSibuk}
+                    className="w-fit cursor-pointer rounded-borderRoundness bg-backgroundBoxBoxHighlighted px-4 py-2 text-sm font-bold text-foregroundBlackDark transition-colors hover:bg-backgroundBoxBoxHighlightedHover disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {t("analisa.antiCheat.deviasi.mulai")}
+                  </button>
+                )
+              ) : ac.berjalan ? (
+                <button
+                  type="button"
+                  onClick={ac.batalkan}
+                  disabled={ac.status === "batal"}
+                  className="w-fit cursor-pointer rounded-borderRoundness border border-border bg-backgroundBoxBox px-4 py-2 text-sm font-bold text-foreground transition-colors hover:bg-backgroundBoxBoxHighlighted disabled:cursor-not-allowed disabled:opacity-50"
+                >
                   {t("analisa.antiCheat.riwayat.batal")}
                 </button>
               ) : (
@@ -506,38 +558,38 @@ export default function LayarDeteksiEngine({ onBukaAkun, onBukaPartai = null }) 
               <span className="block text-center text-xl font-bold text-foreground">{t("analisa.antiCheat.riwayat.hasil")}</span>
             </div>
             <div className="flex min-h-0 flex-1 flex-col gap-3 px-4 pb-4 pt-4 lg:overflow-y-auto">
-              <p className="text-xs leading-4 text-foregroundGrey">{t("analisa.antiCheat.riwayat.isi")}</p>
-              {ac.berjalan ? (
-                <div className="flex flex-col gap-2">
-                  <p role="status" className="text-xs text-foregroundGrey">{t("analisa.antiCheat.riwayat.progres", ac.progres)}</p>
-                  <div role="progressbar" aria-label={t("analisa.antiCheat.riwayat.progres", ac.progres)} aria-valuemin={0} aria-valuemax={Math.max(1, ac.progres.total)} aria-valuenow={ac.progres.ke} className="h-2 w-full overflow-hidden rounded-md bg-backgroundBoxBox">
-                    <div className="h-full bg-backgroundBoxBoxHighlighted transition-[width] duration-200" style={{ width: `${ac.progres.total ? (ac.progres.ke / ac.progres.total) * 100 : 0}%` }} />
-                  </div>
+              {modeMaia ? (
+                <div className="flex flex-col gap-3">
+                  <p className="text-xs leading-4 text-foregroundGrey">{t("analisa.antiCheat.deviasi.isi")}</p>
+                  <RingkasanDeviasiManusia deviasi={dm} onBukaPartai={onBukaPartai} />
                 </div>
-              ) : null}
-              {ac.status === "batal" ? <p className="text-xs leading-4 text-foregroundGrey">{t("analisa.antiCheat.riwayat.dibatalkan")}</p> : null}
-              {ac.status === "selesai" ? <p className="text-xs leading-4 text-foregroundGrey">{t("analisa.antiCheat.riwayat.selesai", { n: ac.hasil.agregat.jumlahPartai })}</p> : null}
-              {ac.status === "galat" || ac.pesan ? <p role="alert" className="text-xs leading-4 text-warning">{t(adaHasil ? "analisa.antiCheat.riwayat.sebagianGagal" : "analisa.antiCheat.riwayat.gagal", { pesan: ac.pesan || "-" })}</p> : null}
-              {ac.status === "tanpaPartai" ? <p className="text-xs leading-4 text-foregroundGrey">{t("analisa.antiCheat.riwayat.tanpaPartai")}</p> : null}
-              {ac.status === "kosong" ? <p className="text-xs leading-4 text-foregroundGrey">{t(username ? "analisa.antiCheat.riwayat.hasilKosong" : "analisa.antiCheat.riwayat.pilihAkunPetunjuk")}</p> : null}
-              {adaHasil ? <RingkasanAntiCheat agregat={ac.hasil.agregat} /> : null}
-              {adaHasil && Number.isFinite(ac.hasil.durasi?.totalMs) ? (
-                <p className="text-xs leading-4 text-foregroundGrey">{t("analisa.antiCheat.riwayat.waktu", { detik: Math.max(1, Math.round(ac.hasil.durasi.totalMs / 1000)), ms: ac.hasil.durasi.rataMs ?? 0 })}</p>
-              ) : null}
-              {adaHasil ? (
-                <button type="button" onClick={() => unduhLaporanPeninjauan(ac.hasil.agregat, { username })} className="w-fit cursor-pointer rounded-borderRoundness border border-border bg-backgroundBoxBox px-4 py-2 text-sm font-bold text-foreground transition-colors hover:bg-backgroundBoxBoxHighlighted">
-                  {t("analisa.antiCheat.riwayat.unduh")}
-                </button>
-              ) : null}
-              {username ? (
-                <PanelDeviasiManusia
-                  platform={platform}
-                  username={username}
-                  waktu={waktu}
-                  nonaktif={ac.berjalan || papanSibuk}
-                  onBukaPartai={onBukaPartai}
-                />
-              ) : null}
+              ) : (
+                <>
+                <p className="text-xs leading-4 text-foregroundGrey">{t("analisa.antiCheat.riwayat.isi")}</p>
+                {ac.berjalan ? (
+                  <div className="flex flex-col gap-2">
+                    <p role="status" className="text-xs text-foregroundGrey">{t("analisa.antiCheat.riwayat.progres", ac.progres)}</p>
+                    <div role="progressbar" aria-label={t("analisa.antiCheat.riwayat.progres", ac.progres)} aria-valuemin={0} aria-valuemax={Math.max(1, ac.progres.total)} aria-valuenow={ac.progres.ke} className="h-2 w-full overflow-hidden rounded-md bg-backgroundBoxBox">
+                      <div className="h-full bg-backgroundBoxBoxHighlighted transition-[width] duration-200" style={{ width: `${ac.progres.total ? (ac.progres.ke / ac.progres.total) * 100 : 0}%` }} />
+                    </div>
+                  </div>
+                ) : null}
+                {ac.status === "batal" ? <p className="text-xs leading-4 text-foregroundGrey">{t("analisa.antiCheat.riwayat.dibatalkan")}</p> : null}
+                {ac.status === "selesai" ? <p className="text-xs leading-4 text-foregroundGrey">{t("analisa.antiCheat.riwayat.selesai", { n: ac.hasil.agregat.jumlahPartai })}</p> : null}
+                {ac.status === "galat" || ac.pesan ? <p role="alert" className="text-xs leading-4 text-warning">{t(adaHasil ? "analisa.antiCheat.riwayat.sebagianGagal" : "analisa.antiCheat.riwayat.gagal", { pesan: ac.pesan || "-" })}</p> : null}
+                {ac.status === "tanpaPartai" ? <p className="text-xs leading-4 text-foregroundGrey">{t("analisa.antiCheat.riwayat.tanpaPartai")}</p> : null}
+                {ac.status === "kosong" ? <p className="text-xs leading-4 text-foregroundGrey">{t(username ? "analisa.antiCheat.riwayat.hasilKosong" : "analisa.antiCheat.riwayat.pilihAkunPetunjuk")}</p> : null}
+                {adaHasil ? <RingkasanAntiCheat agregat={ac.hasil.agregat} /> : null}
+                {adaHasil && Number.isFinite(ac.hasil.durasi?.totalMs) ? (
+                  <p className="text-xs leading-4 text-foregroundGrey">{t("analisa.antiCheat.riwayat.waktu", { detik: Math.max(1, Math.round(ac.hasil.durasi.totalMs / 1000)), ms: ac.hasil.durasi.rataMs ?? 0 })}</p>
+                ) : null}
+                {adaHasil ? (
+                  <button type="button" onClick={() => unduhLaporanPeninjauan(ac.hasil.agregat, { username })} className="w-fit cursor-pointer rounded-borderRoundness border border-border bg-backgroundBoxBox px-4 py-2 text-sm font-bold text-foreground transition-colors hover:bg-backgroundBoxBoxHighlighted">
+                    {t("analisa.antiCheat.riwayat.unduh")}
+                  </button>
+                ) : null}
+                </>
+              )}
               <p className="rounded-borderRoundness border border-border bg-backgroundBoxBox px-3 py-2 text-xs leading-4 text-foregroundGrey">{t("analisa.antiCheat.disclaimer")}</p>
             </div>
           </div>

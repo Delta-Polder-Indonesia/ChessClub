@@ -358,9 +358,11 @@ Dua hal yang mudah salah dan sudah dikunci uji (`npm run uji:prediksi-maia`,
 2. **Rating diteruskan, bukan dikarang:** `rating`/`ratingLawan` milik
    pemanggil mengalir apa adanya ke `inferensi()`.
 
-Pemanggilnya kini ada: tombol **"Analisis distribusi manusia"** di layar
-Deteksi engine (`komponen/nav/PanelDeviasiManusia.jsx` +
-`useDeviasiManusia.js`). Model 45 MB **tidak** diunduh saat layar dibuka —
+Pemanggilnya kini ada, dan menyatu dengan layar yang sudah dipakai: pada
+daftar **Nama** mesin di panel pengaturan Deteksi engine, pilihan *Maia 3 —
+distribusi manusia* menukar kendali Stockfish dengan setelan Maia
+(`SetelanDeviasiManusia.jsx`), lalu `useDeviasiManusia.js` menjalankan
+rantainya. Model 45 MB **tidak** diunduh saat layar dibuka —
 hanya setelah tombol ditekan, dengan progres unduhan dan tombol Batal; bobot
 yang sudah ada dipakai ulang dari cache.
 

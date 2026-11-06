@@ -425,12 +425,14 @@ export const analisa = {
       disclaimer:
         "Angka di atas adalah indikasi statistik untuk ditinjau manusia, bukan bukti atau tuduhan. Pemain kuat, kontrol waktu yang panjang, dan akhirpartai sederhana sama-sama menaikkan kecocokan langkah dengan engine. Keputusan apa pun harus lewat peninjauan partai aslinya.",
       riwayat: {
+        batal: "Batalkan",
         judul: "Indikasi engine lintas riwayat",
         pengaturan: "Pengaturan",
         pengaturanUmum: "Pengaturan umum",
         pengaturanLanjutan: "Pengaturan lanjutan",
         hashMb: "Hash (MB)",
         threads: "Threads",
+        maia: "Maia 3 — distribusi manusia",
         namaMesin: "Nama",
         versiMesin: "Versi",
         kedalamanAnalisis: "Kedalaman analisis ( depth )",
@@ -448,7 +450,6 @@ export const analisa = {
         mengerti: "Mengerti",
         mulai: "Analisis {n} partai terbaru",
         mulaiUlang: "Analisis ulang {n} partai terbaru",
-        batal: "Batalkan",
         progres: "Menganalisis partai {ke} dari {total}…",
         selesai: "{n} partai selesai dianalisis.",
         dibatalkan: "Analisis dibatalkan. Hasil partai yang sudah selesai tetap dipakai.",
@@ -480,9 +481,7 @@ export const analisa = {
         tanpaWaktu: "tanpa jam",
       },
       deviasi: {
-        judul: "Distribusi manusia (Maia)",
         isi: "Bandingkan langkah pemain dengan prediksi model manusia. Berbeda dari deteksi di atas, bagian ini tidak memakai Stockfish — model 45 MB baru diunduh setelah tombol ditekan, dan pemakaian berikutnya memakai cache peramban.",
-        setelan: "Pengaturan Maia",
         setelanPetunjuk:
           "Bagian ini tidak memakai kedalaman Stockfish — biayanya = jumlah partai × langkah yang dinilai. Kecilkan bila perangkat terasa berat; pilihan disimpan di peramban ini.",
         kecepatan: "Kecepatan",
@@ -495,8 +494,6 @@ export const analisa = {
         ratingManual: "Manual",
         ratingNilai: "Rating manual",
         mulai: "Analisis distribusi manusia",
-        ulangi: "Hitung ulang",
-        batal: "Batal",
         mengunduh: "Menyiapkan model Maia…",
         memuatCache: "Memuat model Maia dari cache…",
         progres: "Menilai partai {ke} dari {total}…",

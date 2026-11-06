@@ -399,15 +399,20 @@ file-file yang disebut.
     memakai `moves[i].fen` menggeser seluruh penilaian satu langkah tanpa
     galat apa pun. Dijaga `uji-prediksi-maia.mjs` (19 pemeriksaan, termasuk
     kontrol negatif: membalik kuncinya menggagalkan 10 pemeriksaan).
-  - *Panel distribusi manusia*: tombol "Analisis distribusi manusia" di layar
-    Deteksi engine memanggil rantai itu untuk seluruh partai yang sedang
-    ditinjau — `komponen/nav/PanelDeviasiManusia.jsx` +
-    `komponen/nav/useDeviasiManusia.js` di atas `mesin/deviasiRiwayat.js`
+  - *Mode Maia di Deteksi engine*: layar itu tetap **dua kolom**. Maia bukan
+    panel terpisah, melainkan salah satu entri pada daftar **Nama** mesin di
+    panel pengaturan; memilihnya menukar kendali Stockfish (kedalaman, hash,
+    threads) dengan setelan Maia (`komponen/nav/SetelanDeviasiManusia.jsx`),
+    sementara tombol Mulai/Batal yang sama memanggil rantai itu untuk seluruh
+    partai yang sedang ditinjau — `komponen/nav/useDeviasiManusia.js` di atas
+    `mesin/deviasiRiwayat.js`
     (rata-rata **berbobot sampel**, bukan rata-rata dari rata-rata) dan
     `mesin/uraiPgn.js` (pengurai PGN tanpa Stockfish — `parsePGN` menuntut
     engine siap dan mengevaluasi tiap posisi, terlalu mahal untuk sekadar
-    daftar langkah). Panel ini **tidak** menyentuh jaringan sebelum tombolnya
-    ditekan; bobot 45 MB yang sudah ada dipakai ulang dari cache.
+    daftar langkah). Hasilnya tampil di kolom kanan
+    (`komponen/nav/RingkasanDeviasiManusia.jsx`). Mode ini **tidak** menyentuh
+    jaringan sebelum tombolnya ditekan; bobot 45 MB yang sudah ada dipakai
+    ulang dari cache.
   - *Sorotan per langkah*: panel tidak berhenti di angka. `rincianDeviasiManusia`
     (aturan baca sama dengan ringkasannya — kunci FEN **sebelum** langkah)
     memberi kejutan & peringkat per langkah, dan `ringkasDeviasiRiwayat`
@@ -441,8 +446,8 @@ file-file yang disebut.
 
 ### Langkah berikutnya (urut prioritas)
 
-1. **Penyedia prediksi manusia (Maia) — penyedia SELESAI, pemasangan ke UI
-   anti-cheat belum.** Mesin Maia sudah terpasang untuk Papan Interaktif:
+1. **Penyedia prediksi manusia (Maia) — selesai, tersedia sebagai mode di
+   Deteksi engine.** Mesin Maia sudah terpasang untuk Papan Interaktif:
    `src/lib/maia3.js` (penyandian posisi + dekode policy, murni, bisa diuji di
    Node), `src/lib/mesinMaia.js` (worker + `onnxruntime-web`), dan bobot
    `public/engines/maia3/maia3_simplified.onnx` (45 MB) yang **memang
@@ -512,7 +517,7 @@ dokumen menyimpang dari kenyataan (ini yang mencegah temuan F-11 terulang).
 
 ### Uji regresi — `npm run uji:analisa-menyeluruh`
 
-18 skrip, **1136 pemeriksaan, 0 gagal** (diukur 2026-11-06, Node 22):
+18 skrip, **1141 pemeriksaan, 0 gagal** (diukur 2026-11-07, Node 22):
 
 | Skrip | Pemeriksaan |
 | --- | --- |
@@ -532,9 +537,9 @@ dokumen menyimpang dari kenyataan (ini yang mencegah temuan F-11 terulang).
 | `uji-balap-analisa.mjs` | 38 |
 | `uji-area-kerja.mjs` | 24 |
 | `uji-basisdata-galat.mjs` | 33 |
-| `uji-anticheat.mjs` | 431 |
+| `uji-anticheat.mjs` | 436 |
 | `uji-wawasan-profil.mjs` | 51 |
-| **Total** | **1136** |
+| **Total** | **1141** |
 
 Di luar rangkaian itu:
 
@@ -549,7 +554,7 @@ Di luar rangkaian itu:
 | `uji-integritas-suite.mjs` | 9 |
 | `uji-prediksi-maia.mjs` | 19 |
 | `uji-deviasi-riwayat.mjs` | 48 |
-| `uji-i18n.mjs` | 3413 kunci ID = 3413 EN, 1724 terpakai |
+| `uji-i18n.mjs` | 3410 kunci ID = 3410 EN, 1721 terpakai |
 
 ### Bundle & build
 
@@ -710,7 +715,7 @@ Aturan saat beku:
 | `scripts/uji-hasil.mjs` | panel Ringkasan end-to-end (grafs, jumlah label, rating, fase, interaksi) | 27 |
 | `scripts/uji-mobile.mjs` | ukuran papan 3 mode (mobile < 516px / tablet < 1100px / desktop) | 14 |
 | `scripts/uji-panel.mjs` | panel samping: tab awal Ringkasan + loncatan ke Langkah | 11 |
-| `scripts/uji-anticheat.mjs` | anti-cheat: konvensi eval, pengecualian forced/book, partai jujur vs engine, kandidat MultiPV (peringkat/top-3/WDL), metrik kondisional (sulit/mudah, streak, korelasi waktu↔kualitas), kalibrasi per rating, laporan peninjauan, deviasi manusia, durasi & cache lintas-sesi, agregat riwayat, kartu UI + layar Deteksi engine dan pemisahan dari Akun (jumlah, situs/akun, filter waktu, depth, busy, batal), parsing MultiPV `EngineCatur`, panel distribusi manusia Maia + setelannya | 431 |
+| `scripts/uji-anticheat.mjs` | anti-cheat: konvensi eval, pengecualian forced/book, partai jujur vs engine, kandidat MultiPV (peringkat/top-3/WDL), metrik kondisional (sulit/mudah, streak, korelasi waktu↔kualitas), kalibrasi per rating, laporan peninjauan, deviasi manusia, durasi & cache lintas-sesi, agregat riwayat, kartu UI + layar Deteksi engine dan pemisahan dari Akun (jumlah, situs/akun, filter waktu, depth, busy, batal), parsing MultiPV `EngineCatur`, Maia sebagai pilihan mesin di panel pengaturan + setelannya | 436 |
 
 Infrastruktur bersama: `scripts/lingkungan-jsdom.mjs` (global jsdom +
 polyfill `ResizeObserver`/`Element.prototype.scrollTo`) dan
@@ -1279,9 +1284,9 @@ di ujung `uji:analisa-menyeluruh`). Angka emasnya diambil dari suite uji acuan
 
 Status verifikasi (diperbarui 2026-11-06 — angka lama sengaja tidak
 dipertahankan): 51 lulus / 0 gagal; `uji:analisa-menyeluruh` (18 skrip,
-1136 pemeriksaan), `uji:analisa` (34), `uji:analisa-ui` (152), `uji:anticheat`
-(431), `uji:tarik-api` (7), `uji:basisdata` (34), `uji:akun-database` (16),
-`uji:i18n` (3413 kunci ID = EN), `uji:integritas-suite` (9), dan `npm run
+1141 pemeriksaan), `uji:analisa` (34), `uji:analisa-ui` (152), `uji:anticheat`
+(436), `uji:tarik-api` (7), `uji:basisdata` (34), `uji:akun-database` (16),
+`uji:i18n` (3410 kunci ID = EN), `uji:integritas-suite` (9), dan `npm run
 build` semuanya hijau. Jalur jaringan chess.com/lichess TIDAK diverifikasi
 live — sandbox agent hanya mengizinkan github/npm/pypi, jadi `accuracies`
 diverifikasi lewat bentuk respons yang didokumentasikan API keduanya.
@@ -1395,10 +1400,10 @@ yang disalin dari keluaran komponen. Partai ujinya tidak berubah; akurasinya
 bergeser dari 74.0/92.0 ke nilai kurva.
 
 Status verifikasi (diperbarui 2026-11-06): `uji:akurasi` 50/0, `uji-hasil`
-27/0, `uji-evaluasi` 90/0, `uji-anticheat` 431/0, `uji-wawasan-profil` 51/0,
+27/0, `uji-evaluasi` 90/0, `uji-anticheat` 436/0, `uji-wawasan-profil` 51/0,
 `uji-analisa-ui` 152/0, `uji-analisa` 34/0, `uji-wawasan-rating` 10/0,
 `uji-klasifikasi` 63/0, `uji-parser-pgn` 36/0, `uji-langkah-kritis` 54/0,
-`uji-i18n` (3413 kunci ID = EN), `uji-integritas-suite` 9/0, `npm run lint`
+`uji-i18n` (3410 kunci ID = EN), `uji-integritas-suite` 9/0, `npm run lint`
 bersih, `npm run build` OK.
 **Tampilan panel Ringkasan belum diverifikasi visual** — `localhost` tidak
 terjangkau dari sandbox agent, jadi semua klaim di atas berasal dari uji di atas

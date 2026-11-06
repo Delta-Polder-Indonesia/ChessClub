@@ -1208,6 +1208,21 @@ act(() => rootAkun.unmount());
     await act(async () => rilisMesin?.());
   };
   const barisJumlah = () => Array.from(elAkun.querySelectorAll("tbody tr"));
+  // Klik jalur pengguna sungguhan (tombol dropdown → opsi). Menyetel `select`
+  // tersembunyi tidak cukup: React melacak nilai node, sehingga event sintetis
+  // bisa diabaikan tanpa gejala.
+  const pilihOpsi = async (dataUji, label) => {
+    await act(async () => {
+      const wadah = elAkun.querySelector(`[data-uji="${dataUji}"]`)?.closest("div.relative");
+      wadah?.querySelector('button[aria-haspopup="listbox"]')?.click();
+    });
+    await act(async () => {
+      const wadah = elAkun.querySelector(`[data-uji="${dataUji}"]`)?.closest("div.relative");
+      Array.from(wadah?.querySelectorAll('[role="option"]') ?? [])
+        .find((el) => el.textContent.trim() === label)
+        ?.click();
+    });
+  };
   const pilihDeteksi = (jenis, nilai) => act(async () => {
     const kontrol = elAkun.querySelector(`[data-uji="deteksi-${jenis}"]`);
     // Lewati value tracker React pada input angka seperti pada isiJumlah;
@@ -1234,9 +1249,9 @@ act(() => rootAkun.unmount());
   });
 
   hasil("layar baru tetap memakai panel/token Analisa", !!elAkun.querySelector('section.bg-backgroundBoxDarker') && elAkun.querySelectorAll('.border-border.bg-backgroundBox').length >= 2);
-  // Panel Maia punya kontrol sendiri; hitungan "delapan" hanya untuk pengaturan
-  // Stockfish di kolom kiri.
-  const kontrolStockfish = () => Array.from(elAkun.querySelectorAll("select, input")).filter((el) => !el.closest('[data-uji="deviasi-manusia"]'));
+  // Mode Stockfish: delapan kendali pengaturan (situs, akun, mesin, kedalaman,
+  // jumlah partai, waktu, hash, threads). Setelan Maia tidak ikut terhitung.
+  const kontrolStockfish = () => Array.from(elAkun.querySelectorAll("select, input"));
   hasil("delapan pengaturan memiliki kontrol berlabel", kontrolStockfish().length === 8 && kontrolStockfish().every((el) => el.labels.length > 0));
   hasil("kedalaman deteksi bawaan 8, papan tetap 13", elAkun.querySelector('[data-uji="deteksi-kedalaman"]').value === "8" && ctxJumlah.depth[0] === 13);
   hasil("progres papan 0 tidak dianggap sedang berjalan", ctxJumlah.progress[0] === 0 && tombolJumlah(12)?.disabled === false);
@@ -1245,12 +1260,27 @@ act(() => rootAkun.unmount());
   // Panel distribusi manusia (Maia) sengaja TIDAK menyentuh jaringan sampai
   // tombolnya ditekan — di sini cukup dibuktikan ia muncul dan menjelaskan
   // dirinya sendiri sebelum ada yang diklik.
-  hasil("panel distribusi manusia tampil dengan tombol eksplisit", Boolean(elAkun.querySelector('[data-uji="deviasi-manusia"] [data-uji="deviasi-mulai"]')));
-  hasil("panel distribusi manusia menjelaskan unduhan model sebelum dimulai", teksAkun().includes(tID("analisa.antiCheat.deviasi.isi")));
-  // Setelan Maia berdiri sendiri dari setelan Stockfish: kedalaman/hash/threads
-  // di panel kiri tidak berlaku untuk jalur ini.
+  // Maia kini salah satu PILIHAN MESIN di panel pengaturan — bukan panel
+  // terpisah, supaya layar tetap dua kolom dan halaman tidak makin tinggi.
+  const labelStockfish = elAkun.querySelector('[data-uji="deteksi-engine"] option')?.textContent ?? "";
   hasil(
-    "panel Maia punya setelan kecepatan, jumlah partai, dan rating sendiri",
+    "daftar mesin memuat Maia di samping Stockfish",
+    Boolean(elAkun.querySelector('[data-uji="deteksi-engine"] option[value="maia"]'))
+  );
+  hasil(
+    "mode Stockfish: kedalaman tampil, setelan Maia belum",
+    Boolean(elAkun.querySelector('[data-uji="deteksi-kedalaman"]')) &&
+      !elAkun.querySelector('[data-uji="deviasi-setelan"]')
+  );
+  await pilihOpsi("deteksi-engine", tID("analisa.antiCheat.riwayat.maia"));
+  hasil(
+    "memilih Maia menyembunyikan kedalaman/hash/threads Stockfish",
+    !elAkun.querySelector('[data-uji="deteksi-kedalaman"]') &&
+      !elAkun.querySelector('[data-uji="deteksi-hash"]') &&
+      !elAkun.querySelector('[data-uji="deteksi-threads"]')
+  );
+  hasil(
+    "setelan Maia pindah ke panel pengaturan",
     ["deviasi-kecepatan", "deviasi-jumlah", "deviasi-rating-mode"].every((u) => !!elAkun.querySelector(`[data-uji="${u}"]`))
   );
   hasil(
@@ -1262,24 +1292,29 @@ act(() => rootAkun.unmount());
       elAkun.querySelector('[data-uji="deviasi-rating-mode"]')?.value === "otomatis" &&
       !elAkun.querySelector('[data-uji="deviasi-rating-nilai"]')
   );
-  // Klik jalur pengguna sungguhan (tombol dropdown → opsi), bukan menyetel
-  // `select` tersembunyi: React melacak nilai node sehingga event sintetis
-  // pada select bisa diabaikan tanpa gejala.
-  await act(async () => {
-    const wadah = elAkun.querySelector('[data-uji="deviasi-rating-mode"]')?.closest("div.relative");
-    wadah?.querySelector('button[aria-haspopup="listbox"]')?.click();
-  });
-  await act(async () => {
-    const wadah = elAkun.querySelector('[data-uji="deviasi-rating-mode"]')?.closest("div.relative");
-    const opsi = Array.from(wadah?.querySelectorAll('[role="option"]') ?? []).find((el) =>
-      el.textContent.trim() === tID("analisa.antiCheat.deviasi.ratingManual")
-    );
-    opsi?.click();
-  });
+  hasil(
+    // Filter waktu tetap dipakai jalur Maia; kolom jumlah partai Stockfish
+    // tidak, karena Maia punya pilihannya sendiri.
+    "kolom jumlah partai Stockfish diganti setelan Maia",
+    !elAkun.querySelector('[data-uji="deteksi-jumlah"]') &&
+      Boolean(elAkun.querySelector('[data-uji="deteksi-waktu"]'))
+  );
+  hasil("tombol aksi memakai jalur Maia", Boolean(elAkun.querySelector('[data-uji="deviasi-mulai"]')));
+  hasil("panel hasil menjelaskan mode Maia", teksAkun().includes(tID("analisa.antiCheat.deviasi.isi")));
+  await pilihOpsi("deviasi-rating-mode", tID("analisa.antiCheat.deviasi.ratingManual"));
   hasil(
     "mode rating manual membuka kolom rating 600–2600",
     elAkun.querySelector('[data-uji="deviasi-rating-nilai"]')?.value === "1500" &&
       elAkun.querySelector('[data-uji="deviasi-rating-nilai"]')?.max === "2600"
+  );
+  // Kembali ke Stockfish: kendali kedalaman harus muncul lagi — tidak ada yang
+  // tersembunyi permanen karena mode sebelumnya.
+  await pilihOpsi("deteksi-engine", labelStockfish);
+  hasil(
+    "kembali ke Stockfish memulihkan kedalaman dan kolom jumlah partai",
+    Boolean(elAkun.querySelector('[data-uji="deteksi-kedalaman"]')) &&
+      Boolean(elAkun.querySelector('[data-uji="deteksi-jumlah"]')) &&
+      !elAkun.querySelector('[data-uji="deviasi-setelan"]')
   );
   hasil("keadaan awal hasil memiliki petunjuk", teksAkun().includes(tID("analisa.antiCheat.riwayat.hasilKosong")));
 

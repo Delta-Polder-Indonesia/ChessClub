@@ -425,12 +425,14 @@ export const analisa = {
       disclaimer:
         "The numbers above are a statistical indication for human review, not evidence or an accusation. Strong players, long time controls, and simple endgames all raise engine agreement. Any decision must come from reviewing the original games.",
       riwayat: {
+        batal: "Cancel",
         judul: "Engine indications across history",
         pengaturan: "Settings",
         pengaturanUmum: "General settings",
         pengaturanLanjutan: "Advanced settings",
         hashMb: "Hash (MB)",
         threads: "Threads",
+        maia: "Maia 3 — human distribution",
         namaMesin: "Name",
         versiMesin: "Version",
         kedalamanAnalisis: "Analysis depth ( depth )",
@@ -448,7 +450,6 @@ export const analisa = {
         mengerti: "Got it",
         mulai: "Analyze the {n} most recent games",
         mulaiUlang: "Analyze the {n} most recent games again",
-        batal: "Cancel",
         progres: "Analyzing game {ke} of {total}…",
         selesai: "{n} games analyzed.",
         dibatalkan: "Analysis canceled. Results from finished games are kept.",
@@ -480,9 +481,7 @@ export const analisa = {
         tanpaWaktu: "no clock",
       },
       deviasi: {
-        judul: "Human distribution (Maia)",
         isi: "Compare the player's moves with a human model's predictions. Unlike the detection above, this part does not use Stockfish — the 45 MB model is downloaded only after you press the button, and later runs reuse the browser cache.",
-        setelan: "Maia settings",
         setelanPetunjuk:
           "This section does not use Stockfish depth — its cost is games × scored moves. Lower it if your device struggles; the choice is saved in this browser.",
         kecepatan: "Speed",
@@ -495,8 +494,6 @@ export const analisa = {
         ratingManual: "Manual",
         ratingNilai: "Manual rating",
         mulai: "Analyze human distribution",
-        ulangi: "Run again",
-        batal: "Cancel",
         mengunduh: "Preparing the Maia model…",
         memuatCache: "Loading the Maia model from cache…",
         progres: "Scoring game {ke} of {total}…",
