@@ -236,8 +236,10 @@ judul("tata letak: baris profil terpisah dari papan (regresi PR #228)");
   );
 
   uji(
-    "baris papan memotong luapan (min-h-0 + overflow-hidden)",
-    /data-baris="papan"\s*\n?\s*className="[^"]*min-h-0[^"]*overflow-hidden/.test(areaPapan)
+    "baris papan boleh menyusut (min-h-0) tanpa memotong isinya",
+    /data-baris="papan"\s*\n?\s*className="[^"]*min-h-0/.test(areaPapan) &&
+      !/data-baris="papan"\s*\n?\s*className="[^"]*overflow-hidden/.test(areaPapan),
+    "papan dibatasi ukurannya, jadi tidak perlu (dan tidak boleh) dipotong"
   );
 
   // Baris profil duduk di kolom yang SAMA dengan papan (kolom 2), jadi lebarnya
@@ -251,9 +253,30 @@ judul("tata letak: baris profil terpisah dari papan (regresi PR #228)");
     "baris profil tidak menyumbang lebar intrinsik",
     (areaPapan.match(/w-0 min-w-full/g) || []).length >= 3
   );
+  /*
+   * Bilah evaluasi DIKAT ke kotak papan, bukan ke track baris. Tinggi track
+   * lebih besar dari papan setiap kali papan dibatasi lebar (layar lebar),
+   * sehingga bilah setinggi track selalu "melampaui" papan di atas dan bawah.
+   */
   uji(
-    "bilah evaluasi punya kolom sendiri di baris papan",
-    /col-start-1 row-start-2/.test(areaPapan)
+    "bilah evaluasi diikat ke kotak papan (inset-y-0 + right-full)",
+    /absolute inset-y-0 right-full mr-2/.test(areaPapan) &&
+      /absolute inset-y-0 right-full[^"]*w-9/.test(areaPapan)
+  );
+  uji(
+    "grid menyediakan kolom bilah selebar bilah",
+    /grid-cols-\[2\.25rem_/.test(areaPapan),
+    "kolom 1 = 2.25rem (w-9) supaya bilah tidak mengurangi lebar papan"
+  );
+  uji(
+    "kolom papan memakai sisi papan, bukan 1fr, di layar lebar",
+    /lg:grid-cols-\[2\.25rem_var\(--sisi-papan\)\]/.test(areaPapan) &&
+      /--sisi-papan:min\(calc\(100cqw-2\.75rem\),calc\(100cqh-6rem\)\)/.test(areaPapan),
+    "tanpa ini baris profil bisa lebih lebar daripada papan saat papan dibatasi tinggi"
+  );
+  uji(
+    "tidak ada lagi geseran pengimbang (translate) di grid",
+    !/-translate-x-/.test(areaPapan) && !/\btranslate-y-/.test(areaPapan)
   );
 
   uji(
@@ -263,10 +286,22 @@ judul("tata letak: baris profil terpisah dari papan (regresi PR #228)");
   );
 
   uji(
-    "kotak papan tetap ber-overflow-hidden",
-    /relative flex min-h-0 min-w-0 flex-1 items-center justify-center overflow-hidden/.test(
-      areaPapan
-    )
+    "ada kotak papan (pembungkus) yang memusatkan papan",
+    /relative flex min-h-0 min-w-0 flex-1 items-center justify-center/.test(areaPapan)
+  );
+  uji(
+    "jarak status ke papan hanya muncul saat ada pesan",
+    /has-\[>div>div\]:mb-2/.test(areaPapan),
+    "wilayah aria-live selalu terpasang; tanpa ini ada 8px kosong di atas papan"
+  );
+  uji(
+    "label level/rating disembunyikan di layar sempit",
+    (areaPapan.match(/hidden whitespace-nowrap text-\[11px\][^"]*sm:inline/g) || []).length >= 2
+  );
+  uji(
+    "nama pemain tidak didorong chip elo (min-w-0 + shrink-0)",
+    /flex min-w-0 items-center gap-2/.test(areaPapan) &&
+      (areaPapan.match(/shrink-0 text-xs font-medium text-gray-300/g) || []).length >= 2
   );
 
   // Baris profil tidak boleh memakai trik lapisan apa pun.
@@ -317,7 +352,7 @@ judul("tata letak: baris profil terpisah dari papan (regresi PR #228)");
   uji(
     "status gameplay dirender di aliran, bukan menutupi baris profil",
     /status=\{<StatusTekaTeki[^\n]*melayang=\{false\}/.test(shell) &&
-      /{status \? <div className="w-0 min-w-full shrink-0">/.test(areaPapan) &&
+      /{status \?\s*\(?\s*<div className="w-0 min-w-full shrink-0/.test(areaPapan) &&
       !/absolute inset-x-3 top-3/.test(shell)
   );
 }

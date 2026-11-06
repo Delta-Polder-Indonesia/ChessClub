@@ -4,20 +4,25 @@
  *
  * KONTRAK TATA LETAK (dikunci uji `uji-teka-teki-regresi`):
  *
- *   kolom 1 (auto) │ kolom 2 (papan + profil)
- *   ───────────────┼──────────────────────────
- *   baris 1 auto   │  profil atas
- *   baris 2 1fr    │  bilah evaluasi │ papan   ← tinggi PASTI
- *   baris 3 auto   │  profil bawah
+ *   kolom 1 (2.25rem) │ kolom 2 (papan + profil)
+ *   ──────────────────┼──────────────────────────
+ *   baris 1 auto      │  profil atas
+ *   baris 2 1fr       │  [bilah] papan   ← tinggi PASTI
+ *   baris 3 auto      │  profil bawah
+ *
+ * Kolom 1 hanya MENYEDIAKAN ruang selebar bilah; elemen bilahnya sendiri
+ * diikat ke kotak papan dengan `absolute inset-y-0 right-full mr-2`. Dengan
+ * begitu tinggi bilah SELALU sama dengan tinggi papan (bukan tinggi track
+ * baris, yang bisa lebih tinggi saat papan dibatasi lebar) dan jaraknya ke
+ * papan selalu `gap-2`.
  *
  * Baris profil duduk di KOLOM YANG SAMA dengan papan, jadi lebarnya selalu
  * sama dengan lebar papan (`w-0 min-w-full`: tidak menyumbang lebar intrinsik,
- * tetapi mengisi penuh kolom). Bilah evaluasi punya kolom sendiri sehingga
- * tidak mengurangi lebar papan yang terlihat.
+ * tetapi mengisi penuh kolom).
  *
  * Kotak papan boleh lebih kecil dari track-nya, tetapi tidak boleh lebih besar:
- * baris papan memakai `overflow-hidden`, dan papan sendiri dibatasi dua sumbu
- * (`max-h-full` + `max-w-full`) di dalam pembungkus `aspect-square`.
+ * baris papan memakai track `minmax(0,1fr)`, dan papan sendiri dibatasi dua
+ * sumbu (`max-h-full` + `max-w-full`) di dalam pembungkus `aspect-square`.
  *
  * Sebelumnya tinggi baris papan tidak pernah pasti: kolom memakai `flex-col
  * justify-between`, kotak papan ditentukan lebarnya (`aspect-square`), dan
@@ -52,15 +57,21 @@ export default function AreaPapan({
   return (
     <main
       data-area="papan"
-      className="flex min-w-0 flex-1 items-stretch justify-center overflow-hidden bg-[#262421] p-6"
+      className="flex min-w-0 flex-1 items-stretch justify-center overflow-hidden bg-[#262421] p-6 lg:[container-type:size]"
     >
-      {/* Sisakan ruang untuk padding dan dua profil; offset menyeimbangkan bilah evaluasi. */}
       {/*
-       * `max-w-[720px]` hanya untuk layar sempit. Mulai `lg` lebar kolom
-       * mengikuti papan (`w-fit`), sehingga baris profil tidak pernah lebih
-       * lebar daripada papan.
+       * `--sisi-papan` = sisi papan terbesar yang muat di area: lebar area
+       * dikurangi kolom bilah (2.25rem) + jarak (0.5rem), dan tinggi area
+       * dikurangi dua baris profil (2×2.5rem) + dua jarak (2×0.5rem). Angka
+       * itu bukan angka ajaib viewport — ia penjumlahan token yang sama
+       * dengan markup di bawah (`w-9`, `gap-2`, `min-h-10`), dan satuannya
+       * `cqw`/`cqh` milik AREA ini (`[container-type:size]`), bukan `vh`.
+       *
+       * Kolom papan memakai panjang itu, bukan `1fr`, supaya baris profil
+       * selalu selebar papan — juga saat papan dibatasi tinggi (layar lebar
+       * pendek), yang dulu membuat profil lebih lebar daripada papan.
        */}
-      <div className="grid min-h-0 w-full max-w-[720px] grid-cols-[auto_minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)_auto] gap-2 lg:w-fit lg:max-w-none lg:-translate-x-5">
+      <div className="grid min-h-0 w-full max-w-[720px] grid-cols-[2.25rem_minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)_auto] gap-2 lg:w-fit lg:max-w-none lg:grid-cols-[2.25rem_var(--sisi-papan)] lg:[--sisi-papan:min(calc(100cqw-2.75rem),calc(100cqh-6rem))]">
           {/* ─── PROFIL PEMAIN HITAM (ATAS) ─── */}
           <div
             data-baris="profil-atas"
@@ -82,7 +93,7 @@ export default function AreaPapan({
                 </svg>
               </div>
               <div className="flex min-w-0 flex-col justify-center">
-                <div className="flex items-center gap-2">
+                <div className="flex min-w-0 items-center gap-2">
                   {namaHitam ? (
                     <span className="truncate text-sm font-bold text-[#fffaec]">{namaHitam}</span>
                   ) : (
@@ -91,11 +102,11 @@ export default function AreaPapan({
                     </span>
                   )}
                   {eloHitam > 0 && (
-                    <span className="text-xs font-medium text-gray-300">({eloHitam})</span>
+                    <span className="shrink-0 text-xs font-medium text-gray-300">({eloHitam})</span>
                   )}
                 </div>
                 <div className="mt-0.5 flex flex-row items-center gap-1.5">
-                  <span className="truncate text-[11px] font-medium text-gray-400">
+                  <span className="min-w-0 truncate text-[11px] font-medium text-gray-400">
                     {memuat
                       ? "—"
                       : bukanSkakmat
@@ -107,7 +118,7 @@ export default function AreaPapan({
             </div>
             {/* Level soal: label di samping kiri kotak */}
             <div className="flex flex-shrink-0 flex-row items-center gap-2">
-              <span className="whitespace-nowrap text-[11px] font-medium text-gray-400">
+              <span className="hidden whitespace-nowrap text-[11px] font-medium text-gray-400 sm:inline">
                 {t("tekaTeki.levelSoal")}
               </span>
               <div className="flex h-10 min-w-[100px] items-center justify-center rounded-md border border-[#312e2b] bg-[#1e1d1c] px-3 text-sm font-bold text-nowrap shadow-inner">
@@ -120,53 +131,66 @@ export default function AreaPapan({
             </div>
           </div>
 
-          {/* ─── BAR EVALUASI (kolom 1) + STATUS & PAPAN (kolom 2) ─── */}
-          {/* Bilah evaluasi: satu kolom sendiri, setinggi baris papan. */}
-          <div className="col-start-1 row-start-2 flex shrink-0 items-center justify-center self-stretch">
-            {bilahEvaluasi ? (
-              bilahEvaluasi
-            ) : memuat ? (
-              <KerangkaBilahEvaluasi />
-            ) : (
-              <div className="relative w-[30px] flex-shrink-0 overflow-hidden rounded-md bg-[#ffffff] shadow-inner">
-                {/* Bagian putih (atas) */}
-                <div
-                  className="absolute top-0 left-0 right-0 bg-[#ffffff] transition-all duration-500"
-                  style={{ height: "48%" }}
-                >
-                  <div className="absolute bottom-1 left-0 right-0 text-center text-[9px] font-bold text-gray-700">
-                    +0.3
-                  </div>
-                </div>
-                {/* Bagian hitam (bawah) */}
-                <div
-                  className="absolute bottom-0 left-0 right-0 bg-[#312e2b] transition-all duration-500"
-                  style={{ height: "52%" }}
-                >
-                  <div className="absolute top-1 left-0 right-0 text-center text-[9px] font-bold text-gray-400"></div>
-                </div>
-                {/* Garis tengah */}
-                <div
-                  className="absolute left-0 right-0 h-[1px] bg-gray-400/30"
-                  style={{ top: "48%" }}
-                ></div>
-              </div>
-            )}
-          </div>
+          {/*
+           * Kolom 1 sengaja kosong: ia hanya menyediakan ruang selebar bilah
+           * (2.25rem) + `gap-2` agar bilah punya tempat sendiri tanpa mengurangi
+           * lebar papan. Elemen bilahnya sendiri diikat ke kotak papan di bawah.
+           */}
 
           {/* Baris papan: status (di aliran) + papan. Lebar kolom = lebar papan. */}
           <div
             data-baris="papan"
-            className="col-start-2 row-start-2 flex min-h-0 min-w-0 flex-col gap-2 overflow-hidden"
+            className="col-start-2 row-start-2 flex min-h-0 min-w-0 flex-col"
           >
             {/* Status gameplay tampil DI ALIRAN (bukan lapisan absolut), supaya
-                tidak pernah menutupi baris profil maupun petak papan. */}
-            {status ? <div className="w-0 min-w-full shrink-0">{status}</div> : null}
+                tidak pernah menutupi baris profil maupun petak papan.
+                `has-[>div>div]:mb-2` = jarak ke papan hanya muncul saat wilayah
+                status benar-benar memuat chip pesan (anak kedua). Wilayah
+                `aria-live`-nya SELALU terpasang meski kosong; kalau jaraknya
+                dipasang tetap, ia menyisakan 8px kosong di atas papan dan papan
+                tampak turun dari titik tengah baris. */}
+            {status ? (
+              <div className="w-0 min-w-full shrink-0 has-[>div>div]:mb-2">{status}</div>
+            ) : null}
 
-            {/* Papan Catur — pembungkus ber-tinggi pasti; papan dibatasi dua sumbu. */}
-            <div className="relative flex min-h-0 min-w-0 flex-1 items-center justify-center overflow-hidden rounded-md shadow-2xl">
+            {/*
+             * Dua lapis, dan keduanya punya tugas:
+             *  - lapis luar (`lg:h-full lg:w-auto`) memutuskan dimensi mana yang
+             *    mengalah saat ruang tidak simetris: tinggi dulu, lalu lebar;
+             *  - lapis dalam (`aspect-square w-full`) adalah KOTAK PAPAN yang
+             *    sebenarnya — selalu persis sebesar papan yang dirender, karena
+             *    keduanya memakai aturan yang sama (`w-full aspect-square`) di
+             *    dalam wadah yang sama. Bilah evaluasi diikat ke lapis ini,
+             *    sehingga tingginya tidak pernah mengikuti tinggi track.
+             */}
+            <div className="relative flex min-h-0 min-w-0 flex-1 items-center justify-center rounded-md shadow-2xl">
               <div className="relative flex aspect-square w-full min-w-0 max-w-full items-center justify-center lg:h-full lg:w-auto lg:max-h-full">
-                {papan ? papan : memuat ? <KerangkaPapan /> : null}
+                <div className="relative flex aspect-square w-full min-w-0 max-w-full items-center justify-center">
+                  {/*
+                   * Bilah evaluasi DIKAT ke kotak papan (bukan ke track baris):
+                   * `inset-y-0` membuat tingginya selalu sama dengan tinggi papan,
+                   * `right-full` + `mr-2` menempelkannya tepat di kiri papan
+                   * dengan jarak `gap-2`, dan ia mengisi kolom 1 (2.25rem) yang
+                   * sudah disediakan grid.
+                   */}
+                  <div className="absolute inset-y-0 right-full mr-2 flex w-9 shrink-0 flex-col justify-center">
+                    {bilahEvaluasi ? (
+                      bilahEvaluasi
+                    ) : memuat ? (
+                      <KerangkaBilahEvaluasi />
+                    ) : (
+                      /* Cadangan netral 50/50 bila halaman tidak mengirim bilah. */
+                      <div
+                        data-bilah-evaluasi="true"
+                        className="relative flex h-full w-9 flex-col overflow-hidden rounded-sm bg-[#403d39]"
+                      >
+                        <div className="h-1/2 w-full bg-[#f0f0f0]" />
+                        <div className="h-1/2 w-full bg-[#312e2b]" />
+                      </div>
+                    )}
+                  </div>
+                  {papan ? papan : memuat ? <KerangkaPapan /> : null}
+                </div>
               </div>
             </div>
           </div>
@@ -192,7 +216,7 @@ export default function AreaPapan({
                 </svg>
               </div>
               <div className="flex min-w-0 flex-col justify-center">
-                <div className="flex items-center gap-2">
+                <div className="flex min-w-0 items-center gap-2">
                   {namaPutih ? (
                     <span className="truncate text-sm font-bold text-[#fffaec]">{namaPutih}</span>
                   ) : (
@@ -201,19 +225,19 @@ export default function AreaPapan({
                     </span>
                   )}
                   {eloPutih > 0 && (
-                    <span className="text-xs font-medium text-gray-300">({eloPutih})</span>
+                    <span className="shrink-0 text-xs font-medium text-gray-300">({eloPutih})</span>
                   )}
                 </div>
                 <div className="mt-0.5 flex flex-row items-center gap-1.5">
                   {teksTerpecahkan && (
-                    <span className="text-[11px] font-bold text-gray-300">{teksTerpecahkan}</span>
+                    <span className="truncate text-[11px] font-bold text-gray-300">{teksTerpecahkan}</span>
                   )}
                 </div>
               </div>
             </div>
             {/* Rating soal: label di samping kiri kotak */}
             <div className="flex flex-shrink-0 flex-row items-center gap-2">
-              <span className="whitespace-nowrap text-[11px] font-medium text-gray-400">
+              <span className="hidden whitespace-nowrap text-[11px] font-medium text-gray-400 sm:inline">
                 {t("tekaTeki.ratingSoal")}
               </span>
               <div className="flex h-10 min-w-[100px] items-center justify-center rounded-md border border-[#81b64c] bg-[#f0f0f0] px-3 font-mono text-lg font-bold text-nowrap text-[#1e1d1c] shadow ring-2 ring-[#81b64c]/40">
