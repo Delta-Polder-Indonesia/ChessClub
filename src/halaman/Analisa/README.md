@@ -415,8 +415,15 @@ file-file yang disebut.
     (partai, nomor langkah, SAN, bit). Tombol **Buka** di tiap baris memuat
     partai itu ke papan **pada langkah tersebut** lewat `data.lompatKe`;
     jepitannya di `komponen/game/lompatLangkah.js` karena panjang partai baru
-    diketahui setelah parse selesai. Uji: `uji-deviasi-riwayat.mjs` (32) + 2
-    pemeriksaan UI di `uji-anticheat.mjs`.
+    diketahui setelah parse selesai.
+  - *Panah di papan*: `data.sorotUci` membawa UCI langkah yang disorot, dan
+    `komponen/game/panahSorot.js` menerjemahkannya ke bentuk panah papan
+    (`[{col,row},{col,row}]`, bukan UCI — itu format `Arrow` di `board.jsx`).
+    Panah hanya menempel pada nomor langkah itu, jadi perpindahan langkah
+    berikutnya membersihkannya sendiri. UCI tak sah menghasilkan **tanpa**
+    panah, bukan panah ke kotak acak. Uji: `uji-deviasi-riwayat.mjs` (38,
+    termasuk pemeriksaan bahwa setiap `uci` di `langkahTersorot` selalu bisa
+    digambar) + 2 pemeriksaan UI di `uji-anticheat.mjs`.
 - Uji: `scripts/uji-anticheat.mjs` (426) dan `scripts/uji-engine-uci.mjs`
   (59, termasuk MultiPV pada Stockfish asli) — semua wajib tetap hijau
   sebelum dan sesudah langkah berikutnya.
@@ -530,14 +537,14 @@ Di luar rangkaian itu:
 | `uji-wawasan-rating.mjs` | 10 |
 | `uji-integritas-suite.mjs` | 9 |
 | `uji-prediksi-maia.mjs` | 19 |
-| `uji-deviasi-riwayat.mjs` | 32 |
+| `uji-deviasi-riwayat.mjs` | 38 |
 | `uji-i18n.mjs` | 3402 kunci ID = 3402 EN, 1713 terpakai |
 
 ### Bundle & build
 
 | Ukuran | Nilai |
 | --- | --- |
-| Chunk `Analisa-*.js` | 368.684 B (gzip 99,96 kB) |
+| Chunk `Analisa-*.js` | 368.967 B (gzip 100,09 kB) |
 | `npm run build` (Vite, Node 22) | ±24 dtk |
 | `npm run lint` (eslint) | bersih |
 

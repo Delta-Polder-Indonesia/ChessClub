@@ -29,6 +29,9 @@ const { hitungDeviasiManusia, rincianDeviasiManusia } = await import(
   "../src/halaman/Analisa/mesin/deviasiManusia.js"
 );
 const { langkahLompat } = await import("../src/halaman/Analisa/komponen/game/lompatLangkah.js");
+const { panahSorot, petaPanahSorot } = await import(
+  "../src/halaman/Analisa/komponen/game/panahSorot.js"
+);
 
 let lulus = 0;
 let gagal = 0;
@@ -339,6 +342,58 @@ await uji("muatan biasa (tanpa lompatKe) tidak melompat", () => {
 await uji("partai kosong tetap menghasilkan 0, bukan nomor negatif", () => {
   assert.equal(langkahLompat(5, 0), 0);
   assert.equal(langkahLompat(5, undefined), 0);
+});
+
+await uji("panahSorot: UCI jadi panah papan (kolom, baris)", () => {
+  assert.deepEqual(panahSorot("e2e4"), [
+    { col: 4, row: 1 },
+    { col: 4, row: 3 },
+  ]);
+  assert.deepEqual(panahSorot("g1f3"), [
+    { col: 6, row: 0 },
+    { col: 5, row: 2 },
+  ]);
+});
+
+await uji("panahSorot: promosi & huruf besar diterima, promosi tak menggeser kotak", () => {
+  assert.deepEqual(panahSorot("e7e8q"), panahSorot("e7e8"));
+  assert.deepEqual(panahSorot("E2E4"), panahSorot("e2e4"));
+});
+
+await uji("panahSorot: bukan UCI sah → null (tanpa panah, bukan panah acak)", () => {
+  for (const sampah of [null, undefined, "", "   ", "e2", "zz", "e2e9", "e2e4x", 42]) {
+    assert.equal(panahSorot(sampah), null, `harus null: ${String(sampah)}`);
+  }
+});
+
+await uji("petaPanahSorot: panah menempel pada nomor langkahnya", () => {
+  assert.deepEqual(petaPanahSorot(3, "g1f3"), {
+    3: [
+      [
+        { col: 6, row: 0 },
+        { col: 5, row: 2 },
+      ],
+    ],
+  });
+});
+
+await uji("petaPanahSorot: tanpa lompatan/uci sah → objek kosong (aman disebar)", () => {
+  assert.deepEqual(petaPanahSorot(0, "e2e4"), {});
+  assert.deepEqual(petaPanahSorot(null, "e2e4"), {});
+  assert.deepEqual(petaPanahSorot(3.5, "e2e4"), {});
+  assert.deepEqual(petaPanahSorot(3, "sampah"), {});
+});
+
+await uji("uci dari langkahTersorot selalu bisa digambar jadi panah", async () => {
+  const hasil = await ringkasDeviasiRiwayat([{ pgn: PGN_PANJANG }], {
+    prediksi: async (moves) => petaSeragam(moves, 0.125),
+    batasSorot: 5,
+  });
+  assert.equal(hasil.langkahTersorot.length, 5);
+  for (const l of hasil.langkahTersorot) {
+    assert.ok(panahSorot(l.uci), `uci tidak sah: ${l.uci}`);
+    assert.deepEqual(Object.keys(petaPanahSorot(l.indeks, l.uci)), [String(l.indeks)]);
+  }
 });
 
 console.log("\n== kegagalan & pembatalan ==");

@@ -386,6 +386,11 @@ parse selesai lewat `komponen/game/lompatLangkah.js` — nomor di luar
 jangkauan menjadi langkah terakhir, `lompatKe` yang tidak sah diabaikan
 sehingga muatan biasa dari Basis Data/Impor berperilaku seperti dulu.
 
-Yang masih terbuka: kalibrasi ambang kejutan dengan korpus lokal, dan
-menyorot langkah langsung di papan (panah/penanda) alih-alih hanya melompat
-ke posisinya.
+Panah di papan **sudah ada**: `data.sorotUci` membawa UCI langkah yang
+disorot, dan `komponen/game/panahSorot.js` menerjemahkannya ke format panah
+papan (`[{col,row},{col,row}]`). Panah menempel pada nomor langkah itu saja,
+jadi navigasi ke langkah lain membersihkannya.
+
+Yang masih terbuka: kalibrasi ambang kejutan dengan korpus lokal. Selain itu,
+sorotan masih berupa panah tunggal per baris; menampilkan beberapa panah
+sekaligus (mis. lima teratas untuk satu partai) belum dikerjakan.

@@ -32,6 +32,7 @@ import { catatAnalisis } from "../../mesin/analisisTersimpan.js";
 import { adaPgnTitipan } from "../../../../lib/titipanAnalisa.js";
 import { gameStartSound } from "./gameStartSound.js";
 import { langkahLompat } from "./lompatLangkah.js";
+import { petaPanahSorot } from "./panahSorot.js";
 
 export function useMuatPartai({
   data,
@@ -115,7 +116,7 @@ export function useMuatPartai({
   const cleanArrows = useCallback(() => {
     setArrows({ 0: [] });
   }, [setArrows]);
-  const handlePGN = useCallback(async (pgn, depth2, terkini, signal, lompatKe) => {
+  const handlePGN = useCallback(async (pgn, depth2, terkini, signal, lompatKe, sorotUci) => {
     setPageState("loading");
     setTab("summary");
     setProgress(0);
@@ -188,7 +189,11 @@ export function useMuatPartai({
       catatAnalisis(hashPgn(pgn), ringkasAnalisis(moves));
       setResult(metadata.result);
       setAnimation(false);
-      setArrows(createArrowsObject(moves.length));
+      // Panah sorotan (dari panel distribusi manusia) menempel pada langkah
+      // tujuan, jadi ia hanya tampil saat papan berada di posisi itu —
+      // perpindahan langkah berikutnya membersihkannya sendiri.
+      const tujuanSorot = langkahLompat(lompatKe, moves.length);
+      setArrows({ ...createArrowsObject(moves.length), ...petaPanahSorot(tujuanSorot, sorotUci) });
       setCustomLine({ moveNumber: -1, moves: [], arrows: {} });
       setAnalyzingMove(false);
       if (boardSounds) setTimeout(() => gameStartSound.play(), 100);
@@ -199,8 +204,7 @@ export function useMuatPartai({
        * panjang partai belum diketahui. Nilai di luar jangkauan dijepit ke
        * langkah terakhir, bukan dibiarkan menghasilkan papan kosong.
        */
-      const tujuan = langkahLompat(lompatKe, moves.length);
-      if (tujuan !== null) setMoveNumber(tujuan);
+      if (tujuanSorot !== null) setMoveNumber(tujuanSorot);
     } catch (e) {
       if (!terkini()) return;
       switch (e?.kunci ?? e?.message) {
@@ -316,7 +320,7 @@ export function useMuatPartai({
     setPageState("analyzeCustom");
   }, [t, depth, siapkan, cleanArrows, setErrors, setAnalyzeController, setPageState, setTime, setPlayers, setWhite, setPlaying, setMoveNumber, setResult, setProgress, setCustomLine, setAnalyzingMove, setGame]);
   useEffect(() => {
-    const { format, string, lompatKe } = data;
+    const { format, string, lompatKe, sorotUci } = data;
     /*
      * Muatan baru membatalkan analisis yang masih berjalan — dua parsePGN
      * sekaligus memakai signal yang sama saling menimpa hasil. Muatan baru
@@ -335,7 +339,7 @@ export function useMuatPartai({
     setAnalyzeController(baru);
     switch (format) {
       case "pgn":
-        handlePGN(string, depth, terkini, baru.signal, lompatKe);
+        handlePGN(string, depth, terkini, baru.signal, lompatKe, sorotUci);
         break;
       case "fen":
         handleFEN(string, terkini, baru.signal);

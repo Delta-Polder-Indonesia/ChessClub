@@ -101,8 +101,10 @@ Status: **selesai** (2026-11-06), dalam dua PR:
 3. **Sorotan per langkah** — `rincianDeviasiManusia` + `langkahTersorot`
    (lima teratas), dengan tombol **Buka** yang memuat partai ke papan pada
    langkah itu (`data.lompatKe` + `komponen/game/lompatLangkah.js`).
+4. **Panah di papan** — `data.sorotUci` + `komponen/game/panahSorot.js`
+   (UCI → `[{col,row},{col,row}]`), menempel pada nomor langkah itu saja.
 
-   Dijaga `npm run uji:deviasi-riwayat` (32) + 2 pemeriksaan UI di
+   Dijaga `npm run uji:deviasi-riwayat` (38) + 2 pemeriksaan UI di
    `uji-anticheat.mjs` (428).
 
 Yang **tidak** dikerjakan di fase ini dan tetap terbuka: kalibrasi ulang

@@ -127,7 +127,9 @@ export default function PanelDeviasiManusia({ platform, username, waktu, batas, 
                     <button
                       type="button"
                       data-uji="deviasi-buka"
-                      onClick={() => onBukaPartai({ format: "pgn", string: pgn, lompatKe: l.indeks })}
+                      onClick={() =>
+                        onBukaPartai({ format: "pgn", string: pgn, lompatKe: l.indeks, sorotUci: l.uci })
+                      }
                       className="shrink-0 cursor-pointer rounded-borderRoundness border border-border px-2 py-0.5 text-xs font-bold text-foreground transition-colors hover:bg-backgroundBoxBoxHighlighted"
                     >
                       {t("analisa.antiCheat.deviasi.buka")}
