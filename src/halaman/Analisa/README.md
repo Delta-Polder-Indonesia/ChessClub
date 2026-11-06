@@ -487,7 +487,7 @@ Di luar rangkaian itu:
 
 | Ukuran | Nilai |
 | --- | --- |
-| Chunk `Analisa-*.js` | 367.366 B (gzip 99,17 kB) |
+| Chunk `Analisa-*.js` | 368.454 B (gzip 99,53 kB) |
 | `npm run build` (Vite, Node 22) | ±24 dtk |
 | `npm run lint` (eslint) | bersih |
 
@@ -534,6 +534,34 @@ Aturan yang dipakai saat memecah: **cache sesi tetap milik
 menerima data lewat props dan membaca `basisData.js` sendiri bila perlu.
 Badan setiap fungsi dipindah **byte-identik** — diverifikasi dengan
 membandingkan teks fungsi di berkas asli dan berkas baru.
+
+### Peta berkas papan (Fase 3, langkah 2)
+
+`komponen/game/game.jsx` dulu 863 baris: tata letak papan, pengukuran ukuran,
+pendengar keyboard, alur muat partai, dan alur penilaian langkah. Sekarang
+**486 baris** (orkestrasi + tata letak) dengan dua hook:
+
+| Berkas | Baris | Isi |
+| --- | ---: | --- |
+| `game/useMuatPartai.js` | 338 | `handlePGN`, `handleFEN`, efek `[data]`, dan pemuatan tabel pembukaan saat senggang |
+| `game/useAnalisisPapan.js` | 193 | `analyzeMove` + `analyzingMoveRef` |
+
+Ketiganya berbagi ref yang sama, dan itu **bukan detail gaya** — perilaku
+balapan bergantung padanya:
+
+- `muatSeqRef` — nomor urut muatan; hasil analisis langkah dari muatan lama
+  tidak boleh menimpa `customLine` muatan baru (`uji-balap-analisa` menguji ini);
+- `controllerRef` — cermin `analyzeController` untuk alur async, dipakai kedua
+  hook sehingga tombol Batal tetap mematikan pencarian yang benar;
+- `openingsRef` — tabel nama pembukaan (±160 KiB), diunduh saat senggang dan
+  dipakai bersama dua alur.
+
+Badan `handlePGN` (103 baris), `handleFEN` (89), efek `[data]` (27), efek buku
+(27), `analyzeMove` (137), `sliceCustomArrows` (8), dan `createArrowsObject` (7)
+dipindah **byte-identik**; parameter hook adalah nilai yang dulu closure
+komponen. Satu-satunya perubahan isi: `cleanArrows` kini menyebut `setArrows`
+di daftar dependensi `useCallback` karena `setArrows` datang dari parameter,
+bukan `useState` di berkas yang sama.
 
 ## Catatan perbaikan (polish layar Database & Akun)
 

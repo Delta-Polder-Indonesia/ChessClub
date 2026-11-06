@@ -1,16 +1,13 @@
 /* Port dari Brilliant-Chess (MIT, © 2025 Delo) — jangan sunting massal tanpa cek README. */
-import { useCallback, useEffect, useLayoutEffect, useState, useRef, useContext } from "react";
+import { useEffect, useLayoutEffect, useState, useRef, useContext } from "react";
 import Board from "./board.jsx";
-import { gameStartSound } from "./gameStartSound.js";
 import Clock from "./clock.jsx";
 import Name from "./name.jsx";
 import Evaluation from "./evaluation.jsx";
 import { AnalyzeContext, TAMPILAN_ANALISA } from "../../konteks/analyzeKonteks.js";
-import { bacaPartaiPGN, formatSquare, getCastle, invertColor, parseMove, parsePGN, parsePosition } from "../../mesin/engine.js";
-import { cariNamaPembukaan } from "../../mesin/buku.js";
-import { STATUS_EVALUASI, ratingTampilan } from "../../mesin/evaluasi.js";
-import { Chess, WHITE } from "chess.js";
-import { pushPageWarning, pushPageError } from "../errors/pushPageError.js";
+import { ratingTampilan } from "../../mesin/evaluasi.js";
+import { WHITE } from "chess.js";
+import { pushPageWarning } from "../errors/pushPageError.js";
 import { useMesin } from "../../konteks/mesinKonteks.js";
 import { useI18n } from "../../../../lib/i18n.jsx";
 import { useKartuPemain } from "../../../../lib/pemainCatur.js";
@@ -19,10 +16,8 @@ import { maxVertical, navTop } from "../../konstanta.js";
 import { ConfigContext } from "../../konteks/configKonteks.js";
 import GameButtons from "../menu/analysis/gameButtons.jsx";
 import { getMoves, getArrows, getCustomResult, formatPlayerLabel } from "./getMoves.js";
-import { hashPgn } from "../../../../lib/pgnRingan.js";
-import { ringkasAnalisis } from "../../mesin/ringkasanAnalisis.js";
-import { catatAnalisis } from "../../mesin/analisisTersimpan.js";
-import { adaPgnTitipan } from "../../../../lib/titipanAnalisa.js";
+import { useMuatPartai } from "./useMuatPartai.js";
+import { useAnalisisPapan } from "./useAnalisisPapan.js";
 
 function Game({ wadah }) {
   const [boardSize, setBoardSize] = useState(750);
@@ -30,7 +25,6 @@ function Game({ wadah }) {
   const [captured, setCaptured] = useState({ white: [], black: [] });
   const [arrows, setArrows] = useState({ 0: [] });
   const [gap, setGap] = useState(10);
-  const openingsRef = useRef(null);
   const [drag2, setDrag] = useState({ is: false, id: "" });
   const [isNavTop, setIsNavTop] = useState(false);
   const analyzeContext = useContext(AnalyzeContext);
@@ -68,28 +62,62 @@ function Game({ wadah }) {
   const intervalRef = useRef();
   const tabRef = useRef(tab);
   const dragRef = useRef(drag2);
-  const analyzingMoveRef = useRef(analyzingMove);
   const pageStateRef = useRef(pageState);
   const tampilanRef = useRef(tampilan);
-  // Nomor urut muatan partai: muatan yang lebih lama dibatalkan oleh yang
-  // lebih baru sehingga hasilnya tidak saling menimpa (`related key` ada di
-  // useEffect [data]).
-  const muatSeqRef = useRef(0);
-  /*
-   * Cermin controller untuk alur async: `analyzeController` (state) hanya
-   * segar saat render, sedangkan `handlePGN`/`analyzeMove` hidup melintasi
-   * banyak render — membaca state dari closure basi berarti membatalkan
-   * controller yang SALAH. Ref ini disinkronkan tiap render (mencakup
-   * penulis luar seperti ganti engine di pengaturan) dan dibaca semua alur
-   * async; penulis di berkas ini selalu memperbarui keduanya berbarengan.
-   */
-  const controllerRef = useRef(analyzeController);
-  controllerRef.current = analyzeController;
   const { previousMove, move: move2, nextMove } = getMoves(game, moveNumber, customLine, returnedToNormalGame);
   const shownResult = customLine.moveNumber < 0 ? result2 : getCustomResult(move2);
-  useEffect(() => {
-    analyzingMoveRef.current = analyzingMove;
-  }, [analyzingMove]);
+  /*
+   * Dua alur besar dipisah ke hook (Fase 3): memuat partai (`useMuatPartai`)
+   * dan menilai langkah manual (`useAnalisisPapan`). Keduanya berbagi ref
+   * yang sama — `controllerRef`, `muatSeqRef`, `openingsRef` — supaya
+   * pembatalan, urutan muatan, dan tabel pembukaan tetap punya satu sumber
+   * kebenaran seperti saat masih satu berkas.
+   */
+  const muatPartai = useMuatPartai({
+    data,
+    depth,
+    analyzeController,
+    boardSounds,
+    siapkan,
+    t,
+    setErrors,
+    setAnalyzeController,
+    setPageState,
+    setTab,
+    setProgress,
+    setLangkahSementara,
+    setTime,
+    setPlayers,
+    setGame,
+    setResult,
+    setAnimation,
+    setArrows,
+    setCustomLine,
+    setAnalyzingMove,
+    setMoveNumber,
+    setWhite,
+    setPlaying,
+  });
+  const { analyzeMove, analyzingMoveRef } = useAnalisisPapan({
+    controllerRef: muatPartai.controllerRef,
+    muatSeqRef: muatPartai.muatSeqRef,
+    openingsRef: muatPartai.openingsRef,
+    data,
+    depth,
+    time,
+    move2,
+    siapkan,
+    ambilMesin,
+    t,
+    setErrors,
+    setAnalyzeController,
+    setPageState,
+    setAnimation,
+    setForward,
+    setCustomLine,
+    setAnalyzingMove,
+    analyzingMove,
+  });
   useEffect(() => {
     dragRef.current = drag2;
   }, [drag2]);
@@ -99,37 +127,6 @@ function Game({ wadah }) {
   useEffect(() => {
     tampilanRef.current = tampilan;
   }, [tampilan]);
-  // Label "langkah buku": tabel nama pembukaan milik situs ini sendiri
-  // (dibangun oleh scripts/generasi-buku-analisa.mjs). Bentuknya fungsi
-  // pencarian (fen) => nama, bukan peta mentah, agar penghitung langkah di
-  // FEN bisa diabaikan — tabel upstream tidak pernah cocok karena itu.
-  useEffect(() => {
-    /*
-     * Tabel bukunya ±160 KiB — jangan diunduh di jalur kritis pemuatan
-     * halaman (Lighthouse mencatatnya sebagai item payload terbesar).
-     * Ditunda ke waktu senggang peramban; belum ada partai yang butuh nama
-     * pembukaan pada detik-detik pertama, dan `cariNamaPembukaan` men-cache
-     * janjinya jadi jalur lain (muat partai/impor) tetap berbagi unduhan.
-     */
-    let hidup = true;
-    const muat = () =>
-      cariNamaPembukaan().then((pencari) => {
-        if (hidup) openingsRef.current = pencari;
-      });
-    if (typeof window !== "undefined" && typeof window.requestIdleCallback === "function") {
-      const id = window.requestIdleCallback(muat, { timeout: 5000 });
-      return () => {
-        hidup = false;
-        window.cancelIdleCallback?.(id);
-      };
-    }
-    const id = setTimeout(muat, 1500);
-    id?.unref?.();
-    return () => {
-      hidup = false;
-      clearTimeout(id);
-    };
-  }, []);
   // Engine TIDAK lagi dimuat di sini: worker dimiliki <MesinProvider> dan
   // baru diunduh ketika pengguna benar-benar meminta analisis (lihat
   // src/halaman/Analisa/konteks/mesin.jsx). Yang tersisa hanya peringatan
@@ -158,16 +155,6 @@ function Game({ wadah }) {
     }
     return () => clearInterval(intervalRef.current);
   }, [playing, gameController]);
-  function createArrowsObject(length) {
-    const newArrows = {};
-    Array.from({ length }).forEach((_, i) => {
-      newArrows[i] = [];
-    });
-    return newArrows;
-  }
-  const cleanArrows = useCallback(() => {
-    setArrows({ 0: [] });
-  }, []);
   function cleanCurrentArrows() {
     if (customLine.moveNumber < 0) {
       setArrows((prev) => {
@@ -286,225 +273,6 @@ function Game({ wadah }) {
     return () => document.removeEventListener("keydown", handleKeyDown);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-once: listener keyboard global hanya dipasang sekali; ref dipakai agar nilai selalu segar
   }, []);
-  const handlePGN = useCallback(async (pgn, depth2, terkini, signal) => {
-    setPageState("loading");
-    setTab("summary");
-    setProgress(0);
-    setLangkahSementara([]);
-    if (!pgn?.trim()) {
-      pushPageError(setErrors, t("analisa.galat.pgnJudul"), t("analisa.galat.pgnIsi"));
-      setPageState("default");
-      return;
-    }
-
-    // Tombol Batal juga bekerja saat engine/buku masih disiapkan, bukan cuma
-    // saat pencarian UCI sudah berjalan. Muatan lama tidak boleh menutup yang baru.
-    const batal = () => {
-      if (!terkini()) return;
-      setPageState("default");
-      setProgress(0);
-      setLangkahSementara([]);
-    };
-    signal.addEventListener("abort", batal, { once: true });
-    try {
-      const partai = bacaPartaiPGN(pgn);
-      if (signal.aborted || !terkini()) return;
-      // Berkas multi-partai: hanya partai pertama yang dianalisis — katakan,
-      // jangan diam (pengguna menempel 100 partai lalu heran sisanya hilang).
-      if ((partai.jumlahPartai ?? 1) > 1) {
-        pushPageWarning(setErrors, t("analisa.multiPartai.judul"), t("analisa.multiPartai.isi", { n: partai.jumlahPartai }));
-      }
-      setLangkahSementara(partai.kerangka);
-
-      // Buku pembukaan diunduh bersamaan dengan penyiapan engine.
-      const janjiBuku = openingsRef.current
-        ? Promise.resolve(openingsRef.current)
-        : cariNamaPembukaan().catch(() => ({}));
-      const mesin = await siapkan().catch(() => {
-        throw new Error(signal.aborted ? "canceled" : "mesin");
-      });
-      if (signal.aborted || !terkini()) return;
-      const buku = await janjiBuku;
-      if (signal.aborted || !terkini()) return;
-
-      // Posisi belum dinilai tetap berada pada garis tengah. Sumbu X berasal
-      // dari seluruh partai dan tidak berubah setiap kali onLangkah terpanggil.
-      const laporkanLangkah = (dinilai) => {
-        if (!terkini() || signal.aborted) return;
-        setLangkahSementara(partai.kerangka.map((posisi, i) => dinilai[i] ?? posisi));
-      };
-      const laporkanProgres = (nilai) => {
-        if (terkini() && !signal.aborted) setProgress(nilai);
-      };
-      const { metadata, moves } = await parsePGN(mesin, pgn, depth2, buku, laporkanProgres, signal, {
-        partai, onLangkah: laporkanLangkah,
-      });
-      if (!terkini() || signal.aborted) return;
-      setTime(metadata.time);
-      setPlayers(metadata.players.map((p) => ({ name: p.name || t("analisa.pemain.anonim"), elo: p.elo })));
-      setGame(moves);
-      /*
-       * Daftarkan hasil partai ini ke peta analisis sesi — padanan case
-       * `analysis/terminal` di acuan (`features/workspace/reducer.ts`):
-       * `{ ...resultsByGameId, [gameId]: result }` hanya untuk status
-       * `complete`. Peta itu yang dibaca layar Wawasan sebagai `analysisMap`,
-       * persis `ChessWorkspace.tsx` meneruskan `state.analysis.resultsByGameId`.
-       *
-       * Kuncinya HASH TEKS PGN, bukan id basis data: di titik ini papan hanya
-       * memegang teks PGN (layar Database/Impor melempar `{ format, string }`
-       * tanpa id). Layar Wawasan menerjemahkan hash itu kembali ke `p.id`
-       * lewat `hashPgn(p.pgn)`, jadi kedua sisi bertemu tanpa perlu mengubah
-       * alur data partai.
-       */
-      catatAnalisis(hashPgn(pgn), ringkasAnalisis(moves));
-      setResult(metadata.result);
-      setAnimation(false);
-      setArrows(createArrowsObject(moves.length));
-      setCustomLine({ moveNumber: -1, moves: [], arrows: {} });
-      setAnalyzingMove(false);
-      if (boardSounds) setTimeout(() => gameStartSound.play(), 100);
-      setPageState("analyze");
-    } catch (e) {
-      if (!terkini()) return;
-      switch (e?.kunci ?? e?.message) {
-        case "pgn":
-          pushPageError(setErrors, t("analisa.galat.pgnJudul"), t("analisa.galat.pgnIsi"));
-          break;
-        case "canceled":
-          setAnalyzeController(new AbortController());
-          break;
-        case "mesin":
-          pushPageError(setErrors, t("analisa.galat.engineJudul"), t("analisa.galat.engineIsi"));
-          break;
-        default:
-          pushPageError(setErrors, t("analisa.galat.analisisJudul"), String(e?.message ?? e));
-      }
-      setPageState("default");
-    } finally {
-      signal.removeEventListener("abort", batal);
-      if (terkini()) {
-        setProgress(0);
-        setLangkahSementara([]);
-        setMoveNumber(0);
-      }
-    }
-  }, [t, siapkan, boardSounds, setErrors, setAnalyzeController, setPageState, setTab, setProgress, setLangkahSementara, setTime, setPlayers, setGame, setResult, setAnimation, setArrows, setCustomLine, setAnalyzingMove, setMoveNumber]);
-  const handleFEN = useCallback(async (fen, terkini, sinyal) => {
-    /*
-     * Halaman dibuka dengan PGN titipan dari teka-teki (lihat
-     * `src/lib/titipanAnalisa.js`): keadaan awal `data` masih `{fen, ""}`, jadi
-     * tanpa penjagaan ini jalur "tanpa FEN" di bawah menggambar papan POSISI
-     * AWAL sebagai `default` sebelum PGN titipan sempat dibaca. Biarkan
-     * `loading` (kerangka papan) — pengimpor di `areaKerja.jsx` mengambil alih
-     * beberapa milidetik kemudian.
-     */
-    if (!fen?.trim() && adaPgnTitipan()) return;
-    let move3;
-    try {
-      move3 = await new Promise((resolve, reject) => {
-        (async () => {
-          setPageState("loading");
-          setTime(0);
-          setPlayers([{ name: t("analisa.pemain.putih"), elo: "?" }, { name: t("analisa.pemain.hitam"), elo: "?" }]);
-          setWhite(true);
-          setPlaying(false);
-          setMoveNumber(0);
-          setResult("");
-          setProgress(0);
-          setCustomLine({ moveNumber: -1, moves: [], arrows: {} });
-          setAnalyzingMove(false);
-          cleanArrows();
-          if (!fen?.trim()) {
-            // Tanpa FEN: papan bebas dari posisi awal, saran engine langsung
-            // ditampilkan setelah engine siap (lihat efek di bawah).
-            const chess2 = new Chess();
-            const fen2 = chess2.fen();
-            const bestMove = chess2.move({ from: "e2", to: "e4" });
-            const move5 = {
-              fen: fen2,
-              color: chess2.turn(),
-              bestMove: [formatSquare(bestMove.from), formatSquare(bestMove.to)],
-              bestMoveSan: bestMove.san,
-              previousStaticEvals: [["cp", "-30"]],
-              clock: { white: null, black: null },
-            };
-            setGame([move5]);
-            setPageState("default");
-            return null;
-          }
-          const mesin = await siapkan().catch(() => null);
-          if (!mesin) {
-            pushPageError(setErrors, t("analisa.galat.engineJudul"), t("analisa.galat.engineIsi"));
-            return null;
-          }
-          let chess;
-          try {
-            chess = new Chess(fen);
-          } catch {
-            throw new Error("fen");
-          }
-          const signal = sinyal;
-          function handleAbort() {
-            reject(new Error("canceled"));
-            signal.removeEventListener("abort", handleAbort);
-          }
-          return parsePosition(mesin, chess, depth, signal, handleAbort);
-        })().then(resolve, reject);
-      });
-    } catch (e) {
-      // Muatan lama yang dibatalkan tidak boleh menimpa muatan baru.
-      if (!terkini()) return;
-      switch (e?.kunci ?? e?.message) {
-        case "fen":
-          pushPageError(setErrors, t("analisa.galat.fenJudul"), t("analisa.galat.fenIsi"));
-          break;
-        case "canceled":
-          setAnalyzeController(new AbortController());
-          break;
-        case "mesin":
-          pushPageError(setErrors, t("analisa.galat.engineJudul"), t("analisa.galat.engineIsi"));
-          break;
-        default:
-          pushPageError(setErrors, t("analisa.galat.analisisJudul"), String(e?.message ?? e));
-      }
-      setPageState("default");
-      return;
-    }
-    if (!move3) {
-      if (terkini()) setPageState("default");
-      return;
-    }
-    if (!terkini()) return;
-    setGame([{ ...move3, clock: { white: null, black: null } }]);
-    setPageState("analyzeCustom");
-  }, [t, depth, siapkan, cleanArrows, setErrors, setAnalyzeController, setPageState, setTime, setPlayers, setWhite, setPlaying, setMoveNumber, setResult, setProgress, setCustomLine, setAnalyzingMove, setGame]);
-  useEffect(() => {
-    const { format, string } = data;
-    /*
-     * Muatan baru membatalkan analisis yang masih berjalan — dua parsePGN
-     * sekaligus memakai signal yang sama saling menimpa hasil. Muatan baru
-     * memakai controller/signal miliknya sendiri; `terkini` mencegah muatan
-     * lama yang dibatalkan ikut menyetor state (langkah, progres, halaman).
-     */
-    muatSeqRef.current += 1;
-    const nomor = muatSeqRef.current;
-    const terkini = () => muatSeqRef.current === nomor;
-    // Muatan baru = kanvas bersih: galat/peringatan muatan lama (termasuk
-    // "multi-partai") tidak boleh menghantui muatan ini.
-    setErrors([]);
-    controllerRef.current.abort();
-    const baru = new AbortController();
-    controllerRef.current = baru;
-    setAnalyzeController(baru);
-    switch (format) {
-      case "pgn":
-        handlePGN(string, depth, terkini, baru.signal);
-        break;
-      case "fen":
-        handleFEN(string, terkini, baru.signal);
-        break;
-    }
-  }, [data, depth, handleFEN, handlePGN, setAnalyzeController, setErrors]);
   /**
    * Ukuran papan = sisi terkecil wadah halaman, dikurangi lajur bilah
    * evaluasi, menu papan, dan panel kanan bila panel masih sejajar.
@@ -606,151 +374,6 @@ function Game({ wadah }) {
   function roundBoardSize(boardSize2) {
     // Papan boleh melebar sampai batas ini (kelipatan 8) supaya tetap rapi.
     return Math.min(1000, Math.round(boardSize2 / 8) * 8);
-  }
-  function sliceCustomArrows(arrows2, moveNumber2) {
-    const newArrows = {};
-    for (let i = 0; i <= moveNumber2; i++) {
-      if (!arrows2[i]) newArrows[i] = [];
-      else newArrows[i] = arrows2[i];
-    }
-    return newArrows;
-  }
-  /*
-   * `previousKandidat` ditambahkan paling belakang supaya pemanggil lama
-   * (uji dan jalur lain) tetap sah: tanpanya label "kritis" tidak muncul,
-   * perilaku lainnya identik.
-   */
-  async function analyzeMove(previousFen, movement, previousSacrifice, previousStaticEvals, animation2, previousBestMoveSan, previousKandidat) {
-    // Baca-SAJA: dipakai untuk mendeteksi muatan baru yang dimulai selama
-    // analisis berjalan — TIDAK PERNAH ditambah. Menambahkannya di sini akan
-    // membuang muatan yang sedang berjalan dan memacetkannya pada "memuat".
-    const nomorMuat = muatSeqRef.current;
-    const chess = new Chess(previousFen);
-    const unanalyzedMoveObj = chess.move(movement);
-    const unanalyzedMove = {
-      fen: unanalyzedMoveObj.after,
-      movement: [formatSquare(movement.from), formatSquare(movement.to)],
-      color: invertColor(unanalyzedMoveObj.color),
-      capture: unanalyzedMoveObj.captured,
-      castle: getCastle(unanalyzedMoveObj.san),
-      san: unanalyzedMoveObj.san,
-      clock: move2?.clock ?? { white: time || null, black: time || null },
-    };
-    setAnimation(animation2);
-    setForward(true);
-    setCustomLine((prev) => ({ moveNumber: prev.moveNumber + 1, moves: [...prev.moves.slice(0, prev.moveNumber + 1), unanalyzedMove], arrows: sliceCustomArrows(prev.arrows, prev.moveNumber + 1) }));
-    setAnalyzingMove(true);
-    if (data.format === "fen") setPageState("analyzeCustom");
-    /*
-     * Analisis langkah manual. Semua jalur keluar HARUS melepas
-     * `analyzingMove`: kalau tidak, papan terkunci selamanya (tombol dan
-     * tombol panah semuanya memeriksa bendera ini) dan pengguna harus
-     * memuat ulang halaman. Karena itu pembersihannya ada di `finally`,
-     * bukan setelah `await`.
-     */
-    let move3;
-    let dibatalkan = false;
-    try {
-      // Controller yang sudah dibatalkan (tombol Batal / ganti engine) tidak
-      // bisa dipakai lagi: signal aborted memacetkan setiap analisis berikutnya
-      // secara diam-diam. Ganti dengan yang baru sebelum melanjutkan — TAPI
-      // hanya bila yang terpasang MASIH controller mati itu (blok sinkron,
-      // tak ada render yang bisa menyela): muatan baru yang memasang
-      // controller segar saat langkah ini menunggu tidak boleh ditimpa.
-      if (controllerRef.current.signal.aborted) {
-        const baru = new AbortController();
-        controllerRef.current = baru;
-        setAnalyzeController(baru);
-      }
-      const signal = controllerRef.current.signal;
-      // Lihat catatan balapan buku di handlePGN: langkah manual pun menunggu
-      // tabel buku yang sama (berselang dengan penyiapan engine) sebelum dinilai.
-      const janjiBuku = openingsRef.current
-        ? Promise.resolve(openingsRef.current)
-        : cariNamaPembukaan().catch(() => ({}));
-      const mesin = ambilMesin() ?? (await siapkan().catch(() => null));
-      const buku = await janjiBuku;
-      // Muatan baru dimulai saat menunggu → hasil analisis ini pasti basi;
-      // berhenti di sini (`finally` tetap melepas kunci papan).
-      if (muatSeqRef.current !== nomorMuat) return;
-      // Dibatalkan saat MENUNGGU engine/buku (tombol Batal / ganti engine
-      // mendarat di sela `await`): ini pembatalan, bukan kegagalan — capnya
-      // "dibatalkan" dan tidak ada kabar galat. (`signal` diambil sebelum
-      // `await`, jadi nilainya di sini adalah status saat menunggu.)
-      if (signal.aborted) {
-        dibatalkan = true;
-      } else if (mesin) {
-        const chess2 = new Chess(previousFen);
-        const move4 = chess2.move(movement);
-        move3 = await parseMove(
-          mesin,
-          depth,
-          move4,
-          chess2,
-          previousStaticEvals,
-          previousBestMoveSan,
-          previousSacrifice,
-          buku,
-          () => {
-            throw new Error("canceled");
-          },
-          signal,
-          undefined,
-          previousKandidat ?? []
-        );
-      }
-    } catch (e) {
-      // Batal (tombol Batal / ganti engine) bukan galat yang perlu
-      // ditampilkan; sisanya dilaporkan supaya tidak hilang diam-diam.
-      const kunci = e?.kunci ?? e?.message;
-      const batal = kunci === "canceled" || kunci === "pencarian dibatalkan" || kunci === "permintaan digantikan";
-      if (!batal) {
-        pushPageError(setErrors, t("analisa.galat.analisisJudul"), String(e?.message ?? e));
-      } else {
-        dibatalkan = true;
-        // Signal ini sudah mati; ganti dengan yang baru supaya langkah
-        // berikutnya tetap bisa dinilai, bukan langsung "canceled" — TAPI
-        // hanya bila yang terpasang masih yang mati: menimpa controller
-        // muatan baru membuat tombol Batal lumpuh untuk muatan itu.
-        if (controllerRef.current.signal.aborted) {
-          const baru = new AbortController();
-          controllerRef.current = baru;
-          setAnalyzeController(baru);
-        }
-      }
-      move3 = undefined;
-    } finally {
-      setAnimation(false);
-      setAnalyzingMove(false);
-    }
-
-    /*
-     * Bila analisis gagal/dibatalkan, langkahnya tetap ada di papan sebagai
-     * langkah "belum dinilai" — menyisipkan `undefined` ke dalam daftar akan
-     * merobohkan render (getMoves membaca `.movement` dari elemen ini).
-     */
-    /*
-     * Tulis hasil HANYA bila tak ada muatan baru yang dimulai selama analisis
-     * berjalan — customLine milik muatan baru tidak boleh ditimpa hasil basi
-     * (balapan seret-langkah vs muat partai).
-     */
-    if (muatSeqRef.current !== nomorMuat) return;
-    if (!move3) {
-      // Analisis gagal/dibatalkan: langkahnya tetap ada sebagai "belum
-      // dinilai", dan placeholder-nya dicap supaya downstream (grafik,
-      // ekspor) bisa membedakan batal vs gagal vs valid.
-      const cap = dibatalkan ? STATUS_EVALUASI.DIBATALKAN : STATUS_EVALUASI.GAGAL;
-      setCustomLine((prev) => {
-        const daftar = prev.moves.slice();
-        const sasaran = daftar[prev.moveNumber];
-        if (sasaran && !sasaran.previousStaticEvals && !sasaran.statusEvaluasi) {
-          daftar[prev.moveNumber] = { ...sasaran, statusEvaluasi: cap };
-        }
-        return { ...prev, moves: daftar };
-      });
-      return;
-    }
-    setCustomLine((prev) => ({ ...prev, moveNumber: prev.moveNumber, moves: [...prev.moves.slice(0, prev.moveNumber), { ...move3, clock: unanalyzedMove.clock }] }));
   }
   function formatTime(seconds) {
     const noTime = "--:--";
