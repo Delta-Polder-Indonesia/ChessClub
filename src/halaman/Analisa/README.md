@@ -487,7 +487,7 @@ Di luar rangkaian itu:
 
 | Ukuran | Nilai |
 | --- | --- |
-| Chunk `Analisa-*.js` | 367.372 B (gzip 99,17 kB) |
+| Chunk `Analisa-*.js` | 367.366 B (gzip 99,17 kB) |
 | `npm run build` (Vite, Node 22) | ±24 dtk |
 | `npm run lint` (eslint) | bersih |
 
@@ -512,6 +512,28 @@ lanjutan memindahkan `nav.jsx`, `boardMenu.jsx`, `gameButtons.jsx`, dan
 yang sama; pada `AreaKerja` asli, 20 detak `progress` turun dari 5,05 ke 4,28
 ms per detak (React.Profiler, jsdom — angka browser akan lebih besar karena
 jsdom tidak melakukan paint/layout).
+
+## Peta berkas layar Database (Fase 3)
+
+`komponen/nav/layarDatabase.jsx` dulu 2331 baris dan memuat semuanya sekaligus
+(kueri data, state UI, tata letak, dan komponen tabel). Sejak Fase 3 ia tinggal
+**orkestrasi** (±1430 baris: state, cache sesi, alur IndexedDB, tata letak
+panel) dan komponen presentasionalnya dipindah ke `komponen/nav/database/`:
+
+| Berkas | Isi | Dipakai oleh |
+| --- | --- | --- |
+| `database/formatDatabase.js` | `formatTanggal`, `formatUkuran`, `daftarHalaman`, `statusHasil`, `BIRU`, dan konstanta tata letak (`BARIS_PER_HALAMAN`, `TINGGI_BARIS`, `JUMLAH_BARIS_SKELETON`, `LEBAR_JENDELA_HALAMAN`) | layar + dua tabel |
+| `database/ikonDatabase.jsx` | `IkonSearch`, `IkonSort` (publik), `_IkonCopy`, `_IkonPlay` (internal) | layar + dua tabel |
+| `database/tabelPartai.jsx` | `DropdownPilih`, `BarisSkeleton`, `HeaderTabel`, `BarisPartai`, `HeaderKolom`, `MenuKolom` | layar + tabel Ringkasan |
+| `database/tabelRingkasan.jsx` | `TabelRingkasan` (+ `BATAS_MUAT_RINGKAS`, `PERIODE_MUNDUR`) | layar |
+
+Aturan yang dipakai saat memecah: **cache sesi tetap milik
+`layarDatabase.jsx`** (`cacheRingkasan`, `cacheTabelPartai`, `rekapPemainCache`,
+`rekapEventCache`, `modeTersimpan`, `tampilanTersimpan`) supaya perilaku
+"kembali ke Database tidak menarik ulang data" tidak berubah; modul baru hanya
+menerima data lewat props dan membaca `basisData.js` sendiri bila perlu.
+Badan setiap fungsi dipindah **byte-identik** — diverifikasi dengan
+membandingkan teks fungsi di berkas asli dan berkas baru.
 
 ## Catatan perbaikan (polish layar Database & Akun)
 

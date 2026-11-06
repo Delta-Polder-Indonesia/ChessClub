@@ -30,7 +30,7 @@ mencatat **rencana dan status**, bukan detail perilaku.
 | 0 | Sinkronisasi dokumentasi & baseline | **selesai** (2026-11-06) | README bagian *Baseline terukur*; `scripts/uji-dokumentasi-analisa.mjs` |
 | 1 | `basisData.js` → `database/*` | **selesai** | commit `25ed51d` (PR #231) |
 | 2 | Pisahkan `BoardContext` + `ImportContext` | **selesai** | commit `d10e8b1`, `34636c3`, `88e428a` (PR #231) |
-| 3 | Pecah komponen raksasa | **belum** | rencana di bawah |
+| 3 | Pecah komponen raksasa | **berjalan** — langkah 1 (`layarDatabase`) selesai | `komponen/nav/database/*`; lihat *Peta berkas layar Database* di README |
 | 4 | Integrasi Maia | **belum**, sengaja paling akhir | `docs/MAIA3.md` |
 
 Fase 1–2 sudah merge ke `main` lewat PR #231 (merge commit `2bc3868`).
@@ -54,9 +54,18 @@ sulit ditelusuri dan diuji.
 | `komponen/game/useAnalisisPapan.js` | baru | T | alur `analyzeMove` + `analyzeControllerRef` + `analyzingMoveRef` |
 | `komponen/game/game.jsx` | ubah | T | ±350 baris (orkestrasi + layout) |
 
-Urutan kerja yang disarankan: `tautanDatabase` → `tabelRingkasan` →
-`tabelPartai` → `layarDatabase` tinggal orkestrasi; setelah itu
-`useMuatPartai`/`useAnalisisPapan` untuk `game.jsx`. Setiap langkah:
+Status langkah 1 (`layarDatabase`, 2026-11-06): selesai dalam satu perubahan —
+2331 → 1430 baris, dengan empat modul baru di `komponen/nav/database/`:
+`formatDatabase.js` (utilitas + konstanta), `ikonDatabase.jsx`, `tabelPartai.jsx`
+(`DropdownPilih`, `BarisSkeleton`, `HeaderTabel`, `BarisPartai`, `HeaderKolom`,
+`MenuKolom`), dan `tabelRingkasan.jsx` (`TabelRingkasan`). Nama "Dialog/
+Notifikasi/Skeleton" pada rencana awal ternyata tidak sesuai isi berkas: dialog
+dan notifikasi adalah JSX inline di dalam `LayarDatabase` (butuh state-nya),
+jadi yang berdiri sendiri hanya skeleton, ikon, tabel, dan dropdown. Rincian
+per berkas ada di README bagian *Peta berkas layar Database (Fase 3)*.
+
+Sisa Fase 3: `game.jsx` (863 baris) → `useMuatPartai.js` + `useAnalisisPapan.js`
+(Risiko Tinggi; dikerjakan terpisah). Setiap langkah:
 `npm run uji:analisa-menyeluruh`, `node scripts/uji-analisa-ui.mjs`,
 `node scripts/uji-basisdata-galat.mjs`, `npm run lint`, `npm run build`,
 lalu `npm run uji:dokumentasi` bila ada angka dokumentasi yang bergeser.
