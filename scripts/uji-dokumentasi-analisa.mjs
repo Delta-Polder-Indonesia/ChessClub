@@ -164,6 +164,59 @@ if (!kunciNyata) {
   );
 }
 
+/* ------------------------------------------------- peta berkas anti-cheat */
+
+console.log("\n== peta berkas anti-cheat (Fase 5) ==");
+{
+  const peta = [
+    ["mesin/antiCheat.js", "antiCheat.js"],
+    ["mesin/antiCheat/dasar.js", "antiCheat/dasar.js"],
+    ["mesin/antiCheat/kalibrasi.js", "antiCheat/kalibrasi.js"],
+    ["mesin/antiCheat/skor.js", "antiCheat/skor.js"],
+    ["mesin/antiCheat/agregat.js", "antiCheat/agregat.js"],
+  ];
+  // Tabel README: `| \`berkas\` | jumlah baris | … |`
+  const klaimBaris = new Map();
+  for (const baris of isi.split("\n")) {
+    const cocok = /^\|\s*`([^`]+)`\s*\|\s*(\d+)\s*\|/.exec(baris);
+    if (cocok) klaimBaris.set(cocok[1], Number(cocok[2]));
+  }
+
+  const folder = path.join(AKAR, "src/halaman/Analisa/mesin");
+  for (const [label, jalur] of peta) {
+    const nyata = readFileSync(path.join(folder, jalur), "utf8").split("\n").length - 1;
+    const diklaim = klaimBaris.get(label);
+    if (diklaim === undefined) {
+      lapor(false, `README tidak mencantumkan baris ${label} di peta berkas`);
+    } else {
+      lapor(diklaim === nyata, `${label} — README ${diklaim} baris vs nyata ${nyata}`);
+    }
+  }
+
+  /*
+   * Arah ketergantungan satu jalur: dasar → kalibrasi → skor → agregat.
+   * Pagar ini mencegah pemecahan Fase 5 perlahan kembali menjadi satu berkas
+   * raksasa lewat impor silang.
+   */
+  const larangan = {
+    "dasar.js": ["kalibrasi.js", "skor.js", "agregat.js"],
+    "kalibrasi.js": ["skor.js", "agregat.js"],
+    "skor.js": ["agregat.js"],
+    "agregat.js": [],
+  };
+  for (const [berkas, terlarang] of Object.entries(larangan)) {
+    const teks = readFileSync(path.join(folder, "antiCheat", berkas), "utf8");
+    const dipakai = [...teks.matchAll(/from "\.\/([a-z]+)\.js"/g)].map((m) => `${m[1]}.js`);
+    const langgar = dipakai.filter((d) => terlarang.includes(d));
+    lapor(
+      langgar.length === 0,
+      langgar.length
+        ? `${berkas} mengimpor lapisan di atasnya (${langgar.join(", ")}) — arah rusak`
+        : `${berkas} hanya bergantung pada lapisan di bawahnya`
+    );
+  }
+}
+
 /* -------------------------------------------------------------- i18n */
 
 console.log("\n== jumlah kunci i18n ==");

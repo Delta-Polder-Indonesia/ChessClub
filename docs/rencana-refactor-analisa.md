@@ -1,6 +1,6 @@
 # Rencana refactor modul Analisa
 
-Status: **berjalan** — Fase 0–2 selesai, Fase 3 berikutnya, Fase 4 (Maia) paling akhir.
+Status: **selesai** — Fase 0–5 tuntas (Fase 4 dikerjakan paling akhir sesuai permintaan).
 Dokumen acuan teknis tetap `src/halaman/Analisa/README.md`; berkas ini hanya
 mencatat **rencana dan status**, bukan detail perilaku.
 
@@ -31,7 +31,8 @@ mencatat **rencana dan status**, bukan detail perilaku.
 | 1 | `basisData.js` → `database/*` | **selesai** | commit `25ed51d` (PR #231) |
 | 2 | Pisahkan `BoardContext` + `ImportContext` | **selesai** | commit `d10e8b1`, `34636c3`, `88e428a` (PR #231) |
 | 3 | Pecah komponen raksasa | **selesai** (2026-11-06) | `komponen/nav/database/*` + `komponen/game/useMuatPartai.js` / `useAnalisisPapan.js` |
-| 4 | Integrasi Maia | **selesai** (2026-11-06) | `mesin/prediksiMaia.js`, `umpanBalik/…` → lihat bawah |
+| 4 | Integrasi Maia | **selesai** (2026-11-06) | `mesin/prediksiMaia.js`, panel `PanelDeviasiManusia` → lihat bawah |
+| 5 | `mesin/antiCheat.js` (1487) → empat lapisan | **selesai** (2026-11-06) | `mesin/antiCheat/{dasar,kalibrasi,skor,agregat}.js`; 428 uji anti-cheat tetap hijau |
 
 Fase 1–2 sudah merge ke `main` lewat PR #231 (merge commit `2bc3868`).
 Ringkasannya: `basisData.js` (867 baris) jadi fasad 46 baris + enam modul
@@ -107,6 +108,38 @@ Status: **selesai** (2026-11-06), dalam dua PR:
 Yang **tidak** dikerjakan di fase ini dan tetap terbuka: kalibrasi ulang
 `KALIBRASI_RATING` dengan korpus lokal (langkah 2 di README Analisa) dan cache
 agregat di server (langkah 3, opsional).
+
+## Fase 5 — `mesin/antiCheat.js` (risiko sedang)
+
+Alasan: setelah Fase 3, berkas inilah yang terbesar di modul Analisa (1487
+baris) dan mencampur empat urusan — konstanta & metrik mentah, kalibrasi
+rating, skor satu partai, dan agregat riwayat. Setiap perubahan kecil menuntut
+membaca seluruh berkas.
+
+| Berkas | Baris | Isi |
+|---|---|---|
+| `mesin/antiCheat.js` | 92 | Dokumentasi konvensi eval + re-ekspor; **API publik tidak berubah** |
+| `mesin/antiCheat/dasar.js` | 377 | Konstanta, utilitas eval, kandidat MultiPV, statistik waktu |
+| `mesin/antiCheat/kalibrasi.js` | 89 | Tabel kalibrasi + komponen skor 0–100 |
+| `mesin/antiCheat/skor.js` | 482 | Skor satu partai (`skorKecurigaan`) |
+| `mesin/antiCheat/agregat.js` | 528 | Agregat riwayat + tren |
+
+Bentuk pemecahannya mengikuti Fase 1 (`basisData.js` → `database/*` dengan
+fasad tipis), jadi tidak ada pola baru yang perlu dipelajari pembaca.
+
+Bukti bahwa ini benar-benar refactor, bukan penulisan ulang:
+
+1. **Potongan byte-identik.** Tiap bagian dipotong dari berkas asli pada batas
+   baris eksplisit dan diperiksa ulang dengan uji substring — bukan disalin
+   ulang dengan tangan.
+2. **API publik utuh.** `Object.keys()` modul dibandingkan sebelum dan sesudah:
+   47 nama lama semuanya masih ada; tambahannya hanya tiga helper yang harus
+   menyeberang modul (`batasi01`, `rataRata`, `bulat1`).
+3. **Arah ketergantungan satu jalur** `dasar → kalibrasi → skor → agregat`.
+   `dasar` tidak mengimpor siapa pun di folder itu, `agregat` tidak diimpor
+   siapa pun — jadi tidak ada siklus yang bisa muncul kemudian.
+4. **Uji tidak disentuh.** `uji-anticheat.mjs` (428) dan seluruh rangkaian
+   Analisa (1133) hijau tanpa satu pun perubahan pada berkas uji.
 
 ## Pagar yang sudah terpasang
 
