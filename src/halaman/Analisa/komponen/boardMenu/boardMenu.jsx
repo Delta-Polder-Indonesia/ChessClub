@@ -1,17 +1,22 @@
 /* Port dari Brilliant-Chess (MIT, © 2025 Delo) — jangan sunting massal tanpa cek README. */
 /* Tombol gear membuka layar Pengaturan penuh (TAMPILAN_ANALISA.PENGATURAN),
    bukan popup — sama seperti tombol gear di Papan Interaktif. */
-import { useContext } from "react";
-import { AnalyzeContext, TAMPILAN_ANALISA } from "../../konteks/analyzeKonteks.js";
+import { TAMPILAN_ANALISA } from "../../konteks/analyzeKonteks.js";
+import { useBoard } from "../../konteks/boardKonteks.js";
 import Image from "../Gambar.jsx";
 import { useI18n } from "../../../../lib/i18n.jsx";
 
 function BoardMenu() {
   const { t } = useI18n();
-  const analyzeContext = useContext(AnalyzeContext);
-  const setWhite = analyzeContext.white[1];
-  const setAnimation = analyzeContext.animation[1];
-  const setTampilan = analyzeContext.tampilan[1];
+  /*
+   * Hanya memakai state papan (white/animation/tampilan), jadi ia berlangganan
+   * BoardContext — bukan AnalyzeContext. Dengan begitu tombol balik papan &
+   * gear tidak ikut di-render setiap `progress` analisis berubah.
+   */
+  const papan = useBoard();
+  const setWhite = papan.white[1];
+  const setAnimation = papan.animation[1];
+  const setTampilan = papan.tampilan[1];
 
   function flipBoard() {
     setAnimation(false);

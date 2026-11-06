@@ -1,18 +1,23 @@
 /* Port dari Brilliant-Chess (MIT, © 2025 Delo) — jangan sunting massal tanpa cek README. */
-import { useContext, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import NextMove from "../../svg/nextMove.jsx";
 import Play from "../../svg/play.jsx";
 import SkipGame from "../../svg/skipGame.jsx";
 import Pause from "../../svg/pause.jsx";
-import { AnalyzeContext } from "../../../konteks/analyzeKonteks.js";
+import { useBoard } from "../../../konteks/boardKonteks.js";
 import { useI18n } from "../../../../../lib/i18n.jsx";
 function GameButtons() {
   const { t } = useI18n();
   const [playPauseHover, setPlayPauseHover] = useState(false);
-  const analyzeContext = useContext(AnalyzeContext);
-  const [playing] = analyzeContext.playing;
-  const [moveNumber] = analyzeContext.moveNumber;
-  const gameController = analyzeContext.gameController;
+  /*
+   * Hanya memakai state papan (playing/moveNumber/gameController), jadi ia
+   * berlangganan BoardContext — bukan AnalyzeContext. Dengan begitu tombol
+   * pemutar tidak ikut di-render setiap `progress` analisis berubah.
+   */
+  const papan = useBoard();
+  const [playing] = papan.playing;
+  const [moveNumber] = papan.moveNumber;
+  const gameController = papan.gameController;
   const moveNumberRef = useRef(moveNumber);
   useEffect(() => {
     moveNumberRef.current = moveNumber;

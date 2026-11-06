@@ -53,6 +53,8 @@ import ConfigContextProvider from "./src/halaman/Analisa/konteks/config.jsx";
 import ErrorsContextProvider from "./src/halaman/Analisa/konteks/errors.jsx";
 import AnalyzeContextProvider from "./src/halaman/Analisa/konteks/analyze.jsx";
 import { AnalyzeContext, normalisasiPemain } from "./src/halaman/Analisa/konteks/analyzeKonteks.js";
+import { BoardContext } from "./src/halaman/Analisa/konteks/boardKonteks.js";
+import { ImportContext } from "./src/halaman/Analisa/konteks/importKonteks.js";
 import { MesinProvider } from "./src/halaman/Analisa/konteks/mesin.jsx";
 import Game from "./src/halaman/Analisa/komponen/game/game.jsx";
 import { formatPlayerLabel } from "./src/halaman/Analisa/komponen/game/getMoves.js";
@@ -114,6 +116,50 @@ export function mountPemilih(el, platform, stopSelecting = () => {}) {
   return root;
 }
 
+/**
+ * Jembatan uji Fase 2c.
+ *
+ * Sejak konteks dipecah, komponen papan membaca BoardContext dan komponen
+ * muatan PGN membaca ImportContext. Fixture di bawah ini menyuntik nilai
+ * lewat AnalyzeContext saja (pola lama), jadi tanpa jembatan nilai suntikan
+ * tidak sampai ke komponen yang sudah pindah — uji tetap hijau tetapi tidak
+ * lagi menguji apa pun. Jembatan ini memetakan nilai AnalyzeContext ke dua
+ * konteks sempit, sehingga fixture tetap sah dan cakupannya utuh.
+ */
+function JembatanKonteks({ nilai, children }) {
+  const board = {
+    game: nilai.game,
+    players: nilai.players,
+    moveNumber: nilai.moveNumber,
+    forward: nilai.forward,
+    white: nilai.white,
+    animation: nilai.animation,
+    playing: nilai.playing,
+    time: nilai.time,
+    materialAdvantage: nilai.materialAdvantage,
+    result: nilai.result,
+    tab: nilai.tab,
+    customLine: nilai.customLine,
+    returnedToNormalGame: nilai.returnedToNormalGame,
+    depth: nilai.depth,
+    tampilan: nilai.tampilan,
+    gameController: nilai.gameController,
+  };
+  const impor = {
+    data: nilai.data,
+    pageState: nilai.pageState,
+    progress: nilai.progress,
+    analyzeController: nilai.analyzeController,
+    analyzingMove: nilai.analyzingMove,
+    langkahSementara: nilai.langkahSementara,
+  };
+  return (
+    <BoardContext.Provider value={board}>
+      <ImportContext.Provider value={impor}>{children}</ImportContext.Provider>
+    </BoardContext.Provider>
+  );
+}
+
 function GameDenganPemainKosong() {
   const nilaiBawaan = React.useContext(AnalyzeContext);
   const nilai = {
@@ -123,9 +169,48 @@ function GameDenganPemainKosong() {
   };
   return (
     <AnalyzeContext.Provider value={nilai}>
-      <Game />
+      <JembatanKonteks nilai={nilai}>
+        <Game />
+      </JembatanKonteks>
     </AnalyzeContext.Provider>
   );
+}
+
+function GameDenganPemutar({ playing }) {
+  const nilaiBawaan = React.useContext(AnalyzeContext);
+  const nilai = {
+    ...nilaiBawaan,
+    pageState: ["default", () => {}],
+    playing: [playing, () => {}],
+  };
+  return (
+    <AnalyzeContext.Provider value={nilai}>
+      <JembatanKonteks nilai={nilai}>
+        <Game />
+      </JembatanKonteks>
+    </AnalyzeContext.Provider>
+  );
+}
+
+/**
+ * Game dengan nilai 'playing' yang DIBERIKAN uji. Dipakai membuktikan tombol
+ * pemutar (GameButtons) benar-benar menerima nilai dari konteks — bukan
+ * diam-diam memakai nilai bawaan BoardContext.
+ */
+export function mountGameDenganPemutar(el, playing) {
+  const root = createRoot(el);
+  root.render(
+    <I18nProvider>
+      <ConfigContextProvider>
+        <ErrorsContextProvider>
+          <MesinProvider>
+            <GameDenganPemutar playing={playing} />
+          </MesinProvider>
+        </ErrorsContextProvider>
+      </ConfigContextProvider>
+    </I18nProvider>
+  );
+  return root;
 }
 
 /** Regresi untuk state pemain kosong yang dahulu merobohkan render Game. */
@@ -150,7 +235,9 @@ function GameDenganPageState({ pageState }) {
   const nilai = { ...nilaiBawaan, pageState: [pageState, () => {}] };
   return (
     <AnalyzeContext.Provider value={nilai}>
-      <Game />
+      <JembatanKonteks nilai={nilai}>
+        <Game />
+      </JembatanKonteks>
     </AnalyzeContext.Provider>
   );
 }
@@ -584,6 +671,31 @@ uji("nama pemain bawaan terjemahan", awal.includes("Putih") || awal.includes("Hi
   );
   root.unmount();
   wadah.remove();
+}
+
+/* --- Fase 2c: nilai suntikan harus sampai ke komponen yang pindah konteks --- */
+{
+  const galatSebelumPemutar = pesanGalat.length;
+  const ambilMarkup = async (playing) => {
+    const wadahPemutar = domSiap.createElement("div");
+    domSiap.body.appendChild(wadahPemutar);
+    const rootPemutar = modul.mountGameDenganPemutar(wadahPemutar, playing);
+    await tunggu(250);
+    const html = wadahPemutar.innerHTML;
+    rootPemutar.unmount();
+    wadahPemutar.remove();
+    return html;
+  };
+  const markupMati = await ambilMarkup(false);
+  const markupHidup = await ambilMarkup(true);
+  uji(
+    "tombol pemutar menerima `playing` dari konteks (bukan nilai bawaan)",
+    markupMati.length > 0 && markupMati !== markupHidup
+  );
+  uji(
+    "Game dengan `playing` suntikan tidak menghasilkan galat render",
+    !/TypeError|ReferenceError/.test(pesanGalat.slice(galatSebelumPemutar).join("\n"))
+  );
 }
 
 /* --- alur: impor PGN lewat popup Impor di bilah kiri --- */

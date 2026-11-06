@@ -26,9 +26,25 @@
  *
  * z-[900] sengaja dipilih di bawah `PageErrors` (z-[999]) supaya pesan
  * galat analisis tetap tampil di atas layar mana pun.
+ *
+ * KONTEKS (Fase 2): berkas ini dulu membaca AnalyzeContext sehingga SETIAP
+ * detak `progress` analisis me-render ulang seluruh area kerja — termasuk
+ * <Game> di dalamnya. Sekarang:
+ *
+ *   - <AreaKerja> hanya berlangganan BoardContext (`tampilan`) — state yang
+ *     berubah saat pengguna berpindah layar, bukan saat mesin menghitung;
+ *   - <PenitipPgn> (anak tanpa tampilan) memegang `data`/`pageState` dari
+ *     ImportContext untuk kiriman PGN sekali pakai dari halaman Teka-Teki;
+ *   - <LapisanLayar> memegang `data` yang sama untuk operan `onAnalisa` /
+ *     `onImpor` milik layar Basis Data dan Impor.
+ *
+ * Dengan begitu `progress` hanya me-render ulang dua komponen kecil tadi,
+ * tidak lagi papan catur beserta menu dan bilah tombolnya.
  */
-import { lazy, Suspense, useCallback, useContext, useEffect, useRef } from "react";
-import { AnalyzeContext, TAMPILAN_ANALISA } from "../konteks/analyzeKonteks.js";
+import { lazy, Suspense, useCallback, useEffect, useRef } from "react";
+import { TAMPILAN_ANALISA } from "../konteks/analyzeKonteks.js";
+import { useBoard } from "../konteks/boardKonteks.js";
+import { useImport } from "../konteks/importKonteks.js";
 import Game from "./game/game.jsx";
 import BoardMenu from "./boardMenu/boardMenu.jsx";
 import Menu from "./menu/menu.jsx";
@@ -50,40 +66,34 @@ const LayarDeteksiEngine = lazy(() => import("./nav/layarDeteksiEngine.jsx"));
 const LayarWawasan = lazy(() => import("./nav/layarWawasan.jsx"));
 const LayarPengaturan = lazy(() => import("./nav/layarPengaturan.jsx"));
 
-export default function AreaKerja() {
-  const analyzeContext = useContext(AnalyzeContext);
-  const [tampilan, setTampilan] = analyzeContext.tampilan;
-  const setPageState = analyzeContext.pageState[1];
-  const setData = analyzeContext.data[1];
-
-  const wadahRef = useRef(null);
-  const lapisanRef = useRef(null);
-  const awalRef = useRef(true);
-
-  const kePapan = useCallback(
-    () => setTampilan(TAMPILAN_ANALISA.BERMAIN),
-    [setTampilan],
-  );
-
-  const keAkun = useCallback(
-    () => setTampilan(TAMPILAN_ANALISA.AKUN),
-    [setTampilan],
-  );
-
-  /**
-   * Partai dipilih dari layar Basis Data / Impor. Data PGN-nya dilempar ke
-   * AnalyzeContext (itu yang memicu Game menganalisis) lalu area kerja
-   * kembali ke papan supaya hasilnya terlihat.
-   */
-  const muatPartai = useCallback(
+/**
+ * Memuat partai yang dipilih dari layar Basis Data / Impor: PGN-nya
+ * dilempar ke `data` (itu yang memicu Game menganalisis) lalu layar kembali
+ * ke papan supaya hasilnya terlihat.
+ *
+ * Hook ini sengaja TIDAK dipakai <AreaKerja>: ia berlangganan ImportContext,
+ * dan AreaKerja tidak boleh ikut ter-render tiap detak `progress`.
+ */
+function useMuatPartai() {
+  const setData = useImport().data[1];
+  const setTampilan = useBoard().tampilan[1];
+  return useCallback(
     (dataPartai) => {
       setData(dataPartai);
       setTampilan(TAMPILAN_ANALISA.BERMAIN);
     },
     [setData, setTampilan],
   );
+}
 
-  // Terima kiriman PGN sekali pakai dari halaman Teka-Teki ("Bedah di Papan Analisa").
+/**
+ * Terima kiriman PGN sekali pakai dari halaman Teka-Teki ("Bedah di Papan
+ * Analisa"). Tanpa tampilan — dipasang sekali di <AreaKerja>.
+ */
+function PenitipPgn() {
+  const muatPartai = useMuatPartai();
+  const setPageState = useImport().pageState[1];
+
   useEffect(() => {
     const pgnTitipan = ambilPgnTitipan();
     if (!pgnTitipan.trim()) return;
@@ -99,6 +109,72 @@ export default function AreaKerja() {
       setPageState("default");
     }
   }, [muatPartai, setPageState]);
+
+  return null;
+}
+
+/**
+ * Lapisan layar non-papan (Akun, Pengaturan, Basis Data, Impor, …).
+ *
+ * Dipisah dari <AreaKerja> karena hanya lapisan ini yang perlu `data` dari
+ * ImportContext (lewat `onAnalisa`/`onImpor`). Saat papan aktif ia
+ * mengembalikan null — persis seperti `{papanAktif ? null : …}` sebelumnya.
+ */
+function LapisanLayar({ tampilan, papanAktif, lapisanRef, kePapan, keAkun }) {
+  const muatPartai = useMuatPartai();
+  if (papanAktif) return null;
+  return (
+    <div
+      ref={lapisanRef}
+      tabIndex={-1}
+      data-uji={`layar-${tampilan}`}
+      data-layar={tampilan}
+      className="absolute inset-0 z-[900] min-h-0 overflow-y-auto overflow-x-hidden bg-backgroundBoxDarker"
+    >
+      {tampilan === TAMPILAN_ANALISA.AKUN ? (
+        <Suspense fallback={<div className="h-full min-h-0 w-full bg-backgroundBox" />}>
+          <LayarAkun onTutup={kePapan} />
+        </Suspense>
+      ) : null}
+      {tampilan === TAMPILAN_ANALISA.PENGATURAN ? (
+        <Suspense fallback={<div className="h-full min-h-0 w-full bg-backgroundBox" />}>
+          <LayarPengaturan />
+        </Suspense>
+      ) : null}
+      {tampilan === TAMPILAN_ANALISA.DETEKSI_ENGINE ? (
+        <Suspense fallback={<div className="h-full min-h-0 w-full bg-backgroundBox" />}>
+          <LayarDeteksiEngine onBukaAkun={keAkun} />
+        </Suspense>
+      ) : null}
+      {tampilan === TAMPILAN_ANALISA.WAWASAN ? (
+        <Suspense fallback={<div className="h-full min-h-0 w-full bg-backgroundBox" />}>
+          <LayarWawasan />
+        </Suspense>
+      ) : null}
+      {tampilan === TAMPILAN_ANALISA.BASIS_DATA ? (
+        <LayarDatabase onTutup={kePapan} onAnalisa={muatPartai} onBukaAkun={keAkun} />
+      ) : null}
+      {tampilan === TAMPILAN_ANALISA.IMPOR ? <LayarImpor onTutup={kePapan} onImpor={muatPartai} /> : null}
+    </div>
+  );
+}
+
+export default function AreaKerja() {
+  const [tampilan, setTampilan] = useBoard().tampilan;
+
+  const wadahRef = useRef(null);
+  const lapisanRef = useRef(null);
+  const awalRef = useRef(true);
+
+  const kePapan = useCallback(
+    () => setTampilan(TAMPILAN_ANALISA.BERMAIN),
+    [setTampilan],
+  );
+
+  const keAkun = useCallback(
+    () => setTampilan(TAMPILAN_ANALISA.AKUN),
+    [setTampilan],
+  );
 
   const papanAktif = tampilan === TAMPILAN_ANALISA.BERMAIN;
 
@@ -148,40 +224,22 @@ export default function AreaKerja() {
         </div>
       </main>
 
-      {papanAktif ? null : (
-        <div
-          ref={lapisanRef}
-          tabIndex={-1}
-          data-uji={`layar-${tampilan}`}
-          data-layar={tampilan}
-          className="absolute inset-0 z-[900] min-h-0 overflow-y-auto overflow-x-hidden bg-backgroundBoxDarker"
-        >
-          {tampilan === TAMPILAN_ANALISA.AKUN ? (
-            <Suspense fallback={<div className="h-full min-h-0 w-full bg-backgroundBox" />}>
-              <LayarAkun onTutup={kePapan} />
-            </Suspense>
-          ) : null}
-          {tampilan === TAMPILAN_ANALISA.PENGATURAN ? (
-            <Suspense fallback={<div className="h-full min-h-0 w-full bg-backgroundBox" />}>
-              <LayarPengaturan />
-            </Suspense>
-          ) : null}
-          {tampilan === TAMPILAN_ANALISA.DETEKSI_ENGINE ? (
-            <Suspense fallback={<div className="h-full min-h-0 w-full bg-backgroundBox" />}>
-              <LayarDeteksiEngine onBukaAkun={keAkun} />
-            </Suspense>
-          ) : null}
-          {tampilan === TAMPILAN_ANALISA.WAWASAN ? (
-            <Suspense fallback={<div className="h-full min-h-0 w-full bg-backgroundBox" />}>
-              <LayarWawasan />
-            </Suspense>
-          ) : null}
-          {tampilan === TAMPILAN_ANALISA.BASIS_DATA ? (
-            <LayarDatabase onTutup={kePapan} onAnalisa={muatPartai} onBukaAkun={keAkun} />
-          ) : null}
-          {tampilan === TAMPILAN_ANALISA.IMPOR ? <LayarImpor onTutup={kePapan} onImpor={muatPartai} /> : null}
-        </div>
-      )}
+      {/*
+       * Sengaja dipasang SETELAH <main>: efek anak berjalan sesuai urutan
+       * mount, dan <PenitipPgn> dulu dieksekusi sesudah efek milik <Game>
+       * (ia berada di komponen induk, yang efeknya menyusul anak). Menaruhnya
+       * sebelum <main> membalik urutan itu dan membuat posisi awal sempat
+       * tampil sebelum PGN titipan dipasang.
+       */}
+      <PenitipPgn />
+
+      <LapisanLayar
+        tampilan={tampilan}
+        papanAktif={papanAktif}
+        lapisanRef={lapisanRef}
+        kePapan={kePapan}
+        keAkun={keAkun}
+      />
     </div>
   );
 }

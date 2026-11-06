@@ -45,7 +45,7 @@
  *    burger tinggal sendiri di tengah lajur;
  *  - `title`/`aria-label` tiap tombol sudah menjadi pengganti tooltip.
  */
-import { useContext, useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 
 import GitHub from "../svg/github.jsx";
@@ -53,7 +53,8 @@ import Lisensi from "../svg/license.jsx";
 import Profile from "../svg/profile.jsx";
 import ShieldAlert from "../svg/shield-alert.jsx";
 import { Settings, BarChart3 } from "lucide-react";
-import { MagnifierCheckerIcon } from "../../../../components/icons.jsx";import { AnalyzeContext, TAMPILAN_ANALISA } from "../../konteks/analyzeKonteks.js";
+import { MagnifierCheckerIcon } from "../../../../components/icons.jsx";import { TAMPILAN_ANALISA } from "../../konteks/analyzeKonteks.js";
+import { useBoard } from "../../konteks/boardKonteks.js";
 import { useI18n } from "../../../../lib/i18n.jsx";
 
 /** Repo upstream pemilik desain UI ini (atribusi MIT). */
@@ -85,8 +86,12 @@ function IkonDatabase({ className }) {
 
 export default function Nav() {
   const { t } = useI18n();
-  const analyzeContext = useContext(AnalyzeContext);
-  const [tampilan, setTampilan] = analyzeContext.tampilan;
+  /*
+   * Bilah navigasi hanya butuh `tampilan` (state papan). Ia sengaja tidak
+   * berlangganan AnalyzeContext supaya tidak di-render ulang setiap
+   * `progress` analisis berubah.
+   */
+  const [tampilan, setTampilan] = useBoard().tampilan;
   const [navTerbuka, setNavTerbuka] = useState(true);
 
   const botLinks = [
