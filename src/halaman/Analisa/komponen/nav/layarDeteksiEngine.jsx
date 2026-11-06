@@ -534,7 +534,6 @@ export default function LayarDeteksiEngine({ onBukaAkun, onBukaPartai = null }) 
                   platform={platform}
                   username={username}
                   waktu={waktu}
-                  batas={jumlah}
                   nonaktif={ac.berjalan || papanSibuk}
                   onBukaPartai={onBukaPartai}
                 />

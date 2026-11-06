@@ -482,6 +482,18 @@ export const analisa = {
       deviasi: {
         judul: "Distribusi manusia (Maia)",
         isi: "Bandingkan langkah pemain dengan prediksi model manusia. Berbeda dari deteksi di atas, bagian ini tidak memakai Stockfish — model 45 MB baru diunduh setelah tombol ditekan, dan pemakaian berikutnya memakai cache peramban.",
+        setelan: "Pengaturan Maia",
+        setelanPetunjuk:
+          "Bagian ini tidak memakai kedalaman Stockfish — biayanya = jumlah partai × langkah yang dinilai. Kecilkan bila perangkat terasa berat; pilihan disimpan di peramban ini.",
+        kecepatan: "Kecepatan",
+        kecepatanHemat: "Hemat — 8 posisi per gelombang",
+        kecepatanSeimbang: "Seimbang — 16 posisi",
+        kecepatanCepat: "Cepat — 32 posisi",
+        jumlahPartai: "Jumlah partai",
+        rating: "Rating",
+        ratingOtomatis: "Otomatis (dari PGN)",
+        ratingManual: "Manual",
+        ratingNilai: "Rating manual",
         mulai: "Analisis distribusi manusia",
         ulangi: "Hitung ulang",
         batal: "Batal",

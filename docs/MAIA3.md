@@ -386,6 +386,25 @@ parse selesai lewat `komponen/game/lompatLangkah.js` — nomor di luar
 jangkauan menjadi langkah terakhir, `lompatKe` yang tidak sah diabaikan
 sehingga muatan biasa dari Basis Data/Impor berperilaku seperti dulu.
 
+### Setelan kerja (kecepatan, jumlah partai, rating)
+
+Jalur ini tidak memakai kedalaman Stockfish; biayanya = jumlah partai ×
+langkah yang dinilai, dibagi ke gelombang inferensi sebesar `ukuranBatch`.
+Tiga tombol di panel mengatur itu (`mesin/setelanMaia.js`, murni + diuji):
+
+| Setelan | Nilai | Alasan |
+| --- | --- | --- |
+| Kecepatan | hemat 8 · seimbang 16 · cepat 32 posisi/gelombang | Batch besar = memori ONNX lebih besar; di ponsel bisa tersendat |
+| Jumlah partai | 5–50 (bawaan mengikuti preset) | Menentukan total langkah yang dinilai |
+| Rating | otomatis dari PGN / manual 600–2600 | PGN impor lama sering tanpa Elo |
+
+Bawaan diambil dari perangkat (`navigator.hardwareConcurrency`,
+`deviceMemory`, deteksi seluler): ≤4 inti atau ≤4 GB → "hemat". Pilihan
+pengguna disimpan di `kci-maia-setelan-v1`. Catatan penting yang ditemukan
+saat pengujian: `null` pada rating manual **tidak** boleh diperlakukan sebagai
+0 — `Number(null)` = 0 akan dijepit menjadi 600 dan menilai semua orang
+sebagai pemain 600.
+
 Panah di papan **sudah ada**: `data.sorotUci` membawa UCI langkah yang
 disorot, dan `komponen/game/panahSorot.js` menerjemahkannya ke format panah
 papan (`[{col,row},{col,row}]`). Panah menempel pada nomor langkah itu saja,

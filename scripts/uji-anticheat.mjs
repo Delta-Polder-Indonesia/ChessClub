@@ -1234,7 +1234,10 @@ act(() => rootAkun.unmount());
   });
 
   hasil("layar baru tetap memakai panel/token Analisa", !!elAkun.querySelector('section.bg-backgroundBoxDarker') && elAkun.querySelectorAll('.border-border.bg-backgroundBox').length >= 2);
-  hasil("delapan pengaturan memiliki kontrol berlabel", Array.from(elAkun.querySelectorAll("select, input")).length === 8 && Array.from(elAkun.querySelectorAll("select, input")).every((el) => el.labels.length > 0));
+  // Panel Maia punya kontrol sendiri; hitungan "delapan" hanya untuk pengaturan
+  // Stockfish di kolom kiri.
+  const kontrolStockfish = () => Array.from(elAkun.querySelectorAll("select, input")).filter((el) => !el.closest('[data-uji="deviasi-manusia"]'));
+  hasil("delapan pengaturan memiliki kontrol berlabel", kontrolStockfish().length === 8 && kontrolStockfish().every((el) => el.labels.length > 0));
   hasil("kedalaman deteksi bawaan 8, papan tetap 13", elAkun.querySelector('[data-uji="deteksi-kedalaman"]').value === "8" && ctxJumlah.depth[0] === 13);
   hasil("progres papan 0 tidak dianggap sedang berjalan", ctxJumlah.progress[0] === 0 && tombolJumlah(12)?.disabled === false);
   hasil("layar menunggu perintah, tidak menyiapkan engine otomatis", siapkanDipanggil === 0 && !elAkun.querySelector("tbody"));
@@ -1244,6 +1247,40 @@ act(() => rootAkun.unmount());
   // dirinya sendiri sebelum ada yang diklik.
   hasil("panel distribusi manusia tampil dengan tombol eksplisit", Boolean(elAkun.querySelector('[data-uji="deviasi-manusia"] [data-uji="deviasi-mulai"]')));
   hasil("panel distribusi manusia menjelaskan unduhan model sebelum dimulai", teksAkun().includes(tID("analisa.antiCheat.deviasi.isi")));
+  // Setelan Maia berdiri sendiri dari setelan Stockfish: kedalaman/hash/threads
+  // di panel kiri tidak berlaku untuk jalur ini.
+  hasil(
+    "panel Maia punya setelan kecepatan, jumlah partai, dan rating sendiri",
+    ["deviasi-kecepatan", "deviasi-jumlah", "deviasi-rating-mode"].every((u) => !!elAkun.querySelector(`[data-uji="${u}"]`))
+  );
+  hasil(
+    // jsdom melaporkan 2 inti → preset "hemat" (5 partai). Itu memang yang
+    // diinginkan di perangkat lemah, jadi bawaan di uji mengikuti aturan itu.
+    "bawaan Maia mengikuti perangkat uji (hemat, 5 partai, rating otomatis)",
+    elAkun.querySelector('[data-uji="deviasi-kecepatan"]')?.value === "hemat" &&
+      elAkun.querySelector('[data-uji="deviasi-jumlah"]')?.value === "5" &&
+      elAkun.querySelector('[data-uji="deviasi-rating-mode"]')?.value === "otomatis" &&
+      !elAkun.querySelector('[data-uji="deviasi-rating-nilai"]')
+  );
+  // Klik jalur pengguna sungguhan (tombol dropdown → opsi), bukan menyetel
+  // `select` tersembunyi: React melacak nilai node sehingga event sintetis
+  // pada select bisa diabaikan tanpa gejala.
+  await act(async () => {
+    const wadah = elAkun.querySelector('[data-uji="deviasi-rating-mode"]')?.closest("div.relative");
+    wadah?.querySelector('button[aria-haspopup="listbox"]')?.click();
+  });
+  await act(async () => {
+    const wadah = elAkun.querySelector('[data-uji="deviasi-rating-mode"]')?.closest("div.relative");
+    const opsi = Array.from(wadah?.querySelectorAll('[role="option"]') ?? []).find((el) =>
+      el.textContent.trim() === tID("analisa.antiCheat.deviasi.ratingManual")
+    );
+    opsi?.click();
+  });
+  hasil(
+    "mode rating manual membuka kolom rating 600–2600",
+    elAkun.querySelector('[data-uji="deviasi-rating-nilai"]')?.value === "1500" &&
+      elAkun.querySelector('[data-uji="deviasi-rating-nilai"]')?.max === "2600"
+  );
   hasil("keadaan awal hasil memiliki petunjuk", teksAkun().includes(tID("analisa.antiCheat.riwayat.hasilKosong")));
 
   hasil("kolom jumlah opsional tampil kosong dengan placeholder 12", inputJumlah()?.value === "" && inputJumlah()?.placeholder === "12");

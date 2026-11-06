@@ -103,9 +103,14 @@ Status: **selesai** (2026-11-06), dalam dua PR:
    langkah itu (`data.lompatKe` + `komponen/game/lompatLangkah.js`).
 4. **Panah di papan** — `data.sorotUci` + `komponen/game/panahSorot.js`
    (UCI → `[{col,row},{col,row}]`), menempel pada nomor langkah itu saja.
+5. **Setelan Maia** — `mesin/setelanMaia.js`: kecepatan (8/16/32 posisi per
+   gelombang), jumlah partai 5–50, rating otomatis/manual. Bawaan mengikuti
+   perangkat; pilihan disimpan di `kci-maia-setelan-v1`. Menjawab keluhan
+   "kenapa lambat di HP": jalur ini memang **tidak** memakai kedalaman, dan
+   sekarang biayanya bisa dikecilkan tanpa menyentuh setelan Stockfish.
 
-   Dijaga `npm run uji:deviasi-riwayat` (38) + 2 pemeriksaan UI di
-   `uji-anticheat.mjs` (428).
+   Dijaga `npm run uji:deviasi-riwayat` (48) + 5 pemeriksaan UI di
+   `uji-anticheat.mjs` (431).
 
 Yang **tidak** dikerjakan di fase ini dan tetap terbuka: kalibrasi ulang
 `KALIBRASI_RATING` dengan korpus lokal (langkah 2 di README Analisa) dan cache

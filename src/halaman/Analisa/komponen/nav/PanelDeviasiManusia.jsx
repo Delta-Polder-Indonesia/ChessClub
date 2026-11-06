@@ -8,7 +8,9 @@
  *
  * Model 45 MB hanya diunduh bila tombol ditekan (lihat `useDeviasiManusia`).
  */
+import { useEffect, useState } from "react";
 import { useI18n } from "../../../../lib/i18n.jsx";
+import SelectDaftar from "./SelectDaftar.jsx";
 import { useDeviasiManusia } from "./useDeviasiManusia.js";
 
 const KELAS_TOMBOL =
@@ -33,9 +35,18 @@ function Bar({ nilai, maks, label }) {
   );
 }
 
-export default function PanelDeviasiManusia({ platform, username, waktu, batas, nonaktif = false, onBukaPartai = null }) {
+const PILIHAN_PARTAI = [5, 10, 20, 30, 50];
+
+export default function PanelDeviasiManusia({ platform, username, waktu, nonaktif = false, onBukaPartai = null }) {
   const { t } = useI18n();
-  const d = useDeviasiManusia({ platform, username, waktu, batas });
+  const d = useDeviasiManusia({ platform, username, waktu });
+  // Kolom rating diketik bebas, jadi teksnya ditahan lokal dan baru dirapikan
+  // saat fokus lepas — kalau setiap ketikan langsung dijepit, mengetik "18"
+  // melompat ke 600 di tengah jalan.
+  const [teksRating, setTeksRating] = useState(String(d.setelan.ratingManual ?? 1500));
+  useEffect(() => {
+    setTeksRating(String(d.setelan.ratingManual ?? 1500));
+  }, [d.setelan.ratingManual]);
   const sibuk = d.status === "menyiapkan" || d.status === "menghitung";
   const bisaMulai = Boolean(username) && !nonaktif && !sibuk;
   const teksUnduh = d.unduh.dariCache
@@ -49,6 +60,76 @@ export default function PanelDeviasiManusia({ platform, username, waktu, batas, 
     >
       <span className="text-sm font-bold text-foreground">{t("analisa.antiCheat.deviasi.judul")}</span>
       <p className="text-xs leading-4 text-foregroundGrey">{t("analisa.antiCheat.deviasi.isi")}</p>
+
+      <div className="flex flex-col gap-2 rounded-borderRoundness border border-border bg-backgroundBox px-3 py-2">
+        <span className="text-xs font-bold text-foreground">{t("analisa.antiCheat.deviasi.setelan")}</span>
+        <p className="text-xs leading-4 text-foregroundGrey">{t("analisa.antiCheat.deviasi.setelanPetunjuk")}</p>
+        <div className="flex flex-wrap gap-2">
+          <div className="flex min-w-0 flex-1 flex-col gap-1">
+            <span className="text-xs font-bold text-foregroundGrey">{t("analisa.antiCheat.deviasi.kecepatan")}</span>
+            <SelectDaftar
+              labelTeks={t("analisa.antiCheat.deviasi.kecepatan")}
+              dataUji="deviasi-kecepatan"
+              nilai={d.setelan.preset}
+              opsi={[
+                { nilai: "hemat", label: t("analisa.antiCheat.deviasi.kecepatanHemat") },
+                { nilai: "seimbang", label: t("analisa.antiCheat.deviasi.kecepatanSeimbang") },
+                { nilai: "cepat", label: t("analisa.antiCheat.deviasi.kecepatanCepat") },
+              ]}
+              onPilih={(nilai) => d.aturSetelan({ preset: nilai })}
+              disabled={sibuk || nonaktif}
+            />
+          </div>
+          <div className="flex min-w-0 flex-1 flex-col gap-1">
+            <span className="text-xs font-bold text-foregroundGrey">{t("analisa.antiCheat.deviasi.jumlahPartai")}</span>
+            <SelectDaftar
+              labelTeks={t("analisa.antiCheat.deviasi.jumlahPartai")}
+              dataUji="deviasi-jumlah"
+              nilai={d.setelan.jumlahPartai}
+              opsi={PILIHAN_PARTAI.map((n) => ({ nilai: n, label: String(n) }))}
+              onPilih={(nilai) => d.aturSetelan({ jumlahPartai: nilai })}
+              disabled={sibuk || nonaktif}
+            />
+          </div>
+        </div>
+        <div className="flex flex-wrap items-end gap-2">
+          <div className="flex min-w-0 flex-1 flex-col gap-1">
+            <span className="text-xs font-bold text-foregroundGrey">{t("analisa.antiCheat.deviasi.rating")}</span>
+            <SelectDaftar
+              labelTeks={t("analisa.antiCheat.deviasi.rating")}
+              dataUji="deviasi-rating-mode"
+              nilai={d.setelan.ratingMode}
+              opsi={[
+                { nilai: "otomatis", label: t("analisa.antiCheat.deviasi.ratingOtomatis") },
+                { nilai: "manual", label: t("analisa.antiCheat.deviasi.ratingManual") },
+              ]}
+              onPilih={(nilai) => d.aturSetelan({ ratingMode: nilai })}
+              disabled={sibuk || nonaktif}
+            />
+          </div>
+          {d.setelan.ratingMode === "manual" ? (
+            <div className="flex w-28 flex-col gap-1">
+              <label htmlFor={`${username}-rating-maia`} className="text-xs font-bold text-foregroundGrey">
+                {t("analisa.antiCheat.deviasi.ratingNilai")}
+              </label>
+              <input
+                id={`${username}-rating-maia`}
+                type="number"
+                min={600}
+                max={2600}
+                step={25}
+                inputMode="numeric"
+                data-uji="deviasi-rating-nilai"
+                value={teksRating}
+                onChange={(e) => setTeksRating(e.currentTarget.value)}
+                onBlur={() => d.aturSetelan({ ratingManual: teksRating })}
+                disabled={sibuk || nonaktif}
+                className="rounded-borderRoundness border border-border bg-[#272727] px-2 py-1 text-sm text-foreground outline-none"
+              />
+            </div>
+          ) : null}
+        </div>
+      </div>
 
       {d.status === "menyiapkan" ? (
         <div className="flex flex-col gap-2">

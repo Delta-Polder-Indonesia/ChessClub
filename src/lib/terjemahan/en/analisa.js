@@ -482,6 +482,18 @@ export const analisa = {
       deviasi: {
         judul: "Human distribution (Maia)",
         isi: "Compare the player's moves with a human model's predictions. Unlike the detection above, this part does not use Stockfish — the 45 MB model is downloaded only after you press the button, and later runs reuse the browser cache.",
+        setelan: "Maia settings",
+        setelanPetunjuk:
+          "This section does not use Stockfish depth — its cost is games × scored moves. Lower it if your device struggles; the choice is saved in this browser.",
+        kecepatan: "Speed",
+        kecepatanHemat: "Light — 8 positions per batch",
+        kecepatanSeimbang: "Balanced — 16 positions",
+        kecepatanCepat: "Fast — 32 positions",
+        jumlahPartai: "Number of games",
+        rating: "Rating",
+        ratingOtomatis: "Automatic (from PGN)",
+        ratingManual: "Manual",
+        ratingNilai: "Manual rating",
         mulai: "Analyze human distribution",
         ulangi: "Run again",
         batal: "Cancel",

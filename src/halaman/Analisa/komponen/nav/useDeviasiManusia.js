@@ -18,22 +18,57 @@ import { ambilDaftarPartai } from "../../basisData.js";
 import { ratingDariMetadata, warnaPemainDariMetadata } from "../../mesin/antiCheat.js";
 import { prediksiManusia } from "../../mesin/prediksiMaia.js";
 import { ringkasDeviasiRiwayat } from "../../mesin/deviasiRiwayat.js";
+import {
+  PRESET_BAWAAN,
+  bacaSetelan,
+  normalisasiSetelan,
+  presetPerangkat,
+  simpanSetelan,
+} from "../../mesin/setelanMaia.js";
 import { useMesinMaia } from "../../../../lib/gunakanMesinMaia.js";
 
 const KOSONG = { ke: 0, total: 0 };
 
+/** Penyimpanan setelan; `null` di lingkungan tanpa localStorage (uji/SSR). */
+function penyimpanan() {
+  try {
+    return typeof localStorage === "undefined" ? null : localStorage;
+  } catch {
+    return null;
+  }
+}
+
 /**
- * @param {{platform?: string, username?: string, waktu?: string, batas?: number}} opsi
+ * Preset awal untuk perangkat ini — hanya dipakai bila pengguna belum pernah
+ * menyimpan pilihan. Ponsel atau mesin 4 inti/≤4 GB mulai dari "hemat" supaya
+ * tab tidak tersendat pada pemakaian pertama.
+ */
+function presetUntukPerangkat() {
+  if (typeof navigator === "undefined") return PRESET_BAWAAN;
+  return presetPerangkat({
+    hardwareConcurrency: navigator.hardwareConcurrency,
+    deviceMemory: navigator.deviceMemory,
+    seluler: /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent ?? ""),
+  });
+}
+
+/**
+ * @param {{platform?: string, username?: string, waktu?: string}} opsi
  *   filter yang sama dengan deteksi riwayat: partai yang dinilai harus persis
  *   partai yang sedang ditinjau peninjau, bukan seluruh basis data.
+ *
+ * Setelan Maia (kecepatan, jumlah partai, rating) berdiri sendiri dari setelan
+ * Stockfish — lihat `mesin/setelanMaia.js`. Pilihan pengguna disimpan di
+ * peramban supaya tidak perlu diulang tiap sesi.
  */
-export function useDeviasiManusia({ platform = "chessCom", username = "", waktu = "any", batas = 0 } = {}) {
+export function useDeviasiManusia({ platform = "chessCom", username = "", waktu = "any" } = {}) {
   const maia = useMesinMaia();
   const [status, setStatus] = useState("kosong");
   const [hasil, setHasil] = useState(null);
   const [pesan, setPesan] = useState("");
   const [progres, setProgres] = useState(KOSONG);
   const [berjalan, setBerjalan] = useState(false);
+  const [setelan, setSetelan] = useState(() => bacaSetelan(penyimpanan(), presetUntukPerangkat()));
   const controllerRef = useRef(null);
   // PGN partai yang baru dinilai — sumber tombol "buka di papan" di panel.
   const partaiRef = useRef([]);
@@ -65,7 +100,7 @@ export function useDeviasiManusia({ platform = "chessCom", username = "", waktu 
         (await ambilDaftarPartai({
           koleksiId: `${platform}:${username.toLowerCase()}`,
           timeClass: waktu === "any" ? "" : waktu,
-          limit: batas,
+          limit: setelan.jumlahPartai,
           sertakanPgn: true,
           urut: "tanggal",
           arah: "desc",
@@ -92,10 +127,14 @@ export function useDeviasiManusia({ platform = "chessCom", username = "", waktu 
           const warna = warnaPemainDariMetadata(satu?.metadata, username);
           const milikPemain = warna === "b" ? rating.b : rating.w;
           const milikLawan = warna === "b" ? rating.w : rating.b;
+          // Mode manual dipakai saat metadata PGN tidak memuat Elo (partai
+          // impor lama) atau saat peninjau ingin "seandainya rating X".
+          const manual = setelan.ratingMode === "manual" && setelan.ratingManual !== null;
           return prediksiManusia(moves, {
             mesin: { inferensi: maia.inferensi },
-            rating: milikPemain,
-            ratingLawan: milikLawan,
+            rating: manual ? setelan.ratingManual : milikPemain,
+            ratingLawan: manual ? setelan.ratingManual : milikLawan,
+            ukuranBatch: setelan.ukuranBatch,
             sinyal: sinyalPrediksi,
           });
         },
@@ -113,9 +152,22 @@ export function useDeviasiManusia({ platform = "chessCom", username = "", waktu 
         setBerjalan(false);
       }
     }
-  }, [berjalan, username, platform, waktu, batas, maia]);
+  }, [berjalan, username, platform, waktu, maia, setelan.jumlahPartai, setelan.ratingMode, setelan.ratingManual, setelan.ukuranBatch]);
 
   const batalkan = useCallback(() => controllerRef.current?.abort(), []);
+
+  /**
+   * Ubah setelan Maia. Nilai selalu dinormalisasi (jepit + preset) sebelum
+   * disimpan, jadi masukan aneh dari kolom teks tidak bisa merusak jalannya
+   * inferensi berikutnya.
+   */
+  const aturSetelan = useCallback((perubahan) => {
+    setSetelan((sebelumnya) => {
+      const baru = normalisasiSetelan({ ...sebelumnya, ...perubahan });
+      simpanSetelan(baru, penyimpanan());
+      return baru;
+    });
+  }, []);
 
   /**
    * Teks PGN partai ke-`indeks` dari hasil yang sedang ditampilkan. Dipakai
@@ -132,6 +184,8 @@ export function useDeviasiManusia({ platform = "chessCom", username = "", waktu 
     mulai,
     batalkan,
     pgnPartai,
+    setelan,
+    aturSetelan,
     // Status unduhan model diteruskan apa adanya supaya panel bisa
     // menampilkan "mengunduh 42%" tanpa menebak-nebak.
     unduh: {
