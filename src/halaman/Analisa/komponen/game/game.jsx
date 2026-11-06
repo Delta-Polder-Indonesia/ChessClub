@@ -43,7 +43,7 @@ function Game({ wadah }) {
   const [materialAdvantage] = analyzeContext.materialAdvantage;
   const [result2, setResult] = analyzeContext.result;
   const setProgress = analyzeContext.progress[1];
-  const setLangkahSementara = analyzeContext.langkahSementara[1];
+  const [langkahSementara, setLangkahSementara] = analyzeContext.langkahSementara;
   const [tab, setTab] = analyzeContext.tab;
   const [analyzeController, setAnalyzeController] = analyzeContext.analyzeController;
   const [customLine, setCustomLine] = analyzeContext.customLine;
@@ -402,6 +402,16 @@ function Game({ wadah }) {
   // Kartu profil (avatar, gelar, bendera) untuk kedua pemain — diambil dari
   // API publik chess.com (lihat lib/pemainCatur.js). Fallback: ikon profil.
   // Hanya aktif saat partai benar-benar dimuat (menghemat request ke API).
+  /*
+   * Papan tidak lagi menjadi kotak kosong selama partai dianalisis. Teks PGN
+   * diurai LEBIH DULU (`bacaPartaiPGN` → `langkahSementara`), jadi posisi awal
+   * partai sudah diketahui walau engine belum selesai menilai langkahnya.
+   * Yang digambar adalah posisi itu — bukan selalu posisi awal standar, supaya
+   * partai yang mulai dari FEN khusus (soal, varian) tidak sempat menampilkan
+   * papan yang salah.
+   */
+  const memuatPartaiPapan = pageState === "loading";
+  const posisiPratinjau = memuatPartaiPapan ? langkahSementara?.[0]?.fen ?? null : null;
   const partaiDimuat = pageState === "analyze" || pageState === "analyzeCustom";
   const kartu0 = useKartuPemain(players?.[0]?.name, partaiDimuat);
   const kartu1 = useKartuPemain(players?.[1]?.name, partaiDimuat);
@@ -416,17 +426,17 @@ function Game({ wadah }) {
             <div style={{ [isNavTop ? "width" : "height"]: gameHeight }} className="flex navTop:flex-row flex-col items-center">
                 <Evaluation size={boardSize} navTop={isNavTop} white={white} advantage={analyzingMove ? previousMove?.previousStaticEvals?.[0] ?? ["cp", "0"] : move2?.previousStaticEvals?.[0] ?? ["cp", "0"]} whiteMoving={(analyzingMove ? previousMove?.color ?? WHITE : move2?.color ?? WHITE) === WHITE} />
             </div>
-            <div ref={componentRef} style={{ gap }} className="h-full flex flex-col justify-start">
+            <div ref={componentRef} data-papan-fen={memuatPartaiPapan ? posisiPratinjau ?? undefined : undefined} style={{ gap }} className="h-full flex flex-col justify-start">
                 <div style={{ width: boardSize }} className="flex flex-row justify-between">
                     <Name materialAdvantage={materialAdvantage} captured={captured[white ? "black" : "white"]} white={!white} avatar={avatarPemain[white ? 1 : 0]} title={titlePemain[white ? 1 : 0]} flag={flagPemain[white ? 1 : 0]}>{playerLabels[white ? 1 : 0]}</Name>
                     <Clock white={!white} colorMoving={move2?.color ?? game[moveNumber]?.color}>{formatTime(white ? currentBlackTime : currentWhiteTime)}</Clock>
                 </div>
-                {pageState === "loading" ? (
+                {memuatPartaiPapan && !posisiPratinjau ? (
                   /*
-                   * Kerangka papan selama partai dimuat/dianalisis. Dulu papan
-                   * langsung menggambar posisi awal, sehingga pengguna yang
-                   * datang lewat tombol "Analisa" sempat melihat posisi awal
-                   * sekitar satu detik sebelum posisi soal muncul.
+                   * Kerangka papan hanya untuk sela sebelum PGN selesai diurai
+                   * (biasanya satu tarikan napas). Begitu posisi awal partai
+                   * diketahui, papan sungguhan yang tampil — lihat
+                   * `posisiPratinjau` di atas.
                    */
                   <div
                     data-kerangka-papan="1"
@@ -436,6 +446,7 @@ function Game({ wadah }) {
                   />
                 ) : (
                 <Board
+    pratinjau={memuatPartaiPapan}
     setPlaying={setPlaying}
     cleanArrows={cleanCurrentArrows}
     arrows={getArrows(arrows, moveNumber, customLine)}
@@ -447,7 +458,7 @@ function Game({ wadah }) {
     previousBestMove={previousMove?.bestMove}
     move={move2?.movement}
     nextMove={nextMove?.movement}
-    fen={move2?.fen}
+    fen={memuatPartaiPapan ? posisiPratinjau ?? undefined : move2?.fen}
     nextFen={nextMove?.fen}
     boardSize={boardSize}
     white={white}

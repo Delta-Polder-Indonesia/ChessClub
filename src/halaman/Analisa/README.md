@@ -497,7 +497,7 @@ Di luar rangkaian itu:
 | Rangkaian | Pemeriksaan |
 | --- | --- |
 | `uji-analisa.mjs` | 34 |
-| `uji-analisa-ui.mjs` | 152 |
+| `uji-analisa-ui.mjs` | 153 |
 | `uji-basisdata.mjs` | 34 |
 | `uji-akun-database.mjs` | 16 |
 | `uji-tarik-api.mjs` | 7 |
@@ -509,7 +509,7 @@ Di luar rangkaian itu:
 
 | Ukuran | Nilai |
 | --- | --- |
-| Chunk `Analisa-*.js` | 368.454 B (gzip 99,56 kB) |
+| Chunk `Analisa-*.js` | 368.642 B (gzip 99,67 kB) |
 | `npm run build` (Vite, Node 22) | ±24 dtk |
 | `npm run lint` (eslint) | bersih |
 
@@ -561,12 +561,21 @@ membandingkan teks fungsi di berkas asli dan berkas baru.
 
 `komponen/game/game.jsx` dulu 863 baris: tata letak papan, pengukuran ukuran,
 pendengar keyboard, alur muat partai, dan alur penilaian langkah. Sekarang
-**486 baris** (orkestrasi + tata letak) dengan dua hook:
+**497 baris** (orkestrasi + tata letak) dengan dua hook:
 
 | Berkas | Baris | Isi |
 | --- | ---: | --- |
 | `game/useMuatPartai.js` | 338 | `handlePGN`, `handleFEN`, efek `[data]`, dan pemuatan tabel pembukaan saat senggang |
 | `game/useAnalisisPapan.js` | 193 | `analyzeMove` + `analyzingMoveRef` |
+
+**Papan selama analisis.** Saat `pageState` masih `loading` papan TIDAK dibiarkan
+kosong. Teks PGN diurai lebih dulu (`bacaPartaiPGN` → `langkahSementara`), jadi
+posisi awal partai sudah diketahui walau engine belum selesai menilai langkah:
+papan menggambar posisi itu dengan prop `pratinjau` (tanpa seret bidak, tanpa
+bunyi langkah — posisi awal bukan langkah yang dimainkan). Kerangka abu-abu
+hanya muncul di sela sebelum PGN selesai diurai, supaya partai ber-FEN khusus
+(soal) tidak pernah sempat menampilkan posisi awal standar. Dijaga
+`uji-analisa-ui` blok `[P2]`.
 
 Ketiganya berbagi ref yang sama, dan itu **bukan detail gaya** — perilaku
 balapan bergantung padanya:
@@ -1233,7 +1242,7 @@ di ujung `uji:analisa-menyeluruh`). Angka emasnya diambil dari suite uji acuan
 
 Status verifikasi (diperbarui 2026-11-06 — angka lama sengaja tidak
 dipertahankan): 51 lulus / 0 gagal; `uji:analisa-menyeluruh` (18 skrip,
-1133 pemeriksaan), `uji:analisa` (34), `uji:analisa-ui` (152), `uji:anticheat`
+1133 pemeriksaan), `uji:analisa` (34), `uji:analisa-ui` (153), `uji:anticheat`
 (417), `uji:tarik-api` (7), `uji:basisdata` (34), `uji:akun-database` (16),
 `uji:i18n` (3381 kunci ID = EN), `uji:integritas-suite` (9), dan `npm run
 build` semuanya hijau. Jalur jaringan chess.com/lichess TIDAK diverifikasi

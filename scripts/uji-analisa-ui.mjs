@@ -1686,29 +1686,40 @@ const papanTampil = (wadah) =>
 }
 
 {
-  // (c) Alur sungguhan: PGN titipan dari teka-teki. Provider harus mulai
-  // "loading" sehingga posisi awal TIDAK PERNAH terlihat sebelum posisi soal.
+  // (c) Alur sungguhan: PGN titipan dengan FEN khusus (posisi soal). Papan
+  // harus SUDAH tampil selama dianalisis — kotak kosong selama puluhan detik
+  // adalah keluhan yang memicu perubahan ini — dan yang digambar harus posisi
+  // soal, bukan posisi awal standar.
+  const FEN_SOAL = "4k3/8/8/8/8/8/4P3/4K3 w - - 0 1";
+  const PGN_SOAL = `[Event "Soal"]\n[White "Andini"]\n[Black "Bagas"]\n[Result "*"]\n[FEN "${FEN_SOAL}"]\n[SetUp "1"]\n\n1. Kd2 Kd7 *`;
   const wadah = domSiap.createElement("div");
   domSiap.body.appendChild(wadah);
-  dom.window.sessionStorage.setItem("kci-analisa-impor-awal", PGN_UJI);
+  dom.window.sessionStorage.setItem("kci-analisa-impor-awal", PGN_SOAL);
   const galatSebelum = pesanGalat.length;
   const root = modul.mount(wadah);
-  const rekam = { kerangka: false, papanAwal: false, papanSiap: false };
+  const rekam = { papanMuat: false, fenMuat: new Set(), posisiStandar: false, papanSiap: false };
   const mulai = Date.now();
   while (Date.now() - mulai < 12000) {
-    const kerangka = !!wadah.querySelector("[data-kerangka-papan]");
     const papan = papanTampil(wadah);
     const siap = /Andini/.test(wadah.textContent || "");
-    if (kerangka) rekam.kerangka = true;
-    if (papan && !siap) rekam.papanAwal = true;
+    const fen = wadah.querySelector("[data-papan-fen]")?.getAttribute("data-papan-fen") ?? null;
+    if (papan && !siap) {
+      rekam.papanMuat = true;
+      if (fen) rekam.fenMuat.add(fen);
+      if (fen && fen.startsWith("rnbqkbnr/pppppppp")) rekam.posisiStandar = true;
+    }
     if (papan && siap) {
       rekam.papanSiap = true;
       break;
     }
     await tunggu(15);
   }
-  uji("[P2] kerangka tampil selama partai titipan dimuat", rekam.kerangka);
-  uji("[P2] posisi awal tidak pernah tampil sebelum posisi soal siap", !rekam.papanAwal);
+  uji("[P2] papan tampil selama partai titipan dianalisis", rekam.papanMuat);
+  uji(
+    "[P2] yang digambar selama memuat adalah posisi soal, bukan papan kosong",
+    rekam.fenMuat.has(FEN_SOAL)
+  );
+  uji("[P2] posisi awal standar tidak dipakai untuk soal ber-FEN", !rekam.posisiStandar);
   uji("[P2] posisi partai titipan akhirnya tampil", rekam.papanSiap);
   uji("[P2] kerangka hilang setelah partai siap", !wadah.querySelector("[data-kerangka-papan]"));
   uji(
@@ -1718,6 +1729,7 @@ const papanTampil = (wadah) =>
   root.unmount();
   wadah.remove();
 }
+
 
 uji("tidak ada galat render", fatal.length === 0);
 if (fatal.length) console.log(fatal.slice(0, 3).map((p) => `    ! ${p.split("\n")[0]}`).join("\n"));
