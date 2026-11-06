@@ -30,7 +30,7 @@ mencatat **rencana dan status**, bukan detail perilaku.
 | 0 | Sinkronisasi dokumentasi & baseline | **selesai** (2026-11-06) | README bagian *Baseline terukur*; `scripts/uji-dokumentasi-analisa.mjs` |
 | 1 | `basisData.js` → `database/*` | **selesai** | commit `25ed51d` (PR #231) |
 | 2 | Pisahkan `BoardContext` + `ImportContext` | **selesai** | commit `d10e8b1`, `34636c3`, `88e428a` (PR #231) |
-| 3 | Pecah komponen raksasa | **berjalan** — langkah 1 (`layarDatabase`) selesai | `komponen/nav/database/*`; lihat *Peta berkas layar Database* di README |
+| 3 | Pecah komponen raksasa | **selesai** (2026-11-06) | `komponen/nav/database/*` + `komponen/game/useMuatPartai.js` / `useAnalisisPapan.js` |
 | 4 | Integrasi Maia | **belum**, sengaja paling akhir | `docs/MAIA3.md` |
 
 Fase 1–2 sudah merge ke `main` lewat PR #231 (merge commit `2bc3868`).
@@ -64,8 +64,17 @@ dan notifikasi adalah JSX inline di dalam `LayarDatabase` (butuh state-nya),
 jadi yang berdiri sendiri hanya skeleton, ikon, tabel, dan dropdown. Rincian
 per berkas ada di README bagian *Peta berkas layar Database (Fase 3)*.
 
-Sisa Fase 3: `game.jsx` (863 baris) → `useMuatPartai.js` + `useAnalisisPapan.js`
-(Risiko Tinggi; dikerjakan terpisah). Setiap langkah:
+Status langkah 2 (`game.jsx`, 2026-11-06): selesai. 863 → 486 baris, dengan
+`useMuatPartai.js` (338 baris: `handlePGN`, `handleFEN`, efek `[data]`, tabel
+pembukaan) dan `useAnalisisPapan.js` (193 baris: `analyzeMove`,
+`analyzingMoveRef`). Keduanya berbagi `muatSeqRef`/`controllerRef`/`openingsRef`
+— pemiliknya `useMuatPartai`, diserahkan ke `useAnalisisPapan` — supaya
+semantik balapan (muatan baru mengalahkan analisis langkah yang tertahan,
+tombol Batal tetap hidup) tidak bergeser. Rincian ada di README bagian *Peta
+berkas papan*.
+
+Fase 3 selesai. Berikutnya Fase 4 (Maia), sengaja paling akhir dan dalam PR
+sendiri. Setiap langkah:
 `npm run uji:analisa-menyeluruh`, `node scripts/uji-analisa-ui.mjs`,
 `node scripts/uji-basisdata-galat.mjs`, `npm run lint`, `npm run build`,
 lalu `npm run uji:dokumentasi` bila ada angka dokumentasi yang bergeser.
