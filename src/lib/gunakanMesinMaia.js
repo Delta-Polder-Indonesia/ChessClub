@@ -23,6 +23,7 @@ import { STATUS_MAIA, ambilMesinMaia } from "./mesinMaia.js";
  * @returns {{status: string, progres: number, galat: string|null,
  *   dariCache: boolean, siap: boolean, sedangMemuat: boolean, mengunduh: boolean,
  *   siapkan: () => Promise<string>, mintaLangkah: (fen: string, opsi?: object) => Promise<object>,
+ *   inferensi: (daftarFen: string[], opsi?: object) => Promise<object[]>,
  *   tamat: () => void, hapusCache: () => void}}
  */
 export function useMesinMaia({ rating = RATING_BAKU, ratingLawan = null } = {}) {
@@ -53,6 +54,22 @@ export function useMesinMaia({ rating = RATING_BAKU, ratingLawan = null } = {}) 
     [mesin, rating, ratingLawan]
   );
 
+  /**
+   * Inferensi banyak posisi sekaligus — dipakai deteksi anti-cheat, yang butuh
+   * distribusi langkah manusia untuk SELURUH partai (bukan satu langkah).
+   * `rating`/`ratingLawan` di sini hanya nilai bawaan: pemanggil boleh
+   * menimpanya per panggilan, karena rating pada riwayat berbeda tiap partai.
+   */
+  const inferensi = useCallback(
+    (daftarFen, opsi = {}) =>
+      mesin.inferensi(daftarFen, {
+        rating,
+        ratingLawan: ratingLawan ?? rating,
+        ...opsi,
+      }),
+    [mesin, rating, ratingLawan]
+  );
+
   return {
     ...keadaan,
     siap: STATUS_MAIA.SIAP === keadaan.status,
@@ -65,6 +82,7 @@ export function useMesinMaia({ rating = RATING_BAKU, ratingLawan = null } = {}) 
     mengunduh: STATUS_MAIA.MENGUNDUH === keadaan.status,
     siapkan,
     mintaLangkah,
+    inferensi,
     tamat,
     hapusCache,
   };

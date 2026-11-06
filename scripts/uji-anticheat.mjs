@@ -1239,6 +1239,11 @@ act(() => rootAkun.unmount());
   hasil("progres papan 0 tidak dianggap sedang berjalan", ctxJumlah.progress[0] === 0 && tombolJumlah(12)?.disabled === false);
   hasil("layar menunggu perintah, tidak menyiapkan engine otomatis", siapkanDipanggil === 0 && !elAkun.querySelector("tbody"));
   hasil("sanggahan tampil sebelum analisis dimulai", teksAkun().includes(tID("analisa.antiCheat.disclaimer")));
+  // Panel distribusi manusia (Maia) sengaja TIDAK menyentuh jaringan sampai
+  // tombolnya ditekan — di sini cukup dibuktikan ia muncul dan menjelaskan
+  // dirinya sendiri sebelum ada yang diklik.
+  hasil("panel distribusi manusia tampil dengan tombol eksplisit", Boolean(elAkun.querySelector('[data-uji="deviasi-manusia"] [data-uji="deviasi-mulai"]')));
+  hasil("panel distribusi manusia menjelaskan unduhan model sebelum dimulai", teksAkun().includes(tID("analisa.antiCheat.deviasi.isi")));
   hasil("keadaan awal hasil memiliki petunjuk", teksAkun().includes(tID("analisa.antiCheat.riwayat.hasilKosong")));
 
   hasil("kolom jumlah opsional tampil kosong dengan placeholder 12", inputJumlah()?.value === "" && inputJumlah()?.placeholder === "12");
