@@ -213,8 +213,30 @@ tidak ada logika engine baru:
 
 | Tingkat | Berkas | Isi |
 | --- | --- | --- |
-| Per partai | `mesin/antiCheat.js` → `hitungSkorKecurigaan(moves)` | perhitungan metrik + skor 0–100 per warna; kartu hasil per partai tidak ditampilkan di Ringkasan |
-| Agregat riwayat | `mesin/antiCheat.js` → `agregatSkorPemain(…)` | gabungan lintas partai, dirender layar **Deteksi engine** pada `komponen/nav/layarDeteksiEngine.jsx` + `ringkasanAntiCheat.jsx` |
+| Per partai | `mesin/antiCheat/skor.js` → `hitungSkorKecurigaan(moves)` | perhitungan metrik + skor 0–100 per warna; kartu hasil per partai tidak ditampilkan di Ringkasan |
+| Agregat riwayat | `mesin/antiCheat/agregat.js` → `agregatSkorPemain(…)` | gabungan lintas partai, dirender layar **Deteksi engine** pada `komponen/nav/layarDeteksiEngine.jsx` + `ringkasanAntiCheat.jsx` |
+
+### Peta berkas anti-cheat (Fase 5)
+
+`mesin/antiCheat.js` dulu 1487 baris dan mencampur empat urusan. Sekarang ia
+**pintu masuk 92 baris** yang mengekspor ulang semuanya, dengan empat lapisan
+berarah satu jalur — `dasar → kalibrasi → skor → agregat`:
+
+| Berkas | Baris | Isi |
+| --- | --- | --- |
+| `mesin/antiCheat.js` | 92 | Dokumentasi konvensi eval + re-ekspor (API publik tidak berubah) |
+| `mesin/antiCheat/dasar.js` | 377 | Konstanta ambang, utilitas eval, kandidat MultiPV, statistik waktu |
+| `mesin/antiCheat/kalibrasi.js` | 89 | `KALIBRASI_RATING`, `pilihKalibrasi`, komponen skor 0–100, `tingkatDariSkor` |
+| `mesin/antiCheat/skor.js` | 482 | `skorKecurigaan`, pengumpul per fase, `hitungSkorKecurigaan` |
+| `mesin/antiCheat/agregat.js` | 528 | `agregatSkorPemain`, tren, `barisPartai`, `warnaPemainDariMetadata` |
+
+Arah ketergantungan itu yang menjaga pemecahan ini aman: `dasar` tidak
+mengimpor siapa pun di folder itu, `agregat` tidak diimpor siapa pun. Tiga
+helper yang sebelumnya privat (`batasi01`, `rataRata`, `bulat1`) kini
+diekspor dari `dasar.js` karena dipakai lintas modul — itu satu-satunya
+tambahan pada API publik, dan sifatnya menambah, bukan mengubah. Seluruh 47
+nama ekspor lama tetap ada (diperiksa dengan membandingkan `Object.keys()`
+modul sebelum dan sesudah pemecahan).
 
 Menu **Deteksi engine** adalah layar internal di `/program-kami/analisa/papan`,
 bukan rute publik baru. `PanelLayar`, kontrol, token, dan markup hasil Analisa
@@ -515,7 +537,7 @@ Di luar rangkaian itu:
 
 | Ukuran | Nilai |
 | --- | --- |
-| Chunk `Analisa-*.js` | 368.684 B (gzip 99,95 kB) |
+| Chunk `Analisa-*.js` | 368.684 B (gzip 99,96 kB) |
 | `npm run build` (Vite, Node 22) | ±24 dtk |
 | `npm run lint` (eslint) | bersih |
 
