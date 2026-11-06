@@ -17,7 +17,9 @@
  *  5. Pembatalan menghasilkan hasil parsial (`dibatalkan: true`), galat
  *     penyedia prediksi tidak ditelan.
  *
- * Penyedia prediksi di sini palsu — uji jalan tanpa ONNX 45 MB.
+ * Penyedia prediksi di sini palsu — uji jalan tanpa ONNX 45 MB. Jalur Maia
+ * memakai pengaturan yang sama dengan deteksi Stockfish (akun, filter waktu,
+ * jumlah partai), jadi tidak ada setelan kedua yang perlu diuji di sini.
  *
  * Jalankan: node scripts/uji-deviasi-riwayat.mjs
  */
@@ -32,14 +34,6 @@ const { langkahLompat } = await import("../src/halaman/Analisa/komponen/game/lom
 const { panahSorot, petaPanahSorot } = await import(
   "../src/halaman/Analisa/komponen/game/panahSorot.js"
 );
-const {
-  PRESET_MAIA,
-  KUNCI_SETELAN_MAIA,
-  presetPerangkat,
-  normalisasiSetelan,
-  bacaSetelan,
-  simpanSetelan,
-} = await import("../src/halaman/Analisa/mesin/setelanMaia.js");
 
 let lulus = 0;
 let gagal = 0;
@@ -402,103 +396,6 @@ await uji("uci dari langkahTersorot selalu bisa digambar jadi panah", async () =
     assert.ok(panahSorot(l.uci), `uci tidak sah: ${l.uci}`);
     assert.deepEqual(Object.keys(petaPanahSorot(l.indeks, l.uci)), [String(l.indeks)]);
   }
-});
-
-console.log("\n== setelan Maia (biaya kerja per perangkat) ==");
-
-await uji("ponsel selalu 'hemat' walau CPU-nya kuat", () => {
-  assert.equal(presetPerangkat({ hardwareConcurrency: 16, deviceMemory: 16, seluler: true }), "hemat");
-});
-
-await uji("memori atau inti kecil → 'hemat'", () => {
-  assert.equal(presetPerangkat({ hardwareConcurrency: 8, deviceMemory: 4 }), "hemat");
-  assert.equal(presetPerangkat({ hardwareConcurrency: 4, deviceMemory: 8 }), "hemat");
-  assert.equal(presetPerangkat({ hardwareConcurrency: 2, deviceMemory: 2 }), "hemat");
-});
-
-await uji("desktop kuat → 'cepat'; tak diketahui → 'seimbang'", () => {
-  assert.equal(presetPerangkat({ hardwareConcurrency: 16, deviceMemory: 16 }), "cepat");
-  assert.equal(presetPerangkat({ hardwareConcurrency: 8 }), "cepat");
-  assert.equal(presetPerangkat({}), "seimbang");
-  assert.equal(presetPerangkat({ hardwareConcurrency: 6, deviceMemory: 8 }), "seimbang");
-});
-
-await uji("bawaan tanpa masukan = preset seimbang, rating otomatis", () => {
-  assert.deepEqual(normalisasiSetelan(), {
-    preset: "seimbang",
-    ukuranBatch: 16,
-    jumlahPartai: 10,
-    ratingMode: "otomatis",
-    ratingManual: null,
-  });
-});
-
-await uji("ukuranBatch mengikuti preset, bukan masukan bebas", () => {
-  for (const [nama, isi] of Object.entries(PRESET_MAIA)) {
-    const hasil = normalisasiSetelan({ preset: nama, ukuranBatch: 999 });
-    assert.equal(hasil.ukuranBatch, isi.ukuranBatch, nama);
-  }
-});
-
-await uji("jumlah partai dijepit 1..50, sampah jatuh ke bawaan preset", () => {
-  assert.equal(normalisasiSetelan({ jumlahPartai: 0 }).jumlahPartai, 1);
-  assert.equal(normalisasiSetelan({ jumlahPartai: 999 }).jumlahPartai, 50);
-  assert.equal(normalisasiSetelan({ jumlahPartai: "12" }).jumlahPartai, 12);
-  assert.equal(normalisasiSetelan({ jumlahPartai: "abc" }).jumlahPartai, 10);
-  assert.equal(normalisasiSetelan({ preset: "hemat", jumlahPartai: "abc" }).jumlahPartai, 5);
-});
-
-await uji("preset tak dikenal → preset bawaan, bukan galat", () => {
-  assert.equal(normalisasiSetelan({ preset: "turbo" }).preset, "seimbang");
-  assert.equal(normalisasiSetelan({ preset: "turbo" }, "hemat").preset, "hemat");
-});
-
-await uji("rating: mode tak dikenal → otomatis, nilai dijepit 600..2600", () => {
-  assert.equal(normalisasiSetelan({ ratingMode: "manual" }).ratingMode, "manual");
-  assert.equal(normalisasiSetelan({ ratingMode: "aneh" }).ratingMode, "otomatis");
-  assert.equal(normalisasiSetelan({ ratingMode: "manual", ratingManual: 100 }).ratingManual, 600);
-  assert.equal(normalisasiSetelan({ ratingMode: "manual", ratingManual: 9000 }).ratingManual, 2600);
-  assert.equal(normalisasiSetelan({ ratingMode: "manual", ratingManual: 1875.4 }).ratingManual, 1875);
-  assert.equal(normalisasiSetelan({ ratingMode: "manual", ratingManual: "x" }).ratingManual, null);
-  // `null` BUKAN 0: tanpa penjagaan ini Number(null) dijepit jadi 600 dan
-  // semua pemain tanpa rating manual tiba-tiba dinilai sebagai pemain 600.
-  assert.equal(normalisasiSetelan({ ratingMode: "manual", ratingManual: null }).ratingManual, null);
-  assert.equal(normalisasiSetelan({ ratingMode: "manual", ratingManual: "" }).ratingManual, null);
-  const sekali = normalisasiSetelan({ ratingMode: "manual" });
-  assert.equal(normalisasiSetelan(sekali).ratingManual, null, "normalisasi harus idempoten");
-});
-
-await uji("setelan bertahan antar sesi lewat penyimpanan", () => {
-  const simpanan = new Map();
-  const penyimpanan = {
-    getItem: (k) => (simpanan.has(k) ? simpanan.get(k) : null),
-    setItem: (k, v) => simpanan.set(k, v),
-  };
-  simpanSetelan({ preset: "hemat", jumlahPartai: 7, ratingMode: "manual", ratingManual: 1800 }, penyimpanan);
-  assert.ok(simpanan.has(KUNCI_SETELAN_MAIA));
-  assert.deepEqual(bacaSetelan(penyimpanan), {
-    preset: "hemat",
-    ukuranBatch: 8,
-    jumlahPartai: 7,
-    ratingMode: "manual",
-    ratingManual: 1800,
-  });
-});
-
-await uji("setelan rusak/penyimpanan bermasalah → bawaan, bukan galat", () => {
-  const rusak = { getItem: () => "{bukan json", setItem: () => {} };
-  assert.equal(bacaSetelan(rusak).preset, "seimbang");
-  const melempar = {
-    getItem: () => {
-      throw new Error("diblokir");
-    },
-    setItem: () => {
-      throw new Error("penuh");
-    },
-  };
-  assert.equal(bacaSetelan(melempar).preset, "seimbang");
-  simpanSetelan({ preset: "cepat" }, melempar); // tidak boleh melempar
-  assert.equal(bacaSetelan(undefined).preset, "seimbang");
 });
 
 console.log("\n== kegagalan & pembatalan ==");

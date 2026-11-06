@@ -93,9 +93,9 @@ Status: **selesai** (2026-11-06), dalam dua PR:
    `prediksiManusia`, `deviasiManusiaDariMaia`), diuji `npm run
    uji:prediksi-maia` (19) dengan mesin tiruan, tanpa ONNX/worker.
 2. **Pemasangan ke layar** — Maia sebagai salah satu pilihan **Nama** mesin
-   di Deteksi engine (bukan panel terpisah): `SetelanDeviasiManusia.jsx` di
-   kolom pengaturan, `RingkasanDeviasiManusia.jsx` di kolom hasil,
-   `komponen/nav/useDeviasiManusia.js`, di atas `mesin/deviasiRiwayat.js`
+   di Deteksi engine (bukan panel terpisah, tanpa setelan sendiri):
+   `RingkasanDeviasiManusia.jsx` di kolom hasil, pengaturan memakai kolom yang
+   sudah ada, `komponen/nav/useDeviasiManusia.js`, di atas `mesin/deviasiRiwayat.js`
    (rata-rata berbobot sampel lintas partai) dan `mesin/uraiPgn.js` (pengurai
    PGN tanpa Stockfish). Model 45 MB hanya diunduh setelah tombol ditekan;
    pemakaian berikutnya memakai cache.
@@ -104,14 +104,14 @@ Status: **selesai** (2026-11-06), dalam dua PR:
    langkah itu (`data.lompatKe` + `komponen/game/lompatLangkah.js`).
 4. **Panah di papan** — `data.sorotUci` + `komponen/game/panahSorot.js`
    (UCI → `[{col,row},{col,row}]`), menempel pada nomor langkah itu saja.
-5. **Setelan Maia** — `mesin/setelanMaia.js`: kecepatan (8/16/32 posisi per
-   gelombang), jumlah partai 5–50, rating otomatis/manual. Bawaan mengikuti
-   perangkat; pilihan disimpan di `kci-maia-setelan-v1`. Menjawab keluhan
-   "kenapa lambat di HP": jalur ini memang **tidak** memakai kedalaman, dan
-   sekarang biayanya bisa dikecilkan tanpa menyentuh setelan Stockfish.
+5. **Tanpa setelan kedua** — percobaan pertama memberi Maia kolomnya sendiri
+   (kecepatan/partai/rating, `mesin/setelanMaia.js`) dan itu **dicabut**:
+   layar jadi punya dua set pengaturan untuk satu pekerjaan yang sama. Sekarang
+   jumlah partai memakai kolom Stockfish yang sudah ada, rating dibaca dari
+   PGN, dan `ukuranBatch` memakai bawaan `UKURAN_BATCH_MAIA`.
 
-   Dijaga `npm run uji:deviasi-riwayat` (48) + 5 pemeriksaan UI di
-   `uji-anticheat.mjs` (431).
+   Dijaga `npm run uji:deviasi-riwayat` (38) + pemeriksaan UI di
+   `uji-anticheat.mjs` (433).
 
 Yang **tidak** dikerjakan di fase ini dan tetap terbuka: kalibrasi ulang
 `KALIBRASI_RATING` dengan korpus lokal (langkah 2 di README Analisa) dan cache

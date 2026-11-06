@@ -18,7 +18,6 @@ import { unduhLaporanPeninjauan } from "../../mesin/laporanPeninjauan.js";
 import PanelLayar from "./PanelLayar.jsx";
 import RingkasanAntiCheat from "./ringkasanAntiCheat.jsx";
 import RingkasanDeviasiManusia from "./RingkasanDeviasiManusia.jsx";
-import SetelanDeviasiManusia from "./SetelanDeviasiManusia.jsx";
 import { useDeviasiManusia } from "./useDeviasiManusia.js";
 import SelectDaftar from "./SelectDaftar.jsx";
 import Gambar from "../Gambar.jsx";
@@ -200,7 +199,7 @@ export default function LayarDeteksiEngine({ onBukaAkun, onBukaPartai = null }) 
    */
   const [idMesin, setIdMesin] = useState(() => mesin.idEngine);
   const modeMaia = idMesin === "maia";
-  const dm = useDeviasiManusia({ platform, username, waktu });
+  const dm = useDeviasiManusia({ platform, username, waktu, batas: ac.batas });
   const sibuk = ac.berjalan || dm.berjalan || papanSibuk;
   const daftar = gabungkanAkun([...akunTersimpan, ...koleksi, akun]);
   const opsiMesin = [
@@ -324,6 +323,13 @@ export default function LayarDeteksiEngine({ onBukaAkun, onBukaPartai = null }) 
     gantiThreads(Math.min(1, Math.max(1, n)));
   }
 
+  // Satu tombol untuk kedua mesin: hanya sumber status dan aksinya yang
+  // berbeda, tampilannya tidak. Tidak ada tombol kedua yang perlu dipelajari.
+  const jalan = modeMaia ? dm.berjalan : ac.berjalan;
+  const mulaiDeteksi = modeMaia ? dm.mulai : ac.jalankan;
+  const batalDeteksi = modeMaia ? dm.batalkan : ac.batalkan;
+  const bisaMulai = Boolean(username) && !papanSibuk && (modeMaia || ac.batas !== null);
+
   function pilihEngineDeteksi(id) {
     setIdMesin(id);
     // Memilih Maia tidak boleh menyalakan/mematikan mesin UCI.
@@ -427,7 +433,6 @@ export default function LayarDeteksiEngine({ onBukaAkun, onBukaPartai = null }) 
                 </div>
               ) : null}
               <div className="flex flex-row items-start gap-2">
-                {modeMaia ? null : (
                 <div className="flex min-w-0 flex-1 flex-col gap-1">
                   <div className="flex items-center gap-1">
                     <label htmlFor={jumlahId} className="text-xs font-bold text-foregroundGrey">{t("analisa.antiCheat.riwayat.jumlahPartai")}</label>
@@ -450,7 +455,6 @@ export default function LayarDeteksiEngine({ onBukaAkun, onBukaPartai = null }) 
                   />
                   {ac.batas === null ? <p id={`${jumlahId}-galat`} role="alert" className="text-xs leading-4 text-warning">{t("analisa.antiCheat.riwayat.jumlahTidakValid")}</p> : null}
                 </div>
-                )}
                 <div className="flex min-w-0 flex-1 flex-col gap-1 text-xs font-bold text-foregroundGrey">
                   <span>{t("analisa.statistik.waktu")}</span>
                   <SelectDaftar
@@ -466,9 +470,7 @@ export default function LayarDeteksiEngine({ onBukaAkun, onBukaPartai = null }) 
                   />
                 </div>
               </div>
-              {modeMaia ? (
-                <SetelanDeviasiManusia setelan={dm.setelan} atur={dm.aturSetelan} nonaktif={sibuk} />
-              ) : (
+              {modeMaia ? null : (
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-2">
                   <span className="h-px flex-1 bg-border" />
@@ -513,40 +515,30 @@ export default function LayarDeteksiEngine({ onBukaAkun, onBukaPartai = null }) 
               </div>
               )}
               {papanSibuk ? <p role="status" className="text-xs leading-4 text-foregroundGrey">{t("analisa.antiCheat.riwayat.papanSibuk")}</p> : null}
-              {modeMaia ? (
-                dm.berjalan ? (
-                  <button
-                    type="button"
-                    data-uji="deviasi-batal"
-                    onClick={dm.batalkan}
-                    disabled={dm.status === "batal"}
-                    className="w-fit cursor-pointer rounded-borderRoundness border border-border bg-backgroundBoxBox px-4 py-2 text-sm font-bold text-foreground transition-colors hover:bg-backgroundBoxBoxHighlighted disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    {t("analisa.antiCheat.riwayat.batal")}
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    data-uji="deviasi-mulai"
-                    onClick={dm.mulai}
-                    disabled={!username || papanSibuk}
-                    className="w-fit cursor-pointer rounded-borderRoundness bg-backgroundBoxBoxHighlighted px-4 py-2 text-sm font-bold text-foregroundBlackDark transition-colors hover:bg-backgroundBoxBoxHighlightedHover disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    {t("analisa.antiCheat.deviasi.mulai")}
-                  </button>
-                )
-              ) : ac.berjalan ? (
+              {jalan ? (
                 <button
                   type="button"
-                  onClick={ac.batalkan}
-                  disabled={ac.status === "batal"}
+                  data-uji={modeMaia ? "deviasi-batal" : undefined}
+                  onClick={batalDeteksi}
+                  disabled={(modeMaia ? dm.status : ac.status) === "batal"}
                   className="w-fit cursor-pointer rounded-borderRoundness border border-border bg-backgroundBoxBox px-4 py-2 text-sm font-bold text-foreground transition-colors hover:bg-backgroundBoxBoxHighlighted disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {t("analisa.antiCheat.riwayat.batal")}
                 </button>
               ) : (
-                <button type="button" onClick={ac.jalankan} disabled={!username || ac.batas === null || papanSibuk} className="w-fit cursor-pointer rounded-borderRoundness bg-backgroundBoxBoxHighlighted px-4 py-2 text-sm font-bold text-foregroundBlackDark transition-colors hover:bg-backgroundBoxBoxHighlightedHover disabled:cursor-not-allowed disabled:opacity-50">
-                  {adaHasil ? t("analisa.antiCheat.riwayat.mulaiUlang", { n: jumlah }) : t("analisa.antiCheat.riwayat.mulai", { n: jumlah })}
+                <button
+                  type="button"
+                  data-uji={modeMaia ? "deviasi-mulai" : undefined}
+                  onClick={mulaiDeteksi}
+                  disabled={!bisaMulai}
+                  className="w-fit cursor-pointer rounded-borderRoundness bg-backgroundBoxBoxHighlighted px-4 py-2 text-sm font-bold text-foregroundBlackDark transition-colors hover:bg-backgroundBoxBoxHighlightedHover disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {modeMaia
+                    ? // Jumlah partai yang dipakai persis angka di kolom kiri.
+                      t("analisa.antiCheat.riwayat.mulai", { n: dm.jumlahPartai })
+                    : adaHasil
+                      ? t("analisa.antiCheat.riwayat.mulaiUlang", { n: jumlah })
+                      : t("analisa.antiCheat.riwayat.mulai", { n: jumlah })}
                 </button>
               )}
             </div>

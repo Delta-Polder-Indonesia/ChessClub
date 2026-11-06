@@ -482,18 +482,6 @@ export const analisa = {
       },
       deviasi: {
         isi: "Bandingkan langkah pemain dengan prediksi model manusia. Berbeda dari deteksi di atas, bagian ini tidak memakai Stockfish — model 45 MB baru diunduh setelah tombol ditekan, dan pemakaian berikutnya memakai cache peramban.",
-        setelanPetunjuk:
-          "Bagian ini tidak memakai kedalaman Stockfish — biayanya = jumlah partai × langkah yang dinilai. Kecilkan bila perangkat terasa berat; pilihan disimpan di peramban ini.",
-        kecepatan: "Kecepatan",
-        kecepatanHemat: "Hemat — 8 posisi per gelombang",
-        kecepatanSeimbang: "Seimbang — 16 posisi",
-        kecepatanCepat: "Cepat — 32 posisi",
-        jumlahPartai: "Jumlah partai",
-        rating: "Rating",
-        ratingOtomatis: "Otomatis (dari PGN)",
-        ratingManual: "Manual",
-        ratingNilai: "Rating manual",
-        mulai: "Analisis distribusi manusia",
         mengunduh: "Menyiapkan model Maia…",
         memuatCache: "Memuat model Maia dari cache…",
         progres: "Menilai partai {ke} dari {total}…",

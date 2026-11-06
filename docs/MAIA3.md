@@ -360,9 +360,10 @@ Dua hal yang mudah salah dan sudah dikunci uji (`npm run uji:prediksi-maia`,
 
 Pemanggilnya kini ada, dan menyatu dengan layar yang sudah dipakai: pada
 daftar **Nama** mesin di panel pengaturan Deteksi engine, pilihan *Maia 3 —
-distribusi manusia* menukar kendali Stockfish dengan setelan Maia
-(`SetelanDeviasiManusia.jsx`), lalu `useDeviasiManusia.js` menjalankan
-rantainya. Model 45 MB **tidak** diunduh saat layar dibuka —
+distribusi manusia* memakai **pengaturan yang sudah ada** (akun, situs, filter
+waktu, jumlah partai); hanya kendali Stockfish yang tidak berlaku
+(kedalaman/hash/threads) yang disembunyikan, lalu `useDeviasiManusia.js`
+menjalankan rantainya. Model 45 MB **tidak** diunduh saat layar dibuka —
 hanya setelah tombol ditekan, dengan progres unduhan dan tombol Batal; bobot
 yang sudah ada dipakai ulang dari cache.
 
@@ -388,24 +389,14 @@ parse selesai lewat `komponen/game/lompatLangkah.js` — nomor di luar
 jangkauan menjadi langkah terakhir, `lompatKe` yang tidak sah diabaikan
 sehingga muatan biasa dari Basis Data/Impor berperilaku seperti dulu.
 
-### Setelan kerja (kecepatan, jumlah partai, rating)
+### Biaya kerja & rating
 
 Jalur ini tidak memakai kedalaman Stockfish; biayanya = jumlah partai ×
-langkah yang dinilai, dibagi ke gelombang inferensi sebesar `ukuranBatch`.
-Tiga tombol di panel mengatur itu (`mesin/setelanMaia.js`, murni + diuji):
-
-| Setelan | Nilai | Alasan |
-| --- | --- | --- |
-| Kecepatan | hemat 8 · seimbang 16 · cepat 32 posisi/gelombang | Batch besar = memori ONNX lebih besar; di ponsel bisa tersendat |
-| Jumlah partai | 5–50 (bawaan mengikuti preset) | Menentukan total langkah yang dinilai |
-| Rating | otomatis dari PGN / manual 600–2600 | PGN impor lama sering tanpa Elo |
-
-Bawaan diambil dari perangkat (`navigator.hardwareConcurrency`,
-`deviceMemory`, deteksi seluler): ≤4 inti atau ≤4 GB → "hemat". Pilihan
-pengguna disimpan di `kci-maia-setelan-v1`. Catatan penting yang ditemukan
-saat pengujian: `null` pada rating manual **tidak** boleh diperlakukan sebagai
-0 — `Number(null)` = 0 akan dijepit menjadi 600 dan menilai semua orang
-sebagai pemain 600.
+langkah yang dinilai, dibagi ke gelombang inferensi sebesar `ukuranBatch`
+(bawaan `UKURAN_BATCH_MAIA` = 32 di `mesin/prediksiMaia.js`). Kedua angkanya
+**tidak** punya kolom sendiri: jumlah partai memakai kolom yang sama dengan
+deteksi Stockfish, dan rating dibaca per partai dari metadata PGN lewat
+`ratingDariMetadata`. Tidak ada setelan kedua yang perlu diisi atau disimpan.
 
 Panah di papan **sudah ada**: `data.sorotUci` membawa UCI langkah yang
 disorot, dan `komponen/game/panahSorot.js` menerjemahkannya ke format panah
