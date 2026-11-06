@@ -25,7 +25,6 @@
  *  10. KEBIJAKAN PUKUL RATA: rating/identitas tidak mengubah skor deteksi;
  *      rating tetap dapat dibaca sebagai metadata laporan.
  *  11. LAPORAN PENINJAUAN: teks + JSON + sanggahan wajib.
- *  12. DEVIASI MANUSIA (siap-Maia): kejutan bit & peringkat distribusi.
  *  13. ORKESTRATOR LANJUTAN: durasi per partai + cache localStorage
  *      lintas-sesi (baca ulang setelah memori dibersihkan).
  *      antara kandidat engine, kecocokan top-3/top-5, kerugian cp vs
@@ -47,7 +46,6 @@ const { ID } = await import("../src/lib/terjemahan/id/index.js");
 const { bacaPartaiPGN, formatSquare, incrementDariPgn, parseClockString, parsePGN } = await import("../src/halaman/Analisa/mesin/engine.js");
 const { EngineCatur } = await import("../src/lib/engineCatur.js");
 const laporan = await import("../src/halaman/Analisa/mesin/laporanPeninjauan.js");
-const deviasi = await import("../src/halaman/Analisa/mesin/deviasiManusia.js");
 const ac = await import("../src/halaman/Analisa/mesin/antiCheat.js");
 const { FASE_PEMBUKAAN, faseBerikutnya, isEndOpening, isEndMiddlegame } = await import(
   "../src/halaman/Analisa/mesin/fase.js"
@@ -1239,11 +1237,6 @@ act(() => rootAkun.unmount());
   hasil("progres papan 0 tidak dianggap sedang berjalan", ctxJumlah.progress[0] === 0 && tombolJumlah(12)?.disabled === false);
   hasil("layar menunggu perintah, tidak menyiapkan engine otomatis", siapkanDipanggil === 0 && !elAkun.querySelector("tbody"));
   hasil("sanggahan tampil sebelum analisis dimulai", teksAkun().includes(tID("analisa.antiCheat.disclaimer")));
-  // Panel distribusi manusia (Maia) sengaja TIDAK menyentuh jaringan sampai
-  // tombolnya ditekan — di sini cukup dibuktikan ia muncul dan menjelaskan
-  // dirinya sendiri sebelum ada yang diklik.
-  hasil("panel distribusi manusia tampil dengan tombol eksplisit", Boolean(elAkun.querySelector('[data-uji="deviasi-manusia"] [data-uji="deviasi-mulai"]')));
-  hasil("panel distribusi manusia menjelaskan unduhan model sebelum dimulai", teksAkun().includes(tID("analisa.antiCheat.deviasi.isi")));
   hasil("keadaan awal hasil memiliki petunjuk", teksAkun().includes(tID("analisa.antiCheat.riwayat.hasilKosong")));
 
   hasil("kolom jumlah opsional tampil kosong dengan placeholder 12", inputJumlah()?.value === "" && inputJumlah()?.placeholder === "12");
@@ -1956,36 +1949,6 @@ console.log("\n== laporan peninjauan pengurus ==");
   const unduhOk = laporan.unduhLaporanPeninjauan(agregatRating, { username: "budi" });
   window.HTMLAnchorElement.prototype.click = klikAsli;
   hasil("unduhLaporanPeninjauan: memicu unduhan (anchor diklik sekali)", unduhOk === true && jumlahKlik === 1, `${unduhOk}/${jumlahKlik}`);
-}
-
-/* ============ 13. deviasi manusia (siap-Maia) ============ */
-
-console.log("\n== fondasi deviasi manusia ==");
-{
-  const daftarDev = [{ fen: "pos-awal", color: "b" }];
-  for (let i = 0; i < 12; i++) {
-    daftarDev.push({ san: "e4", uci: "e2e4", fen: `pos-${i}`, color: "w" });
-  }
-  const prediksiJelas = new Map();
-  for (let i = 0; i < 12; i++) {
-    prediksiJelas.set(i === 0 ? "pos-awal" : `pos-${i - 1}`, { e2e4: 0.4, d2d4: 0.3, c2c4: 0.2, g1f3: 0.1 });
-  }
-  const dev = deviasi.hitungDeviasiManusia(daftarDev, prediksiJelas);
-  hasil("deviasi: sampel terhitung", dev?.sampel === 12, `${dev?.sampel}`);
-  hasil("deviasi: langkah teratas manusia → kejutan ≈ 1.32 bit", Math.abs(dev.kejutanRata - Math.log2(1 / 0.4)) < 0.01, `${dev.kejutanRata}`);
-  hasil("deviasi: peringkat Maia 1", dev.rataPeringkatMaia === 1);
-  hasil("deviasi: tidak ada kejutan tinggi", dev.kejutanTinggi === 0);
-
-  const prediksiAneh = new Map();
-  for (let i = 0; i < 12; i++) {
-    prediksiAneh.set(i === 0 ? "pos-awal" : `pos-${i - 1}`, { d2d4: 0.5, e2e4: 0.0001, c2c4: 0.3, g1f3: 0.2 });
-  }
-  const devAneh = deviasi.hitungDeviasiManusia(daftarDev, prediksiAneh);
-  hasil("deviasi: langkah tak-manusiawi → kejutan tinggi tercatat", devAneh.kejutanTinggi === 12, `${devAneh.kejutanTinggi}`);
-  hasil("deviasi: peringkat Maia = 4 (tiga langkah lebih disukai)", devAneh.rataPeringkatMaia === 4, `${devAneh.rataPeringkatMaia}`);
-  hasil("deviasi: prediksi kurang → null", deviasi.hitungDeviasiManusia(daftarDev.slice(0, 5), prediksiJelas) === null);
-  hasil("deviasi: tanpa prediksi → null", deviasi.hitungDeviasiManusia(daftarDev, new Map()) === null);
-  hasil("deviasi: input rusak → null", deviasi.hitungDeviasiManusia(null, prediksiJelas) === null);
 }
 
 /* ============ 14. orkestrator: durasi + cache localStorage ============ */

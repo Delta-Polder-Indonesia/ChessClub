@@ -390,56 +390,30 @@ file-file yang disebut.
     (`kci-anticheat-cache-v6`, kunci memuat `d<kedalaman>|mp<MULTI_PV>`),
     dimuat ulang otomatis saat sesi baru; `bersihkanCacheAntiCheat`
     menghapus memori + localStorage.
-  - *Deviasi manusia*: `mesin/deviasiManusia.js` menghitung kejutan bit +
-    peringkat distribusi manusia dari `Map<fen, {uci: prob}>`, dan
-    `mesin/prediksiMaia.js` kini **mengisi** peta itu dari model Maia
-    (`prediksiManusia` → `deviasiManusiaDariMaia`). Kontrak kuncinya: yang
-    diminta ke Maia adalah posisi **sebelum** langkah (`moves[i - 1].fen`),
-    karena `hitungDeviasiManusia` menilai `moves[i]` dengan kunci itu —
-    memakai `moves[i].fen` menggeser seluruh penilaian satu langkah tanpa
-    galat apa pun. Dijaga `uji-prediksi-maia.mjs` (19 pemeriksaan, termasuk
-    kontrol negatif: membalik kuncinya menggagalkan 10 pemeriksaan).
-  - *Panel distribusi manusia*: tombol "Analisis distribusi manusia" di layar
-    Deteksi engine memanggil rantai itu untuk seluruh partai yang sedang
-    ditinjau — `komponen/nav/PanelDeviasiManusia.jsx` +
-    `komponen/nav/useDeviasiManusia.js` di atas `mesin/deviasiRiwayat.js`
-    (rata-rata **berbobot sampel**, bukan rata-rata dari rata-rata) dan
-    `mesin/uraiPgn.js` (pengurai PGN tanpa Stockfish — `parsePGN` menuntut
-    engine siap dan mengevaluasi tiap posisi, terlalu mahal untuk sekadar
-    daftar langkah). Panel ini **tidak** menyentuh jaringan sebelum tombolnya
-    ditekan; bobot 45 MB yang sudah ada dipakai ulang dari cache.
-  - *Sorotan per langkah*: panel tidak berhenti di angka. `rincianDeviasiManusia`
-    (aturan baca sama dengan ringkasannya — kunci FEN **sebelum** langkah)
-    memberi kejutan & peringkat per langkah, dan `ringkasDeviasiRiwayat`
-    mengembalikan 5 langkah teratas lintas partai di `langkahTersorot`
-    (partai, nomor langkah, SAN, bit). Tombol **Buka** di tiap baris memuat
-    partai itu ke papan **pada langkah tersebut** lewat `data.lompatKe`;
-    jepitannya di `komponen/game/lompatLangkah.js` karena panjang partai baru
-    diketahui setelah parse selesai. Uji: `uji-deviasi-riwayat.mjs` (32) + 2
-    pemeriksaan UI di `uji-anticheat.mjs`.
-- Uji: `scripts/uji-anticheat.mjs` (426) dan `scripts/uji-engine-uci.mjs`
+- **Dicabut (2026-11-07):** integrasi Maia ke layar Deteksi engine — panel
+  "Distribusi manusia", setelan Maia, dan sorotan langkah per partai. Layar itu
+  kembali murni Stockfish: satu mesin, satu set pengaturan, satu panel hasil.
+  Maia tetap ada di mode **Manusia vs Mesin** pada Papan Interaktif; modul
+  `mesin/prediksiMaia.js`, `deviasiRiwayat.js`, `uraiPgn.js`, dan
+  `deviasiManusia.js` ikut dihapus supaya tidak menyisakan kode tanpa pemanggil.
+  Riwayat keputusan: `docs/rencana-refactor-analisa.md`.
+- Uji: `scripts/uji-anticheat.mjs` (417) dan `scripts/uji-engine-uci.mjs`
   (59, termasuk MultiPV pada Stockfish asli) — semua wajib tetap hijau
   sebelum dan sesudah langkah berikutnya.
 
 ### Langkah berikutnya (urut prioritas)
 
-1. **Penyedia prediksi manusia (Maia) — penyedia SELESAI, pemasangan ke UI
-   anti-cheat belum.** Mesin Maia sudah terpasang untuk Papan Interaktif:
-   `src/lib/maia3.js` (penyandian posisi + dekode policy, murni, bisa diuji di
-   Node), `src/lib/mesinMaia.js` (worker + `onnxruntime-web`), dan bobot
-   `public/engines/maia3/maia3_simplified.onnx` (45 MB) yang **memang
-   di-commit** di repo ini — keputusan pemilik proyek, meski bagian ini
-   menyarankan sebaliknya. Runtime ORT disalin ke `public/engines/ort/` oleh
-   `npm run salin:ort` (tidak di-commit). Lapisan penyedianya sudah ada
-   (`mesin/prediksiMaia.js`: `posisiUntukPrediksi`, `prediksiManusia`,
-   `deviasiManusiaDariMaia`) dan diuji tanpa ONNX lewat mesin tiruan
-   (`npm run uji:prediksi-maia`). Yang **belum**: memanggilnya dari layar
-   Deteksi engine (tombol/opsi + progres unduhan model 45 MB) dan
-   menampilkan angka kejutan ke peninjau. Rincian: `docs/MAIA3.md`. Uji inti
-   Maia: `npm run uji:maia`.
+1. **Maia untuk Analisa — sengaja tidak dipasang.** Model Maia tetap dipakai
+   di Papan Interaktif (mode Manusia vs Mesin): `src/lib/maia3.js`
+   (penyandian posisi + dekode policy), `src/lib/mesinMaia.js` (worker +
+   `onnxruntime-web`), bobot `public/engines/maia3/maia3_simplified.onnx`
+   (45 MB, memang di-commit). Di modul Analisa, memasangnya sebagai mesin
+   kedua pada Deteksi engine terbukti membingungkan (dua set pengaturan untuk
+   satu layar), jadi dicabut. Kalau nanti dipasang lagi, tempatnya adalah
+   halaman tersendiri, bukan layar deteksi Stockfish. Rincian model:
+   `docs/MAIA3.md`; uji inti: `npm run uji:maia`.
    Catatan lisensi: kode maia-chess GPL-3.0, bobot model mengikuti ketentuan
-   proyek Maia; onnxruntime-web MIT. Atribusi sudah dicantumkan di halaman
-   Atribusi & lisensi.
+   proyek Maia; onnxruntime-web MIT. Atribusi ada di halaman Atribusi & lisensi.
 2. **Kalibrasi ulang tabel `KALIBRASI_RATING` dengan korpus lokal.** Kumpulkan
    distribusi metrik partai jujur per band 400-poin dari basis data kalian,
    ganti angka taksiran, dan pertimbangkan interpolasi halus antarband.
@@ -494,7 +468,7 @@ dokumen menyimpang dari kenyataan (ini yang mencegah temuan F-11 terulang).
 
 ### Uji regresi — `npm run uji:analisa-menyeluruh`
 
-18 skrip, **1133 pemeriksaan, 0 gagal** (diukur 2026-11-06, Node 22):
+18 skrip, **1122 pemeriksaan, 0 gagal** (diukur 2026-11-06, Node 22):
 
 | Skrip | Pemeriksaan |
 | --- | --- |
@@ -514,30 +488,28 @@ dokumen menyimpang dari kenyataan (ini yang mencegah temuan F-11 terulang).
 | `uji-balap-analisa.mjs` | 38 |
 | `uji-area-kerja.mjs` | 24 |
 | `uji-basisdata-galat.mjs` | 33 |
-| `uji-anticheat.mjs` | 428 |
+| `uji-anticheat.mjs` | 417 |
 | `uji-wawasan-profil.mjs` | 51 |
-| **Total** | **1133** |
+| **Total** | **1122** |
 
 Di luar rangkaian itu:
 
 | Rangkaian | Pemeriksaan |
 | --- | --- |
 | `uji-analisa.mjs` | 34 |
-| `uji-analisa-ui.mjs` | 152 |
+| `uji-analisa-ui.mjs` | 153 |
 | `uji-basisdata.mjs` | 34 |
 | `uji-akun-database.mjs` | 16 |
 | `uji-tarik-api.mjs` | 7 |
 | `uji-wawasan-rating.mjs` | 10 |
 | `uji-integritas-suite.mjs` | 9 |
-| `uji-prediksi-maia.mjs` | 19 |
-| `uji-deviasi-riwayat.mjs` | 32 |
-| `uji-i18n.mjs` | 3402 kunci ID = 3402 EN, 1713 terpakai |
+| `uji-i18n.mjs` | 3381 kunci ID = 3381 EN, 1692 terpakai |
 
 ### Bundle & build
 
 | Ukuran | Nilai |
 | --- | --- |
-| Chunk `Analisa-*.js` | 368.684 B (gzip 99,96 kB) |
+| Chunk `Analisa-*.js` | 368.642 B (gzip 99,67 kB) |
 | `npm run build` (Vite, Node 22) | ±24 dtk |
 | `npm run lint` (eslint) | bersih |
 
@@ -589,12 +561,21 @@ membandingkan teks fungsi di berkas asli dan berkas baru.
 
 `komponen/game/game.jsx` dulu 863 baris: tata letak papan, pengukuran ukuran,
 pendengar keyboard, alur muat partai, dan alur penilaian langkah. Sekarang
-**486 baris** (orkestrasi + tata letak) dengan dua hook:
+**497 baris** (orkestrasi + tata letak) dengan dua hook:
 
 | Berkas | Baris | Isi |
 | --- | ---: | --- |
 | `game/useMuatPartai.js` | 338 | `handlePGN`, `handleFEN`, efek `[data]`, dan pemuatan tabel pembukaan saat senggang |
 | `game/useAnalisisPapan.js` | 193 | `analyzeMove` + `analyzingMoveRef` |
+
+**Papan selama analisis.** Saat `pageState` masih `loading` papan TIDAK dibiarkan
+kosong. Teks PGN diurai lebih dulu (`bacaPartaiPGN` → `langkahSementara`), jadi
+posisi awal partai sudah diketahui walau engine belum selesai menilai langkah:
+papan menggambar posisi itu dengan prop `pratinjau` (tanpa seret bidak, tanpa
+bunyi langkah — posisi awal bukan langkah yang dimainkan). Kerangka abu-abu
+hanya muncul di sela sebelum PGN selesai diurai, supaya partai ber-FEN khusus
+(soal) tidak pernah sempat menampilkan posisi awal standar. Dijaga
+`uji-analisa-ui` blok `[P2]`.
 
 Ketiganya berbagi ref yang sama, dan itu **bukan detail gaya** — perilaku
 balapan bergantung padanya:
@@ -692,7 +673,7 @@ Aturan saat beku:
 | `scripts/uji-hasil.mjs` | panel Ringkasan end-to-end (grafs, jumlah label, rating, fase, interaksi) | 27 |
 | `scripts/uji-mobile.mjs` | ukuran papan 3 mode (mobile < 516px / tablet < 1100px / desktop) | 14 |
 | `scripts/uji-panel.mjs` | panel samping: tab awal Ringkasan + loncatan ke Langkah | 11 |
-| `scripts/uji-anticheat.mjs` | anti-cheat: konvensi eval, pengecualian forced/book, partai jujur vs engine, kandidat MultiPV (peringkat/top-3/WDL), metrik kondisional (sulit/mudah, streak, korelasi waktu↔kualitas), kalibrasi per rating, laporan peninjauan, deviasi manusia, durasi & cache lintas-sesi, agregat riwayat, kartu UI + layar Deteksi engine dan pemisahan dari Akun (jumlah, situs/akun, filter waktu, depth, busy, batal), parsing MultiPV `EngineCatur`, panel distribusi manusia Maia | 428 |
+| `scripts/uji-anticheat.mjs` | anti-cheat: konvensi eval, pengecualian forced/book, partai jujur vs engine, kandidat MultiPV (peringkat/top-3/WDL), metrik kondisional (sulit/mudah, streak, korelasi waktu↔kualitas), kalibrasi per rating, laporan peninjauan, deviasi manusia, durasi & cache lintas-sesi, agregat riwayat, kartu UI + layar Deteksi engine dan pemisahan dari Akun (jumlah, situs/akun, filter waktu, depth, busy, batal), parsing MultiPV `EngineCatur` | 417 |
 
 Infrastruktur bersama: `scripts/lingkungan-jsdom.mjs` (global jsdom +
 polyfill `ResizeObserver`/`Element.prototype.scrollTo`) dan
@@ -1261,9 +1242,9 @@ di ujung `uji:analisa-menyeluruh`). Angka emasnya diambil dari suite uji acuan
 
 Status verifikasi (diperbarui 2026-11-06 — angka lama sengaja tidak
 dipertahankan): 51 lulus / 0 gagal; `uji:analisa-menyeluruh` (18 skrip,
-1133 pemeriksaan), `uji:analisa` (34), `uji:analisa-ui` (152), `uji:anticheat`
-(428), `uji:tarik-api` (7), `uji:basisdata` (34), `uji:akun-database` (16),
-`uji:i18n` (3402 kunci ID = EN), `uji:integritas-suite` (9), dan `npm run
+1133 pemeriksaan), `uji:analisa` (34), `uji:analisa-ui` (153), `uji:anticheat`
+(417), `uji:tarik-api` (7), `uji:basisdata` (34), `uji:akun-database` (16),
+`uji:i18n` (3381 kunci ID = EN), `uji:integritas-suite` (9), dan `npm run
 build` semuanya hijau. Jalur jaringan chess.com/lichess TIDAK diverifikasi
 live — sandbox agent hanya mengizinkan github/npm/pypi, jadi `accuracies`
 diverifikasi lewat bentuk respons yang didokumentasikan API keduanya.
@@ -1377,10 +1358,10 @@ yang disalin dari keluaran komponen. Partai ujinya tidak berubah; akurasinya
 bergeser dari 74.0/92.0 ke nilai kurva.
 
 Status verifikasi (diperbarui 2026-11-06): `uji:akurasi` 50/0, `uji-hasil`
-27/0, `uji-evaluasi` 90/0, `uji-anticheat` 428/0, `uji-wawasan-profil` 51/0,
+27/0, `uji-evaluasi` 90/0, `uji-anticheat` 417/0, `uji-wawasan-profil` 51/0,
 `uji-analisa-ui` 152/0, `uji-analisa` 34/0, `uji-wawasan-rating` 10/0,
 `uji-klasifikasi` 63/0, `uji-parser-pgn` 36/0, `uji-langkah-kritis` 54/0,
-`uji-i18n` (3402 kunci ID = EN), `uji-integritas-suite` 9/0, `npm run lint`
+`uji-i18n` (3381 kunci ID = EN), `uji-integritas-suite` 9/0, `npm run lint`
 bersih, `npm run build` OK.
 **Tampilan panel Ringkasan belum diverifikasi visual** — `localhost` tidak
 terjangkau dari sandbox agent, jadi semua klaim di atas berasal dari uji di atas

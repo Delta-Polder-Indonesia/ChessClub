@@ -467,6 +467,12 @@ function Board(props) {
   }, [fen, drag.id, drag.is, setDrag]);
   useEffect(() => {
     if (!props.fen) return;
+    // Pratinjau (selagi partai dianalisis) hanya menggambar posisi awal: tidak
+    // ada langkah yang dimainkan, jadi tidak boleh ada bunyi langkah pertama.
+    if (props.pratinjau) {
+      kunciSuaraRef.current = fen;
+      return;
+    }
     /* "Satu perubahan posisi = satu bunyi." Gerakannya cukup `fen`: semua
      * turunan di bawah (selfTurn, skakSekarang, capture/castle, gameEnded)
      * berubah BERSAMAAN dengan fen saat transisi langkah. Kunci posisi
@@ -498,7 +504,7 @@ function Board(props) {
     // tiap render) pernah berada di sini sehingga efek ini berjalan setiap
     // render — bunyi langkah berulang untuk satu langkah yang sama. Cukup
     // `fen`/`props.fen` yang menggerakkan: satu perubahan posisi = satu bunyi.
-  }, [fen, boardSounds, gameEnded, props.fen, selfTurn, soundCaptureInstance, soundCastleInstance, skakSekarang]);
+  }, [fen, boardSounds, gameEnded, props.fen, props.pratinjau, selfTurn, soundCaptureInstance, soundCastleInstance, skakSekarang]);
   useEffect(() => {
     if (!animation || !animateMoves) {
       // Animasi tidak aktif — transisi berikutnya (mis. kembali ke langkah ini
@@ -759,7 +765,7 @@ function Board(props) {
             pieceColor={pieceColor}
             pieceSymbol={pieceType}
             boardRef={boardRef}
-            bolehSeret={pieceColor === chess.turn()}
+            bolehSeret={!props.pratinjau && pieceColor === chess.turn()}
             kotakDariKursor={kotakDariKursor}
             isCoronating={coronation.choosing && adaptedCoronationSquare?.col === columnNumber && adaptedCoronationSquare?.row === rowNumber}
           />;

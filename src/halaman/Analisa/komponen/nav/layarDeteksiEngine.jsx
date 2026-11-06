@@ -17,7 +17,6 @@ import { hashUntukEngine } from "../../mesin/cekWasm.js";
 import { unduhLaporanPeninjauan } from "../../mesin/laporanPeninjauan.js";
 import PanelLayar from "./PanelLayar.jsx";
 import RingkasanAntiCheat from "./ringkasanAntiCheat.jsx";
-import PanelDeviasiManusia from "./PanelDeviasiManusia.jsx";
 import SelectDaftar from "./SelectDaftar.jsx";
 import Gambar from "../Gambar.jsx";
 import {
@@ -165,7 +164,7 @@ function useDeteksiRiwayat({ platform, username, waktu, kedalaman, papanSibuk })
   return { hasil, status, berjalan, progres, pesan, jumlahPartai, setJumlahPartai, batas, jalankan, batalkan };
 }
 
-export default function LayarDeteksiEngine({ onBukaAkun, onBukaPartai = null }) {
+export default function LayarDeteksiEngine({ onBukaAkun }) {
   const { t } = useI18n();
   const analyzeContext = useContext(AnalyzeContext);
   const mesin = useMesin();
@@ -528,16 +527,6 @@ export default function LayarDeteksiEngine({ onBukaAkun, onBukaPartai = null }) 
                 <button type="button" onClick={() => unduhLaporanPeninjauan(ac.hasil.agregat, { username })} className="w-fit cursor-pointer rounded-borderRoundness border border-border bg-backgroundBoxBox px-4 py-2 text-sm font-bold text-foreground transition-colors hover:bg-backgroundBoxBoxHighlighted">
                   {t("analisa.antiCheat.riwayat.unduh")}
                 </button>
-              ) : null}
-              {username ? (
-                <PanelDeviasiManusia
-                  platform={platform}
-                  username={username}
-                  waktu={waktu}
-                  batas={jumlah}
-                  nonaktif={ac.berjalan || papanSibuk}
-                  onBukaPartai={onBukaPartai}
-                />
               ) : null}
               <p className="rounded-borderRoundness border border-border bg-backgroundBoxBox px-3 py-2 text-xs leading-4 text-foregroundGrey">{t("analisa.antiCheat.disclaimer")}</p>
             </div>
