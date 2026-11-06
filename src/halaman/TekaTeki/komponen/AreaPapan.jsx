@@ -4,9 +4,16 @@
  *
  * KONTRAK TATA LETAK (dikunci uji `uji-teka-teki-regresi`):
  *
- *   [ baris profil atas ]   ← track `auto`, tinggi miliknya sendiri
- *   [ baris papan       ]   ← track `minmax(0, 1fr)`, TINGGINYA PASTI
- *   [ baris profil bawah ]  ← track `auto`, tinggi miliknya sendiri
+ *   kolom 1 (auto) │ kolom 2 (papan + profil)
+ *   ───────────────┼──────────────────────────
+ *   baris 1 auto   │  profil atas
+ *   baris 2 1fr    │  bilah evaluasi │ papan   ← tinggi PASTI
+ *   baris 3 auto   │  profil bawah
+ *
+ * Baris profil duduk di KOLOM YANG SAMA dengan papan, jadi lebarnya selalu
+ * sama dengan lebar papan (`w-0 min-w-full`: tidak menyumbang lebar intrinsik,
+ * tetapi mengisi penuh kolom). Bilah evaluasi punya kolom sendiri sehingga
+ * tidak mengurangi lebar papan yang terlihat.
  *
  * Kotak papan boleh lebih kecil dari track-nya, tetapi tidak boleh lebih besar:
  * baris papan memakai `overflow-hidden`, dan papan sendiri dibatasi dua sumbu
@@ -49,18 +56,16 @@ export default function AreaPapan({
     >
       {/* Sisakan ruang untuk padding dan dua profil; offset menyeimbangkan bilah evaluasi. */}
       {/*
-       * `max-w-[720px]` hanya untuk layar sempit (kolom tunggal). Mulai `lg`
-       * batas lebar dilepas: tinggi baris papan sudah menentukan ukuran papan,
-       * jadi papan tetap persegi dan mengisi ruang yang benar-benar tersedia.
+       * `max-w-[720px]` hanya untuk layar sempit. Mulai `lg` lebar kolom
+       * mengikuti papan (`w-fit`), sehingga baris profil tidak pernah lebih
+       * lebar daripada papan.
        */}
-      <div className="flex min-h-0 w-full max-w-[720px] flex-row items-stretch gap-3 lg:max-w-none lg:-translate-x-5">
-        {/* Tiga baris eksplisit: profil atas → papan → profil bawah. */}
-        <div className="grid min-h-0 min-w-0 flex-1 grid-rows-[auto_minmax(0,1fr)_auto] gap-2">
+      <div className="grid min-h-0 w-full max-w-[720px] grid-cols-[auto_minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)_auto] gap-2 lg:w-fit lg:max-w-none lg:-translate-x-5">
           {/* ─── PROFIL PEMAIN HITAM (ATAS) ─── */}
           <div
             data-baris="profil-atas"
-            className={`flex min-h-10 flex-row items-center justify-between gap-3 pl-[44px] pr-1 ${
-              orientasi === "w" ? "order-1" : "order-3"
+            className={`col-start-2 flex min-h-10 w-0 min-w-full flex-row items-center justify-between gap-3 overflow-hidden pr-1 ${
+              orientasi === "w" ? "row-start-1" : "row-start-3"
             }`}
           >
             <div className="flex min-w-0 flex-1 flex-row items-center gap-3">
@@ -115,56 +120,53 @@ export default function AreaPapan({
             </div>
           </div>
 
-          {/* ─── TENGAH: STATUS + BAR EVALUASI + PAPAN ─── */}
+          {/* ─── BAR EVALUASI (kolom 1) + STATUS & PAPAN (kolom 2) ─── */}
+          {/* Bilah evaluasi: satu kolom sendiri, setinggi baris papan. */}
+          <div className="col-start-1 row-start-2 flex shrink-0 items-center justify-center self-stretch">
+            {bilahEvaluasi ? (
+              bilahEvaluasi
+            ) : memuat ? (
+              <KerangkaBilahEvaluasi />
+            ) : (
+              <div className="relative w-[30px] flex-shrink-0 overflow-hidden rounded-md bg-[#ffffff] shadow-inner">
+                {/* Bagian putih (atas) */}
+                <div
+                  className="absolute top-0 left-0 right-0 bg-[#ffffff] transition-all duration-500"
+                  style={{ height: "48%" }}
+                >
+                  <div className="absolute bottom-1 left-0 right-0 text-center text-[9px] font-bold text-gray-700">
+                    +0.3
+                  </div>
+                </div>
+                {/* Bagian hitam (bawah) */}
+                <div
+                  className="absolute bottom-0 left-0 right-0 bg-[#312e2b] transition-all duration-500"
+                  style={{ height: "52%" }}
+                >
+                  <div className="absolute top-1 left-0 right-0 text-center text-[9px] font-bold text-gray-400"></div>
+                </div>
+                {/* Garis tengah */}
+                <div
+                  className="absolute left-0 right-0 h-[1px] bg-gray-400/30"
+                  style={{ top: "48%" }}
+                ></div>
+              </div>
+            )}
+          </div>
+
+          {/* Baris papan: status (di aliran) + papan. Lebar kolom = lebar papan. */}
           <div
             data-baris="papan"
-            className="order-2 flex min-h-0 min-w-0 flex-col gap-2 overflow-hidden"
+            className="col-start-2 row-start-2 flex min-h-0 min-w-0 flex-col gap-2 overflow-hidden"
           >
             {/* Status gameplay tampil DI ALIRAN (bukan lapisan absolut), supaya
                 tidak pernah menutupi baris profil maupun petak papan. */}
-            {status ? <div className="shrink-0">{status}</div> : null}
+            {status ? <div className="w-0 min-w-full shrink-0">{status}</div> : null}
 
-            <div className="flex min-h-0 w-full flex-row items-stretch justify-center gap-2">
-              {/* Bar Evaluasi */}
-              {bilahEvaluasi ? (
-                <div className="flex shrink-0 items-center justify-center self-stretch">
-                  {bilahEvaluasi}
-                </div>
-              ) : memuat ? (
-                <div className="flex shrink-0 items-center justify-center self-stretch">
-                  <KerangkaBilahEvaluasi />
-                </div>
-              ) : (
-                <div className="relative w-[30px] flex-shrink-0 overflow-hidden rounded-md bg-[#ffffff] shadow-inner">
-                  {/* Bagian putih (atas) */}
-                  <div
-                    className="absolute top-0 left-0 right-0 bg-[#ffffff] transition-all duration-500"
-                    style={{ height: "48%" }}
-                  >
-                    <div className="absolute bottom-1 left-0 right-0 text-center text-[9px] font-bold text-gray-700">
-                      +0.3
-                    </div>
-                  </div>
-                  {/* Bagian hitam (bawah) */}
-                  <div
-                    className="absolute bottom-0 left-0 right-0 bg-[#312e2b] transition-all duration-500"
-                    style={{ height: "52%" }}
-                  >
-                    <div className="absolute top-1 left-0 right-0 text-center text-[9px] font-bold text-gray-400"></div>
-                  </div>
-                  {/* Garis tengah */}
-                  <div
-                    className="absolute left-0 right-0 h-[1px] bg-gray-400/30"
-                    style={{ top: "48%" }}
-                  ></div>
-                </div>
-              )}
-
-              {/* Papan Catur — pembungkus ber-tinggi pasti; papan dibatasi dua sumbu. */}
-              <div className="relative flex min-h-0 min-w-0 flex-1 items-center justify-center overflow-hidden rounded-md shadow-2xl">
-                <div className="relative flex aspect-square w-full min-w-0 max-w-full items-center justify-center lg:h-full lg:w-auto lg:max-h-full">
-                  {papan ? papan : memuat ? <KerangkaPapan /> : null}
-                </div>
+            {/* Papan Catur — pembungkus ber-tinggi pasti; papan dibatasi dua sumbu. */}
+            <div className="relative flex min-h-0 min-w-0 flex-1 items-center justify-center overflow-hidden rounded-md shadow-2xl">
+              <div className="relative flex aspect-square w-full min-w-0 max-w-full items-center justify-center lg:h-full lg:w-auto lg:max-h-full">
+                {papan ? papan : memuat ? <KerangkaPapan /> : null}
               </div>
             </div>
           </div>
@@ -172,8 +174,8 @@ export default function AreaPapan({
           {/* ─── PROFIL PEMAIN PUTIH (BAWAH) ─── */}
           <div
             data-baris="profil-bawah"
-            className={`flex min-h-10 flex-row items-center justify-between gap-3 pl-[44px] pr-1 ${
-              orientasi === "w" ? "order-3" : "order-1"
+            className={`col-start-2 flex min-h-10 w-0 min-w-full flex-row items-center justify-between gap-3 overflow-hidden pr-1 ${
+              orientasi === "w" ? "row-start-3" : "row-start-1"
             }`}
           >
             <div className="flex min-w-0 flex-1 flex-row items-center gap-3">
@@ -220,7 +222,6 @@ export default function AreaPapan({
             </div>
           </div>
         </div>
-      </div>
     </main>
   );
 }

@@ -237,9 +237,23 @@ judul("tata letak: baris profil terpisah dari papan (regresi PR #228)");
 
   uji(
     "baris papan memotong luapan (min-h-0 + overflow-hidden)",
-    /data-baris="papan"\s*\n?\s*className="[^"]*order-2[^"]*min-h-0[^"]*overflow-hidden/.test(
-      areaPapan
-    )
+    /data-baris="papan"\s*\n?\s*className="[^"]*min-h-0[^"]*overflow-hidden/.test(areaPapan)
+  );
+
+  // Baris profil duduk di kolom yang SAMA dengan papan (kolom 2), jadi lebarnya
+  // selalu sama dengan lebar papan — bukan selebar area papan.
+  uji(
+    "baris profil berbagi kolom dengan papan",
+    (areaPapan.match(/col-start-2/g) || []).length >= 3 &&
+      /col-start-2 row-start-2/.test(areaPapan)
+  );
+  uji(
+    "baris profil tidak menyumbang lebar intrinsik",
+    (areaPapan.match(/w-0 min-w-full/g) || []).length >= 3
+  );
+  uji(
+    "bilah evaluasi punya kolom sendiri di baris papan",
+    /col-start-1 row-start-2/.test(areaPapan)
   );
 
   uji(
@@ -270,6 +284,17 @@ judul("tata letak: baris profil terpisah dari papan (regresi PR #228)");
       !/-mt-/.test(barisProfil)
   );
 
+  // Bilah evaluasi tidak boleh mengembalikan `null` saat mesin belum memberi
+  // hasil: halaman selalu mengirim elemen, sehingga `null` di dalam elemen itu
+  // membuat kolom bilah kosong (bilah "hilang" dari tata letak).
+  const bilah = tanpaKomentar(
+    readFileSync(path.join(DIR_HALAMAN, "komponen", "BilahEvaluasi.jsx"), "utf8")
+  );
+  uji(
+    "bilah evaluasi selalu tampil (netral 50% tanpa hasil mesin)",
+    !/if \(!hasil\) return null;/.test(bilah) && /hasil \|\| \{\}/.test(bilah)
+  );
+
   uji(
     "baris profil punya tinggi minimum sendiri",
     areaPapan.split("min-h-10").length >= 3
@@ -292,7 +317,7 @@ judul("tata letak: baris profil terpisah dari papan (regresi PR #228)");
   uji(
     "status gameplay dirender di aliran, bukan menutupi baris profil",
     /status=\{<StatusTekaTeki[^\n]*melayang=\{false\}/.test(shell) &&
-      /\{status \? <div className="shrink-0">/.test(areaPapan) &&
+      /{status \? <div className="w-0 min-w-full shrink-0">/.test(areaPapan) &&
       !/absolute inset-x-3 top-3/.test(shell)
   );
 }

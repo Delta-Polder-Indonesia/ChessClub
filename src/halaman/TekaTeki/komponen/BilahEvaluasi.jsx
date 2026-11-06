@@ -13,9 +13,13 @@ import { hitungBilah } from "../services/puzzleEvaluation.js";
 
 const BilahEvaluasi = memo(function BilahEvaluasi({ hasil = null, orientasi = "w" }) {
   const { t } = useI18n();
-  if (!hasil) return null;
-
-  const { teksSkor = "", cpPutih = 0, matePutih = null } = hasil;
+  /*
+   * Bilah SELALU tampil — juga sebelum mesin dinyalakan. Dulu komponen ini
+   * mengembalikan `null` saat `hasil` kosong, dan karena halaman selalu
+   * mengirim elemen (bukan `null`), kolom bilah jadi kosong sama sekali:
+   * bilah evaluasi "hilang" dari tata letak. Tanpa hasil, bilah netral 50/50.
+   */
+  const { teksSkor = "", cpPutih = 0, matePutih = null } = hasil || {};
   const { persen, skor, putihDiBawah, unggul, adaMate } = hitungBilah({
     cpPutih,
     matePutih,
