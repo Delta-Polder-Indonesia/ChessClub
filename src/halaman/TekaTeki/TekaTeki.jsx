@@ -562,7 +562,11 @@ export default function TekaTeki() {
             terkunci={komputer || selesai || Boolean(promosi)}
             membeku={komputer}
             setBidak={setBidak}
-            warnaPapan={warnaPapan}
+            // Papan menghitung paletnya sendiri dari prop `tema` (lihat memo
+            // `warnaPapan` di PapanTekaTeki). Sebelumnya halaman mengirim
+            // `warnaPapan={...}`, prop yang tidak pernah dibaca papan — jadi
+            // apa pun yang dipilih di Pengaturan, papannya tetap hijau.
+            tema={warnaPapan}
             sedangSeret={sedangSeret}
             onKlik={klikPetak}
             onPilih={pilihPetak}

@@ -145,6 +145,33 @@ export function mountGameDenganPemainKosong(el) {
   return root;
 }
 
+function GameDenganPageState({ pageState }) {
+  const nilaiBawaan = React.useContext(AnalyzeContext);
+  const nilai = { ...nilaiBawaan, pageState: [pageState, () => {}] };
+  return (
+    <AnalyzeContext.Provider value={nilai}>
+      <Game />
+    </AnalyzeContext.Provider>
+  );
+}
+
+/** P2: kerangka papan hanya bergantung pada pageState milik konteks. */
+export function mountGameDenganPageState(el, pageState = "loading") {
+  const root = createRoot(el);
+  root.render(
+    <I18nProvider>
+      <ConfigContextProvider>
+        <ErrorsContextProvider>
+          <MesinProvider>
+            <GameDenganPageState pageState={pageState} />
+          </MesinProvider>
+        </ErrorsContextProvider>
+      </ConfigContextProvider>
+    </I18nProvider>
+  );
+  return root;
+}
+
 export { formatPlayerLabel, normalisasiPemain };
 
 function WawasanDenganAkun({ platform, username, gameMoves }) {
@@ -184,7 +211,8 @@ export function mountWawasan(el, platform, username, gameMoves, bahasa = "id") {
 }
 
 export function mount(el) {
-  return createRoot(el).render(
+  const root = createRoot(el);
+  root.render(
     <HelmetProvider>
       <MemoryRouter initialEntries={["/program-kami/analisa/papan"]}>
         <I18nProvider>
@@ -193,6 +221,7 @@ export function mount(el) {
       </MemoryRouter>
     </HelmetProvider>
   );
+  return root;
 }
 `;
 
@@ -326,6 +355,9 @@ function siapkanGlobal(window) {
   globalThis.window = window;
   globalThis.document = window.document;
   globalThis.localStorage = window.localStorage;
+  // Di peramban `sessionStorage` juga global; kode aplikasi memakainya tanpa
+  // prefiks `window` (lihat src/lib/titipanAnalisa.js).
+  globalThis.sessionStorage = window.sessionStorage;
   // Node >= 21 sudah punya `navigator` global, Node 20 belum. react-dom
   // membacanya saat modulnya dimuat, jadi tanpa baris ini uji ini lulus di
   // mesin pengembang (Node 22+) tapi mati di CI Node 20 dengan
@@ -1502,6 +1534,79 @@ uji("navigasi papan ketik tidak merobohkan halaman", !!domSiap.querySelector(".a
 }
 
 const fatal = pesanGalat.filter((p) => /ReferenceError|TypeError|is not a function|not defined|Minified React error/.test(p) && !/jaringan|tidak tersedia di uji/.test(p));
+/* ------------------------- P2: kerangka papan selama partai belum siap */
+
+/**
+ * Papan analisa merender grid 8 kolom dengan lebar petak eksplisit. Dipakai
+ * sebagai penanda "papan posisi benar-benar tampil" — kerangka tidak pernah
+ * memakai grid ini.
+ */
+const papanTampil = (wadah) =>
+  [...wadah.querySelectorAll("div")].some((d) =>
+    /repeat\(8,/.test(d.style?.gridTemplateColumns || "")
+  );
+
+{
+  // (a) Gerbang `pageState`: `loading` → kerangka, papan tidak dirender.
+  const wadah = domSiap.createElement("div");
+  domSiap.body.appendChild(wadah);
+  const root = modul.mountGameDenganPageState(wadah, "loading");
+  await tunggu(250);
+  uji(
+    "[P2] pageState=loading menampilkan kerangka papan",
+    !!wadah.querySelector("[data-kerangka-papan]")
+  );
+  uji("[P2] pageState=loading tidak merender papan posisi awal", !papanTampil(wadah));
+  root.unmount();
+  wadah.remove();
+
+  // (b) Kontrol: keadaan normal tetap menampilkan papan (tanpa regresi).
+  const wadahNormal = domSiap.createElement("div");
+  domSiap.body.appendChild(wadahNormal);
+  const rootNormal = modul.mountGameDenganPageState(wadahNormal, "default");
+  await tunggu(250);
+  uji(
+    "[P2] pageState=default tetap menampilkan papan",
+    papanTampil(wadahNormal) && !wadahNormal.querySelector("[data-kerangka-papan]")
+  );
+  rootNormal.unmount();
+  wadahNormal.remove();
+}
+
+{
+  // (c) Alur sungguhan: PGN titipan dari teka-teki. Provider harus mulai
+  // "loading" sehingga posisi awal TIDAK PERNAH terlihat sebelum posisi soal.
+  const wadah = domSiap.createElement("div");
+  domSiap.body.appendChild(wadah);
+  dom.window.sessionStorage.setItem("kci-analisa-impor-awal", PGN_UJI);
+  const galatSebelum = pesanGalat.length;
+  const root = modul.mount(wadah);
+  const rekam = { kerangka: false, papanAwal: false, papanSiap: false };
+  const mulai = Date.now();
+  while (Date.now() - mulai < 12000) {
+    const kerangka = !!wadah.querySelector("[data-kerangka-papan]");
+    const papan = papanTampil(wadah);
+    const siap = /Andini/.test(wadah.textContent || "");
+    if (kerangka) rekam.kerangka = true;
+    if (papan && !siap) rekam.papanAwal = true;
+    if (papan && siap) {
+      rekam.papanSiap = true;
+      break;
+    }
+    await tunggu(15);
+  }
+  uji("[P2] kerangka tampil selama partai titipan dimuat", rekam.kerangka);
+  uji("[P2] posisi awal tidak pernah tampil sebelum posisi soal siap", !rekam.papanAwal);
+  uji("[P2] posisi partai titipan akhirnya tampil", rekam.papanSiap);
+  uji("[P2] kerangka hilang setelah partai siap", !wadah.querySelector("[data-kerangka-papan]"));
+  uji(
+    "[P2] tidak ada galat render selama impor titipan",
+    pesanGalat.slice(galatSebelum).length === 0
+  );
+  root.unmount();
+  wadah.remove();
+}
+
 uji("tidak ada galat render", fatal.length === 0);
 if (fatal.length) console.log(fatal.slice(0, 3).map((p) => `    ! ${p.split("\n")[0]}`).join("\n"));
 

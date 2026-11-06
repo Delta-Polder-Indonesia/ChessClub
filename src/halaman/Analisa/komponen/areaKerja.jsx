@@ -36,6 +36,7 @@ import GameButtons from "./menu/analysis/gameButtons.jsx";
 import LayarDatabase from "./nav/layarDatabase.jsx";
 import LayarImpor from "./nav/layarImpor.jsx";
 import { validasiPgn } from "./nav/validasiImpor.js";
+import { ambilPgnTitipan } from "../../../lib/titipanAnalisa.js";
 
 /*
  * LayarAkun (via DashboardAkun) mengimpor recharts ±97 KiB — bundle grafik
@@ -52,6 +53,7 @@ const LayarPengaturan = lazy(() => import("./nav/layarPengaturan.jsx"));
 export default function AreaKerja() {
   const analyzeContext = useContext(AnalyzeContext);
   const [tampilan, setTampilan] = analyzeContext.tampilan;
+  const setPageState = analyzeContext.pageState[1];
   const setData = analyzeContext.data[1];
 
   const wadahRef = useRef(null);
@@ -83,21 +85,20 @@ export default function AreaKerja() {
 
   // Terima kiriman PGN sekali pakai dari halaman Teka-Teki ("Bedah di Papan Analisa").
   useEffect(() => {
-    let pgnTitipan;
-    try {
-      pgnTitipan = sessionStorage.getItem("kci-analisa-impor-awal") || "";
-      if (pgnTitipan) sessionStorage.removeItem("kci-analisa-impor-awal");
-    } catch {
-      return;
-    }
+    const pgnTitipan = ambilPgnTitipan();
     if (!pgnTitipan.trim()) return;
     try {
       validasiPgn(pgnTitipan);
       muatPartai({ format: "pgn", string: pgnTitipan });
     } catch {
-      /* abaikan PGN tidak sah agar papan tetap normal */
+      /*
+       * PGN tidak sah: papan tetap normal. Provider mungkin memulai dalam
+       * `loading` karena titipan tadi (lihat analyze.jsx) — lepaskan supaya
+       * kerangka papan tidak menggantung selamanya.
+       */
+      setPageState("default");
     }
-  }, [muatPartai]);
+  }, [muatPartai, setPageState]);
 
   const papanAktif = tampilan === TAMPILAN_ANALISA.BERMAIN;
 
