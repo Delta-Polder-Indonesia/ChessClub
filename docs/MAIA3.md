@@ -329,3 +329,8 @@ Halaman **Analisa** punya `mesin/deviasiManusia.js` (fondasi anti-cheat
 — yang ada baru mesinnya untuk Papan Interaktif. Sambungannya memakai
 `src/lib/maia3.js` untuk menghasilkan `Map<fen, {uci: prob}>` per partai;
 lihat `src/halaman/Analisa/README.md`.
+
+Status pengerjaan: integrasi ini adalah **Fase 4** dan sengaja ditaruh paling
+akhir — sesudah refactor modul Analisa Fase 0–3. Rencana dan status per fase
+(termasuk kontrak yang tidak boleh berubah) ada di
+[`docs/rencana-refactor-analisa.md`](./rencana-refactor-analisa.md).

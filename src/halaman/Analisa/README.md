@@ -365,14 +365,14 @@ file-file yang disebut.
     `durasi: { totalMs, rataMs, perPartai }` — dasar berbasis angka untuk
     menaikkan/menurunkan kedalaman atau `MULTI_PV`; ditampilkan di UI.
   - *Cache lintas-sesi*: hasil per partai ditulis-lulus ke localStorage
-    (`kci-anticheat-cache-v2`, kunci memuat `d<kedalaman>|mp<MULTI_PV>`),
+    (`kci-anticheat-cache-v6`, kunci memuat `d<kedalaman>|mp<MULTI_PV>`),
     dimuat ulang otomatis saat sesi baru; `bersihkanCacheAntiCheat`
     menghapus memori + localStorage.
   - *Fondasi deviasi-manusia (siap-Maia)*: `mesin/deviasiManusia.js`
     menghitung kejutan bit + peringkat distribusi manusia dari
     `Map<fen, {uci: prob}>` — penyedia prediksi (host model + onnxruntime)
     tinggal dipasang tanpa menyentuh `parsePGN`.
-- Uji: `scripts/uji-anticheat.mjs` (384) dan `scripts/uji-engine-uci.mjs`
+- Uji: `scripts/uji-anticheat.mjs` (426) dan `scripts/uji-engine-uci.mjs`
   (59, termasuk MultiPV pada Stockfish asli) — semua wajib tetap hijau
   sebelum dan sesudah langkah berikutnya.
 
@@ -410,7 +410,7 @@ file-file yang disebut.
   (lihat pola `komponen?.peringkat ?? null` di `mesin/antiCheat.js`).
 - Kunci cache agregat ada di `akun/antiCheatRiwayat.js` →
   `kunciCachePartai`; bila hasil analisis berubah bentuk, selipkan penanda
-  versi baru (pola `mp5`, simpanan `kci-anticheat-cache-v2`) agar cache lama
+  versi baru (pola `mp5`, simpanan `kci-anticheat-cache-v6`) agar cache lama
   tidak tercampur.
 - UI metrik: kartu `summary/deteksiEngine.jsx` + hasil agregat
   `komponen/nav/ringkasanAntiCheat.jsx`; layar/settings/run di
@@ -431,8 +431,87 @@ node scripts/uji-analisa.mjs        # kontrak engine + penilaian + ketahanan wor
 node scripts/uji-analisa-ui.mjs     # render halaman di jsdom + engine UCI palsu
 node scripts/uji-anticheat.mjs      # anti-cheat: metrik, agregat, cache/batal, kartu UI
 npm run uji:i18n                    # kunci analisa.* harus ada di ID dan EN
+npm run uji:dokumentasi             # angka di README harus sama dengan kenyataan
 node scripts/generasi-buku-analisa.mjs   # bangun ulang tabel buku pembukaan
 ```
+
+## Baseline terukur (2026-11-06)
+
+Angka di bagian ini adalah **hasil pengukuran**, bukan perkiraan, dan menjadi
+pembanding untuk setiap perubahan berikutnya. Perbarui bersamaan dengan
+perubahan yang menggesernya: `npm run uji:dokumentasi` menjalankan ulang
+rangkaian di tabel uji regresi, membandingkan hasilnya dengan angka yang
+tertulis di README, memeriksa versi kunci cache anti-cheat, dan **gagal** bila
+dokumen menyimpang dari kenyataan (ini yang mencegah temuan F-11 terulang).
+
+### Uji regresi — `npm run uji:analisa-menyeluruh`
+
+18 skrip, **1131 pemeriksaan, 0 gagal** (diukur 2026-11-06, Node 22):
+
+| Skrip | Pemeriksaan |
+| --- | --- |
+| `uji-klasifikasi.mjs` | 63 |
+| `uji-evaluasi.mjs` | 90 |
+| `uji-parser-pgn.mjs` | 36 |
+| `uji-langkah-kritis.mjs` | 54 |
+| `uji-pgn-anotasi.mjs` | 60 |
+| `uji-sacrifice.mjs` | 65 |
+| `uji-akurasi.mjs` | 50 |
+| `uji-komentar.mjs` | 34 |
+| `uji-variasi.mjs` | 28 |
+| `uji-seret-bidak.mjs` | 27 |
+| `uji-hasil.mjs` | 27 |
+| `uji-mobile.mjs` | 14 |
+| `uji-panel.mjs` | 11 |
+| `uji-balap-analisa.mjs` | 38 |
+| `uji-area-kerja.mjs` | 24 |
+| `uji-basisdata-galat.mjs` | 33 |
+| `uji-anticheat.mjs` | 426 |
+| `uji-wawasan-profil.mjs` | 51 |
+| **Total** | **1131** |
+
+Di luar rangkaian itu:
+
+| Rangkaian | Pemeriksaan |
+| --- | --- |
+| `uji-analisa.mjs` | 34 |
+| `uji-analisa-ui.mjs` | 152 |
+| `uji-basisdata.mjs` | 34 |
+| `uji-akun-database.mjs` | 16 |
+| `uji-tarik-api.mjs` | 7 |
+| `uji-wawasan-rating.mjs` | 10 |
+| `uji-integritas-suite.mjs` | 9 |
+| `uji-i18n.mjs` | 3381 kunci ID = 3381 EN, 1692 terpakai |
+
+### Bundle & build
+
+| Ukuran | Nilai |
+| --- | --- |
+| Chunk `Analisa-*.js` | 367.372 B (gzip 99,17 kB) |
+| `npm run build` (Vite, Node 22) | ±24 dtk |
+| `npm run lint` (eslint) | bersih |
+
+### Render per detak konteks (setelah pemisahan konteks Fase 2)
+
+Diukur dengan probe komponen di dalam provider asli (jsdom), 40 detak
+`progress` dan 10 detak untuk state lain:
+
+| Skenario | Board | Import | Analyze |
+| --- | ---: | ---: | ---: |
+| `progress` 1→40 | 0 | 40 | 40 |
+| `analyzingMove` ×10 | 0 | 10 | 10 |
+| `langkahSementara` ×10 | 0 | 10 | 10 |
+| `pageState` ×1 | 0 | 1 | 1 |
+| `moveNumber` ×10 | 9 | 0 | 9 |
+| `tab` ×5 | 5 | 0 | 5 |
+
+Artinya: state papan tidak lagi ikut bergetar saat mesin menghitung, dan
+sebaliknya `progress` tidak menyentuh consumer `BoardContext`. Dua commit
+lanjutan memindahkan `nav.jsx`, `boardMenu.jsx`, `gameButtons.jsx`, dan
+`areaKerja.jsx` (dipecah jadi `AreaKerja`/`PenitipPgn`/`LapisanLayar`) ke pola
+yang sama; pada `AreaKerja` asli, 20 detak `progress` turun dari 5,05 ke 4,28
+ms per detak (React.Profiler, jsdom — angka browser akan lebih besar karena
+jsdom tidak melakukan paint/layout).
 
 ## Catatan perbaikan (polish layar Database & Akun)
 
@@ -506,14 +585,14 @@ Aturan saat beku:
 | `scripts/uji-langkah-kritis.mjs` | label `critical`: kurva kandidat MultiPV, tujuh syaratnya satu per satu, batas "hanya di cabang best", dan rantai `parsePGN` entri i ← kandidat entri i−1 | 54 |
 | `scripts/uji-pgn-anotasi.mjs` | ekspor PGN beranotasi: konvensi eval sudut Putih, peta NAG, tag header (termasuk PGN tanpa tag), dan bahwa berkas hasilnya tetap PGN sah saat dimuat ulang | 60 |
 | `scripts/uji-sacrifice.mjs` | `isSacrifice`: kasus bernalar, karakterisasi PADAT (16 rekaman implementasi pra-optimasi), penyaring penyerang legal, penyerang tersembunyi/baterai (`keamananBidak.js`) + 3 batas perbaikannya, determinisme & kemurnian | 65 |
-| `scripts/uji-akurasi.mjs` | akurasi keseluruhan & per fase, rumus rating partai | 31 |
-| `scripts/uji-komentar.mjs` | komentar langkah, FormatEval (cp/mate), komentar partai keseluruhan | 31 |
+| `scripts/uji-akurasi.mjs` | akurasi keseluruhan & per fase, rumus rating partai | 50 |
+| `scripts/uji-komentar.mjs` | komentar langkah, FormatEval (cp/mate), komentar partai keseluruhan | 34 |
 | `scripts/uji-variasi.mjs` | top line (bestMove + panah) & variasi manual (seret bidak via event mouse) | 28 |
 | `scripts/uji-seret-bidak.mjs` | geometri seret bidak di atas tata letak sintetis (desktop/mobile/`<main>` di-scroll): pusat bidak = kursor, clamp tepi papan, cincin kotak tujuan, klik bidak sama = on/off, bidak lawan tidak terangkat, pembersihan listener saat unmount | 27 |
 | `scripts/uji-hasil.mjs` | panel Ringkasan end-to-end (grafs, jumlah label, rating, fase, interaksi) | 27 |
 | `scripts/uji-mobile.mjs` | ukuran papan 3 mode (mobile < 516px / tablet < 1100px / desktop) | 14 |
 | `scripts/uji-panel.mjs` | panel samping: tab awal Ringkasan + loncatan ke Langkah | 11 |
-| `scripts/uji-anticheat.mjs` | anti-cheat: konvensi eval, pengecualian forced/book, partai jujur vs engine, kandidat MultiPV (peringkat/top-3/WDL), metrik kondisional (sulit/mudah, streak, korelasi waktu↔kualitas), kalibrasi per rating, laporan peninjauan, deviasi manusia, durasi & cache lintas-sesi, agregat riwayat, kartu UI + layar Deteksi engine dan pemisahan dari Akun (jumlah, situs/akun, filter waktu, depth, busy, batal), parsing MultiPV `EngineCatur` | 384 |
+| `scripts/uji-anticheat.mjs` | anti-cheat: konvensi eval, pengecualian forced/book, partai jujur vs engine, kandidat MultiPV (peringkat/top-3/WDL), metrik kondisional (sulit/mudah, streak, korelasi waktu↔kualitas), kalibrasi per rating, laporan peninjauan, deviasi manusia, durasi & cache lintas-sesi, agregat riwayat, kartu UI + layar Deteksi engine dan pemisahan dari Akun (jumlah, situs/akun, filter waktu, depth, busy, batal), parsing MultiPV `EngineCatur` | 426 |
 
 Infrastruktur bersama: `scripts/lingkungan-jsdom.mjs` (global jsdom +
 polyfill `ResizeObserver`/`Element.prototype.scrollTo`) dan
@@ -1080,10 +1159,11 @@ di ujung `uji:analisa-menyeluruh`). Angka emasnya diambil dari suite uji acuan
 - seam kunci: `catatAnalisis(hashPgn(pgn), …)` → `agregasiWawasan(partai, …,
   peta)` benar-benar mengisi kartu.
 
-Status verifikasi: 41 lulus / 0 gagal; `uji:analisa-menyeluruh` (18 skrip),
-`uji:analisa` (32), `uji:analisa-ui` (101), `uji:anticheat` (384),
-`uji:tarik-api` (7), `uji:basisdata` (34), `uji:akun-database` (15),
-`uji:i18n` (2800 kunci ID = EN), `uji:integritas-suite` (9), dan `npm run
+Status verifikasi (diperbarui 2026-11-06 — angka lama sengaja tidak
+dipertahankan): 51 lulus / 0 gagal; `uji:analisa-menyeluruh` (18 skrip,
+1131 pemeriksaan), `uji:analisa` (34), `uji:analisa-ui` (152), `uji:anticheat`
+(426), `uji:tarik-api` (7), `uji:basisdata` (34), `uji:akun-database` (16),
+`uji:i18n` (3381 kunci ID = EN), `uji:integritas-suite` (9), dan `npm run
 build` semuanya hijau. Jalur jaringan chess.com/lichess TIDAK diverifikasi
 live — sandbox agent hanya mengizinkan github/npm/pypi, jadi `accuracies`
 diverifikasi lewat bentuk respons yang didokumentasikan API keduanya.
@@ -1196,11 +1276,12 @@ dihitung dari pemindaian fase yang ditulis ulang dari kontraknya — bukan angka
 yang disalin dari keluaran komponen. Partai ujinya tidak berubah; akurasinya
 bergeser dari 74.0/92.0 ke nilai kurva.
 
-Status verifikasi: `uji:akurasi` 46/0, `uji-hasil` 27/0, `uji-evaluasi` 90/0,
-`uji-anticheat` 384/0, `uji-wawasan-profil` 41/0, `uji-analisa-ui` 101/0,
-`uji-analisa` 32/0, `uji-wawasan-rating` 10/0, `uji-klasifikasi` 63/0,
-`uji-parser-pgn` 36/0, `uji-langkah-kritis` 54/0, `uji-i18n` (2801 kunci
-ID = EN), `uji-integritas-suite` 9/0, `npm run lint` bersih, `npm run build` OK.
+Status verifikasi (diperbarui 2026-11-06): `uji:akurasi` 50/0, `uji-hasil`
+27/0, `uji-evaluasi` 90/0, `uji-anticheat` 426/0, `uji-wawasan-profil` 51/0,
+`uji-analisa-ui` 152/0, `uji-analisa` 34/0, `uji-wawasan-rating` 10/0,
+`uji-klasifikasi` 63/0, `uji-parser-pgn` 36/0, `uji-langkah-kritis` 54/0,
+`uji-i18n` (3381 kunci ID = EN), `uji-integritas-suite` 9/0, `npm run lint`
+bersih, `npm run build` OK.
 **Tampilan panel Ringkasan belum diverifikasi visual** — `localhost` tidak
 terjangkau dari sandbox agent, jadi semua klaim di atas berasal dari uji di atas
 jsdom, bukan dari melihat halamannya.
