@@ -351,37 +351,71 @@ console.log("\npemasangan di halaman:");
   }
 }
 
+/*
+ * Setiap halaman mengosongkan seleksi dengan caranya sendiri. TekaTeki sudah
+ * memindahkan state seleksi ke `usePuzzleGame` (reducer), jadi pengosongan
+ * ditulis sebagai aksi `BERSIHKAN_PILIHAN` — bukan dua setter terpisah.
+ * Yang diuji tetap sama: klik ulang pada bidak terpilih benar-benar
+ * mengosongkan seleksi, dan petak yang bukan sasaran membatalkan pilihan.
+ */
+const blokSeretCallback = (isi) =>
+  isi.split("const selesaiSeret = useCallback(")[1]?.split("\n  );")[0] ?? "";
+
 const halamanSeleksi = [
-  ["TekaTeki.jsx", "src/halaman/TekaTeki/TekaTeki.jsx", ["setTerpilih(null);", "setSasaran([]);"], []],
-  ["TekaTekiRush.jsx", "src/halaman/TekaTekiRush/TekaTekiRush.jsx", ["setTerpilih(null);", "setSasaran([]);"], []],
+  {
+    nama: "TekaTeki.jsx",
+    // Seleksi tinggal di hook; halaman meneruskan klik ulang ke aksi reducer.
+    berkas: [
+      "src/halaman/TekaTeki/TekaTeki.jsx",
+      "src/halaman/TekaTeki/hooks/usePuzzleGame.js",
+    ],
+    blokSeret: (isi) => isi,
+    syaratKlikUlang: ["(from, to, klikUlang) => {", "if (klikUlang) {"],
+    kosong: ['type: "BERSIHKAN_PILIHAN"'],
+    batal: "terpilih === petak)",
+    tolak: [],
+  },
+  {
+    nama: "TekaTekiRush.jsx",
+    berkas: ["src/halaman/TekaTekiRush/TekaTekiRush.jsx"],
+    blokSeret: blokSeretCallback,
+    syaratKlikUlang: ["(from, to, klikUlang) => {", "if (klikUlang) {"],
+    kosong: ["setTerpilih(null);", "setSasaran([]);"],
+    batal: "terpilih === petak)",
+    tolak: [],
+  },
   // PapanInteraktif menyimpan `terpilih` + `sasaran` + `tangkap` sebagai SATU
   // state, jadi pengosongan yang benar adalah mengganti state itu seluruhnya.
   // Dua setter terpisah persis sumber bug tangkapan: `tangkap` bisa tertinggal
   // dan petak kosong tetap ditandai cincin / langkah tetap dianggap makan.
-  [
-    "PapanInteraktif.jsx",
-    "src/halaman/PapanInteraktif/PapanInteraktif.jsx",
-    ["setSeleksi(SELEKSI_KOSONG);"],
-    ["setTerpilih(null);", "setSasaran([]);"],
-  ],
+  {
+    nama: "PapanInteraktif.jsx",
+    berkas: ["src/halaman/PapanInteraktif/PapanInteraktif.jsx"],
+    blokSeret: blokSeretCallback,
+    syaratKlikUlang: ["(from, to, klikUlang) => {", "if (klikUlang) {"],
+    kosong: ["setSeleksi(SELEKSI_KOSONG);"],
+    batal: "terpilih === petak)",
+    tolak: ["setTerpilih(null);", "setSasaran([]);"],
+  },
 ];
-for (const [nama, relatif, kosong, tolak] of halamanSeleksi) {
-  const isi = readFileSync(path.join(ROOT, relatif), "utf8");
-  const selesaiSeret = isi.split("const selesaiSeret = useCallback(")[1]?.split("\n  );")[0] ?? "";
+for (const entri of halamanSeleksi) {
+  const isi = entri.berkas
+    .map((relatif) => readFileSync(path.join(ROOT, relatif), "utf8"))
+    .join("\n");
+  const blok = entri.blokSeret(isi);
   uji(
-    `${nama} mengosongkan seleksi setelah klik ulang`,
-    selesaiSeret.includes("(from, to, klikUlang) => {") &&
-      selesaiSeret.includes("if (klikUlang) {") &&
-      kosong.every((baris) => selesaiSeret.includes(baris)),
-    `perlu: ${kosong.join(" ")}`
+    `${entri.nama} mengosongkan seleksi setelah klik ulang`,
+    entri.syaratKlikUlang.every((s) => blok.includes(s)) &&
+      entri.kosong.every((baris) => blok.includes(baris)),
+    `perlu: ${[...entri.syaratKlikUlang, ...entri.kosong].join(" ")}`
   );
   uji(
-    `${nama} mendukung batal seleksi lewat klik petak`,
-    isi.includes("terpilih === petak)") && kosong.every((baris) => isi.includes(baris)),
-    `perlu: ${kosong.join(" ")}`
+    `${entri.nama} mendukung batal seleksi lewat klik petak`,
+    isi.includes(entri.batal) && entri.kosong.every((baris) => isi.includes(baris)),
+    `perlu: ${entri.batal} ${entri.kosong.join(" ")}`
   );
-  for (const lama of tolak) {
-    uji(`${nama} tidak mengembalikan state seleksi yang terpecah (${lama})`, !isi.includes(lama));
+  for (const lama of entri.tolak) {
+    uji(`${entri.nama} tidak mengembalikan state seleksi yang terpecah (${lama})`, !isi.includes(lama));
   }
 }
 

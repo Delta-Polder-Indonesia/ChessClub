@@ -105,8 +105,8 @@
   "src/halaman/TekaTeki/PapanTekaTeki.jsx": {
     "svg-inline-catur": 1
   },
-  "src/halaman/TekaTeki/TekaTeki.jsx": {
-    "svg-inline-catur": 10
+  "src/halaman/TekaTeki/komponen/AreaPapan.jsx": {
+    "svg-inline-catur": 2
   },
   "src/halaman/TekaTekiRush/TekaTekiRush.jsx": {
     "svg-inline-catur": 10

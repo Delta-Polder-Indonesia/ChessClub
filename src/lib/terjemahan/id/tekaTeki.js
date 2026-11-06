@@ -61,6 +61,13 @@ export const tekaTeki = {
     idSoalTidakDitemukan:
       "Soal nomor {id} tidak ditemukan (total {total} soal). Menampilkan soal acak.",
     pengaturan: "Pengaturan",
+    tabMain: "Main",
+    tabVideo: "Video",
+    panelTekaTeki: "Panel teka-teki",
+    balik: "Balik",
+    suara: "Suara",
+    analisa: "Analisa",
+    tutupStatus: "Tutup pesan status",
     tidakAdaSoal:
       "Tidak ada soal yang cocok dengan kombinasi Level, Langkah, Tema, dan Giliran saat ini. Longgarkan salah satu saringan di Pengaturan.",
     semuaTerpecahkan:
