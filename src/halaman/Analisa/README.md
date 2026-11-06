@@ -368,27 +368,35 @@ file-file yang disebut.
     (`kci-anticheat-cache-v6`, kunci memuat `d<kedalaman>|mp<MULTI_PV>`),
     dimuat ulang otomatis saat sesi baru; `bersihkanCacheAntiCheat`
     menghapus memori + localStorage.
-  - *Fondasi deviasi-manusia (siap-Maia)*: `mesin/deviasiManusia.js`
-    menghitung kejutan bit + peringkat distribusi manusia dari
-    `Map<fen, {uci: prob}>` — penyedia prediksi (host model + onnxruntime)
-    tinggal dipasang tanpa menyentuh `parsePGN`.
+  - *Deviasi manusia*: `mesin/deviasiManusia.js` menghitung kejutan bit +
+    peringkat distribusi manusia dari `Map<fen, {uci: prob}>`, dan
+    `mesin/prediksiMaia.js` kini **mengisi** peta itu dari model Maia
+    (`prediksiManusia` → `deviasiManusiaDariMaia`). Kontrak kuncinya: yang
+    diminta ke Maia adalah posisi **sebelum** langkah (`moves[i - 1].fen`),
+    karena `hitungDeviasiManusia` menilai `moves[i]` dengan kunci itu —
+    memakai `moves[i].fen` menggeser seluruh penilaian satu langkah tanpa
+    galat apa pun. Dijaga `uji-prediksi-maia.mjs` (19 pemeriksaan, termasuk
+    kontrol negatif: membalik kuncinya menggagalkan 10 pemeriksaan).
 - Uji: `scripts/uji-anticheat.mjs` (426) dan `scripts/uji-engine-uci.mjs`
   (59, termasuk MultiPV pada Stockfish asli) — semua wajib tetap hijau
   sebelum dan sesudah langkah berikutnya.
 
 ### Langkah berikutnya (urut prioritas)
 
-1. **Penyedia prediksi manusia (Maia) — inti sudah tersedia, pemasangan ke
+1. **Penyedia prediksi manusia (Maia) — penyedia SELESAI, pemasangan ke UI
    anti-cheat belum.** Mesin Maia sudah terpasang untuk Papan Interaktif:
    `src/lib/maia3.js` (penyandian posisi + dekode policy, murni, bisa diuji di
    Node), `src/lib/mesinMaia.js` (worker + `onnxruntime-web`), dan bobot
    `public/engines/maia3/maia3_simplified.onnx` (45 MB) yang **memang
    di-commit** di repo ini — keputusan pemilik proyek, meski bagian ini
    menyarankan sebaliknya. Runtime ORT disalin ke `public/engines/ort/` oleh
-   `npm run salin:ort` (tidak di-commit). Yang tersisa untuk fase 3: pakai
-   `src/lib/maia3.js` untuk menghasilkan `Map<fen, {uci: prob}>` per partai
-   lalu umpan ke `mesin/deviasiManusia.js`. Rincian: `docs/MAIA3.md`. Uji
-   inti Maia: `npm run uji:maia`.
+   `npm run salin:ort` (tidak di-commit). Lapisan penyedianya sudah ada
+   (`mesin/prediksiMaia.js`: `posisiUntukPrediksi`, `prediksiManusia`,
+   `deviasiManusiaDariMaia`) dan diuji tanpa ONNX lewat mesin tiruan
+   (`npm run uji:prediksi-maia`). Yang **belum**: memanggilnya dari layar
+   Deteksi engine (tombol/opsi + progres unduhan model 45 MB) dan
+   menampilkan angka kejutan ke peninjau. Rincian: `docs/MAIA3.md`. Uji inti
+   Maia: `npm run uji:maia`.
    Catatan lisensi: kode maia-chess GPL-3.0, bobot model mengikuti ketentuan
    proyek Maia; onnxruntime-web MIT. Atribusi sudah dicantumkan di halaman
    Atribusi & lisensi.
@@ -481,6 +489,7 @@ Di luar rangkaian itu:
 | `uji-tarik-api.mjs` | 7 |
 | `uji-wawasan-rating.mjs` | 10 |
 | `uji-integritas-suite.mjs` | 9 |
+| `uji-prediksi-maia.mjs` | 19 |
 | `uji-i18n.mjs` | 3381 kunci ID = 3381 EN, 1692 terpakai |
 
 ### Bundle & build

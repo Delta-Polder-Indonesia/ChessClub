@@ -334,3 +334,30 @@ Status pengerjaan: integrasi ini adalah **Fase 4** dan sengaja ditaruh paling
 akhir — sesudah refactor modul Analisa Fase 0–3. Rencana dan status per fase
 (termasuk kontrak yang tidak boleh berubah) ada di
 [`docs/rencana-refactor-analisa.md`](./rencana-refactor-analisa.md).
+
+---
+
+## Sambungan ke anti-cheat Analisa (Fase 4)
+
+`src/halaman/Analisa/mesin/prediksiMaia.js` adalah jembatan dari mesin ini ke
+metrik deviasi manusia (`src/halaman/Analisa/mesin/deviasiManusia.js`):
+
+| Fungsi | Guna |
+| --- | --- |
+| `posisiUntukPrediksi(moves)` | daftar FEN unik yang benar-benar dipakai penilaian |
+| `prediksiManusia(moves, { mesin, rating, ratingLawan })` | `Map<fen, {uci: prob}>` per partai, dipotong per `UKURAN_BATCH_MAIA` (32) |
+| `deviasiManusiaDariMaia(moves, opsi)` | jalur lengkap: prediksi → `hitungDeviasiManusia` |
+
+Dua hal yang mudah salah dan sudah dikunci uji (`npm run uji:prediksi-maia`,
+19 pemeriksaan, mesin tiruan — tanpa ONNX):
+
+1. **Kunci peta = FEN SEBELUM langkah** (`moves[i - 1].fen`), karena
+   `hitungDeviasiManusia` menilai `moves[i]` dengan kunci itu. Memakai
+   `moves[i].fen` menggeser seluruh penilaian satu langkah — salah tanpa galat.
+   Kontrol negatif: membalik kunci ini menggagalkan 10 pemeriksaan.
+2. **Rating diteruskan, bukan dikarang:** `rating`/`ratingLawan` milik
+   pemanggil mengalir apa adanya ke `inferensi()`.
+
+Yang belum dikerjakan: memanggil modul ini dari layar Deteksi engine (opsi,
+progres unduhan model 45 MB, tombol batal) dan menampilkan `kejutanRata`,
+`rataPeringkatMaia`, serta `kejutanTinggi` ke peninjau.

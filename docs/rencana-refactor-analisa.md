@@ -31,7 +31,7 @@ mencatat **rencana dan status**, bukan detail perilaku.
 | 1 | `basisData.js` → `database/*` | **selesai** | commit `25ed51d` (PR #231) |
 | 2 | Pisahkan `BoardContext` + `ImportContext` | **selesai** | commit `d10e8b1`, `34636c3`, `88e428a` (PR #231) |
 | 3 | Pecah komponen raksasa | **selesai** (2026-11-06) | `komponen/nav/database/*` + `komponen/game/useMuatPartai.js` / `useAnalisisPapan.js` |
-| 4 | Integrasi Maia | **belum**, sengaja paling akhir | `docs/MAIA3.md` |
+| 4 | Integrasi Maia | **berjalan** — lapisan penyedia prediksi selesai, UI belum | `mesin/prediksiMaia.js`, `npm run uji:prediksi-maia` |
 
 Fase 1–2 sudah merge ke `main` lewat PR #231 (merge commit `2bc3868`).
 Ringkasannya: `basisData.js` (867 baris) jadi fasad 46 baris + enam modul
@@ -82,10 +82,16 @@ lalu `npm run uji:dokumentasi` bila ada angka dokumentasi yang bergeser.
 ## Fase 4 — integrasi Maia (risiko tinggi, terpisah)
 
 Disambungkannya `mesin/deviasiManusia.js` ke prediksi Maia
-(`src/lib/maia3.js` → `Map<fen, {uci: prob}>`). Kontrak yang sudah dibekukan
-(lihat `docs/MAIA3.md`) wajib dipertahankan: `hitungDeviasiManusia` berkunci
-**fen sebelum langkah**, model `maia3-simplified-1`. Dikerjakan setelah Fase 3
-stabil, dalam PR sendiri.
+(`src/lib/maia3.js` → `Map<fen, {uci: prob}>`). Kontrak yang dibekukan (lihat
+`docs/MAIA3.md`) wajib dipertahankan: `hitungDeviasiManusia` berkunci **fen
+sebelum langkah**, model `maia3-simplified-1`.
+
+Status: **lapisan penyedia selesai** (2026-11-06) — `mesin/prediksiMaia.js`
+(`posisiUntukPrediksi`, `prediksiManusia`, `deviasiManusiaDariMaia`), diuji
+`npm run uji:prediksi-maia` (19 pemeriksaan) dengan mesin tiruan sehingga tidak
+butuh ONNX/worker. Sisa Fase 4: memanggilnya dari layar Deteksi engine
+(opsi + progres unduhan model) dan menampilkan metrik kejutan ke peninjau —
+bagian ini yang menyentuh UI, jadi dikerjakan sebagai langkah tersendiri.
 
 ## Pagar yang sudah terpasang
 
