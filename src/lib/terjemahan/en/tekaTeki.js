@@ -53,7 +53,6 @@ export const tekaTeki = {
     taktikTerpecahkan: "Puzzle solved.",
     sudahTerpecahkan: "Already solved",
     komentator: komentatorTekaTeki,
-    totalTerpecahkan: "Solved: {n}",
     langsungKe: "Jump to Puzzle",
     buka: "Open",
     rentangNomor: "Numbers 1 through {total}",

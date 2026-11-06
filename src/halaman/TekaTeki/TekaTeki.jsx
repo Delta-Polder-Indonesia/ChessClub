@@ -443,7 +443,8 @@ export default function TekaTeki() {
       />
       <TekaTekiShell
         masalah={masalah}
-        // Hanya pesan tuntas yang tampil sebagai teks status: umpan balik
+        // Hanya pesan tuntas yang diteruskan — untuk diumumkan ke pembaca
+        // layar (wilayah `sr-only`), bukan untuk ditampilkan. Umpan balik
         // langkah salah tetap berupa sorotan petak (kontrak uji alur).
         pesan={pesan?.jenis === "selesai" ? pesan : null}
         memuat={memuat}
@@ -483,7 +484,6 @@ export default function TekaTeki() {
           jumlahLangkah: Math.ceil(langkahPenuh.length / 2),
           bukanSkakmat: masalah?.type === "Tactical",
           teksTingkat: masalah ? t(KUNCI_LEVEL[bandLevel(masalah.rating ?? 0)]) : "",
-          teksTerpecahkan: t("tekaTeki.totalTerpecahkan", { n: terpecahkan.size }),
           teksCekmat: pesan?.jenis === "selesai" ? pesan.teks : "",
           eloSoal: masalah?.rating ?? 1500,
           namaHitam: masalah?.pemainHitam || "",
@@ -536,7 +536,6 @@ export default function TekaTeki() {
           onLewati: () => pindahSoal(indeks + 1),
           onCobaLagi: cobaLagi,
         }}
-        onTutupStatus={() => setPesan(null)}
         papan={
           fen ? (
           <PapanProgres

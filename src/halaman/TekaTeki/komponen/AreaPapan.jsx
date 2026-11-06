@@ -40,13 +40,11 @@ import KerangkaBilahEvaluasi from "./KerangkaBilahEvaluasi.jsx";
 export default function AreaPapan({
   papan = null,
   bilahEvaluasi = null,
-  status = null,
   orientasi = "w",
   memuat = false,
   jumlahLangkah = 1,
   bukanSkakmat = false,
   teksTingkat = "",
-  teksTerpecahkan = "",
   eloSoal = 1500,
   namaHitam = "",
   eloHitam = 0,
@@ -137,22 +135,11 @@ export default function AreaPapan({
            * lebar papan. Elemen bilahnya sendiri diikat ke kotak papan di bawah.
            */}
 
-          {/* Baris papan: status (di aliran) + papan. Lebar kolom = lebar papan. */}
+          {/* Baris papan: papan saja. Lebar kolom = lebar papan. */}
           <div
             data-baris="papan"
-            className="col-start-2 row-start-2 flex min-h-0 min-w-0 flex-col"
+            className="col-start-2 row-start-2 flex min-h-0 min-w-0"
           >
-            {/* Status gameplay tampil DI ALIRAN (bukan lapisan absolut), supaya
-                tidak pernah menutupi baris profil maupun petak papan.
-                `has-[>div>div]:mb-2` = jarak ke papan hanya muncul saat wilayah
-                status benar-benar memuat chip pesan (anak kedua). Wilayah
-                `aria-live`-nya SELALU terpasang meski kosong; kalau jaraknya
-                dipasang tetap, ia menyisakan 8px kosong di atas papan dan papan
-                tampak turun dari titik tengah baris. */}
-            {status ? (
-              <div className="w-0 min-w-full shrink-0 has-[>div>div]:mb-2">{status}</div>
-            ) : null}
-
             {/*
              * Dua lapis, dan keduanya punya tugas:
              *  - lapis luar (`lg:h-full lg:w-auto`) memutuskan dimensi mana yang
@@ -226,11 +213,6 @@ export default function AreaPapan({
                   )}
                   {eloPutih > 0 && (
                     <span className="shrink-0 text-xs font-medium text-gray-300">({eloPutih})</span>
-                  )}
-                </div>
-                <div className="mt-0.5 flex flex-row items-center gap-1.5">
-                  {teksTerpecahkan && (
-                    <span className="truncate text-[11px] font-bold text-gray-300">{teksTerpecahkan}</span>
                   )}
                 </div>
               </div>

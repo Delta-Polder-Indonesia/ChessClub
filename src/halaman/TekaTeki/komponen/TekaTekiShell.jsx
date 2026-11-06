@@ -48,7 +48,6 @@ export default function TekaTekiShell({
   // navigasi + aksi
   navigasi = {},
   aksi = {},
-  onTutupStatus = null,
 }) {
   const { t } = useI18n();
 
@@ -92,21 +91,26 @@ export default function TekaTekiShell({
 
         {/*
          * Pembungkus ini hanya memegang lebar; `overflow-hidden` memastikan
-         * tidak ada isi area papan yang bisa menimpa panel kanan. Status
-         * permainan diteruskan sebagai slot dan dirender DI ALIRAN di dalam
-         * baris papan — bukan lapisan absolut di atas baris profil.
+         * tidak ada isi area papan yang bisa menimpa panel kanan.
+         *
+         * Pesan permainan TIDAK lagi tampil sebagai chip di atas papan: satu-
+         * satunya penanda tuntas adalah sorotan petak, suara, dan papan yang
+         * sudah selesai. Pesannya tetap diumumkan ke pembaca layar lewat
+         * wilayah `aria-live` yang disembunyikan secara visual (`sr-only`),
+         * jadi tidak ada teks yang muncul di layar.
          */}
         <div className="relative flex min-h-0 min-w-0 flex-1 overflow-hidden">
+          <div className="sr-only">
+            <StatusTekaTeki pesan={pesan} melayang={false} />
+          </div>
           <AreaPapan
             papan={papan}
             bilahEvaluasi={bilahEvaluasi}
-            status={<StatusTekaTeki pesan={pesan} onTutup={onTutupStatus} melayang={false} />}
             orientasi={tampilan.orientasi}
             memuat={memuat}
             jumlahLangkah={tampilan.jumlahLangkah}
             bukanSkakmat={tampilan.bukanSkakmat}
             teksTingkat={tampilan.teksTingkat}
-            teksTerpecahkan={tampilan.teksTerpecahkan}
             eloSoal={tampilan.eloSoal}
             namaHitam={tampilan.namaHitam}
             eloHitam={tampilan.eloHitam}

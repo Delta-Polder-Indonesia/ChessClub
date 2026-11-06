@@ -251,7 +251,8 @@ judul("tata letak: baris profil terpisah dari papan (regresi PR #228)");
   );
   uji(
     "baris profil tidak menyumbang lebar intrinsik",
-    (areaPapan.match(/w-0 min-w-full/g) || []).length >= 3
+    (areaPapan.match(/w-0 min-w-full/g) || []).length >= 2,
+    "satu untuk tiap baris profil (atas & bawah)"
   );
   /*
    * Bilah evaluasi DIKAT ke kotak papan, bukan ke track baris. Tinggi track
@@ -288,11 +289,6 @@ judul("tata letak: baris profil terpisah dari papan (regresi PR #228)");
   uji(
     "ada kotak papan (pembungkus) yang memusatkan papan",
     /relative flex min-h-0 min-w-0 flex-1 items-center justify-center/.test(areaPapan)
-  );
-  uji(
-    "jarak status ke papan hanya muncul saat ada pesan",
-    /has-\[>div>div\]:mb-2/.test(areaPapan),
-    "wilayah aria-live selalu terpasang; tanpa ini ada 8px kosong di atas papan"
   );
   uji(
     "label level/rating disembunyikan di layar sempit",
@@ -347,13 +343,22 @@ judul("tata letak: baris profil terpisah dari papan (regresi PR #228)");
       /min-h-0 min-w-0 flex-1 overflow-hidden/.test(shell)
   );
 
-  // Status gameplay dulu `absolute inset-x-3 top-3` di dalam pembungkus area
-  // papan — persis di atas baris profil atas. Sekarang ia dirender di aliran.
+  /*
+   * Tidak ada chip status di layar: pesan permainan (dulu "Teka-teki
+   * terpecahkan" di atas papan) hanya diumumkan lewat wilayah `sr-only`,
+   * sehingga tidak ada teks yang muncul di area papan.
+   */
   uji(
-    "status gameplay dirender di aliran, bukan menutupi baris profil",
-    /status=\{<StatusTekaTeki[^\n]*melayang=\{false\}/.test(shell) &&
-      /{status \?\s*\(?\s*<div className="w-0 min-w-full shrink-0/.test(areaPapan) &&
-      !/absolute inset-x-3 top-3/.test(shell)
+    "tidak ada chip status di atas papan (hanya pengumuman sr-only)",
+    !/status=\{/.test(shell) &&
+      /<div className="sr-only">/.test(shell) &&
+      /<StatusTekaTeki pesan=\{pesan\} melayang=\{false\}/.test(shell) &&
+      !/absolute inset-x-3 top-3/.test(shell) &&
+      !/data-baris="papan"[\s\S]{0,400}?status/.test(areaPapan)
+  );
+  uji(
+    "baris profil tidak lagi menampilkan hitungan terpecahkan",
+    !/teksTerpecahkan/.test(areaPapan)
   );
 }
 
@@ -775,11 +780,11 @@ judul("DOM: tiga baris tata letak papan (profil atas, papan, profil bawah)");
     `${barisPapan?.querySelectorAll("[data-petak]").length} petak`
   );
 
-  // Status permainan hidup di baris papan (aliran), bukan di baris profil.
+  // Tidak ada wilayah status yang tampil di area papan sama sekali.
   uji(
-    "wilayah status berada di baris papan",
-    Boolean(barisPapan?.querySelector("[data-status-permainan]")) &&
-      !barisAtas?.querySelector("[data-status-permainan]")
+    "tidak ada wilayah status yang tampil di area papan",
+    !dok.querySelector('[data-area="papan"] [data-status-permainan]'),
+    "chip status tidak boleh muncul di layar"
   );
 }
 
