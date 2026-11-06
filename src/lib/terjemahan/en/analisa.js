@@ -435,6 +435,9 @@ export const analisa = {
         maia: "Maia 3 — human distribution",
         namaMesin: "Name",
         versiMesin: "Version",
+        elo: "Rating (Elo)",
+        eloPetunjuk:
+          "Maia has no depth: it predicts the moves a human of a given rating would plausibly play, so this field is the player's estimated Elo ({min}-{maks}).",
         kedalamanAnalisis: "Analysis depth ( depth )",
         hasil: "Engine detection results",
         pilihAkun: "Choose an account",
@@ -481,6 +484,8 @@ export const analisa = {
         tanpaWaktu: "no clock",
       },
       deviasi: {
+        unduhModel: "Download Maia 3",
+        eloCatatan: "The opponent rating is read from the PGN when present; otherwise the same Elo is used for both sides.",
         isi: "Compare the player's moves with a human model's predictions. Unlike the detection above, this part does not use Stockfish — the 45 MB model is downloaded only after you press the button, and later runs reuse the browser cache.",
         mengunduh: "Preparing the Maia model…",
         memuatCache: "Loading the Maia model from cache…",

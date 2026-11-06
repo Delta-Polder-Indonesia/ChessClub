@@ -41,7 +41,7 @@ export default function RingkasanDeviasiManusia({ deviasi, onBukaPartai = null }
 
   return (
     <div className="flex flex-col gap-3">
-      {d.status === "menyiapkan" ? (
+      {d.status === "menyiapkan" || d.unduh.status === "menyiapkan" || d.unduh.status === "mengunduh" ? (
         <div className="flex flex-col gap-2">
           <p role="status" className="text-xs text-foregroundGrey">
             {teksUnduh} {d.unduh.progres > 0 ? `${d.unduh.progres}%` : ""}

@@ -1076,6 +1076,7 @@ const { default: LayarDeteksiEngine } = await import("../src/halaman/Analisa/kom
 const { default: AnalyzeContextProvider } = await import("../src/halaman/Analisa/konteks/analyze.jsx");
 const { AnalyzeContext } = await import("../src/halaman/Analisa/konteks/analyzeKonteks.js");
 const { bacaDaftarAkun, simpanDaftarAkun } = await import("../src/halaman/Analisa/akun/daftarAkun.js");
+const { ambilMesinMaia } = await import("../src/lib/mesinMaia.js");
 
 await simpanBanyakPartai(
   [
@@ -1273,10 +1274,17 @@ act(() => rootAkun.unmount());
   );
   await pilihOpsi("deteksi-engine", tID("analisa.antiCheat.riwayat.maia"));
   hasil(
-    "memilih Maia hanya membuang kendali Stockfish (kedalaman/hash/threads)",
+    "memilih Maia membuang kendali Stockfish (kedalaman/hash/threads)",
     !elAkun.querySelector('[data-uji="deteksi-kedalaman"]') &&
       !elAkun.querySelector('[data-uji="deteksi-hash"]') &&
       !elAkun.querySelector('[data-uji="deteksi-threads"]')
+  );
+  hasil(
+    // Maia tidak punya kedalaman; yang menentukan tebakannya rating.
+    "kolom kedalaman diganti Elo 600–2600, bukan dikosongkan",
+    elAkun.querySelector('[data-uji="deteksi-elo"]')?.value === "1500" &&
+      elAkun.querySelector('[data-uji="deteksi-elo"]')?.min === "600" &&
+      elAkun.querySelector('[data-uji="deteksi-elo"]')?.max === "2600"
   );
   hasil(
     // Ini inti permintaan: pengaturan lama dipakai ulang, bukan diduplikasi.
@@ -1285,12 +1293,32 @@ act(() => rootAkun.unmount());
       Boolean(elAkun.querySelector(`[data-uji="${u}"]`))
     ) && kontrolMesinKedua().length === 0
   );
+  hasil("panel hasil menjelaskan mode Maia", teksAkun().includes(tID("analisa.antiCheat.deviasi.isi")));
+  // Bobot 45 MB tidak boleh terunduh sebagai efek samping tombol analisis:
+  // selama model belum siap, tombolnya adalah tombol unduh.
   hasil(
-    "tombol Mulai memakai jalur mesin terpilih, jumlahnya dari kolom kiri",
+    "selama Maia belum siap, tombolnya tombol unduh, bukan analisis",
+    elAkun.querySelector('[data-uji="deviasi-siapkan"]')?.textContent.trim() ===
+      tID("analisa.antiCheat.deviasi.unduhModel") && !elAkun.querySelector('[data-uji="deviasi-mulai"]')
+  );
+  // Mesin Maia tiruan: yang diuji perpindahan tombol, bukan unduhan 45 MB.
+  const mesinMaia = ambilMesinMaia();
+  const siapkanAsli = mesinMaia.siapkan;
+  mesinMaia.siapkan = async () => {
+    mesinMaia.aturKeadaan("siap", { progres: 100 });
+    return "siap";
+  };
+  await act(async () => {
+    elAkun.querySelector('[data-uji="deviasi-siapkan"]')?.click();
+    await new Promise((r) => setTimeout(r, 30));
+  });
+  hasil(
+    "setelah model siap, tombol yang sama berubah menjadi tombol analisis",
     Boolean(elAkun.querySelector('[data-uji="deviasi-mulai"]')) &&
+      !elAkun.querySelector('[data-uji="deviasi-siapkan"]') &&
       tombolJumlah(12)?.textContent.trim() === tID("analisa.antiCheat.riwayat.mulai", { n: 12 })
   );
-  hasil("panel hasil menjelaskan mode Maia", teksAkun().includes(tID("analisa.antiCheat.deviasi.isi")));
+  mesinMaia.siapkan = siapkanAsli;
   // Kembali ke Stockfish: tidak ada yang tersembunyi permanen karena mode
   // sebelumnya, dan tidak ada sisa kendali mesin lain di layar.
   await pilihOpsi("deteksi-engine", labelStockfish);

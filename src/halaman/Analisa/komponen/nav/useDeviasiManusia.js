@@ -24,17 +24,27 @@ import { BATAS_PARTAI } from "../../akun/antiCheatRiwayat.js";
 import { ratingDariMetadata, warnaPemainDariMetadata } from "../../mesin/antiCheat.js";
 import { prediksiManusia } from "../../mesin/prediksiMaia.js";
 import { ringkasDeviasiRiwayat } from "../../mesin/deviasiRiwayat.js";
+import { batasRating, RATING_BAKU } from "../../../../lib/maia3.js";
 import { useMesinMaia } from "../../../../lib/gunakanMesinMaia.js";
 
 const KOSONG = { ke: 0, total: 0 };
 
 /**
- * @param {{platform?: string, username?: string, waktu?: string, batas?: number|null}} opsi
+ * @param {{platform?: string, username?: string, waktu?: string,
+ *   batas?: number|null, rating?: number}} opsi
  *   filter yang sama dengan deteksi riwayat: partai yang dinilai harus persis
  *   partai yang sedang ditinjau peninjau, bukan seluruh basis data. `batas`
- *   adalah jumlah partai dari kolom yang sama dengan jalur Stockfish.
+ *   adalah jumlah partai dari kolom yang sama dengan jalur Stockfish, dan
+ *   `rating` adalah Elo pemain — pengganti kolom kedalaman, karena Maia tidak
+ *   punya kedalaman: yang menentukan tebakannya adalah rating.
  */
-export function useDeviasiManusia({ platform = "chessCom", username = "", waktu = "any", batas = null } = {}) {
+export function useDeviasiManusia({
+  platform = "chessCom",
+  username = "",
+  waktu = "any",
+  batas = null,
+  rating = RATING_BAKU,
+} = {}) {
   const maia = useMesinMaia();
   const [status, setStatus] = useState("kosong");
   const [hasil, setHasil] = useState(null);
@@ -47,6 +57,9 @@ export function useDeviasiManusia({ platform = "chessCom", username = "", waktu 
   // `null` berarti isian jumlah partai belum sah; panggilan mulai ditahan
   // pemanggil, jadi nilai jatuh ke bawaan yang sama dengan jalur Stockfish.
   const jumlahPartai = Number.isInteger(batas) && batas > 0 ? batas : BATAS_PARTAI;
+  // Satu sumber untuk kedua sisi inferensi: Elo yang dipilih pengguna. Nilai di
+  // luar rentang model dijepit di sini supaya sisa UI tidak perlu tahu batasnya.
+  const elo = batasRating(rating);
 
   // Bongkar komponen di tengah perhitungan tidak boleh menyisakan inferensi
   // yang terus jalan di worker.
@@ -96,17 +109,17 @@ export function useDeviasiManusia({ platform = "chessCom", username = "", waktu 
           if (terkini() && !signal.aborted) setProgres(p);
         },
         prediksi: (moves, { partai: satu, sinyal: sinyalPrediksi }) => {
-          // Rating dibaca per partai: riwayat bisa memuat naik-turun rating,
-          // dan Maia memakai rating sebagai masukan utama. Ini satu-satunya
-          // sumber rating — tidak ada kolom isian terpisah.
-          const rating = ratingDariMetadata(satu?.metadata);
+          // Pemain memakai Elo dari kolom pengaturan — itulah pengganti
+          // "kedalaman" di jalur ini. Lawan memakai Elo dari PGN bila ada;
+          // kalau PGN impor lama tidak memuatnya, Elo yang sama dipakai untuk
+          // kedua sisi (lawan selevel adalah asumsi paling wajar).
+          const dariPgn = ratingDariMetadata(satu?.metadata);
           const warna = warnaPemainDariMetadata(satu?.metadata, username);
-          const milikPemain = warna === "b" ? rating.b : rating.w;
-          const milikLawan = warna === "b" ? rating.w : rating.b;
+          const eloLawan = warna === "b" ? dariPgn.w : dariPgn.b;
           return prediksiManusia(moves, {
             mesin: { inferensi: maia.inferensi },
-            rating: milikPemain,
-            ratingLawan: milikLawan,
+            rating: elo,
+            ratingLawan: Number.isFinite(eloLawan) ? eloLawan : elo,
             sinyal: sinyalPrediksi,
           });
         },
@@ -124,9 +137,28 @@ export function useDeviasiManusia({ platform = "chessCom", username = "", waktu 
         setBerjalan(false);
       }
     }
-  }, [berjalan, username, platform, waktu, jumlahPartai, maia]);
+  }, [berjalan, username, platform, waktu, jumlahPartai, elo, maia]);
 
   const batalkan = useCallback(() => controllerRef.current?.abort(), []);
+
+  /**
+   * Unduh/siapkan model TANPA menjalankan analisis.
+   *
+   * Dipisah karena 45 MB bukan sesuatu yang boleh terjadi sebagai efek samping
+   * tombol "Analisis": tombolnya sendiri yang berubah menjadi "Unduh Maia",
+   * dan baru setelah `siap` ia menjadi tombol analisis. Pemakaian berikutnya
+   * memakai cache, jadi tombol itu langsung siap.
+   */
+  const siapkan = useCallback(async () => {
+    if (maia.siap) return;
+    try {
+      await maia.siapkan();
+      if (maia.siap) setStatus("kosong");
+    } catch (galat) {
+      setStatus("galat");
+      setPesan(galat?.message ?? String(galat));
+    }
+  }, [maia]);
 
   /**
    * Teks PGN partai ke-`indeks` dari hasil yang sedang ditampilkan. Dipakai
@@ -141,8 +173,10 @@ export function useDeviasiManusia({ platform = "chessCom", username = "", waktu 
     progres,
     berjalan,
     jumlahPartai,
+    elo,
     mulai,
     batalkan,
+    siapkan,
     pgnPartai,
     // Status unduhan model diteruskan apa adanya supaya panel bisa
     // menampilkan "mengunduh 42%" tanpa menebak-nebak.

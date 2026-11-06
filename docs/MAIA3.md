@@ -361,9 +361,12 @@ Dua hal yang mudah salah dan sudah dikunci uji (`npm run uji:prediksi-maia`,
 Pemanggilnya kini ada, dan menyatu dengan layar yang sudah dipakai: pada
 daftar **Nama** mesin di panel pengaturan Deteksi engine, pilihan *Maia 3 —
 distribusi manusia* memakai **pengaturan yang sudah ada** (akun, situs, filter
-waktu, jumlah partai); hanya kendali Stockfish yang tidak berlaku
-(kedalaman/hash/threads) yang disembunyikan, lalu `useDeviasiManusia.js`
-menjalankan rantainya. Model 45 MB **tidak** diunduh saat layar dibuka —
+waktu, jumlah partai); kendali Stockfish yang tidak berlaku (hash, threads)
+disembunyikan dan kolom kedalaman diganti kolom **Elo**, karena Maia memang
+tidak punya kedalaman. Tombol di panel pun menyesuaikan: selama bobot belum
+ada, tombolnya "Unduh Maia 3"; setelah siap ia berubah menjadi tombol
+analisis. Lalu `useDeviasiManusia.js` menjalankan rantainya. Model 45 MB
+**tidak** diunduh saat layar dibuka —
 hanya setelah tombol ditekan, dengan progres unduhan dan tombol Batal; bobot
 yang sudah ada dipakai ulang dari cache.
 
@@ -393,10 +396,11 @@ sehingga muatan biasa dari Basis Data/Impor berperilaku seperti dulu.
 
 Jalur ini tidak memakai kedalaman Stockfish; biayanya = jumlah partai ×
 langkah yang dinilai, dibagi ke gelombang inferensi sebesar `ukuranBatch`
-(bawaan `UKURAN_BATCH_MAIA` = 32 di `mesin/prediksiMaia.js`). Kedua angkanya
-**tidak** punya kolom sendiri: jumlah partai memakai kolom yang sama dengan
-deteksi Stockfish, dan rating dibaca per partai dari metadata PGN lewat
-`ratingDariMetadata`. Tidak ada setelan kedua yang perlu diisi atau disimpan.
+(bawaan `UKURAN_BATCH_MAIA` = 32 di `mesin/prediksiMaia.js`). Jumlah partai
+memakai kolom yang sama dengan deteksi Stockfish. **Elo pemain** diisi di
+kolom yang menggantikan kedalaman (600–2600, `batasRating`), sedangkan Elo
+lawan dibaca dari PGN lewat `ratingDariMetadata` dan jatuh ke Elo pemain bila
+PGN tidak memuatnya. Tidak ada setelan kedua yang perlu diisi atau disimpan.
 
 Panah di papan **sudah ada**: `data.sorotUci` membawa UCI langkah yang
 disorot, dan `komponen/game/panahSorot.js` menerjemahkannya ke format panah

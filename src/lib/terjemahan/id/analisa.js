@@ -435,6 +435,9 @@ export const analisa = {
         maia: "Maia 3 — distribusi manusia",
         namaMesin: "Nama",
         versiMesin: "Versi",
+        elo: "Rating (Elo)",
+        eloPetunjuk:
+          "Maia tidak memakai kedalaman: ia menebak langkah yang wajar dimainkan manusia pada rating tertentu, jadi yang diisi di sini adalah perkiraan Elo pemain ({min}–{maks}).",
         kedalamanAnalisis: "Kedalaman analisis ( depth )",
         hasil: "Hasil deteksi engine",
         pilihAkun: "Pilih akun",
@@ -481,6 +484,8 @@ export const analisa = {
         tanpaWaktu: "tanpa jam",
       },
       deviasi: {
+        unduhModel: "Unduh Maia 3",
+        eloCatatan: "Rating lawan dibaca dari PGN bila ada; kalau tidak ada, Elo yang sama dipakai untuk kedua sisi.",
         isi: "Bandingkan langkah pemain dengan prediksi model manusia. Berbeda dari deteksi di atas, bagian ini tidak memakai Stockfish — model 45 MB baru diunduh setelah tombol ditekan, dan pemakaian berikutnya memakai cache peramban.",
         mengunduh: "Menyiapkan model Maia…",
         memuatCache: "Memuat model Maia dari cache…",

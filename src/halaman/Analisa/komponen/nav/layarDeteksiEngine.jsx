@@ -13,6 +13,7 @@ import { ambilDaftarPartai, ambilSemuaKoleksi } from "../../basisData.js";
 import { bacaDaftarAkun } from "../../akun/daftarAkun.js";
 import { analisisRiwayatAntiCheat, BATAS_PARTAI, batasPartaiDariInput, KEDALAMAN_AGGREGAT } from "../../akun/antiCheatRiwayat.js";
 import { MULTI_PV } from "../../mesin/engine.js";
+import { batasRating, RATING_BAKU, RATING_MAKS, RATING_MIN } from "../../../../lib/maia3.js";
 import { hashUntukEngine } from "../../mesin/cekWasm.js";
 import { unduhLaporanPeninjauan } from "../../mesin/laporanPeninjauan.js";
 import PanelLayar from "./PanelLayar.jsx";
@@ -178,6 +179,12 @@ export default function LayarDeteksiEngine({ onBukaAkun, onBukaPartai = null }) 
   const [koleksi, setKoleksi] = useState([]);
   const [waktu, setWaktu] = useState("any");
   const [kedalaman, setKedalaman] = useState(KEDALAMAN_AGGREGAT);
+  // Kolom "kedalaman" versi Maia: model ini tidak punya kedalaman, yang
+  // menentukan tebakannya adalah Elo pemain. Teksnya ditahan terpisah supaya
+  // mengetik "18" tidak langsung dijepit jadi 600 di tengah jalan.
+  const [elo, setElo] = useState(RATING_BAKU);
+  const [teksElo, setTeksElo] = useState(String(RATING_BAKU));
+  const eloId = useId();
   // Teks mentah saat mengetik: angka dijepit hanya saat melebihi batas atas
   // (ketik 20 → langsung 15), batas bawah dijepit saat kolom kehilangan fokus —
   // supaya angka dua digit seperti 10/15 masih bisa diketik utuh.
@@ -199,7 +206,7 @@ export default function LayarDeteksiEngine({ onBukaAkun, onBukaPartai = null }) 
    */
   const [idMesin, setIdMesin] = useState(() => mesin.idEngine);
   const modeMaia = idMesin === "maia";
-  const dm = useDeviasiManusia({ platform, username, waktu, batas: ac.batas });
+  const dm = useDeviasiManusia({ platform, username, waktu, batas: ac.batas, rating: elo });
   const sibuk = ac.berjalan || dm.berjalan || papanSibuk;
   const daftar = gabungkanAkun([...akunTersimpan, ...koleksi, akun]);
   const opsiMesin = [
@@ -228,7 +235,15 @@ export default function LayarDeteksiEngine({ onBukaAkun, onBukaPartai = null }) 
               t("analisa.antiCheat.riwayat.kedalaman", { n: kedalaman }),
             ],
           }
-        : infoTerbuka === "pengaturan"
+        : infoTerbuka === "elo"
+          ? {
+              judul: t("analisa.antiCheat.riwayat.elo"),
+              paragraf: [
+                t("analisa.antiCheat.riwayat.eloPetunjuk", { min: RATING_MIN, maks: RATING_MAKS }),
+                t("analisa.antiCheat.deviasi.eloCatatan"),
+              ],
+            }
+          : infoTerbuka === "pengaturan"
           ? {
               judul: t("analisa.antiCheat.riwayat.pengaturanUmum"),
               paragraf: [
@@ -257,6 +272,21 @@ export default function LayarDeteksiEngine({ onBukaAkun, onBukaPartai = null }) 
   function pilihAkun(kunci) {
     const pilihan = akunSitus.find((a) => a.username.toLowerCase() === kunci);
     setAkun({ platform, username: pilihan?.username || "" });
+  }
+
+  function ubahEloInput(nilai) {
+    setTeksElo(nilai);
+    const n = Number(nilai);
+    // Kosong/aneh bukan 0: biarkan teks apa adanya sampai fokus lepas.
+    if (String(nilai).trim() === "" || !Number.isFinite(n)) return;
+    setElo(batasRating(n));
+  }
+
+  function selesaikanElo() {
+    const n = Number(teksElo);
+    const rapi = String(teksElo).trim() === "" || !Number.isFinite(n) ? elo : batasRating(n);
+    setElo(rapi);
+    setTeksElo(String(rapi));
   }
 
   function gantiHash(n) {
@@ -328,7 +358,14 @@ export default function LayarDeteksiEngine({ onBukaAkun, onBukaPartai = null }) 
   const jalan = modeMaia ? dm.berjalan : ac.berjalan;
   const mulaiDeteksi = modeMaia ? dm.mulai : ac.jalankan;
   const batalDeteksi = modeMaia ? dm.batalkan : ac.batalkan;
-  const bisaMulai = Boolean(username) && !papanSibuk && (modeMaia || ac.batas !== null);
+  // Kolom jumlah partai dipakai kedua mesin, jadi isiannya yang tidak sah
+  // menahan tombol analisis di kedua jalur — bukan diam-diam jatuh ke bawaan.
+  const bisaMulai = Boolean(username) && !papanSibuk && ac.batas !== null;
+  // Maia punya bobot 45 MB. Selama belum siap, tombol di panel BUKAN tombol
+  // analisis: ia mengunduh dulu, baru berubah jadi tombol analisis. Dengan
+  // begitu tidak ada unduhan besar yang terjadi sebagai efek samping.
+  const maiaBelumSiap = modeMaia && !dm.unduh.siap;
+  const maiaSedangUnduh = dm.unduh.status === "menyiapkan" || dm.unduh.status === "mengunduh";
 
   function pilihEngineDeteksi(id) {
     setIdMesin(id);
@@ -374,7 +411,28 @@ export default function LayarDeteksiEngine({ onBukaAkun, onBukaPartai = null }) 
                         <div className="rounded-borderRoundness border border-border bg-[#272727] px-2 py-1 text-sm text-foreground">{versiEngine}</div>
                       </div>
                     </div>
-                    {modeMaia ? null : (
+                    {modeMaia ? (
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center gap-1 text-xs font-bold text-foregroundGrey">
+                        <label htmlFor={eloId}>{t("analisa.antiCheat.riwayat.elo")}</label>
+                        <TombolInfo uji="info-elo" judul={t("analisa.antiCheat.riwayat.elo")} buka={() => setInfoTerbuka("elo")} />
+                      </div>
+                      <input
+                        id={eloId}
+                        type="number"
+                        min={RATING_MIN}
+                        max={RATING_MAKS}
+                        step={50}
+                        inputMode="numeric"
+                        data-uji="deteksi-elo"
+                        value={teksElo}
+                        onChange={(e) => ubahEloInput(e.currentTarget.value)}
+                        onBlur={selesaikanElo}
+                        disabled={sibuk}
+                        className="rounded-borderRoundness border border-border bg-[#272727] px-2 py-1 text-sm text-foreground outline-none"
+                      />
+                    </div>
+                    ) : (
                     <div className="flex flex-col gap-1">
                       <div className="flex items-center gap-1 text-xs font-bold text-foregroundGrey">
                         <label htmlFor={kedalamanId}>{t("analisa.antiCheat.riwayat.kedalamanAnalisis")}</label>
@@ -524,6 +582,18 @@ export default function LayarDeteksiEngine({ onBukaAkun, onBukaPartai = null }) 
                   className="w-fit cursor-pointer rounded-borderRoundness border border-border bg-backgroundBoxBox px-4 py-2 text-sm font-bold text-foreground transition-colors hover:bg-backgroundBoxBoxHighlighted disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {t("analisa.antiCheat.riwayat.batal")}
+                </button>
+              ) : maiaBelumSiap ? (
+                <button
+                  type="button"
+                  data-uji="deviasi-siapkan"
+                  onClick={dm.siapkan}
+                  disabled={maiaSedangUnduh}
+                  className="w-fit cursor-pointer rounded-borderRoundness bg-backgroundBoxBoxHighlighted px-4 py-2 text-sm font-bold text-foregroundBlackDark transition-colors hover:bg-backgroundBoxBoxHighlightedHover disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {maiaSedangUnduh
+                    ? t("analisa.antiCheat.deviasi.mengunduh")
+                    : t("analisa.antiCheat.deviasi.unduhModel")}
                 </button>
               ) : (
                 <button
