@@ -21,6 +21,8 @@
  *    tidak-manusiawi), untuk ditinjau satu per satu.
  */
 
+import { pemainLangkah } from "./antiCheat.js";
+
 /** Ambang "sangat tidak-manusiawi" dalam bit kejutan. */
 export const AMBANG_KEJUTAN_BIT = 10;
 
@@ -40,19 +42,26 @@ function kejutanBit(p) {
  *   pola yang sama seperti `mesin/antiCheat.js`: prediksi untuk langkah pada
  *   `moves[i]` berada di `prediksi.get(moves[i - 1]?.fen)` (posisi SEBELUM).
  * @param {Map<string, object>} prediksi Map fen → `{ [uci]: probabilitas }`.
- * @param {{ langkahMinimum?: number }} [opsi] batas sampel minimum
- *   (bawaan 8) sebelum metrik dianggap layak dilaporkan.
+ * @param {{ langkahMinimum?: number, warna?: "w"|"b"|null }} [opsi]
+ *   `langkahMinimum` — batas sampel minimum (bawaan 8) sebelum metrik
+ *   dianggap layak dilaporkan. `warna` — bila diisi, hanya langkah pemain
+ *   berwarna itu yang dinilai; tanpa itu kedua pemain tercampur. Penyaringan
+ *   dilakukan SETELAH kunci `moves[i - 1].fen` dipilih, sehingga posisi
+ *   sebelum langkah tetap benar walau langkah lawan dilewati.
  * @returns {{ sampel: number, kejutanRata: number|null,
  *   rataPeringkatMaia: number|null, kejutanTinggi: number }|null}
  */
-export function hitungDeviasiManusia(moves, prediksi, { langkahMinimum = 8 } = {}) {
+export function hitungDeviasiManusia(moves, prediksi, { langkahMinimum = 8, warna = null } = {}) {
   if (!(prediksi instanceof Map) || !Array.isArray(moves)) return null;
+  const saringWarna = warna === "w" || warna === "b" ? warna : null;
 
   const kejutan = [];
   const peringkat = [];
   for (let i = 1; i < moves.length; i++) {
     const langkah = moves[i];
     if (!langkah?.uci || !langkah?.san) continue;
+    // Warna pelangkah, bukan `langkah.color` (itu giliran BERIKUTNYA).
+    if (saringWarna && pemainLangkah(langkah, i) !== saringWarna) continue;
     const distribusi = prediksi.get(moves[i - 1]?.fen);
     if (!distribusi || typeof distribusi !== "object") continue;
     const p = distribusi[langkah.uci];

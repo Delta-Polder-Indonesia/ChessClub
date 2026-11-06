@@ -31,7 +31,7 @@ mencatat **rencana dan status**, bukan detail perilaku.
 | 1 | `basisData.js` → `database/*` | **selesai** | commit `25ed51d` (PR #231) |
 | 2 | Pisahkan `BoardContext` + `ImportContext` | **selesai** | commit `d10e8b1`, `34636c3`, `88e428a` (PR #231) |
 | 3 | Pecah komponen raksasa | **selesai** (2026-11-06) | `komponen/nav/database/*` + `komponen/game/useMuatPartai.js` / `useAnalisisPapan.js` |
-| 4 | Integrasi Maia | **berjalan** — lapisan penyedia prediksi selesai, UI belum | `mesin/prediksiMaia.js`, `npm run uji:prediksi-maia` |
+| 4 | Integrasi Maia | **selesai** (2026-11-06) | `mesin/prediksiMaia.js`, `umpanBalik/…` → lihat bawah |
 
 Fase 1–2 sudah merge ke `main` lewat PR #231 (merge commit `2bc3868`).
 Ringkasannya: `basisData.js` (867 baris) jadi fasad 46 baris + enam modul
@@ -86,12 +86,22 @@ Disambungkannya `mesin/deviasiManusia.js` ke prediksi Maia
 `docs/MAIA3.md`) wajib dipertahankan: `hitungDeviasiManusia` berkunci **fen
 sebelum langkah**, model `maia3-simplified-1`.
 
-Status: **lapisan penyedia selesai** (2026-11-06) — `mesin/prediksiMaia.js`
-(`posisiUntukPrediksi`, `prediksiManusia`, `deviasiManusiaDariMaia`), diuji
-`npm run uji:prediksi-maia` (19 pemeriksaan) dengan mesin tiruan sehingga tidak
-butuh ONNX/worker. Sisa Fase 4: memanggilnya dari layar Deteksi engine
-(opsi + progres unduhan model) dan menampilkan metrik kejutan ke peninjau —
-bagian ini yang menyentuh UI, jadi dikerjakan sebagai langkah tersendiri.
+Status: **selesai** (2026-11-06), dalam dua PR:
+
+1. **Penyedia** — `mesin/prediksiMaia.js` (`posisiUntukPrediksi`,
+   `prediksiManusia`, `deviasiManusiaDariMaia`), diuji `npm run
+   uji:prediksi-maia` (19) dengan mesin tiruan, tanpa ONNX/worker.
+2. **Pemasangan ke layar** — tombol "Analisis distribusi manusia" di Deteksi
+   engine: `komponen/nav/PanelDeviasiManusia.jsx` +
+   `komponen/nav/useDeviasiManusia.js`, di atas `mesin/deviasiRiwayat.js`
+   (rata-rata berbobot sampel lintas partai) dan `mesin/uraiPgn.js` (pengurai
+   PGN tanpa Stockfish). Model 45 MB hanya diunduh setelah tombol ditekan;
+   pemakaian berikutnya memakai cache. Dijaga `npm run uji:deviasi-riwayat`
+   (22) + 2 pemeriksaan UI di `uji-anticheat.mjs` (428).
+
+Yang **tidak** dikerjakan di fase ini dan tetap terbuka: kalibrasi ulang
+`KALIBRASI_RATING` dengan korpus lokal (langkah 2 di README Analisa) dan cache
+agregat di server (langkah 3, opsional).
 
 ## Pagar yang sudah terpasang
 

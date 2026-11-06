@@ -358,6 +358,24 @@ Dua hal yang mudah salah dan sudah dikunci uji (`npm run uji:prediksi-maia`,
 2. **Rating diteruskan, bukan dikarang:** `rating`/`ratingLawan` milik
    pemanggil mengalir apa adanya ke `inferensi()`.
 
-Yang belum dikerjakan: memanggil modul ini dari layar Deteksi engine (opsi,
-progres unduhan model 45 MB, tombol batal) dan menampilkan `kejutanRata`,
-`rataPeringkatMaia`, serta `kejutanTinggi` ke peninjau.
+Pemanggilnya kini ada: tombol **"Analisis distribusi manusia"** di layar
+Deteksi engine (`komponen/nav/PanelDeviasiManusia.jsx` +
+`useDeviasiManusia.js`). Model 45 MB **tidak** diunduh saat layar dibuka —
+hanya setelah tombol ditekan, dengan progres unduhan dan tombol Batal; bobot
+yang sudah ada dipakai ulang dari cache.
+
+Lapisan riwayatnya (`mesin/deviasiRiwayat.js` + `mesin/uraiPgn.js`) murni dan
+diuji tanpa model:
+
+- `ringkasDeviasiRiwayat(partai, { prediksi, warnaUntuk, sinyal })` —
+  rata-rata **berbobot sampel** lintas partai, hasil parsial saat dibatalkan.
+- `uraiPgn(pgn)` — pengurai PGN tanpa Stockfish; bentuk keluarannya meniru
+  `parsePGN()` (`moves[0]` posisi awal, `color` = giliran berikutnya), jadi
+  kunci "FEN sebelum langkah" tetap berlaku.
+- Opsi `warna` di `hitungDeviasiManusia` menyaring ke satu pemain **setelah**
+  kunci FEN dipilih — tanpa itu langkah lawan ikut terhitung dan metrik tidak
+  lagi menjawab "apakah ORANG INI bermain seperti manusia rating segini".
+
+Yang masih terbuka: kalibrasi ambang kejutan dengan korpus lokal, dan
+kemungkinan memakai `kejutanTinggi` per langkah untuk menyorot langkah
+tertentu di papan (sekarang baru berupa angka ringkasan).
