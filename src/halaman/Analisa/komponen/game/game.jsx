@@ -22,6 +22,7 @@ import { getMoves, getArrows, getCustomResult, formatPlayerLabel } from "./getMo
 import { hashPgn } from "../../../../lib/pgnRingan.js";
 import { ringkasAnalisis } from "../../mesin/ringkasanAnalisis.js";
 import { catatAnalisis } from "../../mesin/analisisTersimpan.js";
+import { adaPgnTitipan } from "../../../../lib/titipanAnalisa.js";
 
 function Game({ wadah }) {
   const [boardSize, setBoardSize] = useState(750);
@@ -389,6 +390,15 @@ function Game({ wadah }) {
     }
   }, [t, siapkan, boardSounds, setErrors, setAnalyzeController, setPageState, setTab, setProgress, setLangkahSementara, setTime, setPlayers, setGame, setResult, setAnimation, setArrows, setCustomLine, setAnalyzingMove, setMoveNumber]);
   const handleFEN = useCallback(async (fen, terkini, sinyal) => {
+    /*
+     * Halaman dibuka dengan PGN titipan dari teka-teki (lihat
+     * `src/lib/titipanAnalisa.js`): keadaan awal `data` masih `{fen, ""}`, jadi
+     * tanpa penjagaan ini jalur "tanpa FEN" di bawah menggambar papan POSISI
+     * AWAL sebagai `default` sebelum PGN titipan sempat dibaca. Biarkan
+     * `loading` (kerangka papan) — pengimpor di `areaKerja.jsx` mengambil alih
+     * beberapa milidetik kemudian.
+     */
+    if (!fen?.trim() && adaPgnTitipan()) return;
     let move3;
     try {
       move3 = await new Promise((resolve, reject) => {
@@ -788,6 +798,20 @@ function Game({ wadah }) {
                     <Name materialAdvantage={materialAdvantage} captured={captured[white ? "black" : "white"]} white={!white} avatar={avatarPemain[white ? 1 : 0]} title={titlePemain[white ? 1 : 0]} flag={flagPemain[white ? 1 : 0]}>{playerLabels[white ? 1 : 0]}</Name>
                     <Clock white={!white} colorMoving={move2?.color ?? game[moveNumber]?.color}>{formatTime(white ? currentBlackTime : currentWhiteTime)}</Clock>
                 </div>
+                {pageState === "loading" ? (
+                  /*
+                   * Kerangka papan selama partai dimuat/dianalisis. Dulu papan
+                   * langsung menggambar posisi awal, sehingga pengguna yang
+                   * datang lewat tombol "Analisa" sempat melihat posisi awal
+                   * sekitar satu detik sebelum posisi soal muncul.
+                   */
+                  <div
+                    data-kerangka-papan="1"
+                    aria-hidden="true"
+                    style={{ width: boardSize, height: boardSize }}
+                    className="animate-pulse rounded-[3px] bg-backgroundBox ring-1 ring-black/10"
+                  />
+                ) : (
                 <Board
     setPlaying={setPlaying}
     cleanArrows={cleanCurrentArrows}
@@ -822,6 +846,7 @@ function Game({ wadah }) {
     setDrag={setDrag}
     bestMoveSan={move2?.bestMoveSan}
   />
+                )}
                 <div style={{ width: boardSize }} className="flex flex-row justify-between">
                     <Name materialAdvantage={materialAdvantage} captured={captured[white ? "white" : "black"]} white={white} avatar={avatarPemain[white ? 0 : 1]} title={titlePemain[white ? 0 : 1]} flag={flagPemain[white ? 0 : 1]}>{playerLabels[white ? 0 : 1]}</Name>
                     <Clock white={white} colorMoving={move2?.color ?? game[moveNumber]?.color}>{formatTime(white ? currentWhiteTime : currentBlackTime)}</Clock>

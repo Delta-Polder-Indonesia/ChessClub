@@ -6,7 +6,11 @@
  * fokus — `Escape` pun ditangani listener global. Versi ini:
  *   - dirender lewat portal ke `document.body` (tidak terpotong `overflow`);
  *   - memindahkan fokus ke pilihan pertama, menjebaknya selama terbuka, dan
- *     mengembalikan fokus ke elemen pemicu saat ditutup;
+ *     mengembalikan fokus ke PETAK yang relevan saat ditutup (petak tujuan
+ *     setelah memilih, petak asal setelah batal) — dulu yang dipulihkan hanya
+ *     `document.activeElement` yang tersimpan saat dialog dibuka, sehingga
+ *     pembukaan lewat sentuhan/klik programatis bisa memulangkan fokus ke
+ *     `<body>` dan pengguna keyboard kehilangan posisi;
  *   - menangani `Escape` dan klik latar sebagai batal;
  *   - tetap memakai markup/tombol yang sama (uji lama tetap berlaku).
  */
@@ -26,18 +30,38 @@ export default function PromotionDialog({
   const { t } = useI18n();
   const kotakRef = useRef(null);
   const fokusSebelum = useRef(null);
+  // Petak yang harus menerima fokus setelah dialog tertutup. Diisi SEBELUM
+  // status promosi dibersihkan, karena saat pembersihan itu `promosi` sudah
+  // null sedangkan pembersih efek masih memegang nilai render pertama.
+  const petakFokus = useRef(null);
 
-  const tutup = useCallback(() => onBatal?.(), [onBatal]);
+  const tutup = useCallback(() => {
+    petakFokus.current = promosi?.from ?? null;
+    onBatal?.();
+  }, [onBatal, promosi]);
+
+  const pilih = useCallback(
+    (bidak) => {
+      petakFokus.current = promosi?.to ?? null;
+      onPilih?.(bidak);
+    },
+    [onPilih, promosi]
+  );
 
   useEffect(() => {
     fokusSebelum.current = document.activeElement;
     const pertama = kotakRef.current?.querySelector("button");
     pertama?.focus();
     return () => {
-      // Kembalikan fokus ke pemicu (papan) supaya pengguna keyboard tidak
-      // kehilangan posisi setelah dialog ditutup.
-      const el = fokusSebelum.current;
-      if (el && typeof el.focus === "function") el.focus();
+      /*
+       * Kembalikan fokus ke petak yang relevan, bukan sekadar ke elemen yang
+       * kebetulan aktif saat dialog dibuka (klik sentuh/programatis tidak
+       * memindahkan fokus, jadi `activeElement` bisa `<body>`).
+       */
+      const sq = petakFokus.current;
+      const el = sq ? document.querySelector(`[data-petak="${sq}"]`) : null;
+      const target = el || fokusSebelum.current;
+      if (target && typeof target.focus === "function") target.focus();
     };
   }, []);
 
@@ -85,7 +109,7 @@ export default function PromotionDialog({
             <button
               key={p}
               type="button"
-              onClick={() => onPilih?.(p)}
+              onClick={() => pilih(p)}
               aria-label={t(KUCI_NAMA_PROMOSI[p])}
               title={t(KUCI_NAMA_PROMOSI[p])}
               data-promosi={p}

@@ -14,6 +14,11 @@
  *   C4  Posisi soal koleksi kurasi (id ≥ 5487) tetap tersimpan — dulu ditolak
  *       penjaga `id <= jumlah dataset Lichess`.
  *   C5  Status akhir permainan tampil di wilayah `aria-live`.
+ *   C6  Tema papan dari Pengaturan benar-benar sampai ke papan: dulu halaman
+ *       mengirim prop `warnaPapan` yang tidak pernah dibaca papan, sehingga
+ *       pilihan pengguna tersimpan di localStorage tetapi papannya tetap hijau.
+ *   C7  Setelah memilih bidak promosi, fokus kembali ke petak yang relevan —
+ *       bukan jatuh ke `<body>`.
  *   +   Tidak ada lagi `eslint-disable react-hooks/exhaustive-deps`, dan
  *       halaman tidak lagi berupa satu berkas 2.987 baris.
  *
@@ -27,6 +32,8 @@ import { fileURLToPath } from "node:url";
 import { pluginGlobAset } from "./loader-jsx.mjs";
 import { Chess } from "chess.js";
 import { parseLangkah, terapkan } from "../src/lib/tekaTeki.js";
+import { TEMA_PAPAN } from "../src/halaman/TekaTeki/temaPapan.js";
+import { PILIHAN_WARNA_PAPAN } from "../src/lib/pilihanPapan.js";
 import { tekaTeki as kamus } from "../src/lib/terjemahan/id/tekaTeki.js";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -889,6 +896,204 @@ judul("panel kanan: posisi ringkasan giliran tetap saat soal selesai");
       sebelum.kelasCatatan === sesudah.kelasCatatan,
     `${JSON.stringify(sebelum)} -> ${JSON.stringify(sesudah)}`
   );
+}
+
+
+/* ------------------------------------------------- C6: tema papan sampai */
+
+/** Normalisasi "#rrggbb" / "rgb(r, g, b)" menjadi [r, g, b]. */
+function rgbDari(nilai) {
+  const teks = String(nilai || "").trim();
+  const hex = teks.match(/^#([0-9a-f]{6})$/i);
+  if (hex) return [0, 2, 4].map((i) => parseInt(hex[1].slice(i, i + 2), 16));
+  const rgb = teks.match(/rgba?\(([^)]+)\)/i);
+  if (rgb) return rgb[1].split(",").slice(0, 3).map((n) => Math.round(parseFloat(n)));
+  return null;
+}
+
+const warnaSama = (a, b) => {
+  const x = rgbDari(a);
+  const y = rgbDari(b);
+  return Boolean(x && y && x.every((v, i) => v === y[i]));
+};
+
+/** Rasio kontras WCAG antara dua warna CSS. */
+function kontrasWcag(a, b) {
+  const lum = (nilai) => {
+    const [r, g, bl] = rgbDari(nilai).map((v) => {
+      const s = v / 255;
+      return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+    });
+    return 0.2126 * r + 0.7152 * g + 0.0722 * bl;
+  };
+  const l1 = lum(a);
+  const l2 = lum(b);
+  return (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
+}
+
+async function pasangHalamanDenganPenyimpanan(jalur, isiPenyimpanan) {
+  const penyimpanan = pasangDomBaru(jalur);
+  penyimpanan.clear();
+  for (const [kunci, nilai] of Object.entries(isiPenyimpanan)) penyimpanan.setItem(kunci, nilai);
+  permintaanJaringan.length = 0;
+  delete require.cache[berkasBundel];
+  require(berkasBundel).mount(dok.getElementById("root"), jalur);
+  const siap = await tungguSampai(() => dok.querySelectorAll("[data-petak]").length === 64);
+  await tunggu(140);
+  return { siap, penyimpanan };
+}
+
+judul("C6: tema papan dari Pengaturan benar-benar sampai ke papan");
+{
+  const soal = problems[3];
+  const jalur = `/teka-teki/problem/${soal.problemid}`;
+  const { siap, penyimpanan } = await pasangHalamanDenganPenyimpanan(jalur, {
+    "kci-teka-teki-warna-papan": "wood",
+  });
+  const latar = (sq) => (dok.querySelector(`[data-petak="${sq}"]`) || { style: {} }).style.backgroundColor;
+
+  uji("papan memuat soal", siap);
+  uji(
+    "petak terang memakai palet tema tersimpan (kayu)",
+    warnaSama(latar("h1"), TEMA_PAPAN.wood.terang),
+    `${latar("h1")} vs ${TEMA_PAPAN.wood.terang}`
+  );
+  uji(
+    "petak gelap memakai palet tema tersimpan (kayu)",
+    warnaSama(latar("h2"), TEMA_PAPAN.wood.gelap),
+    `${latar("h2")} vs ${TEMA_PAPAN.wood.gelap}`
+  );
+  uji(
+    "papan tidak lagi terkunci pada tema hijau",
+    !warnaSama(latar("h1"), TEMA_PAPAN.hijau.terang) &&
+      !warnaSama(latar("h1"), TEMA_PAPAN.green.terang)
+  );
+
+  // Ganti tema lewat panel Pengaturan seperti pengguna.
+  const tabPengaturan = [...dok.querySelectorAll('[role="tab"]')].find(
+    (t) => (t.textContent || "").trim() === "Pengaturan"
+  );
+  uji("tab Pengaturan tersedia", Boolean(tabPengaturan));
+  tabPengaturan?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+  await tunggu(120);
+
+  const pilihWarna = dok.querySelector("#sampel-warna-papan");
+  uji("pemilih warna papan ada", Boolean(pilihWarna));
+  if (pilihWarna) {
+    pilihWarna.value = "metal";
+    pilihWarna.dispatchEvent(new window.Event("change", { bubbles: true }));
+    await tunggu(160);
+  }
+  uji(
+    "mengganti tema di Pengaturan langsung mengubah papan",
+    warnaSama(latar("h1"), TEMA_PAPAN.metal.terang) &&
+      warnaSama(latar("h2"), TEMA_PAPAN.metal.gelap),
+    `${latar("h1")} / ${latar("h2")}`
+  );
+
+  // Semua 11 tema harus benar-benar sampai ke papan, bukan hanya satu.
+  const meleset = [];
+  for (const [id] of PILIHAN_WARNA_PAPAN) {
+    if (!pilihWarna) break;
+    pilihWarna.value = id;
+    pilihWarna.dispatchEvent(new window.Event("change", { bubbles: true }));
+    await tunggu(60);
+    const palet = TEMA_PAPAN[id];
+    if (!palet) {
+      meleset.push(`${id}: palet tidak ada`);
+      continue;
+    }
+    if (!warnaSama(latar("h1"), palet.terang) || !warnaSama(latar("h2"), palet.gelap)) {
+      meleset.push(`${id}: ${latar("h1")}/${latar("h2")} ≠ ${palet.terang}/${palet.gelap}`);
+    }
+    const kunciTersimpan = penyimpanan.getItem("kci-teka-teki-warna-papan");
+    if (kunciTersimpan !== id) meleset.push(`${id}: tersimpan "${kunciTersimpan}"`);
+  }
+  uji(
+    `kesebelas tema pilihan benar-benar mengubah warna papan (${PILIHAN_WARNA_PAPAN.length})`,
+    meleset.length === 0,
+    meleset.slice(0, 4).join("; ")
+  );
+
+  // Kontras koordinat ikut tema terpilih (jaga perbaikan aksesibilitas PR #229).
+  const koordinat = [...dok.querySelectorAll("[data-petak] span")].filter(
+    (el) =>
+      el.style.color &&
+      /^[a-h1-8]$/.test((el.textContent || "").trim()) &&
+      el.children.length === 0
+  );
+  uji("label koordinat punya warna eksplisit (16 label)", koordinat.length >= 16, `${koordinat.length} label`);
+  uji(
+    "kontras koordinat ≥ 4,5:1 pada tema terpilih",
+    koordinat.length >= 16 &&
+      koordinat.every((el) => {
+        const petak = el.closest("[data-petak]");
+        const rasio = kontrasWcag(el.style.color, petak.style.backgroundColor);
+        return Number.isFinite(rasio) && rasio >= 4.5;
+      }),
+    koordinat
+      .map((el) => kontrasWcag(el.style.color, el.closest("[data-petak]").style.backgroundColor).toFixed(2))
+      .join(", ")
+  );
+}
+
+/* --------------------------------------- C7: fokus setelah promosi bidak */
+
+judul("C7: fokus kembali ke petak setelah memilih bidak promosi");
+{
+  const berPromosi = problems.filter((p) => /^[a-h][1-8]-[a-h][1-8][qrbn]$/.test(p.moves.split(";")[0]));
+  uji("ada soal promosi pada langkah pertama", berPromosi.length >= 2);
+  const [soal, soalBatal] = berPromosi;
+
+  if (soal) {
+    const { siap } = await kunjungi(`/teka-teki/problem/${soal.problemid}`);
+    const langkah = parseLangkah(soal.moves.split(";")[0]);
+    uji("soal promosi termuat", siap && papanSama(soal.fen));
+
+    await mainkan(langkah.from, langkah.to);
+    const terbuka = await tungguSampai(() => !!dok.querySelector('[data-dialog="promosi"]'), 3000);
+    uji("dialog promosi terbuka", terbuka);
+
+    const opsiPertama = dok.querySelector('[data-dialog="promosi"] [data-promosi="q"]');
+    uji(
+      "fokus awal di opsi pertama (Menteri)",
+      Boolean(opsiPertama) && dok.activeElement === opsiPertama
+    );
+
+    opsiPertama?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+    await tunggu(250);
+    const aktif = dok.activeElement;
+    uji(
+      "setelah memilih, fokus di petak tujuan — bukan <body>",
+      Boolean(aktif) && aktif.getAttribute("data-petak") === langkah.to,
+      aktif ? `${aktif.tagName}[data-petak=${aktif.getAttribute("data-petak")}]` : "null"
+    );
+    uji(
+      "bidak promosi benar-benar terpasang",
+      !dok.querySelector('[data-dialog="promosi"]') &&
+        (dok.querySelector(`[data-petak="${langkah.to}"]`)?.getAttribute("aria-label") || "").includes(
+          kamus.namaBidak.q
+        )
+    );
+  }
+
+  if (soalBatal) {
+    await kunjungi(`/teka-teki/problem/${soalBatal.problemid}`);
+    const langkah = parseLangkah(soalBatal.moves.split(";")[0]);
+    await mainkan(langkah.from, langkah.to);
+    await tungguSampai(() => !!dok.querySelector('[data-dialog="promosi"]'), 3000);
+    const batal = [...dok.querySelectorAll('[data-dialog="promosi"] button')].find(
+      (b) => !b.hasAttribute("data-promosi")
+    );
+    batal?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+    await tunggu(250);
+    const aktif = dok.activeElement;
+    uji(
+      "setelah batal, fokus kembali ke petak asal",
+      Boolean(aktif) && aktif.getAttribute("data-petak") === langkah.from,
+      aktif ? `${aktif.tagName}[data-petak=${aktif.getAttribute("data-petak")}]` : "null"
+    );
+  }
 }
 
 console.log(`\n${lulus} lulus, ${gagal} gagal`);

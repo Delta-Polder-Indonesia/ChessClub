@@ -16,6 +16,7 @@
  * agar riwayat peramban tidak menumpuk antar-soal.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { KUNCI_PGN_TITIPAN } from "../../../lib/titipanAnalisa.js";
 import { useNavigate } from "react-router-dom";
 import { standarkanNamaPembukaan } from "../../../lib/namaPembukaan.js";
 import { coba } from "../../../lib/utils.js";
@@ -41,7 +42,8 @@ import {
 import { urlVideoSah, tanggalVideoSah } from "../services/videoAman.js";
 import { useCallbackTerbaru, useNilaiTerbaru } from "./useCallbackTerbaru.js";
 
-const KUNCI_IMPOR_ANALISA = "kci-analisa-impor-awal";
+/* Kunci titipan PGN dipakai bersama halaman Analisa — satu sumber kebenaran. */
+const KUNCI_IMPOR_ANALISA = KUNCI_PGN_TITIPAN;
 
 /** Normalisasi satu record soal dari dataset (pembukaan + media). */
 function rapikanSoal(item) {

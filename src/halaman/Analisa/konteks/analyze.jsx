@@ -2,11 +2,20 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useI18n } from "../../../lib/i18n.jsx";
 import { bacaAngka } from "../penyimpanan.js";
+import { adaPgnTitipan } from "../../../lib/titipanAnalisa.js";
 import { AnalyzeContext, TAMPILAN_ANALISA, normalisasiPemain } from "./analyzeKonteks.js";
 
 function AnalyzeContextProvider(props) {
   const [data, setData] = useState({ format: "fen", string: "" });
-  const [pageState, setPageState] = useState("default");
+  /*
+   * Bila halaman dibuka dengan PGN titipan dari teka-teki (tombol "Analisa"),
+   * mulai dalam keadaan `loading`. Tanpa ini render PERTAMA papan memakai
+   * posisi/`pageState` bawaan dan pengguna sempat melihat papan posisi awal
+   * ±1 detik sebelum posisi soal datang. `loading` juga sudah dikenali panel
+   * ringkasan (`memuatPartai`) maupun papan (kerangka), jadi tidak ada
+   * keadaan baru yang perlu ditangani layar lain.
+   */
+  const [pageState, setPageState] = useState(() => (adaPgnTitipan() ? "loading" : "default"));
   const [game, setGame] = useState([]);
   const { t } = useI18n();
   const [players, setPlayers] = useState(() => [
