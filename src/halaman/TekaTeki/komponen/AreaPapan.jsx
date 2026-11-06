@@ -116,7 +116,13 @@ export default function AreaPapan({
             </div>
             {/* Level soal: label di samping kiri kotak */}
             <div className="flex flex-shrink-0 flex-row items-center gap-2">
-              <span className="hidden whitespace-nowrap text-[11px] font-medium text-gray-400 sm:inline">
+              {/*
+               * Label ini disembunyikan pada 1024–1279px: di rentang itu
+               * kolom papan sempit, dan label 53px ini memakan ruang yang
+               * dibutuhkan nama pemain (nama sempat menyusut jadi 0px).
+               * Chip di sebelahnya ("Sangat mudah") tetap menjelaskan isinya.
+               */}
+              <span className="hidden whitespace-nowrap text-[11px] font-medium text-gray-400 sm:inline lg:hidden xl:inline">
                 {t("tekaTeki.levelSoal")}
               </span>
               <div className="flex h-10 min-w-[100px] items-center justify-center rounded-md border border-[#312e2b] bg-[#1e1d1c] px-3 text-sm font-bold text-nowrap shadow-inner">
@@ -219,7 +225,8 @@ export default function AreaPapan({
             </div>
             {/* Rating soal: label di samping kiri kotak */}
             <div className="flex flex-shrink-0 flex-row items-center gap-2">
-              <span className="hidden whitespace-nowrap text-[11px] font-medium text-gray-400 sm:inline">
+              {/* Alasan sama dengan label "Level Soal" di baris atas. */}
+              <span className="hidden whitespace-nowrap text-[11px] font-medium text-gray-400 sm:inline lg:hidden xl:inline">
                 {t("tekaTeki.ratingSoal")}
               </span>
               <div className="flex h-10 min-w-[100px] items-center justify-center rounded-md border border-[#81b64c] bg-[#f0f0f0] px-3 font-mono text-lg font-bold text-nowrap text-[#1e1d1c] shadow ring-2 ring-[#81b64c]/40">

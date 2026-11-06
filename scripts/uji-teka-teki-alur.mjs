@@ -602,7 +602,24 @@ judul("langkah salah & ilegal");
     .find((m) => !(m.from === langkah[0].from && m.to === langkah[0].to));
   await mainkan(salah.from, salah.to);
   await tunggu(150);
-  uji("pesan status salah tidak ditampilkan setelah baris dihapus", !dok.body.textContent.includes(kamus.salah));
+  /*
+   * Audit aksesibilitas: kalimat langkah salah tetap tidak tampil di layar,
+   * tetapi sekarang diumumkan lewat wilayah `aria-live` tersembunyi.
+   */
+  const wilayahSalah = dok.querySelector('.sr-only [data-status-permainan="salah"]');
+  uji(
+    "pesan status salah diumumkan lewat wilayah sr-only",
+    Boolean(wilayahSalah) && (wilayahSalah.textContent || "").includes(kamus.salah)
+  );
+  uji(
+    "pesan status salah tidak tampil di layar",
+    ![...dok.querySelectorAll("body *")].some(
+      (el) =>
+        el.children.length === 0 &&
+        (el.textContent || "").includes(kamus.salah) &&
+        !el.closest(".sr-only")
+    )
+  );
   uji("posisi TIDAK berubah oleh langkah salah", papanSama(soal.fen));
   uji("soal tidak tercatat terpecahkan", !terpecahkan().includes(soal.problemid));
 
@@ -1248,9 +1265,14 @@ judul("skakmat alternatif: skakmat ditolak tanpa baris status");
         }
       }
       uji(
-        `pesan status skakmat alternatif tidak ditampilkan (soal #${kandidat.problemid})`,
-        !dok.body.textContent.includes(kamus.mateAlternatif),
-        "baris status yang memuat pesan telah dihapus"
+        `pesan status skakmat alternatif tidak tampil di layar (soal #${kandidat.problemid})`,
+        ![...dok.querySelectorAll("body *")].some(
+          (el) =>
+            el.children.length === 0 &&
+            (el.textContent || "").includes(kamus.mateAlternatif) &&
+            !el.closest(".sr-only")
+        ),
+        "hanya diumumkan lewat wilayah sr-only"
       );
       // Skakmat alternatif tetap TIDAK menuntaskan soal (kebijakan tetap ketat).
       const langkahTersisa = sebelum.moves().length;

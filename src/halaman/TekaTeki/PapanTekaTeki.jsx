@@ -17,6 +17,36 @@ import ResultSVG from "../Analisa/komponen/svg/result.jsx";
 const FILE = ["a", "b", "c", "d", "e", "f", "g", "h"];
 
 /**
+ * Warna teks koordinat (huruf lajur & angka baris) per warna petak.
+ *
+ * Audit kontras menemukan label koordinat memakai warna petak lawan, dan pada
+ * tema bawaan hasilnya hanya 2,81:1 (gagal WCAG AA 4,5:1) di kedua warna
+ * petak. Di sini warna lawan tetap dipakai bila sudah lolos; kalau tidak,
+ * dipilih hitam/putih penuh yang paling kontras sehingga SEMUA tema papan
+ * (termasuk tema gelap) mencapai ≥ 4,5:1.
+ */
+const luminansiRelatif = (hex) => {
+  const kanal = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
+  const [r, g, b] = kanal.map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+};
+
+const rasioKontras = (a, b) => {
+  const la = luminansiRelatif(a);
+  const lb = luminansiRelatif(b);
+  return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
+};
+
+const warnaTeksKoordinat = (warnaLatar, warnaLawan) => {
+  const kandidat = [warnaLawan, "#000000", "#ffffff"];
+  const lolos = kandidat.find((w) => rasioKontras(w, warnaLatar) >= 4.5);
+  if (lolos) return lolos;
+  return rasioKontras("#000000", warnaLatar) >= rasioKontras("#ffffff", warnaLatar)
+    ? "#000000"
+    : "#ffffff";
+};
+
+/**
  * Warna tanda bantu — mengikuti referensi chess.com.
  * Panah: fill rgba(..., 0.8) + opacity 0.8 (persis SVG chess.com, oranye).
  * Petak: warna bawaan KUNING; Shift/Ctrl/Alt → merah/hijau/biru.
@@ -1015,8 +1045,10 @@ export default function PapanTekaTeki({
     return {
       terang: palet.terang,
       gelap: palet.gelap,
-      teksTerang: palet.gelap,
-      teksGelap: palet.terang,
+      // Koordinat di petak terang memakai warna gelap lawannya, dan sebaliknya
+      // — tetapi hanya bila kontrasnya lolos AA (lihat warnaTeksKoordinat).
+      teksTerang: warnaTeksKoordinat(palet.terang, palet.gelap),
+      teksGelap: warnaTeksKoordinat(palet.gelap, palet.terang),
     };
   }, [tema]);
 

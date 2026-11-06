@@ -387,11 +387,34 @@ await mainkan(soalUji.alternatif.from, soalUji.alternatif.to);
 await tunggu(400);
 uji("mate alternatif tidak mengubah posisi", papanSama(soalUji.fenAkhir));
 /*
- * Mate alternatif tetap dibedakan secara logika, tetapi pesan statusnya tidak
- * dirender karena baris status teka-teki sudah dihapus.
+ * Mate alternatif tetap dibedakan secara logika; pesannya tidak tampil di
+ * layar, hanya diumumkan lewat wilayah `aria-live` tersembunyi.
  */
-uji("pesan mate alternatif tidak ditampilkan", !domSiap.body.textContent.includes(kamus.mateAlternatif));
-uji("pesan salah tidak ditampilkan", !domSiap.body.textContent.includes(kamus.salah));
+uji(
+  "pesan mate alternatif tidak tampil di layar",
+  ![...domSiap.querySelectorAll("body *")].some(
+    (el) =>
+      el.children.length === 0 &&
+      (el.textContent || "").includes(kamus.mateAlternatif) &&
+      !el.closest(".sr-only")
+  )
+);
+const wilayahSalahSolusi = domSiap.querySelector('.sr-only [data-status-permainan="salah"]');
+uji(
+  "pesan langkah salah diumumkan lewat wilayah sr-only",
+  Boolean(wilayahSalahSolusi) &&
+    (wilayahSalahSolusi.textContent || "").includes(kamus.mateAlternatif),
+  wilayahSalahSolusi ? wilayahSalahSolusi.textContent.trim().slice(0, 40) : "tidak ada wilayah"
+);
+uji(
+  "pesan salah tidak tampil di layar",
+  ![...domSiap.querySelectorAll("body *")].some(
+    (el) =>
+      el.children.length === 0 &&
+      (el.textContent || "").includes(kamus.salah) &&
+      !el.closest(".sr-only")
+  )
+);
 uji("soal belum tercatat terpecahkan", !terpecahkan().includes(soalUji.soal.problemid));
 
 await mainkan(soalUji.solusi.from, soalUji.solusi.to);

@@ -443,10 +443,18 @@ export default function TekaTeki() {
       />
       <TekaTekiShell
         masalah={masalah}
-        // Hanya pesan tuntas yang diteruskan — untuk diumumkan ke pembaca
-        // layar (wilayah `sr-only`), bukan untuk ditampilkan. Umpan balik
-        // langkah salah tetap berupa sorotan petak (kontrak uji alur).
-        pesan={pesan?.jenis === "selesai" ? pesan : null}
+        /*
+         * Pesan diteruskan HANYA untuk diumumkan pembaca layar lewat wilayah
+         * `sr-only` di dalam shell — tidak ada yang tampil di layar.
+         *
+         * Dulu hanya pesan "selesai" yang diteruskan, sehingga langkah salah
+         * (dan mate alternatif) tidak menghasilkan apa pun bagi pengguna
+         * pembaca layar: umpan baliknya cuma lapisan merah + suara. Sekarang
+         * pesan "salah" ikut diumumkan; sorotan petak & suara tetap sama.
+         */
+        pesan={
+          pesan && (pesan.jenis === "selesai" || pesan.jenis === "salah") ? pesan : null
+        }
         memuat={memuat}
         memuatKoleksi={memuatKoleksi}
         gagal={gagal}

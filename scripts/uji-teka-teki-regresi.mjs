@@ -720,9 +720,25 @@ judul("langkah salah tidak mengubah papan dan tidak menuliskan pesan");
         soal.problemid
       )
     );
+    /*
+     * Kontrak baru (audit aksesibilitas): pesan langkah salah TIDAK tampil di
+     * layar, tetapi diumumkan ke pembaca layar lewat satu-satunya wilayah
+     * `aria-live` yang disembunyikan visual (`.sr-only`).
+     */
+    const wilayahSalah = dok.querySelector('.sr-only [data-status-permainan="salah"]');
     uji(
-      "pesan teks langkah salah tidak dirender (kontrak lama)",
-      !(dok.body.textContent || "").includes(kamus.salah)
+      "pesan langkah salah diumumkan lewat wilayah sr-only",
+      Boolean(wilayahSalah) && (wilayahSalah.textContent || "").includes(kamus.salah),
+      wilayahSalah ? wilayahSalah.textContent.trim().slice(0, 40) : "tidak ada wilayah"
+    );
+    uji(
+      "pesan langkah salah tidak tampil di layar",
+      ![...dok.querySelectorAll("body *")].some(
+        (el) =>
+          el.children.length === 0 &&
+          (el.textContent || "").includes(kamus.salah) &&
+          !el.closest(".sr-only")
+      )
     );
   }
 }

@@ -119,9 +119,23 @@ export default function TekaTekiShell({
           />
         </div>
 
+        {/*
+         * Lebar panel kanan mengikuti sisa ruang, bukan angka mati 480px.
+         *
+         * Sebelumnya `lg:w-[480px]`: pada 1024–1279px sidebar (220px) + panel
+         * (480px) memakan 700px, sehingga kolom papan hanya sisa 324px dan
+         * papan menyusut sampai 232px (petak 29px) — baris profil yang
+         * lebarnya mengikuti papan pun kehabisan ruang (nama pemain 0px,
+         * "(1787)" menimpa label "Rating Soal").
+         *
+         * `clamp(300px, 70vw - 416px, 480px)` membuat panel menyusut bersama
+         * viewport: 301px @1024, 390px @1152, 479px @1279 — lalu tetap 480px
+         * mulai 1280px, jadi tata letak ≥1280 (1280/1366/1440/1920) sama
+         * persis seperti sebelumnya.
+         */}
         <aside
           data-panel="kanan"
-          className="w-full lg:w-[480px] h-full bg-[#211f1c] border-t lg:border-t-0 lg:border-l border-[#312e2b] flex flex-col flex-shrink-0 min-h-0"
+          className="w-full lg:w-[clamp(300px,calc(70vw_-_416px),480px)] h-full bg-[#211f1c] border-t lg:border-t-0 lg:border-l border-[#312e2b] flex flex-col flex-shrink-0 min-h-0"
         >
           <PanelTab aktif={tabPanelAktif} onGanti={onGantiTabPanel} />
 
