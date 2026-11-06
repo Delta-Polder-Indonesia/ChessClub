@@ -90,10 +90,17 @@ export default function TekaTekiShell({
       <div className="flex flex-col lg:flex-row flex-1 min-h-0">
         <SidebarTekaTeki kol={kol} />
 
-        <div className="relative flex min-h-0 min-w-0 flex-1">
+        {/*
+         * Pembungkus ini hanya memegang lebar; `overflow-hidden` memastikan
+         * tidak ada isi area papan yang bisa menimpa panel kanan. Status
+         * permainan diteruskan sebagai slot dan dirender DI ALIRAN di dalam
+         * baris papan — bukan lapisan absolut di atas baris profil.
+         */}
+        <div className="relative flex min-h-0 min-w-0 flex-1 overflow-hidden">
           <AreaPapan
             papan={papan}
             bilahEvaluasi={bilahEvaluasi}
+            status={<StatusTekaTeki pesan={pesan} onTutup={onTutupStatus} melayang={false} />}
             orientasi={tampilan.orientasi}
             memuat={memuat}
             jumlahLangkah={tampilan.jumlahLangkah}
@@ -106,8 +113,6 @@ export default function TekaTekiShell({
             namaPutih={tampilan.namaPutih}
             eloPutih={tampilan.eloPutih}
           />
-          {/* Umpan balik benar/salah/selesai — wilayah aria-live. */}
-          <StatusTekaTeki pesan={pesan} onTutup={onTutupStatus} />
         </div>
 
         <aside

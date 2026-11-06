@@ -203,6 +203,100 @@ judul("struktur & higiene kode (statis)");
   );
 }
 
+/* ------------------------------------------------- tata letak: baris profil */
+
+judul("tata letak: baris profil terpisah dari papan (regresi PR #228)");
+{
+  // Komentar penjelas menyebut pola lama (mis. `calc(100vh_-_106px)`), jadi
+  // pemeriksaan hanya boleh melihat kode.
+  const tanpaKomentar = (teks) =>
+    teks.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/[^\n]*/g, "$1");
+  const areaPapan = tanpaKomentar(
+    readFileSync(path.join(DIR_HALAMAN, "komponen", "AreaPapan.jsx"), "utf8")
+  );
+  const shell = tanpaKomentar(readFileSync(
+    path.join(DIR_HALAMAN, "komponen", "TekaTekiShell.jsx"),
+    "utf8"
+  ));
+
+  /*
+   * Tinggi baris papan HARUS pasti. Dengan `grid-rows-[auto_minmax(0,1fr)_auto]`
+   * baris papan punya tinggi sendiri, sehingga `max-h-full` pada kotak papan
+   * berlaku dan papan tidak bisa meluber ke baris profil (dulu: kolom
+   * `justify-between` + papan yang lebarnya menentukan tinggi → avatar dan nama
+   * pemain tertimpa petak).
+   */
+  uji(
+    "baris profil & papan memakai track grid eksplisit",
+    /grid-rows-\[auto_minmax\(0,1fr\)_auto\]/.test(areaPapan) &&
+      areaPapan.split('data-baris="profil-atas"').length === 2 &&
+      areaPapan.split('data-baris="profil-bawah"').length === 2 &&
+      areaPapan.split('data-baris="papan"').length === 2,
+    "perlu tiga track: profil atas, papan, profil bawah"
+  );
+
+  uji(
+    "baris papan memotong luapan (min-h-0 + overflow-hidden)",
+    /data-baris="papan"\s*\n?\s*className="[^"]*order-2[^"]*min-h-0[^"]*overflow-hidden/.test(
+      areaPapan
+    )
+  );
+
+  uji(
+    "papan dibatasi dua sumbu di dalam pembungkus persegi",
+    /aspect-square[^"]*max-w-full[^"]*lg:h-full/.test(areaPapan) &&
+      /lg:h-full[^"]*lg:w-auto[^"]*lg:max-h-full/.test(areaPapan)
+  );
+
+  uji(
+    "kotak papan tetap ber-overflow-hidden",
+    /relative flex min-h-0 min-w-0 flex-1 items-center justify-center overflow-hidden/.test(
+      areaPapan
+    )
+  );
+
+  // Baris profil tidak boleh memakai trik lapisan apa pun.
+  const barisProfil = areaPapan
+    .split('data-baris="profil-')
+    .slice(1)
+    .map((potongan) => potongan.slice(0, 400))
+    .join("\n");
+  uji(
+    "baris profil bukan lapisan absolut / z-index / translate",
+    barisProfil.length > 0 &&
+      !/\babsolute\b/.test(barisProfil) &&
+      !/\bz-\d/.test(barisProfil) &&
+      !/translate/.test(barisProfil) &&
+      !/-mt-/.test(barisProfil)
+  );
+
+  uji(
+    "baris profil punya tinggi minimum sendiri",
+    areaPapan.split("min-h-10").length >= 3
+  );
+
+  // Angka ajaib tinggi viewport tidak boleh lagi menanggung tata letak.
+  uji(
+    "tidak ada lagi kunci lebar berbasis calc(100vh)",
+    !/calc\(100vh_-_106px\)/.test(areaPapan)
+  );
+
+  uji(
+    "area papan memotong luapan di level pembungkus",
+    /data-area="papan"[^>]*overflow-hidden/.test(areaPapan) &&
+      /min-h-0 min-w-0 flex-1 overflow-hidden/.test(shell)
+  );
+
+  // Status gameplay dulu `absolute inset-x-3 top-3` di dalam pembungkus area
+  // papan — persis di atas baris profil atas. Sekarang ia dirender di aliran.
+  uji(
+    "status gameplay dirender di aliran, bukan menutupi baris profil",
+    /status=\{<StatusTekaTeki[^\n]*melayang=\{false\}/.test(shell) &&
+      /\{status \? <div className="shrink-0">/.test(areaPapan) &&
+      !/absolute inset-x-3 top-3/.test(shell)
+  );
+}
+
 /* --------------------------------------------------------------- bundel UI */
 
 const MASUK = `
@@ -582,6 +676,50 @@ judul("papan tidak ter-reset oleh pemasangan soal ganda (soal ber-video)");
   uji(
     "papan tidak kembali ke posisi awal soal (tanpa pemasangan ganda)",
     !papanSama(kurasi.fen)
+  );
+}
+
+judul("DOM: tiga baris tata letak papan (profil atas, papan, profil bawah)");
+{
+  const soal = problems[0];
+  await kunjungi(`/teka-teki/problem/${soal.problemid}`);
+  const barisAtas = dok.querySelector('[data-baris="profil-atas"]');
+  const barisPapan = dok.querySelector('[data-baris="papan"]');
+  const barisBawah = dok.querySelector('[data-baris="profil-bawah"]');
+  uji(
+    "tiga baris tata letak tersedia",
+    Boolean(barisAtas && barisPapan && barisBawah)
+  );
+
+  // Struktur wajib vertikal: ketiganya bersaudara di satu kolom tata letak.
+  uji(
+    "baris profil dan papan bersaudara (struktur vertikal)",
+    Boolean(
+      barisAtas &&
+        barisPapan &&
+        barisBawah &&
+        barisAtas.parentElement === barisPapan.parentElement &&
+        barisPapan.parentElement === barisBawah.parentElement
+    )
+  );
+
+  // Tidak boleh ada petak papan yang bersarang di baris profil — itulah bentuk
+  // konkret dari keluhan "nama/avatar menutupi petak".
+  const petakDiProfil =
+    (barisAtas?.querySelectorAll("[data-petak]").length || 0) +
+    (barisBawah?.querySelectorAll("[data-petak]").length || 0);
+  uji("tidak ada petak papan di dalam baris profil", petakDiProfil === 0);
+  uji(
+    "seluruh 64 petak berada di baris papan",
+    barisPapan?.querySelectorAll("[data-petak]").length === 64,
+    `${barisPapan?.querySelectorAll("[data-petak]").length} petak`
+  );
+
+  // Status permainan hidup di baris papan (aliran), bukan di baris profil.
+  uji(
+    "wilayah status berada di baris papan",
+    Boolean(barisPapan?.querySelector("[data-status-permainan]")) &&
+      !barisAtas?.querySelector("[data-status-permainan]")
   );
 }
 
