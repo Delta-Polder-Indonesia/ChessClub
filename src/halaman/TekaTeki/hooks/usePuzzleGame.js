@@ -162,6 +162,13 @@ export function usePuzzleGame({
         setPesan({
           jenis: "salah",
           teks: t(mateAlternatif ? "tekaTeki.mateAlternatif" : "tekaTeki.salah"),
+          /*
+           * Nomor urut: wilayah `aria-live` hanya membacakan perubahan teks,
+           * sehingga dua langkah salah berturut-turut dengan kalimat yang sama
+           * tidak akan diumumkan dua kali tanpa penanda ini (dipakai sebagai
+           * `key` simpul teks di StatusTekaTeki).
+           */
+          urut: Date.now(),
         });
         dispatch({
           type: "LANGKAH_SALAH",

@@ -44,7 +44,11 @@ export default function StatusTekaTeki({ pesan = null, onTutup = null, melayang 
             GAYA[jenis] || GAYA.info
           }`}
         >
-          <span className="leading-5">{teks}</span>
+          {/* `key` = nomor urut pesan supaya kalimat yang sama tetap
+              diumumkan ulang (aria-live hanya membacakan perubahan). */}
+          <span key={pesan?.urut || 0} className="leading-5">
+            {teks}
+          </span>
           {!sementara && onTutup && (
             <button
               type="button"

@@ -101,7 +101,10 @@ export default function KontrolLangkah({
                     aria-pressed={nilaiSuara}
                     aria-label={nilaiSuara ? t("tekaTeki.suaraMatikan") : t("tekaTeki.suaraHidupkan")}
                     title={nilaiSuara ? t("tekaTeki.suaraMatikan") : t("tekaTeki.suaraHidupkan")}
-                    className={`flex flex-col items-center gap-1.5 p-2.5 bg-[#262421] hover:bg-[#312e2b] rounded-lg transition border border-[#312e2b] cursor-pointer ${nilaiSuara ? "text-white" : "text-[#b33430]"}`}
+                    /* Saat senyap label tetap harus terbaca: #b33430 hanya 2,54:1 di atas
+                       #262421, sedangkan #e2655c mencapai 4,61:1 (AA). Ikon VolumeX
+                       tetap menjadi penanda status yang tidak bergantung warna. */
+                    className={`flex flex-col items-center gap-1.5 p-2.5 bg-[#262421] hover:bg-[#312e2b] rounded-lg transition border border-[#312e2b] cursor-pointer ${nilaiSuara ? "text-white" : "text-[#e2655c]"}`}
                   >
                     {nilaiSuara ? (
                       <Volume2 className="w-5 h-5" aria-hidden="true" />

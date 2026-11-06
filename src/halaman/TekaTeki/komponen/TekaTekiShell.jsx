@@ -48,7 +48,6 @@ export default function TekaTekiShell({
   // navigasi + aksi
   navigasi = {},
   aksi = {},
-  onTutupStatus = null,
 }) {
   const { t } = useI18n();
 
@@ -92,21 +91,26 @@ export default function TekaTekiShell({
 
         {/*
          * Pembungkus ini hanya memegang lebar; `overflow-hidden` memastikan
-         * tidak ada isi area papan yang bisa menimpa panel kanan. Status
-         * permainan diteruskan sebagai slot dan dirender DI ALIRAN di dalam
-         * baris papan — bukan lapisan absolut di atas baris profil.
+         * tidak ada isi area papan yang bisa menimpa panel kanan.
+         *
+         * Pesan permainan TIDAK lagi tampil sebagai chip di atas papan: satu-
+         * satunya penanda tuntas adalah sorotan petak, suara, dan papan yang
+         * sudah selesai. Pesannya tetap diumumkan ke pembaca layar lewat
+         * wilayah `aria-live` yang disembunyikan secara visual (`sr-only`),
+         * jadi tidak ada teks yang muncul di layar.
          */}
         <div className="relative flex min-h-0 min-w-0 flex-1 overflow-hidden">
+          <div className="sr-only">
+            <StatusTekaTeki pesan={pesan} melayang={false} />
+          </div>
           <AreaPapan
             papan={papan}
             bilahEvaluasi={bilahEvaluasi}
-            status={<StatusTekaTeki pesan={pesan} onTutup={onTutupStatus} melayang={false} />}
             orientasi={tampilan.orientasi}
             memuat={memuat}
             jumlahLangkah={tampilan.jumlahLangkah}
             bukanSkakmat={tampilan.bukanSkakmat}
             teksTingkat={tampilan.teksTingkat}
-            teksTerpecahkan={tampilan.teksTerpecahkan}
             eloSoal={tampilan.eloSoal}
             namaHitam={tampilan.namaHitam}
             eloHitam={tampilan.eloHitam}
@@ -115,9 +119,23 @@ export default function TekaTekiShell({
           />
         </div>
 
+        {/*
+         * Lebar panel kanan mengikuti sisa ruang, bukan angka mati 480px.
+         *
+         * Sebelumnya `lg:w-[480px]`: pada 1024–1279px sidebar (220px) + panel
+         * (480px) memakan 700px, sehingga kolom papan hanya sisa 324px dan
+         * papan menyusut sampai 232px (petak 29px) — baris profil yang
+         * lebarnya mengikuti papan pun kehabisan ruang (nama pemain 0px,
+         * "(1787)" menimpa label "Rating Soal").
+         *
+         * `clamp(300px, 70vw - 416px, 480px)` membuat panel menyusut bersama
+         * viewport: 301px @1024, 390px @1152, 479px @1279 — lalu tetap 480px
+         * mulai 1280px, jadi tata letak ≥1280 (1280/1366/1440/1920) sama
+         * persis seperti sebelumnya.
+         */}
         <aside
           data-panel="kanan"
-          className="w-full lg:w-[480px] h-full bg-[#211f1c] border-t lg:border-t-0 lg:border-l border-[#312e2b] flex flex-col flex-shrink-0 min-h-0"
+          className="w-full lg:w-[clamp(300px,calc(70vw_-_416px),480px)] h-full bg-[#211f1c] border-t lg:border-t-0 lg:border-l border-[#312e2b] flex flex-col flex-shrink-0 min-h-0"
         >
           <PanelTab aktif={tabPanelAktif} onGanti={onGantiTabPanel} />
 

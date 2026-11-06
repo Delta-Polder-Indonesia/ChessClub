@@ -40,13 +40,11 @@ import KerangkaBilahEvaluasi from "./KerangkaBilahEvaluasi.jsx";
 export default function AreaPapan({
   papan = null,
   bilahEvaluasi = null,
-  status = null,
   orientasi = "w",
   memuat = false,
   jumlahLangkah = 1,
   bukanSkakmat = false,
   teksTingkat = "",
-  teksTerpecahkan = "",
   eloSoal = 1500,
   namaHitam = "",
   eloHitam = 0,
@@ -118,7 +116,13 @@ export default function AreaPapan({
             </div>
             {/* Level soal: label di samping kiri kotak */}
             <div className="flex flex-shrink-0 flex-row items-center gap-2">
-              <span className="hidden whitespace-nowrap text-[11px] font-medium text-gray-400 sm:inline">
+              {/*
+               * Label ini disembunyikan pada 1024–1279px: di rentang itu
+               * kolom papan sempit, dan label 53px ini memakan ruang yang
+               * dibutuhkan nama pemain (nama sempat menyusut jadi 0px).
+               * Chip di sebelahnya ("Sangat mudah") tetap menjelaskan isinya.
+               */}
+              <span className="hidden whitespace-nowrap text-[11px] font-medium text-gray-400 sm:inline lg:hidden xl:inline">
                 {t("tekaTeki.levelSoal")}
               </span>
               <div className="flex h-10 min-w-[100px] items-center justify-center rounded-md border border-[#312e2b] bg-[#1e1d1c] px-3 text-sm font-bold text-nowrap shadow-inner">
@@ -137,22 +141,11 @@ export default function AreaPapan({
            * lebar papan. Elemen bilahnya sendiri diikat ke kotak papan di bawah.
            */}
 
-          {/* Baris papan: status (di aliran) + papan. Lebar kolom = lebar papan. */}
+          {/* Baris papan: papan saja. Lebar kolom = lebar papan. */}
           <div
             data-baris="papan"
-            className="col-start-2 row-start-2 flex min-h-0 min-w-0 flex-col"
+            className="col-start-2 row-start-2 flex min-h-0 min-w-0"
           >
-            {/* Status gameplay tampil DI ALIRAN (bukan lapisan absolut), supaya
-                tidak pernah menutupi baris profil maupun petak papan.
-                `has-[>div>div]:mb-2` = jarak ke papan hanya muncul saat wilayah
-                status benar-benar memuat chip pesan (anak kedua). Wilayah
-                `aria-live`-nya SELALU terpasang meski kosong; kalau jaraknya
-                dipasang tetap, ia menyisakan 8px kosong di atas papan dan papan
-                tampak turun dari titik tengah baris. */}
-            {status ? (
-              <div className="w-0 min-w-full shrink-0 has-[>div>div]:mb-2">{status}</div>
-            ) : null}
-
             {/*
              * Dua lapis, dan keduanya punya tugas:
              *  - lapis luar (`lg:h-full lg:w-auto`) memutuskan dimensi mana yang
@@ -228,16 +221,12 @@ export default function AreaPapan({
                     <span className="shrink-0 text-xs font-medium text-gray-300">({eloPutih})</span>
                   )}
                 </div>
-                <div className="mt-0.5 flex flex-row items-center gap-1.5">
-                  {teksTerpecahkan && (
-                    <span className="truncate text-[11px] font-bold text-gray-300">{teksTerpecahkan}</span>
-                  )}
-                </div>
               </div>
             </div>
             {/* Rating soal: label di samping kiri kotak */}
             <div className="flex flex-shrink-0 flex-row items-center gap-2">
-              <span className="hidden whitespace-nowrap text-[11px] font-medium text-gray-400 sm:inline">
+              {/* Alasan sama dengan label "Level Soal" di baris atas. */}
+              <span className="hidden whitespace-nowrap text-[11px] font-medium text-gray-400 sm:inline lg:hidden xl:inline">
                 {t("tekaTeki.ratingSoal")}
               </span>
               <div className="flex h-10 min-w-[100px] items-center justify-center rounded-md border border-[#81b64c] bg-[#f0f0f0] px-3 font-mono text-lg font-bold text-nowrap text-[#1e1d1c] shadow ring-2 ring-[#81b64c]/40">
