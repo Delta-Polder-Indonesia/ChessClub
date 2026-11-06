@@ -33,7 +33,7 @@ function Bar({ nilai, maks, label }) {
   );
 }
 
-export default function PanelDeviasiManusia({ platform, username, waktu, batas, nonaktif = false }) {
+export default function PanelDeviasiManusia({ platform, username, waktu, batas, nonaktif = false, onBukaPartai = null }) {
   const { t } = useI18n();
   const d = useDeviasiManusia({ platform, username, waktu, batas });
   const sibuk = d.status === "menyiapkan" || d.status === "menghitung";
@@ -105,6 +105,39 @@ export default function PanelDeviasiManusia({ platform, username, waktu, batas, 
             })}
           </dd>
         </dl>
+      ) : null}
+
+      {d.status === "selesai" && d.hasil?.langkahTersorot?.length ? (
+        <div className="flex flex-col gap-1">
+          <span className="text-xs font-bold text-foregroundGrey">{t("analisa.antiCheat.deviasi.sorotan")}</span>
+          <ul data-uji="deviasi-sorotan" className="flex flex-col gap-1">
+            {d.hasil.langkahTersorot.map((l) => {
+              const pgn = d.pgnPartai(l.partai);
+              return (
+                <li key={`${l.partai}-${l.indeks}`} className="flex items-center justify-between gap-2 text-xs">
+                  <span className="min-w-0 truncate text-foregroundGrey">
+                    {t("analisa.antiCheat.deviasi.sorotanBaris", {
+                      partai: l.partai + 1,
+                      nomor: l.nomorLangkah,
+                      san: l.san,
+                      kejutan: l.kejutan,
+                    })}
+                  </span>
+                  {onBukaPartai && pgn ? (
+                    <button
+                      type="button"
+                      data-uji="deviasi-buka"
+                      onClick={() => onBukaPartai({ format: "pgn", string: pgn, lompatKe: l.indeks })}
+                      className="shrink-0 cursor-pointer rounded-borderRoundness border border-border px-2 py-0.5 text-xs font-bold text-foreground transition-colors hover:bg-backgroundBoxBoxHighlighted"
+                    >
+                      {t("analisa.antiCheat.deviasi.buka")}
+                    </button>
+                  ) : null}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
       ) : null}
 
       {d.status === "selesai" ? (

@@ -35,6 +35,8 @@ export function useDeviasiManusia({ platform = "chessCom", username = "", waktu 
   const [progres, setProgres] = useState(KOSONG);
   const [berjalan, setBerjalan] = useState(false);
   const controllerRef = useRef(null);
+  // PGN partai yang baru dinilai — sumber tombol "buka di papan" di panel.
+  const partaiRef = useRef([]);
 
   // Bongkar komponen di tengah perhitungan tidak boleh menyisakan inferensi
   // yang terus jalan di worker.
@@ -74,6 +76,7 @@ export function useDeviasiManusia({ platform = "chessCom", username = "", waktu 
         return;
       }
 
+      partaiRef.current = daftar;
       setStatus("menghitung");
       setProgres({ ke: 0, total: daftar.length });
       const keluaran = await ringkasDeviasiRiwayat(daftar, {
@@ -114,6 +117,12 @@ export function useDeviasiManusia({ platform = "chessCom", username = "", waktu 
 
   const batalkan = useCallback(() => controllerRef.current?.abort(), []);
 
+  /**
+   * Teks PGN partai ke-`indeks` dari hasil yang sedang ditampilkan. Dipakai
+   * panel untuk membuka partai itu di papan pada langkah yang disorot.
+   */
+  const pgnPartai = useCallback((indeks) => partaiRef.current[indeks]?.pgn || "", []);
+
   return {
     status,
     hasil,
@@ -122,6 +131,7 @@ export function useDeviasiManusia({ platform = "chessCom", username = "", waktu 
     berjalan,
     mulai,
     batalkan,
+    pgnPartai,
     // Status unduhan model diteruskan apa adanya supaya panel bisa
     // menampilkan "mengunduh 42%" tanpa menebak-nebak.
     unduh: {

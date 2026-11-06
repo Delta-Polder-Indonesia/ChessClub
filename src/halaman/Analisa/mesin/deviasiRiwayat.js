@@ -10,10 +10,18 @@
  * rata-rata: partai 40 langkah tidak boleh sama beratnya dengan partai 9
  * langkah seperti pada rata-rata biasa.
  */
-import { hitungDeviasiManusia } from "./deviasiManusia.js";
+import { hitungDeviasiManusia, rincianDeviasiManusia } from "./deviasiManusia.js";
 import { uraiPgn } from "./uraiPgn.js";
 
 const bulat2 = (angka) => Math.round(angka * 100) / 100;
+
+/**
+ * Nomor langkah penuh (1, 2, 3, …) dari indeks setengah-langkah.
+ * PGN yang mulai dari FEN bisa diawali Hitam, jadi warna awal ikut dihitung.
+ */
+function nomorLangkahPenuh(indeks, warnaAwal) {
+  return warnaAwal === "b" ? Math.ceil((indeks + 1) / 2) : Math.ceil(indeks / 2);
+}
 
 /**
  * Ringkas deviasi manusia dari daftar partai.
@@ -32,14 +40,21 @@ const bulat2 = (angka) => Math.round(angka * 100) / 100;
  *   dikembalikan dengan `dibatalkan: true`.
  * @param {(progres: {ke: number, total: number}) => void} [opsi.onProgres]
  *   dipanggil setelah tiap partai selesai diproses.
+ * @param {number} [opsi.batasSorot] jumlah langkah paling mencurigakan yang
+ *   dikembalikan di `langkahTersorot` (bawaan 5).
  * @returns {Promise<{sampel: number, kejutanRata: number|null,
  *   rataPeringkatMaia: number|null, kejutanTinggi: number, partaiDinilai: number,
- *   partaiDilewati: number, dibatalkan: boolean}>}
- *   `sampel: 0` berarti belum ada partai yang layak dinilai.
+ *   partaiDilewati: number, dibatalkan: boolean,
+ *   langkahTersorot: Array<{partai: number, nomorLangkah: number,
+ *     indeks: number, san: string, uci: string, warna: string|null,
+ *     kejutan: number, peringkat: number}>}>}
+ *   `sampel: 0` berarti belum ada partai yang layak dinilai. `langkahTersorot`
+ *   adalah langkah dengan kejutan terbesar lintas partai — angka
+ *   `kejutanTinggi` bisa ditelusuri ke langkah konkretnya lewat daftar ini.
  */
 export async function ringkasDeviasiRiwayat(
   daftar,
-  { prediksi, warnaUntuk = () => null, langkahMinimum, sinyal, onProgres } = {}
+  { prediksi, warnaUntuk = () => null, langkahMinimum, sinyal, onProgres, batasSorot = 5 } = {}
 ) {
   if (typeof prediksi !== "function") {
     throw new TypeError("ringkasDeviasiRiwayat butuh fungsi prediksi(moves, konteks)");
@@ -56,6 +71,7 @@ export async function ringkasDeviasiRiwayat(
   let partaiDinilai = 0;
   let partaiDilewati = 0;
   let dibatalkan = false;
+  const kandidat = [];
 
   for (let i = 0; i < partai.length; i++) {
     if (sinyal?.aborted) {
@@ -85,14 +101,22 @@ export async function ringkasDeviasiRiwayat(
       break;
     }
 
+    const warnaPartai = warnaUntuk(partai[i], i);
     const metrik = hitungDeviasiManusia(moves, peta, {
       ...opsiMetrik,
-      warna: warnaUntuk(partai[i], i),
+      warna: warnaPartai,
     });
     if (!metrik) {
       partaiDilewati += 1;
       onProgres?.({ ke: i + 1, total });
       continue;
+    }
+
+    // Rincian per langkah hanya dipakai untuk sorotan; metrik ringkasannya
+    // tetap dari `hitungDeviasiManusia` supaya angkanya tidak bergeser.
+    const warnaAwal = moves[0]?.color === "b" ? "b" : "w";
+    for (const entri of rincianDeviasiManusia(moves, peta, { warna: warnaPartai })) {
+      kandidat.push({ ...entri, partai: i, nomorLangkah: nomorLangkahPenuh(entri.indeks, warnaAwal) });
     }
 
     partaiDinilai += 1;
@@ -115,5 +139,9 @@ export async function ringkasDeviasiRiwayat(
     partaiDinilai,
     partaiDilewati,
     dibatalkan,
+    langkahTersorot: kandidat
+      .slice()
+      .sort((a, b) => b.kejutan - a.kejutan || a.partai - b.partai || a.indeks - b.indeks)
+      .slice(0, Math.max(0, batasSorot)),
   };
 }

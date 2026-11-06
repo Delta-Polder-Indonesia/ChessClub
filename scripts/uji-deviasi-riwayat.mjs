@@ -25,7 +25,10 @@ import assert from "node:assert/strict";
 
 const { uraiPgn, daftarSan } = await import("../src/halaman/Analisa/mesin/uraiPgn.js");
 const { ringkasDeviasiRiwayat } = await import("../src/halaman/Analisa/mesin/deviasiRiwayat.js");
-const { hitungDeviasiManusia } = await import("../src/halaman/Analisa/mesin/deviasiManusia.js");
+const { hitungDeviasiManusia, rincianDeviasiManusia } = await import(
+  "../src/halaman/Analisa/mesin/deviasiManusia.js"
+);
+const { langkahLompat } = await import("../src/halaman/Analisa/komponen/game/lompatLangkah.js");
 
 let lulus = 0;
 let gagal = 0;
@@ -182,7 +185,8 @@ await uji("rata-rata berbobot sampel lintas partai", async () => {
     { prediksi: prediksiBerperingkat(0.5) }
   );
   // 20 langkah → 1 bit, 9 langkah → 2 bit: (20·1 + 9·2) / 29 = 1,31 bit.
-  assert.deepEqual(hasil, {
+  const { langkahTersorot, ...ringkasan } = hasil;
+  assert.deepEqual(ringkasan, {
     sampel: 29,
     kejutanRata: 1.31,
     rataPeringkatMaia: 1,
@@ -191,6 +195,9 @@ await uji("rata-rata berbobot sampel lintas partai", async () => {
     partaiDilewati: 0,
     dibatalkan: false,
   });
+  // Lima langkah paling mengejutkan semuanya dari partai kedua (2 bit).
+  assert.equal(langkahTersorot.length, 5);
+  assert.ok(langkahTersorot.every((l) => l.partai === 1 && l.kejutan === 2));
 });
 
 await uji("warnaUntuk menyaring ke satu pemain, langkahMinimum tetap berlaku", async () => {
@@ -245,7 +252,93 @@ await uji("daftar kosong → metrik null, bukan galat", async () => {
     partaiDinilai: 0,
     partaiDilewati: 0,
     dibatalkan: false,
+    langkahTersorot: [],
   });
+});
+
+console.log("\n== rincian per langkah & sorotan ==");
+
+await uji("rincianDeviasiManusia: satu entri per langkah, kunci FEN sebelum langkah", async () => {
+  const rincian = rincianDeviasiManusia(empatLangkah, petaTiga);
+  assert.deepEqual(rincian, [
+    { indeks: 1, san: "e4", uci: "e2e4", warna: "w", kejutan: 1, peringkat: 1 },
+    { indeks: 2, san: "e5", uci: "e7e5", warna: "b", kejutan: 2, peringkat: 2 },
+    { indeks: 3, san: "Nf3", uci: "g1f3", warna: "w", kejutan: 3, peringkat: 2 },
+  ]);
+});
+
+await uji("rincianDeviasiManusia: penyaring warna sama dengan ringkasannya", async () => {
+  const rincian = rincianDeviasiManusia(empatLangkah, petaTiga, { warna: "w" });
+  assert.deepEqual(rincian.map((r) => r.san), ["e4", "Nf3"]);
+  const { sampel } = hitungDeviasiManusia(empatLangkah, petaTiga, { langkahMinimum: 1, warna: "w" });
+  assert.equal(rincian.length, sampel, "jumlah entri harus sama dengan sampel ringkasan");
+});
+
+await uji("rincianDeviasiManusia: masukan tak sah → []", async () => {
+  assert.deepEqual(rincianDeviasiManusia(null, petaTiga), []);
+  assert.deepEqual(rincianDeviasiManusia(empatLangkah, {}), []);
+});
+
+await uji("sorotan: diurutkan dari kejutan terbesar, lengkap dengan nomor langkah", async () => {
+  const hasil = await ringkasDeviasiRiwayat([{ pgn: PGN_PANJANG }], {
+    prediksi: async (moves) => petaSeragam(moves, 0.125), // 3 bit seragam
+    batasSorot: 3,
+  });
+  assert.equal(hasil.langkahTersorot.length, 3);
+  assert.ok(hasil.langkahTersorot.every((l) => l.kejutan === 3 && l.partai === 0));
+  // Partai dimulai Putih: setengah-langkah 1 = langkah 1, 2 = langkah 1, 3 = langkah 2.
+  assert.deepEqual(
+    hasil.langkahTersorot.map((l) => [l.indeks, l.nomorLangkah]),
+    [
+      [1, 1],
+      [2, 1],
+      [3, 2],
+    ]
+  );
+});
+
+await uji("sorotan: warnaUntuk membatasi langkah yang disorot", async () => {
+  const hasil = await ringkasDeviasiRiwayat([{ pgn: PGN_PANJANG }], {
+    prediksi: async (moves) => petaSeragam(moves, 0.5),
+    warnaUntuk: () => "b",
+    batasSorot: 20,
+  });
+  assert.equal(hasil.langkahTersorot.length, 10, "10 langkah Hitam");
+  assert.ok(hasil.langkahTersorot.every((l) => l.warna === "b" && l.indeks % 2 === 0));
+});
+
+await uji("sorotan: batasSorot 0 → daftar kosong, ringkasan tetap utuh", async () => {
+  const hasil = await ringkasDeviasiRiwayat([{ pgn: PGN_PANJANG }], {
+    prediksi: async (moves) => petaSeragam(moves, 0.5),
+    batasSorot: 0,
+  });
+  assert.deepEqual(hasil.langkahTersorot, []);
+  assert.equal(hasil.sampel, 20);
+});
+
+console.log("\n== tautan sorotan → papan ==");
+
+await uji("lompatKe sah diteruskan apa adanya", () => {
+  assert.equal(langkahLompat(7, 41), 7);
+});
+
+await uji("lompatKe melewati langkah terakhir dijepit", () => {
+  assert.equal(langkahLompat(99, 41), 40);
+  assert.equal(langkahLompat(1, 2), 1);
+});
+
+await uji("muatan biasa (tanpa lompatKe) tidak melompat", () => {
+  assert.equal(langkahLompat(undefined, 41), null);
+  assert.equal(langkahLompat(null, 41), null);
+  assert.equal(langkahLompat(0, 41), null);
+  assert.equal(langkahLompat(-3, 41), null);
+  assert.equal(langkahLompat(2.5, 41), null);
+  assert.equal(langkahLompat("7", 41), null);
+});
+
+await uji("partai kosong tetap menghasilkan 0, bukan nomor negatif", () => {
+  assert.equal(langkahLompat(5, 0), 0);
+  assert.equal(langkahLompat(5, undefined), 0);
 });
 
 console.log("\n== kegagalan & pembatalan ==");
