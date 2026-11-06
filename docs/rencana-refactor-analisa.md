@@ -31,8 +31,8 @@ mencatat **rencana dan status**, bukan detail perilaku.
 | 1 | `basisData.js` → `database/*` | **selesai** | commit `25ed51d` (PR #231) |
 | 2 | Pisahkan `BoardContext` + `ImportContext` | **selesai** | commit `d10e8b1`, `34636c3`, `88e428a` (PR #231) |
 | 3 | Pecah komponen raksasa | **selesai** (2026-11-06) | `komponen/nav/database/*` + `komponen/game/useMuatPartai.js` / `useAnalisisPapan.js` |
-| 4 | Integrasi Maia | **selesai** (2026-11-06) | `mesin/prediksiMaia.js`, mode Maia di Deteksi engine → lihat bawah |
-| 5 | `mesin/antiCheat.js` (1487) → empat lapisan | **selesai** (2026-11-06) | `mesin/antiCheat/{dasar,kalibrasi,skor,agregat}.js`; 428 uji anti-cheat tetap hijau |
+| 4 | Integrasi Maia | **dikerjakan lalu DICABUT** (2026-11-07) | panel/ mesin Maia dihapus; Maia hanya di mode Manusia vs Mesin → lihat bawah |
+| 5 | `mesin/antiCheat.js` (1487) → empat lapisan | **selesai** (2026-11-06) | `mesin/antiCheat/{dasar,kalibrasi,skor,agregat}.js`; 417 uji anti-cheat tetap hijau |
 
 Fase 1–2 sudah merge ke `main` lewat PR #231 (merge commit `2bc3868`).
 Ringkasannya: `basisData.js` (867 baris) jadi fasad 46 baris + enam modul
@@ -80,42 +80,37 @@ sendiri. Setiap langkah:
 `node scripts/uji-basisdata-galat.mjs`, `npm run lint`, `npm run build`,
 lalu `npm run uji:dokumentasi` bila ada angka dokumentasi yang bergeser.
 
-## Fase 4 — integrasi Maia (risiko tinggi, terpisah)
+## Fase 4 — integrasi Maia (dikerjakan, lalu dicabut)
 
-Disambungkannya `mesin/deviasiManusia.js` ke prediksi Maia
-(`src/lib/maia3.js` → `Map<fen, {uci: prob}>`). Kontrak yang dibekukan (lihat
-`docs/MAIA3.md`) wajib dipertahankan: `hitungDeviasiManusia` berkunci **fen
-sebelum langkah**, model `maia3-simplified-1`.
+Dikerjakan 2026-11-06: `mesin/prediksiMaia.js` menyambungkan `src/lib/maia3.js`
+ke `mesin/deviasiManusia.js`, lalu dipasang ke layar Deteksi engine sebagai
+panel "Distribusi manusia (Maia)" dengan setelan sendiri.
 
-Status: **selesai** (2026-11-06), dalam dua PR:
+**Dicabut 2026-11-07.** Alasannya dari pemakaian, bukan dari kode: satu layar
+deteksi berisi dua mesin dengan dua jenis hasil dan dua arti "pengaturan"
+membingungkan. Urutan percobaan yang gagal, supaya tidak diulang:
 
-1. **Penyedia** — `mesin/prediksiMaia.js` (`posisiUntukPrediksi`,
-   `prediksiManusia`, `deviasiManusiaDariMaia`), diuji `npm run
-   uji:prediksi-maia` (19) dengan mesin tiruan, tanpa ONNX/worker.
-2. **Pemasangan ke layar** — Maia sebagai salah satu pilihan **Nama** mesin
-   di Deteksi engine (bukan panel terpisah, tanpa setelan sendiri):
-   `RingkasanDeviasiManusia.jsx` di kolom hasil, pengaturan memakai kolom yang
-   sudah ada, `komponen/nav/useDeviasiManusia.js`, di atas `mesin/deviasiRiwayat.js`
-   (rata-rata berbobot sampel lintas partai) dan `mesin/uraiPgn.js` (pengurai
-   PGN tanpa Stockfish). Model 45 MB hanya diunduh setelah tombol ditekan;
-   pemakaian berikutnya memakai cache.
-3. **Sorotan per langkah** — `rincianDeviasiManusia` + `langkahTersorot`
-   (lima teratas), dengan tombol **Buka** yang memuat partai ke papan pada
-   langkah itu (`data.lompatKe` + `komponen/game/lompatLangkah.js`).
-4. **Panah di papan** — `data.sorotUci` + `komponen/game/panahSorot.js`
-   (UCI → `[{col,row},{col,row}]`), menempel pada nomor langkah itu saja.
-5. **Tanpa setelan kedua** — percobaan pertama memberi Maia kolomnya sendiri
-   (kecepatan/partai/rating, `mesin/setelanMaia.js`) dan itu **dicabut**:
-   layar jadi punya dua set pengaturan untuk satu pekerjaan yang sama. Sekarang
-   jumlah partai memakai kolom Stockfish yang sudah ada, rating dibaca dari
-   PGN, dan `ukuranBatch` memakai bawaan `UKURAN_BATCH_MAIA`.
+1. panel terpisah di bawah kolom hasil → layar jadi tiga kolom & halaman makin
+   tinggi;
+2. Maia sebagai pilihan mesin + blok setelan sendiri (kecepatan, jumlah
+   partai, rating) → dua set pengaturan untuk satu pekerjaan;
+3. Maia sebagai pilihan mesin dengan kolom Elo menggantikan kedalaman dan
+   tombol unduh bertahap → lebih rapi, tetapi tetap "mesin kedua" di layar
+   yang bahasa visualnya Stockfish.
 
-   Dijaga `npm run uji:deviasi-riwayat` (38) + pemeriksaan UI di
-   `uji-anticheat.mjs` (433).
+Keputusan akhir: **Deteksi engine murni Stockfish.** Maia tetap dipakai di
+Papan Interaktif (mode Manusia vs Mesin). Kode yang ikut dihapus karena tanpa
+pemanggil: `mesin/{prediksiMaia,deviasiRiwayat,deviasiManusia,uraiPgn}.js`,
+`komponen/nav/{PanelDeviasiManusia,useDeviasiManusia}.jsx` (+ hook .js),
+`komponen/game/{panahSorot,lompatLangkah}.js`, dan uji
+`uji-prediksi-maia.mjs` + `uji-deviasi-riwayat.mjs`.
 
-Yang **tidak** dikerjakan di fase ini dan tetap terbuka: kalibrasi ulang
-`KALIBRASI_RATING` dengan korpus lokal (langkah 2 di README Analisa) dan cache
-agregat di server (langkah 3, opsional).
+Kalau nanti Maia ingin masuk Analisa lagi: buat **halaman sendiri**
+(mis. "Deteksi manusia"), jangan menumpang layar deteksi Stockfish.
+
+Yang **tetap terbuka** di Analisa: kalibrasi ulang `KALIBRASI_RATING` dengan
+korpus lokal (langkah 2 di README Analisa) dan cache agregat di server
+(langkah 3, opsional).
 
 ## Fase 5 — `mesin/antiCheat.js` (risiko sedang)
 
@@ -146,7 +141,7 @@ Bukti bahwa ini benar-benar refactor, bukan penulisan ulang:
 3. **Arah ketergantungan satu jalur** `dasar → kalibrasi → skor → agregat`.
    `dasar` tidak mengimpor siapa pun di folder itu, `agregat` tidak diimpor
    siapa pun — jadi tidak ada siklus yang bisa muncul kemudian.
-4. **Uji tidak disentuh.** `uji-anticheat.mjs` (428) dan seluruh rangkaian
+4. **Uji tidak disentuh.** `uji-anticheat.mjs` (417) dan seluruh rangkaian
    Analisa (1133) hijau tanpa satu pun perubahan pada berkas uji.
 
 ## Pagar yang sudah terpasang

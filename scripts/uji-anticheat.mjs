@@ -25,7 +25,6 @@
  *  10. KEBIJAKAN PUKUL RATA: rating/identitas tidak mengubah skor deteksi;
  *      rating tetap dapat dibaca sebagai metadata laporan.
  *  11. LAPORAN PENINJAUAN: teks + JSON + sanggahan wajib.
- *  12. DEVIASI MANUSIA (siap-Maia): kejutan bit & peringkat distribusi.
  *  13. ORKESTRATOR LANJUTAN: durasi per partai + cache localStorage
  *      lintas-sesi (baca ulang setelah memori dibersihkan).
  *      antara kandidat engine, kecocokan top-3/top-5, kerugian cp vs
@@ -47,7 +46,6 @@ const { ID } = await import("../src/lib/terjemahan/id/index.js");
 const { bacaPartaiPGN, formatSquare, incrementDariPgn, parseClockString, parsePGN } = await import("../src/halaman/Analisa/mesin/engine.js");
 const { EngineCatur } = await import("../src/lib/engineCatur.js");
 const laporan = await import("../src/halaman/Analisa/mesin/laporanPeninjauan.js");
-const deviasi = await import("../src/halaman/Analisa/mesin/deviasiManusia.js");
 const ac = await import("../src/halaman/Analisa/mesin/antiCheat.js");
 const { FASE_PEMBUKAAN, faseBerikutnya, isEndOpening, isEndMiddlegame } = await import(
   "../src/halaman/Analisa/mesin/fase.js"
@@ -1076,7 +1074,6 @@ const { default: LayarDeteksiEngine } = await import("../src/halaman/Analisa/kom
 const { default: AnalyzeContextProvider } = await import("../src/halaman/Analisa/konteks/analyze.jsx");
 const { AnalyzeContext } = await import("../src/halaman/Analisa/konteks/analyzeKonteks.js");
 const { bacaDaftarAkun, simpanDaftarAkun } = await import("../src/halaman/Analisa/akun/daftarAkun.js");
-const { ambilMesinMaia } = await import("../src/lib/mesinMaia.js");
 
 await simpanBanyakPartai(
   [
@@ -1209,21 +1206,6 @@ act(() => rootAkun.unmount());
     await act(async () => rilisMesin?.());
   };
   const barisJumlah = () => Array.from(elAkun.querySelectorAll("tbody tr"));
-  // Klik jalur pengguna sungguhan (tombol dropdown → opsi). Menyetel `select`
-  // tersembunyi tidak cukup: React melacak nilai node, sehingga event sintetis
-  // bisa diabaikan tanpa gejala.
-  const pilihOpsi = async (dataUji, label) => {
-    await act(async () => {
-      const wadah = elAkun.querySelector(`[data-uji="${dataUji}"]`)?.closest("div.relative");
-      wadah?.querySelector('button[aria-haspopup="listbox"]')?.click();
-    });
-    await act(async () => {
-      const wadah = elAkun.querySelector(`[data-uji="${dataUji}"]`)?.closest("div.relative");
-      Array.from(wadah?.querySelectorAll('[role="option"]') ?? [])
-        .find((el) => el.textContent.trim() === label)
-        ?.click();
-    });
-  };
   const pilihDeteksi = (jenis, nilai) => act(async () => {
     const kontrol = elAkun.querySelector(`[data-uji="deteksi-${jenis}"]`);
     // Lewati value tracker React pada input angka seperti pada isiJumlah;
@@ -1250,84 +1232,11 @@ act(() => rootAkun.unmount());
   });
 
   hasil("layar baru tetap memakai panel/token Analisa", !!elAkun.querySelector('section.bg-backgroundBoxDarker') && elAkun.querySelectorAll('.border-border.bg-backgroundBox').length >= 2);
-  // Mode Stockfish: delapan kendali pengaturan (situs, akun, mesin, kedalaman,
-  // jumlah partai, waktu, hash, threads). Setelan Maia tidak ikut terhitung.
-  const kontrolStockfish = () => Array.from(elAkun.querySelectorAll("select, input"));
-  hasil("delapan pengaturan memiliki kontrol berlabel", kontrolStockfish().length === 8 && kontrolStockfish().every((el) => el.labels.length > 0));
+  hasil("delapan pengaturan memiliki kontrol berlabel", Array.from(elAkun.querySelectorAll("select, input")).length === 8 && Array.from(elAkun.querySelectorAll("select, input")).every((el) => el.labels.length > 0));
   hasil("kedalaman deteksi bawaan 8, papan tetap 13", elAkun.querySelector('[data-uji="deteksi-kedalaman"]').value === "8" && ctxJumlah.depth[0] === 13);
   hasil("progres papan 0 tidak dianggap sedang berjalan", ctxJumlah.progress[0] === 0 && tombolJumlah(12)?.disabled === false);
   hasil("layar menunggu perintah, tidak menyiapkan engine otomatis", siapkanDipanggil === 0 && !elAkun.querySelector("tbody"));
   hasil("sanggahan tampil sebelum analisis dimulai", teksAkun().includes(tID("analisa.antiCheat.disclaimer")));
-  // Maia adalah PILIHAN MESIN, bukan fitur kedua: tidak ada panel baru, tidak
-  // ada setelan baru. Yang berubah hanya mesin yang menjawab, memakai kolom
-  // pengaturan yang sudah ada (situs, akun, filter waktu, jumlah partai).
-  const kontrolMesinKedua = () =>
-    Array.from(elAkun.querySelectorAll("input, select")).filter((el) => (el.dataset.uji ?? "").startsWith("deviasi-"));
-  const labelStockfish = elAkun.querySelector('[data-uji="deteksi-engine"] option')?.textContent ?? "";
-  hasil(
-    "daftar mesin memuat Maia di samping Stockfish",
-    Boolean(elAkun.querySelector('[data-uji="deteksi-engine"] option[value="maia"]'))
-  );
-  hasil(
-    "mode Stockfish murni: tidak ada kontrol mesin kedua",
-    Boolean(elAkun.querySelector('[data-uji="deteksi-kedalaman"]')) && kontrolMesinKedua().length === 0
-  );
-  await pilihOpsi("deteksi-engine", tID("analisa.antiCheat.riwayat.maia"));
-  hasil(
-    "memilih Maia membuang kendali Stockfish (kedalaman/hash/threads)",
-    !elAkun.querySelector('[data-uji="deteksi-kedalaman"]') &&
-      !elAkun.querySelector('[data-uji="deteksi-hash"]') &&
-      !elAkun.querySelector('[data-uji="deteksi-threads"]')
-  );
-  hasil(
-    // Maia tidak punya kedalaman; yang menentukan tebakannya rating.
-    "kolom kedalaman diganti Elo 600–2600, bukan dikosongkan",
-    elAkun.querySelector('[data-uji="deteksi-elo"]')?.value === "1500" &&
-      elAkun.querySelector('[data-uji="deteksi-elo"]')?.min === "600" &&
-      elAkun.querySelector('[data-uji="deteksi-elo"]')?.max === "2600"
-  );
-  hasil(
-    // Ini inti permintaan: pengaturan lama dipakai ulang, bukan diduplikasi.
-    "pengaturan lama tetap dipakai: situs, akun, jumlah partai, filter waktu",
-    ["deteksi-situs", "deteksi-akun", "deteksi-jumlah", "deteksi-waktu"].every((u) =>
-      Boolean(elAkun.querySelector(`[data-uji="${u}"]`))
-    ) && kontrolMesinKedua().length === 0
-  );
-  hasil("panel hasil menjelaskan mode Maia", teksAkun().includes(tID("analisa.antiCheat.deviasi.isi")));
-  // Bobot 45 MB tidak boleh terunduh sebagai efek samping tombol analisis:
-  // selama model belum siap, tombolnya adalah tombol unduh.
-  hasil(
-    "selama Maia belum siap, tombolnya tombol unduh, bukan analisis",
-    elAkun.querySelector('[data-uji="deviasi-siapkan"]')?.textContent.trim() ===
-      tID("analisa.antiCheat.deviasi.unduhModel") && !elAkun.querySelector('[data-uji="deviasi-mulai"]')
-  );
-  // Mesin Maia tiruan: yang diuji perpindahan tombol, bukan unduhan 45 MB.
-  const mesinMaia = ambilMesinMaia();
-  const siapkanAsli = mesinMaia.siapkan;
-  mesinMaia.siapkan = async () => {
-    mesinMaia.aturKeadaan("siap", { progres: 100 });
-    return "siap";
-  };
-  await act(async () => {
-    elAkun.querySelector('[data-uji="deviasi-siapkan"]')?.click();
-    await new Promise((r) => setTimeout(r, 30));
-  });
-  hasil(
-    "setelah model siap, tombol yang sama berubah menjadi tombol analisis",
-    Boolean(elAkun.querySelector('[data-uji="deviasi-mulai"]')) &&
-      !elAkun.querySelector('[data-uji="deviasi-siapkan"]') &&
-      tombolJumlah(12)?.textContent.trim() === tID("analisa.antiCheat.riwayat.mulai", { n: 12 })
-  );
-  mesinMaia.siapkan = siapkanAsli;
-  // Kembali ke Stockfish: tidak ada yang tersembunyi permanen karena mode
-  // sebelumnya, dan tidak ada sisa kendali mesin lain di layar.
-  await pilihOpsi("deteksi-engine", labelStockfish);
-  hasil(
-    "kembali ke Stockfish memulihkan kedalaman, jumlah, dan tombol lama",
-    Boolean(elAkun.querySelector('[data-uji="deteksi-kedalaman"]')) &&
-      Boolean(elAkun.querySelector('[data-uji="deteksi-jumlah"]')) &&
-      !elAkun.querySelector('[data-uji^="deviasi-"]')
-  );
   hasil("keadaan awal hasil memiliki petunjuk", teksAkun().includes(tID("analisa.antiCheat.riwayat.hasilKosong")));
 
   hasil("kolom jumlah opsional tampil kosong dengan placeholder 12", inputJumlah()?.value === "" && inputJumlah()?.placeholder === "12");
@@ -2040,36 +1949,6 @@ console.log("\n== laporan peninjauan pengurus ==");
   const unduhOk = laporan.unduhLaporanPeninjauan(agregatRating, { username: "budi" });
   window.HTMLAnchorElement.prototype.click = klikAsli;
   hasil("unduhLaporanPeninjauan: memicu unduhan (anchor diklik sekali)", unduhOk === true && jumlahKlik === 1, `${unduhOk}/${jumlahKlik}`);
-}
-
-/* ============ 13. deviasi manusia (siap-Maia) ============ */
-
-console.log("\n== fondasi deviasi manusia ==");
-{
-  const daftarDev = [{ fen: "pos-awal", color: "b" }];
-  for (let i = 0; i < 12; i++) {
-    daftarDev.push({ san: "e4", uci: "e2e4", fen: `pos-${i}`, color: "w" });
-  }
-  const prediksiJelas = new Map();
-  for (let i = 0; i < 12; i++) {
-    prediksiJelas.set(i === 0 ? "pos-awal" : `pos-${i - 1}`, { e2e4: 0.4, d2d4: 0.3, c2c4: 0.2, g1f3: 0.1 });
-  }
-  const dev = deviasi.hitungDeviasiManusia(daftarDev, prediksiJelas);
-  hasil("deviasi: sampel terhitung", dev?.sampel === 12, `${dev?.sampel}`);
-  hasil("deviasi: langkah teratas manusia → kejutan ≈ 1.32 bit", Math.abs(dev.kejutanRata - Math.log2(1 / 0.4)) < 0.01, `${dev.kejutanRata}`);
-  hasil("deviasi: peringkat Maia 1", dev.rataPeringkatMaia === 1);
-  hasil("deviasi: tidak ada kejutan tinggi", dev.kejutanTinggi === 0);
-
-  const prediksiAneh = new Map();
-  for (let i = 0; i < 12; i++) {
-    prediksiAneh.set(i === 0 ? "pos-awal" : `pos-${i - 1}`, { d2d4: 0.5, e2e4: 0.0001, c2c4: 0.3, g1f3: 0.2 });
-  }
-  const devAneh = deviasi.hitungDeviasiManusia(daftarDev, prediksiAneh);
-  hasil("deviasi: langkah tak-manusiawi → kejutan tinggi tercatat", devAneh.kejutanTinggi === 12, `${devAneh.kejutanTinggi}`);
-  hasil("deviasi: peringkat Maia = 4 (tiga langkah lebih disukai)", devAneh.rataPeringkatMaia === 4, `${devAneh.rataPeringkatMaia}`);
-  hasil("deviasi: prediksi kurang → null", deviasi.hitungDeviasiManusia(daftarDev.slice(0, 5), prediksiJelas) === null);
-  hasil("deviasi: tanpa prediksi → null", deviasi.hitungDeviasiManusia(daftarDev, new Map()) === null);
-  hasil("deviasi: input rusak → null", deviasi.hitungDeviasiManusia(null, prediksiJelas) === null);
 }
 
 /* ============ 14. orkestrator: durasi + cache localStorage ============ */

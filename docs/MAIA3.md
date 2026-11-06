@@ -322,91 +322,22 @@ satu berkas bobot melayani semuanya.
 
 ---
 
-## Yang belum dikerjakan
+## Hubungannya dengan modul Analisa
 
-Halaman **Analisa** punya `mesin/deviasiManusia.js` (fondasi anti-cheat
-"seberapa mirip manusia langkah ini"). Bagian itu **belum** disambung ke Maia
-— yang ada baru mesinnya untuk Papan Interaktif. Sambungannya memakai
-`src/lib/maia3.js` untuk menghasilkan `Map<fen, {uci: prob}>` per partai;
-lihat `src/halaman/Analisa/README.md`.
+Model ini **tidak** dipakai modul Analisa. Sempat dipasang di layar Deteksi
+engine sebagai mesin kedua ("Maia 3 — distribusi manusia"), lengkap dengan
+kolom Elo dan tombol unduh bertahap, lalu **dicabut** (2026-11-07): satu layar
+dengan dua mesin, dua jenis hasil, dan dua arti "pengaturan" lebih
+membingungkan daripada berguna. Deteksi engine kembali murni Stockfish.
 
-Status pengerjaan: integrasi ini adalah **Fase 4** dan sengaja ditaruh paling
-akhir — sesudah refactor modul Analisa Fase 0–3. Rencana dan status per fase
-(termasuk kontrak yang tidak boleh berubah) ada di
+Ikut dihapus bersama integrasi itu: `mesin/prediksiMaia.js`,
+`mesin/deviasiRiwayat.js`, `mesin/uraiPgn.js`, `mesin/deviasiManusia.js`,
+`komponen/nav/PanelDeviasiManusia.jsx`, `komponen/nav/useDeviasiManusia.js`,
+`komponen/game/panahSorot.js`, `komponen/game/lompatLangkah.js`, beserta ujinya
+(`uji-prediksi-maia.mjs`, `uji-deviasi-riwayat.mjs`) — supaya tidak ada kode
+tanpa pemanggil yang harus dirawat.
+
+Maia tetap hidup di tempat yang jelas: **Papan Interaktif, mode Manusia vs
+Mesin** (`src/lib/maia3.js`, `src/lib/mesinMaia.js`,
+`src/halaman/ManusiaVsMesin/`). Riwayat keputusan: lihat
 [`docs/rencana-refactor-analisa.md`](./rencana-refactor-analisa.md).
-
----
-
-## Sambungan ke anti-cheat Analisa (Fase 4)
-
-`src/halaman/Analisa/mesin/prediksiMaia.js` adalah jembatan dari mesin ini ke
-metrik deviasi manusia (`src/halaman/Analisa/mesin/deviasiManusia.js`):
-
-| Fungsi | Guna |
-| --- | --- |
-| `posisiUntukPrediksi(moves)` | daftar FEN unik yang benar-benar dipakai penilaian |
-| `prediksiManusia(moves, { mesin, rating, ratingLawan })` | `Map<fen, {uci: prob}>` per partai, dipotong per `UKURAN_BATCH_MAIA` (32) |
-| `deviasiManusiaDariMaia(moves, opsi)` | jalur lengkap: prediksi → `hitungDeviasiManusia` |
-
-Dua hal yang mudah salah dan sudah dikunci uji (`npm run uji:prediksi-maia`,
-19 pemeriksaan, mesin tiruan — tanpa ONNX):
-
-1. **Kunci peta = FEN SEBELUM langkah** (`moves[i - 1].fen`), karena
-   `hitungDeviasiManusia` menilai `moves[i]` dengan kunci itu. Memakai
-   `moves[i].fen` menggeser seluruh penilaian satu langkah — salah tanpa galat.
-   Kontrol negatif: membalik kunci ini menggagalkan 10 pemeriksaan.
-2. **Rating diteruskan, bukan dikarang:** `rating`/`ratingLawan` milik
-   pemanggil mengalir apa adanya ke `inferensi()`.
-
-Pemanggilnya kini ada, dan menyatu dengan layar yang sudah dipakai: pada
-daftar **Nama** mesin di panel pengaturan Deteksi engine, pilihan *Maia 3 —
-distribusi manusia* memakai **pengaturan yang sudah ada** (akun, situs, filter
-waktu, jumlah partai); kendali Stockfish yang tidak berlaku (hash, threads)
-disembunyikan dan kolom kedalaman diganti kolom **Elo**, karena Maia memang
-tidak punya kedalaman. Tombol di panel pun menyesuaikan: selama bobot belum
-ada, tombolnya "Unduh Maia 3"; setelah siap ia berubah menjadi tombol
-analisis. Lalu `useDeviasiManusia.js` menjalankan rantainya. Model 45 MB
-**tidak** diunduh saat layar dibuka —
-hanya setelah tombol ditekan, dengan progres unduhan dan tombol Batal; bobot
-yang sudah ada dipakai ulang dari cache.
-
-Lapisan riwayatnya (`mesin/deviasiRiwayat.js` + `mesin/uraiPgn.js`) murni dan
-diuji tanpa model:
-
-- `ringkasDeviasiRiwayat(partai, { prediksi, warnaUntuk, sinyal })` —
-  rata-rata **berbobot sampel** lintas partai, hasil parsial saat dibatalkan.
-- `uraiPgn(pgn)` — pengurai PGN tanpa Stockfish; bentuk keluarannya meniru
-  `parsePGN()` (`moves[0]` posisi awal, `color` = giliran berikutnya), jadi
-  kunci "FEN sebelum langkah" tetap berlaku.
-- Opsi `warna` di `hitungDeviasiManusia` menyaring ke satu pemain **setelah**
-  kunci FEN dipilih — tanpa itu langkah lawan ikut terhitung dan metrik tidak
-  lagi menjawab "apakah ORANG INI bermain seperti manusia rating segini".
-
-Sorotan per langkah **sudah ada**: `rincianDeviasiManusia(moves, prediksi,
-{ warna })` mengembalikan kejutan & peringkat tiap langkah (aturan baca sama
-dengan ringkasan — kunci `moves[i - 1].fen`), dan `ringkasDeviasiRiwayat`
-mengembalikan lima langkah teratas lintas partai di `langkahTersorot`. Tombol
-**Buka** memuat partai itu ke papan pada langkah tersebut: panel mengirim
-`{ format: "pgn", string, lompatKe }`, dan papan menjepit nomornya setelah
-parse selesai lewat `komponen/game/lompatLangkah.js` — nomor di luar
-jangkauan menjadi langkah terakhir, `lompatKe` yang tidak sah diabaikan
-sehingga muatan biasa dari Basis Data/Impor berperilaku seperti dulu.
-
-### Biaya kerja & rating
-
-Jalur ini tidak memakai kedalaman Stockfish; biayanya = jumlah partai ×
-langkah yang dinilai, dibagi ke gelombang inferensi sebesar `ukuranBatch`
-(bawaan `UKURAN_BATCH_MAIA` = 32 di `mesin/prediksiMaia.js`). Jumlah partai
-memakai kolom yang sama dengan deteksi Stockfish. **Elo pemain** diisi di
-kolom yang menggantikan kedalaman (600–2600, `batasRating`), sedangkan Elo
-lawan dibaca dari PGN lewat `ratingDariMetadata` dan jatuh ke Elo pemain bila
-PGN tidak memuatnya. Tidak ada setelan kedua yang perlu diisi atau disimpan.
-
-Panah di papan **sudah ada**: `data.sorotUci` membawa UCI langkah yang
-disorot, dan `komponen/game/panahSorot.js` menerjemahkannya ke format panah
-papan (`[{col,row},{col,row}]`). Panah menempel pada nomor langkah itu saja,
-jadi navigasi ke langkah lain membersihkannya.
-
-Yang masih terbuka: kalibrasi ambang kejutan dengan korpus lokal. Selain itu,
-sorotan masih berupa panah tunggal per baris; menampilkan beberapa panah
-sekaligus (mis. lima teratas untuk satu partai) belum dikerjakan.
