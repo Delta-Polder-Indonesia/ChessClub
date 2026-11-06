@@ -165,7 +165,7 @@ function useDeteksiRiwayat({ platform, username, waktu, kedalaman, papanSibuk })
   return { hasil, status, berjalan, progres, pesan, jumlahPartai, setJumlahPartai, batas, jalankan, batalkan };
 }
 
-export default function LayarDeteksiEngine({ onBukaAkun }) {
+export default function LayarDeteksiEngine({ onBukaAkun, onBukaPartai = null }) {
   const { t } = useI18n();
   const analyzeContext = useContext(AnalyzeContext);
   const mesin = useMesin();
@@ -536,6 +536,7 @@ export default function LayarDeteksiEngine({ onBukaAkun }) {
                   waktu={waktu}
                   batas={jumlah}
                   nonaktif={ac.berjalan || papanSibuk}
+                  onBukaPartai={onBukaPartai}
                 />
               ) : null}
               <p className="rounded-borderRoundness border border-border bg-backgroundBoxBox px-3 py-2 text-xs leading-4 text-foregroundGrey">{t("analisa.antiCheat.disclaimer")}</p>

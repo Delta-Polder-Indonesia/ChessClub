@@ -385,8 +385,16 @@ file-file yang disebut.
     `mesin/uraiPgn.js` (pengurai PGN tanpa Stockfish — `parsePGN` menuntut
     engine siap dan mengevaluasi tiap posisi, terlalu mahal untuk sekadar
     daftar langkah). Panel ini **tidak** menyentuh jaringan sebelum tombolnya
-    ditekan; bobot 45 MB yang sudah ada dipakai ulang dari cache. Uji:
-    `uji-deviasi-riwayat.mjs` (22) + 2 pemeriksaan UI di `uji-anticheat.mjs`.
+    ditekan; bobot 45 MB yang sudah ada dipakai ulang dari cache.
+  - *Sorotan per langkah*: panel tidak berhenti di angka. `rincianDeviasiManusia`
+    (aturan baca sama dengan ringkasannya — kunci FEN **sebelum** langkah)
+    memberi kejutan & peringkat per langkah, dan `ringkasDeviasiRiwayat`
+    mengembalikan 5 langkah teratas lintas partai di `langkahTersorot`
+    (partai, nomor langkah, SAN, bit). Tombol **Buka** di tiap baris memuat
+    partai itu ke papan **pada langkah tersebut** lewat `data.lompatKe`;
+    jepitannya di `komponen/game/lompatLangkah.js` karena panjang partai baru
+    diketahui setelah parse selesai. Uji: `uji-deviasi-riwayat.mjs` (32) + 2
+    pemeriksaan UI di `uji-anticheat.mjs`.
 - Uji: `scripts/uji-anticheat.mjs` (426) dan `scripts/uji-engine-uci.mjs`
   (59, termasuk MultiPV pada Stockfish asli) — semua wajib tetap hijau
   sebelum dan sesudah langkah berikutnya.
@@ -500,14 +508,14 @@ Di luar rangkaian itu:
 | `uji-wawasan-rating.mjs` | 10 |
 | `uji-integritas-suite.mjs` | 9 |
 | `uji-prediksi-maia.mjs` | 19 |
-| `uji-deviasi-riwayat.mjs` | 22 |
-| `uji-i18n.mjs` | 3399 kunci ID = 3399 EN, 1710 terpakai |
+| `uji-deviasi-riwayat.mjs` | 32 |
+| `uji-i18n.mjs` | 3402 kunci ID = 3402 EN, 1713 terpakai |
 
 ### Bundle & build
 
 | Ukuran | Nilai |
 | --- | --- |
-| Chunk `Analisa-*.js` | 368.495 B (gzip 99,87 kB) |
+| Chunk `Analisa-*.js` | 368.684 B (gzip 99,95 kB) |
 | `npm run build` (Vite, Node 22) | ±24 dtk |
 | `npm run lint` (eslint) | bersih |
 
@@ -1233,7 +1241,7 @@ Status verifikasi (diperbarui 2026-11-06 — angka lama sengaja tidak
 dipertahankan): 51 lulus / 0 gagal; `uji:analisa-menyeluruh` (18 skrip,
 1133 pemeriksaan), `uji:analisa` (34), `uji:analisa-ui` (152), `uji:anticheat`
 (428), `uji:tarik-api` (7), `uji:basisdata` (34), `uji:akun-database` (16),
-`uji:i18n` (3399 kunci ID = EN), `uji:integritas-suite` (9), dan `npm run
+`uji:i18n` (3402 kunci ID = EN), `uji:integritas-suite` (9), dan `npm run
 build` semuanya hijau. Jalur jaringan chess.com/lichess TIDAK diverifikasi
 live — sandbox agent hanya mengizinkan github/npm/pypi, jadi `accuracies`
 diverifikasi lewat bentuk respons yang didokumentasikan API keduanya.
@@ -1350,7 +1358,7 @@ Status verifikasi (diperbarui 2026-11-06): `uji:akurasi` 50/0, `uji-hasil`
 27/0, `uji-evaluasi` 90/0, `uji-anticheat` 428/0, `uji-wawasan-profil` 51/0,
 `uji-analisa-ui` 152/0, `uji-analisa` 34/0, `uji-wawasan-rating` 10/0,
 `uji-klasifikasi` 63/0, `uji-parser-pgn` 36/0, `uji-langkah-kritis` 54/0,
-`uji-i18n` (3399 kunci ID = EN), `uji-integritas-suite` 9/0, `npm run lint`
+`uji-i18n` (3402 kunci ID = EN), `uji-integritas-suite` 9/0, `npm run lint`
 bersih, `npm run build` OK.
 **Tampilan panel Ringkasan belum diverifikasi visual** — `localhost` tidak
 terjangkau dari sandbox agent, jadi semua klaim di atas berasal dari uji di atas

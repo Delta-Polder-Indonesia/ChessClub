@@ -143,7 +143,7 @@ function LapisanLayar({ tampilan, papanAktif, lapisanRef, kePapan, keAkun }) {
       ) : null}
       {tampilan === TAMPILAN_ANALISA.DETEKSI_ENGINE ? (
         <Suspense fallback={<div className="h-full min-h-0 w-full bg-backgroundBox" />}>
-          <LayarDeteksiEngine onBukaAkun={keAkun} />
+          <LayarDeteksiEngine onBukaAkun={keAkun} onBukaPartai={muatPartai} />
         </Suspense>
       ) : null}
       {tampilan === TAMPILAN_ANALISA.WAWASAN ? (

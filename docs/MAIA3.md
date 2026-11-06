@@ -376,6 +376,16 @@ diuji tanpa model:
   kunci FEN dipilih — tanpa itu langkah lawan ikut terhitung dan metrik tidak
   lagi menjawab "apakah ORANG INI bermain seperti manusia rating segini".
 
+Sorotan per langkah **sudah ada**: `rincianDeviasiManusia(moves, prediksi,
+{ warna })` mengembalikan kejutan & peringkat tiap langkah (aturan baca sama
+dengan ringkasan — kunci `moves[i - 1].fen`), dan `ringkasDeviasiRiwayat`
+mengembalikan lima langkah teratas lintas partai di `langkahTersorot`. Tombol
+**Buka** memuat partai itu ke papan pada langkah tersebut: panel mengirim
+`{ format: "pgn", string, lompatKe }`, dan papan menjepit nomornya setelah
+parse selesai lewat `komponen/game/lompatLangkah.js` — nomor di luar
+jangkauan menjadi langkah terakhir, `lompatKe` yang tidak sah diabaikan
+sehingga muatan biasa dari Basis Data/Impor berperilaku seperti dulu.
+
 Yang masih terbuka: kalibrasi ambang kejutan dengan korpus lokal, dan
-kemungkinan memakai `kejutanTinggi` per langkah untuk menyorot langkah
-tertentu di papan (sekarang baru berupa angka ringkasan).
+menyorot langkah langsung di papan (panah/penanda) alih-alih hanya melompat
+ke posisinya.

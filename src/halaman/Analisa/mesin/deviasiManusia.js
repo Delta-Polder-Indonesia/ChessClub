@@ -35,6 +35,52 @@ function kejutanBit(p) {
 }
 
 /**
+ * Rincian per langkah (bukan ringkasan): dipakai panel deteksi untuk menyorot
+ * langkah yang paling tidak-manusiawi, sehingga angka "kejutanTinggi" bisa
+ * ditelusuri ke langkah konkretnya.
+ *
+ * Aturan bacanya sama persis dengan `hitungDeviasiManusia` — kunci
+ * `prediksi.get(moves[i - 1].fen)` (posisi SEBELUM langkah) dan penyaring
+ * warna yang sama — supaya daftar ini tidak pernah bertentangan dengan
+ * ringkasannya.
+ *
+ * @param {object[]} moves array hasil `parsePGN()` / `uraiPgn()`.
+ * @param {Map<string, object>} prediksi Map fen → `{ [uci]: probabilitas }`.
+ * @param {{ warna?: "w"|"b"|null }} [opsi] lihat `hitungDeviasiManusia`.
+ * @returns {Array<{indeks: number, san: string, uci: string, warna: "w"|"b"|null,
+ *   kejutan: number, peringkat: number}>} urut indeks langkah; `[]` bila
+ *   masukan tidak sah.
+ */
+export function rincianDeviasiManusia(moves, prediksi, { warna = null } = {}) {
+  if (!(prediksi instanceof Map) || !Array.isArray(moves)) return [];
+  const saringWarna = warna === "w" || warna === "b" ? warna : null;
+  const hasil = [];
+  for (let i = 1; i < moves.length; i++) {
+    const langkah = moves[i];
+    if (!langkah?.uci || !langkah?.san) continue;
+    const warnaPelangkah = pemainLangkah(langkah, i);
+    if (saringWarna && warnaPelangkah !== saringWarna) continue;
+    const distribusi = prediksi.get(moves[i - 1]?.fen);
+    if (!distribusi || typeof distribusi !== "object") continue;
+    const probabilitas = distribusi[langkah.uci];
+    if (!Number.isFinite(probabilitas)) continue;
+    let atasan = 0;
+    for (const lain of Object.values(distribusi)) {
+      if (Number.isFinite(lain) && lain > probabilitas) atasan += 1;
+    }
+    hasil.push({
+      indeks: i,
+      san: langkah.san,
+      uci: langkah.uci,
+      warna: warnaPelangkah,
+      kejutan: Math.round(kejutanBit(probabilitas) * 100) / 100,
+      peringkat: atasan + 1,
+    });
+  }
+  return hasil;
+}
+
+/**
  * Hitung deviasi pemain terhadap distribusi manusia.
  *
  * @param {object[]} moves array hasil `parsePGN()` — membaca `san`, `uci`,

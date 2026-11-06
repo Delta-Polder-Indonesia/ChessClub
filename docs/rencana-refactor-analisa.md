@@ -96,8 +96,13 @@ Status: **selesai** (2026-11-06), dalam dua PR:
    `komponen/nav/useDeviasiManusia.js`, di atas `mesin/deviasiRiwayat.js`
    (rata-rata berbobot sampel lintas partai) dan `mesin/uraiPgn.js` (pengurai
    PGN tanpa Stockfish). Model 45 MB hanya diunduh setelah tombol ditekan;
-   pemakaian berikutnya memakai cache. Dijaga `npm run uji:deviasi-riwayat`
-   (22) + 2 pemeriksaan UI di `uji-anticheat.mjs` (428).
+   pemakaian berikutnya memakai cache.
+3. **Sorotan per langkah** — `rincianDeviasiManusia` + `langkahTersorot`
+   (lima teratas), dengan tombol **Buka** yang memuat partai ke papan pada
+   langkah itu (`data.lompatKe` + `komponen/game/lompatLangkah.js`).
+
+   Dijaga `npm run uji:deviasi-riwayat` (32) + 2 pemeriksaan UI di
+   `uji-anticheat.mjs` (428).
 
 Yang **tidak** dikerjakan di fase ini dan tetap terbuka: kalibrasi ulang
 `KALIBRASI_RATING` dengan korpus lokal (langkah 2 di README Analisa) dan cache
