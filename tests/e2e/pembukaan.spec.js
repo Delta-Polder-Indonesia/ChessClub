@@ -101,9 +101,14 @@ for (const [bahasa, kamus] of [["id", papanId], ["en", papanEn]]) {
     const menu = page.getByRole("navigation", { name: kamus.menuMode });
     const analisa = menu.getByRole("link", { name: kamus.menuAnalisa, exact: true });
     await expect(analisa).toHaveAttribute("aria-current", "page");
-    // Sidebar adalah tautan rute: lima link internal (Manusia vs Mesin kini rute
-    // mandiri dengan sidebar sendiri), semuanya tetap di bawah /papan-interaktif.
-    await expect(menu.getByRole("link")).toHaveCount(5);
+    // Sidebar Workspace kini hanya fitur inti: Analisa + Pengaturan. Mode
+    // latihan (repertoar, Hand & Brain, Turing test) berdiri sendiri seperti
+    // Manusia vs Mesin, jadi tidak lagi muncul di sini walau rutenya tetap di
+    // bawah /papan-interaktif.
+    await expect(menu.getByRole("link")).toHaveCount(2);
+    for (const ruteMandiri of ["latihan-repertoar", "hand-brain", "turing-test"]) {
+      await expect(page.locator(`a[href="/papan-interaktif/${ruteMandiri}"]`)).toHaveCount(0);
+    }
     const hrefMenu = await menu.getByRole("link").evaluateAll((tautan) => tautan.map((a) => a.getAttribute("href")));
     for (const href of hrefMenu) expect(href.startsWith("/papan-interaktif")).toBe(true);
     await expect(page.locator('a[href="/program-kami/analisa"]')).toHaveCount(0);
@@ -174,7 +179,9 @@ for (const [bahasa, kamus] of [["id", papanId], ["en", papanEn]]) {
     await page.getByRole("tab", { name: kamus.tabBuku }).click();
     await expect(page.getByRole("searchbox", { name: kamus.cariPembukaan })).toBeVisible();
 
-    await menu.getByRole("link", { name: kamus.menuLatihanRepertoar }).click();
+    // Latihan Repertoar kini halaman mandiri (sidebar sendiri, pola Manusia vs
+    // Mesin), jadi dibuka dari rutenya — tidak lagi lewat sidebar Workspace.
+    await page.goto("/papan-interaktif/latihan-repertoar", { waitUntil: "domcontentloaded" });
     // Chunk Repertoar dimuat malas; di CI (vite dev, worker paralel) transform
     // dingin bisa melewati 15s bawaan — sama seperti papan di baris 82.
     await expect(page.getByRole("heading", { name: kamus.repertoarJudul })).toBeVisible({
@@ -198,7 +205,8 @@ for (const [bahasa, kamus] of [["id", papanId], ["en", papanEn]]) {
     expect(tataLetakWorkspace.kananBilah).toBeLessThanOrEqual(tataLetakWorkspace.kiriPapan);
     expect(tataLetakWorkspace.menuMeluap).toBe(false);
 
-    await menu.getByRole("link", { name: kamus.menuTuring }).click();
+    // Turing test juga halaman mandiri: rute langsung, bukan item sidebar.
+    await page.goto("/papan-interaktif/turing-test", { waitUntil: "domcontentloaded" });
     await expect(page).toHaveURL(/\/papan-interaktif\/turing-test/);
     // Chunk Turing dimuat malas. Tanpa penantian ini pemeriksaan di bawah bisa
     // membaca DOM workspace Analisa yang masih terpasang (bilah evaluasinya
@@ -217,9 +225,9 @@ for (const [bahasa, kamus] of [["id", papanId], ["en", papanEn]]) {
     expect(tataLetakTuring.bilahTerlihat).toBe(false);
     expect(tataLetakTuring.menuMeluap).toBe(false);
 
-    // Tautan sidebar mengembalikan pengguna ke workspace Analisa tanpa
-    // meninggalkan /papan-interaktif (bukan tautan keluar + reload).
-    await analisa.click();
+    // Kembali ke workspace Analisa lewat rute intinya. Halaman Turing sudah
+    // tidak membawa sidebar Workspace, jadi tautannya tidak tersedia di sana.
+    await page.goto("/papan-interaktif", { waitUntil: "domcontentloaded" });
     await expect(page.locator("[data-petak]")).toHaveCount(64);
     await expect(page).toHaveURL(/\/papan-interaktif$/);
 

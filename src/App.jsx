@@ -35,6 +35,12 @@ const TekaTekiKonten = lazy(() => import("./halaman/ProgramKami/TekaTekiKonten.j
 const RushTekaTekiLanding = lazy(() => import("./halaman/ProgramKami/RushTekaTekiLanding.jsx"));
 const KuisCaturLanding = lazy(() => import("./halaman/ProgramKami/KuisCaturLanding.jsx"));
 const ManusiaVsMesinLanding = lazy(() => import("./halaman/ProgramKami/ManusiaVsMesinLanding.jsx"));
+const LatihanRepertoarLanding = lazy(() => import("./halaman/ProgramKami/LatihanRepertoarLanding.jsx"));
+const HandBrainLanding = lazy(() => import("./halaman/ProgramKami/HandBrainLanding.jsx"));
+const TuringTestLanding = lazy(() => import("./halaman/ProgramKami/TuringTestLanding.jsx"));
+// Halaman penjelas Teka-teki Harian. Namanya `Konten` karena `Landing/`
+// sudah punya widget TekaTekiHarianLanding.jsx yang bisa dimainkan.
+const TekaTekiHarianKonten = lazy(() => import("./halaman/ProgramKami/TekaTekiHarianKonten.jsx"));
 const Pembukaan = lazy(() => import("./halaman/ProgramKami/Pembukaan.jsx"));
 const EbookPanduan = lazy(() => import("./halaman/ProgramKami/EbookPanduan.jsx"));
 
@@ -213,6 +219,12 @@ const RUTE_HALAMAN = [
   ["/program-kami/rush-teka-teki", RushTekaTekiLanding],
   ["/program-kami/kuis-catur", KuisCaturLanding],
   ["/program-kami/manusia-vs-mesin", ManusiaVsMesinLanding],
+  // Halaman penjelas mode papan mandiri — pintu masuk tiap mode sebelum
+  // pengunjung membuka papannya di /papan-interaktif/*.
+  ["/program-kami/latihan-repertoar", LatihanRepertoarLanding],
+  ["/program-kami/hand-brain", HandBrainLanding],
+  ["/program-kami/turing-test", TuringTestLanding],
+  ["/program-kami/teka-teki-harian", TekaTekiHarianKonten],
   ["/program-kami/pembukaan", Pembukaan],
   ["/program-kami/analisa", AnalisaLanding],
   ["/program-kami/analisa/papan", Analisa],
@@ -237,10 +249,15 @@ const RUTE_HALAMAN = [
   ["/teka-teki-harian", TekaTekiHarian],
   ["/quiz-catur", QuizCatur],
 
-  // Manusia vs Mesin — satu keluarga papan-interaktif, tapi berdiri sendiri
-  // dengan sidebar miliknya sendiri (ala Teka-teki/Rush), bukan sidebar
-  // tata letak Workspace. Alamatnya tetap di bawah /papan-interaktif/*.
+  // Mode papan yang BERDIRI SENDIRI — Manusia vs Mesin, Latihan Repertoar,
+  // Hand & Brain, dan Turing test. Keempatnya tidak memakai tata letak
+  // Workspace: masing-masing membawa sidebar, navigasi, dan judul dokumennya
+  // sendiri. Alamatnya tetap di bawah /papan-interaktif/* supaya URL publik
+  // tidak berubah; yang berpindah hanya pemilik tata letaknya.
   ["/papan-interaktif/manusia-vs-mesin", ManusiaVsMesin],
+  ["/papan-interaktif/latihan-repertoar", LatihanRepertoar],
+  ["/papan-interaktif/hand-brain", HandBrain],
+  ["/papan-interaktif/turing-test", TuringTest],
 
   ["/turnamen", Turnamen],
   ["/turnamen/turnamen-bulanan", TurnamenBulanan],
@@ -272,15 +289,13 @@ const RUTE_HALAMAN = [
   ["/karir", Karir],
 ];
 
-/** Rute Papan Interaktif: satu halaman per mode di bawah satu tata letak.
+/** Rute inti Papan Interaktif: papan buku/Analisa + Pengaturan.
  *  Ditulis sebagai pasangan [jalur, Komponen] seperti tabel di atas supaya
  *  pemindai rute (scripts/uji-rute.mjs) tetap menemukannya sebagai rute
- *  absolut — dirender bersarang di bawah <TataLetakPapan /> pada <Routes>. */
+ *  absolut — dirender bersarang di bawah <TataLetakPapan /> pada <Routes>.
+ *  Mode latihan tidak ada di sini: semuanya rute mandiri di RUTE_HALAMAN. */
 const RUTE_PAPAN = [
   ["/papan-interaktif", HalamanPapanBuku],
-  ["/papan-interaktif/latihan-repertoar", LatihanRepertoar],
-  ["/papan-interaktif/hand-brain", HandBrain],
-  ["/papan-interaktif/turing-test", TuringTest],
   ["/papan-interaktif/pengaturan", LayarPengaturan],
 ];
 

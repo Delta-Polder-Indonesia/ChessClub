@@ -101,22 +101,46 @@ hasil(
   bersarang.length === 0,
   `grup bersarang: ${bersarang.map((c) => c.title).join(", ")}`
 );
+// Dua baris ini dulu menaut langsung ke alatnya. Sekarang keduanya menuju
+// halaman penjelasnya, sama seperti baris Program Kami lain — alatnya tetap
+// di /teka-teki-harian dan /papan-interaktif/manusia-vs-mesin.
 hasil(
-  "Teka-teki Harian tetap satu baris di dropdown Program Kami",
-  anak.some((c) => c.path === "/teka-teki-harian")
+  "Teka-teki Harian tetap satu baris dan menuju halaman penjelasnya",
+  anak.some((c) => c.path === "/program-kami/teka-teki-harian")
 );
 hasil(
-  "Lawan Bot tetap satu baris (bukan di dalam grup)",
-  anak.some((c) => c.path === "/papan-interaktif/manusia-vs-mesin")
+  "Lawan Bot tetap satu baris dan menuju halaman penjelasnya",
+  anak.some((c) => c.path === "/program-kami/manusia-vs-mesin")
 );
 hasil(
   "seluruh isi dropdown berupa tautan langsung",
   anak.every((c) => typeof c.path === "string" && !c.children)
 );
+// Susunan yang diminta: kolom 1 = Teka-teki Catur, Rush, Harian, Kuis;
+// kolom 2 = Report Analisa, Pembukaan, Lawan Bot, E-Book; kolom 3 = tiga
+// mode papan mandiri. Jumlah baris 11 dengan `kolom: 4` menghasilkan
+// 4 + 4 + 3 lewat grid-flow-col.
 hasil(
-  "jumlah baris dropdown sama seperti bentuk lama",
-  anak.length === 8,
+  "jumlah baris dropdown 4 + 4 + 3 (sebelas)",
+  anak.length === 11,
   `jumlah: ${anak.length}`
+);
+// Setiap baris dropdown harus benar-benar rute publik yang terdaftar —
+// menunya peta folder sekaligus peta rute, jadi salah ketik path berarti
+// tautan mati yang tidak ketahuan sampai pengunjung mengkliknya.
+const { RUTE_PUBLIK } = await import("../plugins/performa.js");
+const mati = anak.filter((c) => !RUTE_PUBLIK.includes(c.path.split("#")[0]));
+hasil(
+  "semua baris dropdown menuju rute yang terdaftar",
+  mati.length === 0,
+  `tidak terdaftar: ${mati.map((c) => c.path).join(", ")}`
+);
+
+const tigaMode = ["/program-kami/latihan-repertoar", "/program-kami/hand-brain", "/program-kami/turing-test"];
+hasil(
+  "tiga mode papan mengisi kolom ketiga sesuai urutan",
+  tigaMode.every((jalur, i) => anak.slice(-3)[i]?.path === jalur),
+  `ekor: ${anak.slice(-3).map((c) => c.path).join(", ")}`
 );
 
 // 5. Di DOM: tautan Teka-teki Harian harus langsung terlihat saat dropdown
@@ -129,8 +153,8 @@ await act(async () => {
 });
 hasil(
   "tautan Teka-teki Harian langsung tampil di dropdown",
-  Boolean(document.querySelector('a[href="/teka-teki-harian"]')),
-  "tautan /teka-teki-harian tidak tampil"
+  Boolean(document.querySelector('a[href="/program-kami/teka-teki-harian"]')),
+  "tautan /program-kami/teka-teki-harian tidak tampil"
 );
 hasil(
   "tidak ada tombol panah submenu di dropdown Program Kami",

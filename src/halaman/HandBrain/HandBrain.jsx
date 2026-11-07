@@ -4,6 +4,7 @@ import { BarisProfil } from "../PapanInteraktif/bersama/BarisProfil.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 import { PENGATURAN_AWAL, usePengaturanPapan } from "../PapanInteraktif/bersama/gunakanPengaturanPapan.js";
 import { usePengaturanBersama } from "../PapanInteraktif/bersama/PengaturanKonteks.jsx";
+import TataLetakModePapan from "../PapanInteraktif/bersama/TataLetakModePapan.jsx";
 import {
   buatPartai,
   langkahDiizinkan,
@@ -44,7 +45,8 @@ export default function HandBrain({ pengaturan = null }) {
   const { t } = useI18n();
   const pengaturanLokal = usePengaturanPapan();
   const pengaturanBersama = usePengaturanBersama();
-  const pp = (pengaturan ?? pengaturanBersama ?? pengaturanLokal).nilai ?? PENGATURAN_AWAL;
+  const sumberPengaturan = pengaturan ?? pengaturanBersama ?? pengaturanLokal;
+  const pp = sumberPengaturan.nilai ?? PENGATURAN_AWAL;
 
   const [partai, setPartai] = useState(() => buatPartai());
   const [terpilih, setTerpilih] = useState(null);
@@ -146,8 +148,15 @@ export default function HandBrain({ pengaturan = null }) {
       : t("papan.hbSeri");
 
   return (
-    // Ukuran papan mengikuti mode Manusia vs Mesin: konten dibatasi 1280px dan
-    // kolom papan maksimal 520px, sehingga panel kanan selalu lebarnya sama.
+    // Halaman mandiri (pola Manusia vs Mesin): sidebar, navigasi, dan judul
+    // dokumen milik mode ini sendiri, bukan milik tata letak Workspace.
+    <TataLetakModePapan
+      judul={t("papan.menuHandBrain")}
+      tautan={{ to: "/program-kami/hand-brain", label: t("papan.modeTentang") }}
+      pengaturan={sumberPengaturan}
+    >
+    {/* Ukuran papan mengikuti mode Manusia vs Mesin: konten dibatasi 1280px dan
+        kolom papan maksimal 520px, sehingga panel kanan selalu lebarnya sama. */}
     <section
       aria-label={t("papan.menuHandBrain")}
       className="mx-auto grid h-full min-h-0 w-full max-w-[1280px] grid-cols-1 gap-3 overflow-x-hidden overflow-y-auto p-2 sm:gap-4 sm:p-4 md:px-8 lg:grid-cols-[auto_minmax(0,1fr)] lg:overflow-hidden"
@@ -247,5 +256,6 @@ export default function HandBrain({ pengaturan = null }) {
           </div>
         </aside>
     </section>
+    </TataLetakModePapan>
   );
 }

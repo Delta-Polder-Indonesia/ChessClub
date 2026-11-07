@@ -50,9 +50,10 @@ export const MENU_UTAMA = [
     folder: "ProgramKami",
     path: "/program-kami",
     file: "ProgramKami.jsx",
-    // Anak dropdown disusun dua kolom berisi 4 dan 4 item yang turun ke
-    // bawah (grid-flow-col), supaya daftar panjang tidak menjang ke bawah.
-    // Lihat NavItemDesktop di Header.jsx.
+    // Anak dropdown disusun kolom yang turun ke bawah (grid-flow-col),
+    // empat baris per kolom: 4 + 4 + 3 = tiga kolom. Batas empat baris itu
+    // yang menjaga dropdown tidak menjang ke bawah. Lihat NavItemDesktop
+    // di Header.jsx.
     kolom: 4,
     children: [
       {
@@ -68,19 +69,16 @@ export const MENU_UTAMA = [
         file: "RushTekaTekiLanding.jsx",
       },
       {
-        // Halaman alat, bukan halaman konten: alamatnya sejajar dengan
-        // /teka-teki/problem dan /teka-teki-rush.
-        //
-        // Catatan: halaman ini BERDIRI SENDIRI (kerangka sidebar sendiri,
-        // sefamili papan interaktif) — lihat
-        // `src/halaman/TekaTekiHarian/TekaTekiHarian.jsx`. Ia tetap
-        // didaftarkan di sini sebagai satu baris datar supaya dropdown
-        // Program Kami TIDAK memakai submenu bertingkat: bentuk daftar lama
-        // (dua kolom berisi 4 + 4 baris) yang sudah dikenal pengunjung.
+        // Menaut ke halaman penjelasnya, bukan langsung ke alatnya: alatnya
+        // (`/teka-teki-harian`) BERDIRI SENDIRI dengan kerangka sidebar
+        // sendiri, sefamili papan interaktif, dan halaman penjelas itulah
+        // pintu masuk yang seragam dengan baris Program Kami lain.
+        // Barisnya tetap datar supaya dropdown TIDAK memakai submenu
+        // bertingkat (bentuk kolom 4 + 4 + 3 yang dikenal pengunjung).
         title: "nav.tekaTekiHarian",
-        path: "/teka-teki-harian",
-        folder: "TekaTekiHarian",
-        file: "TekaTekiHarian.jsx",
+        path: "/program-kami/teka-teki-harian",
+        folder: "ProgramKami",
+        file: "TekaTekiHarianKonten.jsx",
       },
       {
         title: "nav.quizCatur",
@@ -101,16 +99,40 @@ export const MENU_UTAMA = [
         file: "Pembukaan.jsx",
       },
       {
+        // Sama seperti tiga mode papan lain: baris menu menuju halaman
+        // penjelas, dan tombol masuk ke papannya ada di halaman itu.
         title: "nav.lawanBot",
-        path: "/papan-interaktif/manusia-vs-mesin",
-        folder: "ManusiaVsMesin",
-        file: "ManusiaVsMesin.jsx",
+        path: "/program-kami/manusia-vs-mesin",
+        folder: "ProgramKami",
+        file: "ManusiaVsMesinLanding.jsx",
       },
       {
         title: "nav.eBookPanduan",
         path: "/program-kami/ebook-panduan",
         folder: "ProgramKami",
         file: "EbookPanduan.jsx",
+      },
+      // Tiga mode papan mandiri — seperti Lawan Bot, tiap mode adalah alat
+      // sendiri dengan sidebar sendiri. Yang ditautkan di sini halaman
+      // penjelasnya (/program-kami/*), sama seperti baris Program Kami lain;
+      // tombol masuk ke alatnya ada di halaman itu.
+      {
+        title: "nav.latihanRepertoar",
+        path: "/program-kami/latihan-repertoar",
+        folder: "ProgramKami",
+        file: "LatihanRepertoarLanding.jsx",
+      },
+      {
+        title: "nav.handBrain",
+        path: "/program-kami/hand-brain",
+        folder: "ProgramKami",
+        file: "HandBrainLanding.jsx",
+      },
+      {
+        title: "nav.turingTest",
+        path: "/program-kami/turing-test",
+        folder: "ProgramKami",
+        file: "TuringTestLanding.jsx",
       },
     ],
   },

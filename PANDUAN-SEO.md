@@ -19,7 +19,7 @@ deskripsi yang jelas — bukan cuma link mentah.
 | Open Graph + Twitter Card | judul, deskripsi, gambar `landing-hero.webp` | Pratinjau saat link dibagikan (WhatsApp, X, Facebook) |
 | JSON-LD (Organization + WebSite) | nama, logo, kontak, bahasa | Data terstruktur untuk rich result |
 | JSON-LD BreadcrumbList (halaman dalam) | hierarki nama + URL tiap remah | Breadcrumb di hasil Google |
-| `robots.txt` + `sitemap.xml` | 34 URL halaman, tiap entri berisi `<lastmod>` | Peta situs agar Google tahu semua halaman |
+| `robots.txt` + `sitemap.xml` | 50 URL halaman, tiap entri berisi `<lastmod>` | Peta situs agar Google tahu semua halaman |
 
 Catatan jujur: **Google mengabaikan tag `keywords`** untuk pemeringkatan.
 Yang membuat hasil pencarian "terlihat" adalah `<title>` + `meta description`
@@ -76,8 +76,9 @@ Sekali saja, ikuti langkah ini:
 
 **Sitemap** = berkas XML berisi daftar URL situs (`public/sitemap.xml`,
 di-build ke `dist/sitemap.xml` dengan `%%SITE_URL%%` diganti alamat situs
-oleh plugin `inject-site-url` di `vite.config.js`). Isinya 31 URL publik —
-beranda + 30 rute di `RUTE_PUBLIK`.
+oleh plugin `inject-site-url` di `vite.config.js`). Isinya 50 URL: beranda
+plus seluruh rute di `RUTE_PUBLIK` (tidak ada rute yang terlewat atau ganda —
+dijaga `scripts/uji-seo.mjs`).
 
 **"Submit" di Search Console** berarti memberi tahu Google: "ini daftar
 halaman saya, silakan di-crawl." Tanpa langkah ini Google tetap bisa
@@ -112,7 +113,7 @@ Langkahnya:
 
    Uji itu memeriksa sitemap ↔ `RUTE_PUBLIK` ↔ `META_RUTE`, `<lastmod>`,
    `robots.txt`, dan kedua metode verifikasi Search Console sekaligus.
-   Output yang benar: `OK — 39 rute publik punya metadata sendiri, 40 URL
+   Output yang benar: `OK — 50 rute publik punya metadata sendiri, 50 URL
    sitemap selaras, robots.txt & verifikasi Search Console utuh.`
    Rute bertanda `noindex` memang tidak boleh muncul di sitemap — dan
    sebaliknya, setiap rute `index, follow` **wajib** ada di sitemap. Saat ini

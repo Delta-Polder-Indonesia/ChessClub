@@ -10,6 +10,7 @@ export const papan = {
     judul: "Penjelajah Pembukaan Catur",
     remah: "Pembukaan",
     menuMode: "Mode papan",
+    modeTentang: "Tentang mode ini",
     menuAnalisa: "Analisa",
     menuManusiaMesin: "Manusia vs Mesin",
     menuLatihanRepertoar: "Latihan Repertoar",

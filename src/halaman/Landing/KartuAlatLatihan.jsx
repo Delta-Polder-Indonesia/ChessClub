@@ -20,7 +20,7 @@
  */
 import { useI18n } from "../../lib/i18n.jsx";
 import { Link } from "react-router-dom";
-import { BookOpen, Brain, Cpu, ListChecks, Timer } from "lucide-react";
+import { BookOpen, Bookmark, Brain, Cpu, ListChecks, ScanSearch, Shapes, Timer } from "lucide-react";
 import { ArrowRightIcon } from "../../components/icons.jsx";
 import {
   JUDUL_SEKSI,
@@ -70,11 +70,11 @@ function BarisAlat({ alat }) {
   );
 }
 
-/* Keenam kartu diarahkan ke halaman penjelasan masing-masing di
+/* Kesembilan kartu diarahkan ke halaman penjelasan masing-masing di
    /program-kami/*, bukan ke alatnya. Setiap halaman itu memuat cara kerja,
    contoh nyata, dan tombol ke alatnya; jadi satu klik dari Beranda selalu
    mendarat di halaman isi, dan masuk ke alat butuh klik kedua. */
-function enamAlat(t) {
+function semuaAlat(t) {
   return [
     {
       to: "/program-kami/teka-teki",
@@ -118,6 +118,27 @@ function enamAlat(t) {
       desk: t("landing.alatManusiaVsMesinDesk"),
       cta: t("landing.alatManusiaVsMesinCta"),
     },
+    {
+      to: "/program-kami/latihan-repertoar",
+      ikon: Bookmark,
+      judul: t("landing.alatLatihanRepertoarJudul"),
+      desk: t("landing.alatLatihanRepertoarDesk"),
+      cta: t("landing.alatLatihanRepertoarCta"),
+    },
+    {
+      to: "/program-kami/hand-brain",
+      ikon: Shapes,
+      judul: t("landing.alatHandBrainJudul"),
+      desk: t("landing.alatHandBrainDesk"),
+      cta: t("landing.alatHandBrainCta"),
+    },
+    {
+      to: "/program-kami/turing-test",
+      ikon: ScanSearch,
+      judul: t("landing.alatTuringTestJudul"),
+      desk: t("landing.alatTuringTestDesk"),
+      cta: t("landing.alatTuringTestCta"),
+    },
   ];
 }
 
@@ -131,7 +152,7 @@ export function KartuAlatLatihan() {
         <h2 className={JUDUL_SEKSI}>{t("landing.alatLatihanJudul")}</h2>
 
         <ul className="grid grid-cols-1 gap-x-8 gap-y-0 sm:grid-cols-2">
-          {enamAlat(t).map((alat) => (
+          {semuaAlat(t).map((alat) => (
             <li
               key={alat.to}
               className="border-b border-grey-200 [&:first-child]:border-t sm:[&:nth-child(-n+2)]:border-t"

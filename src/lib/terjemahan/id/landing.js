@@ -96,6 +96,18 @@ export const landing = {
     alatManusiaVsMesinDesk:
       "Bermain catur melawan mesin lokal — dari lawan lemah untuk pemula hingga Maia 3 dan Stockfish untuk pemain lanjut.",
     alatManusiaVsMesinCta: "Mulai bermain",
+    alatLatihanRepertoarJudul: "Latihan Repertoar",
+    alatLatihanRepertoarDesk:
+      "Simpan jalur pembukaan dan latih langkah Anda dengan jadwal tinjauan yang tersimpan di perangkat.",
+    alatLatihanRepertoarCta: "Mulai belajar",
+    alatHandBrainJudul: "Hand & Brain",
+    alatHandBrainDesk:
+      "Dua pemain satu papan: sistem mengundi jenis bidak tiap giliran, dan hanya jenis itu yang boleh digerakkan.",
+    alatHandBrainCta: "Mulai bermain",
+    alatTuringTestJudul: "Turing Test",
+    alatTuringTestDesk:
+      "Bedakan langkah manusia dari langkah Stockfish pada posisi yang sama dan uji insting membaca gaya permainan.",
+    alatTuringTestCta: "Mulai menebak",
     tigaJalanJudul: "Pilih jalur yang paling cocok",
     tigaJalanJudulAccent: "untuk jenjang Anda",
     tigaJalanAkademiKicker: "Akademi Catur",

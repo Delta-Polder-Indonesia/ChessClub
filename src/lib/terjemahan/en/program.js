@@ -47,6 +47,26 @@ export const program = {
         deskripsi:
           "Play directly against a local chess engine — from weakened opponents for beginners to Maia 3 and Stockfish for advanced players.",
       },
+      tekaTekiHarian: {
+        judul: "Daily Puzzle",
+        deskripsi:
+          "A new tactical position every day with hints and an archive of earlier dates, playable straight in the browser.",
+      },
+      latihanRepertoar: {
+        judul: "Repertoire Training",
+        deskripsi:
+          "Save the opening lines you play, then practise your own moves with scheduled repetition on your device.",
+      },
+      handBrain: {
+        judul: "Hand & Brain",
+        deskripsi:
+          "A two-player variant on one device: the system draws a piece type each turn and you may only move that type.",
+      },
+      turingTest: {
+        judul: "Turing Test",
+        deskripsi:
+          "Guess which move a human played and which one Stockfish produced from the same position.",
+      },
     },
     h1: "Self-Study Guide and Practice",
     p3a: "For members who want to learn or revisit the fundamentals, the site provides the",
@@ -589,4 +609,60 @@ export const manusiaVsMesinLanding = {
     intro2:
       "Three ladders are available: weakened sunfish for beginners–intermediate, Maia 3 that mimics human style for intermediate–advanced, and Stockfish for advanced–master.",
     cta: "Start Playing",
+};
+
+export const latihanRepertoarLanding = {
+    judul: "Repertoire Training",
+    deskripsi:
+      "Save the opening lines you play, then practise your own moves with scheduled repetition stored on your device.",
+    metaDeskripsi:
+      "Repertoire Training by Indonesian Chess Community — save opening lines from the Lichess book, train your side's moves, and schedule reviews without a server.",
+    introJudul: "Memorise Openings Through Scheduled Practice",
+    intro1:
+      "Pick an opening from the Lichess opening book, save it as a line for White or Black, then practise only the moves on your turn. Every position becomes its own flashcard with its own review schedule.",
+    intro2:
+      "A correct answer pushes the next review further out (3 days, 6 days, 12 days, up to 24 days) while a miss brings it back in 10 minutes. All progress lives on your device — no move is ever sent to a server.",
+    cta: "Start Training",
+};
+
+export const handBrainLanding = {
+    judul: "Hand & Brain",
+    deskripsi:
+      "A two-player variant on one device: the system draws a piece type every turn, and you may only move pieces of that type.",
+    metaDeskripsi:
+      "Hand & Brain by Indonesian Chess Community — a two-player variant on one device where a piece type is drawn each turn, played on an interactive board.",
+    introJudul: "Chess With Hand and Brain Split Apart",
+    intro1:
+      "In Hand & Brain two players share one board. Each turn the system draws a piece type among the pieces that still have a legal move; moves with another piece type are rejected with a clear message.",
+    intro2:
+      "No account and no server: the board runs entirely in the browser, the move list sits beside it, and the draw rule is covered by automated tests so no piece type can become unplayable.",
+    cta: "Start Playing",
+};
+
+export const turingTestLanding = {
+    judul: "Turing Test",
+    deskripsi:
+      "Guess which move a human played and which one Stockfish produced from the same position — test how sharply you read playing style.",
+    metaDeskripsi:
+      "Turing Test by Indonesian Chess Community — guess human moves against Stockfish moves from your own PGN games or a Lichess account, right in the browser.",
+    introJudul: "Tell Human Moves From Engine Moves",
+    intro1:
+      "Paste a human game in PGN — or pull games from a Lichess account — and each puzzle shows two moves from the same position: one from the real game, one produced by Stockfish.",
+    intro2:
+      "You guess which move is human, and your score counts the correct guesses. The engine runs locally in the browser, so no game is ever sent to a community server.",
+    cta: "Start Guessing",
+};
+
+export const tekaTekiHarianLanding = {
+    judul: "Daily Puzzle",
+    deskripsi:
+      "A fresh tactical puzzle every day — opened straight in the browser, with hints and the archive of earlier dates.",
+    metaDeskripsi:
+      "Daily Puzzle by Indonesian Chess Community — a new tactical position each day you can play right in the browser, with hints and an archive of earlier dates.",
+    introJudul: "A New Tactic Every Day",
+    intro1:
+      "The Daily Puzzle always shows the newest position: taken from a real game, with one best move to find and an opponent that answers automatically on the board.",
+    intro2:
+      "Missed a few days? The archive opens any date you like. Everything runs in the browser without an account, and the record of which puzzles you finished stays on your own device.",
+    cta: "Play Today's Puzzle",
 };

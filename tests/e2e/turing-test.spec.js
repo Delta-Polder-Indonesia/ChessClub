@@ -28,7 +28,6 @@ const kamus = {
     hasil: /^(Benar!|Salah\.) Langkah/,
     berikut: /Soal berikutnya|Lihat skor/,
     label: "PGN partai manusia",
-    navigasi: "Mode papan",
   },
   en: {
     menu: "Turing test",
@@ -38,7 +37,6 @@ const kamus = {
     hasil: /^(Correct!|Wrong\.) /,
     berikut: /Next puzzle|See score/,
     label: "Human games PGN",
-    navigasi: "Board modes",
   },
 };
 
@@ -48,9 +46,9 @@ for (const [bahasa, t] of Object.entries(kamus)) {
     const galat = [];
     page.on("pageerror", (error) => galat.push(error.message));
     await page.addInitScript((nilai) => localStorage.setItem("kci-bahasa", nilai), bahasa);
-    await page.goto("/papan-interaktif", { waitUntil: "domcontentloaded" });
-
-    await page.getByRole("navigation", { name: t.navigasi }).getByRole("link", { name: t.menu, exact: true }).click();
+    // Turing test kini halaman mandiri (sidebar sendiri), jadi dibuka langsung
+    // dari rutenya — bukan lewat sidebar Workspace yang sudah tidak memuatnya.
+    await page.goto("/papan-interaktif/turing-test", { waitUntil: "domcontentloaded" });
     await page.getByLabel(t.label).fill(PGN);
     await page.getByRole("button", { name: t.mulai, exact: true }).click();
 
@@ -81,9 +79,7 @@ test("turing test: ambil partai dari Lichess lalu mulai tebak (id)", async ({ pa
     route.fulfill({ status: 200, contentType: "application/x-chess-pgn", body: PGN });
   });
   await page.addInitScript(() => localStorage.setItem("kci-bahasa", "id"));
-  await page.goto("/papan-interaktif", { waitUntil: "domcontentloaded" });
-
-  await page.getByRole("navigation", { name: "Mode papan" }).getByRole("link", { name: "Turing test", exact: true }).click();
+  await page.goto("/papan-interaktif/turing-test", { waitUntil: "domcontentloaded" });
   await page.getByLabel("Atau ambil dari Lichess (nama pengguna)").fill("uji-pemain");
   await page.getByRole("button", { name: "Ambil partai", exact: true }).click();
   await expect(page.getByLabel("PGN partai manusia")).toHaveValue(/\[Event "Uji A"\]/);
@@ -97,9 +93,7 @@ test("turing test: ambil partai dari Lichess lalu mulai tebak (id)", async ({ pa
 test("turing test: pengguna tidak ditemukan di Lichess menampilkan pesan galat (id)", async ({ page }) => {
   await page.route(/lichess\.org\/api\/games\/user\//, (route) => route.fulfill({ status: 404, body: "" }));
   await page.addInitScript(() => localStorage.setItem("kci-bahasa", "id"));
-  await page.goto("/papan-interaktif", { waitUntil: "domcontentloaded" });
-
-  await page.getByRole("navigation", { name: "Mode papan" }).getByRole("link", { name: "Turing test", exact: true }).click();
+  await page.goto("/papan-interaktif/turing-test", { waitUntil: "domcontentloaded" });
   await page.getByLabel("Atau ambil dari Lichess (nama pengguna)").fill("tidak-ada-kali");
   await page.getByRole("button", { name: "Ambil partai", exact: true }).click();
   await expect(page.getByRole("alert")).toHaveText("Pengguna tidak ditemukan atau belum punya partai.");

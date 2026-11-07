@@ -6,6 +6,7 @@ import { EngineCatur } from "../../lib/engineCatur.js";
 import { useI18n } from "../../lib/i18n.jsx";
 import { PENGATURAN_AWAL, usePengaturanPapan } from "../PapanInteraktif/bersama/gunakanPengaturanPapan.js";
 import { usePengaturanBersama } from "../PapanInteraktif/bersama/PengaturanKonteks.jsx";
+import TataLetakModePapan from "../PapanInteraktif/bersama/TataLetakModePapan.jsx";
 import { GALAT_IMPOR, GalatImporLichess, ambilPgnLichess } from "./turingLichess.js";
 import {
   JUMLAH_SOAL,
@@ -47,7 +48,8 @@ export default function TuringTest({ pengaturan = null }) {
   const { t } = useI18n();
   const pengaturanLokal = usePengaturanPapan();
   const pengaturanBersama = usePengaturanBersama();
-  const pp = (pengaturan ?? pengaturanBersama ?? pengaturanLokal).nilai ?? PENGATURAN_AWAL;
+  const sumberPengaturan = pengaturan ?? pengaturanBersama ?? pengaturanLokal;
+  const pp = sumberPengaturan.nilai ?? PENGATURAN_AWAL;
 
   const [teks, setTeks] = useState("");
   const [namaLichess, setNamaLichess] = useState("");
@@ -176,7 +178,14 @@ export default function TuringTest({ pengaturan = null }) {
   }
 
   return (
-    // Ukuran papan mengikuti Hand & Brain dan Manusia vs Mesin (lihat HandBrain.jsx).
+    // Halaman mandiri (pola Manusia vs Mesin): sidebar, navigasi, dan judul
+    // dokumen milik mode ini sendiri, bukan milik tata letak Workspace.
+    <TataLetakModePapan
+      judul={t("papan.menuTuring")}
+      tautan={{ to: "/program-kami/turing-test", label: t("papan.modeTentang") }}
+      pengaturan={sumberPengaturan}
+    >
+    {/* Ukuran papan mengikuti Hand & Brain dan Manusia vs Mesin (lihat HandBrain.jsx). */}
     <section
       aria-label={t("papan.menuTuring")}
       className="mx-auto grid h-full min-h-0 w-full max-w-[1280px] grid-cols-1 gap-3 overflow-x-hidden overflow-y-auto p-2 sm:gap-4 sm:p-4 md:px-8 lg:grid-cols-[auto_minmax(0,1fr)] lg:overflow-hidden"
@@ -343,5 +352,6 @@ export default function TuringTest({ pengaturan = null }) {
         )}
       </aside>
     </section>
+    </TataLetakModePapan>
   );
 }

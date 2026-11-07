@@ -5,18 +5,18 @@ import { createContext, useContext } from "react";
 import { usePengaturanPapan } from "./gunakanPengaturanPapan.js";
 
 /**
- * Pengaturan papan yang dipakai BERSAMA semua halaman di bawah
- * `/papan-interaktif/*` (papan buku, empat mode latihan, dan pengaturan).
+ * Pengaturan papan yang dipakai BERSAMA dua halaman inti di bawah
+ * `/papan-interaktif/*` (papan buku/Analisa dan Pengaturan).
  *
  * Dulu pengaturan hidup sebagai state di Workspace dan diteruskan lewat prop
- * karena semua mode adalah tab dalam satu halaman. Kini tiap mode adalah rute
- * sendiri, jadi nilainya disediakan lewat konteks oleh tata letak
- * (`Workspace.jsx`) — pindah halaman tidak me-reset pilihan bidak, warna
- * papan, maupun pengaturan engine.
+ * karena semua mode adalah tab dalam satu halaman. Kini nilainya disediakan
+ * lewat konteks oleh tata letak (`Workspace.jsx`) — pindah antara dua halaman
+ * itu tidak me-reset pilihan bidak, warna papan, maupun pengaturan engine.
  *
- * Halaman yang dibuka di luar tata letak (mis. diuji terpisah) tetap jalan:
- * `usePengaturanBersama()` mengembalikan null dan tiap halaman memakai state
- * lokalnya sendiri seperti sebelumnya.
+ * Empat mode papan (Manusia vs Mesin, Latihan Repertoar, Hand & Brain, Turing
+ * test) berada di luar tata letak ini dan memakai pengaturannya sendiri, jadi
+ * `usePengaturanBersama()` di sana mengembalikan null dan halaman memakai
+ * state lokalnya (lihat `TataLetakModePapan.jsx`).
  */
 const KonteksPengaturanPapan = createContext(null);
 
