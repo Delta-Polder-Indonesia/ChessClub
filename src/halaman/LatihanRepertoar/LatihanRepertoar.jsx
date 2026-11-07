@@ -555,7 +555,6 @@ export default function LatihanRepertoar({ pengaturan = null }) {
           </button>
           <div className="min-w-0">
             <h1 className="text-xl font-bold text-white">{t("papan.repertoarJudul")}</h1>
-            <p className="mt-1 max-w-2xl text-sm text-gray-400">{t("papan.repertoarDeskripsi")}</p>
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
