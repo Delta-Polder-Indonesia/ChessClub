@@ -698,6 +698,13 @@ export default function LatihanRepertoar({ pengaturan = null }) {
                 ) : (
                   <p className="my-auto text-sm text-gray-500">{t("papan.repertoarPilihJalur")}</p>
                 )}
+                <button
+                  type="button"
+                  onClick={() => setTampilan("koleksi")}
+                  className="rounded-md border border-[#363431] px-3 py-2 text-xs font-semibold text-gray-300 hover:bg-[#2c2926]"
+                >
+                  {t("papan.repertoarKembali")}
+                </button>
               </div>
             </div>
           )}
