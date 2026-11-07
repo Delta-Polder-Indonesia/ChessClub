@@ -473,6 +473,7 @@ export default function LatihanRepertoar({ pengaturan = null }) {
               </button>
               <h1 className="truncate text-xl font-bold text-white">{t("papan.repertoarJudul")}</h1>
             </div>
+            <div aria-hidden="true" className="h-px w-full bg-[#363431]" />
             <p className="truncate font-semibold text-white">{kartuAktif?.nama || t("papan.repertoarSesi")}</p>
             <div aria-live="polite" className="rounded-md border border-[#363431] bg-[#262421] px-3 py-2 text-sm text-gray-200">
               {statusLatihan === "benar"
