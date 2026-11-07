@@ -381,9 +381,9 @@ export default function TekaTekiHarianLanding() {
       className="w-full pl-6 md:pl-8 pr-6 md:pr-8 pb-12 xl:pb-16 pt-12 xl:pt-16 overflow-hidden"
     >
       <div className="relative mx-auto w-full max-w-[1440px]">
-        <div className="grid items-center gap-x-6 gap-y-10 lg:grid-cols-[minmax(260px,0.95fr)_minmax(360px,1.3fr)_minmax(230px,0.85fr)] xl:gap-x-8">
+        <div className="grid items-center gap-x-6 gap-y-10 xl:grid-cols-[minmax(260px,0.95fr)_minmax(360px,1.3fr)_minmax(230px,0.85fr)] xl:gap-x-8">
           {/* Kiri: progres dan pintu masuk ke halaman teka-teki penuh. */}
-          <div className="flex min-w-0 flex-col justify-center gap-y-6 lg:min-h-[440px]">
+          <div className="flex min-w-0 flex-col justify-center gap-y-6 xl:min-h-[440px]">
             <header className="flex flex-col gap-y-2">
               <h2 className="font-serif text-2xl font-semibold leading-tight text-grey-800">
                 Lanjutkan kerja baikmu!
