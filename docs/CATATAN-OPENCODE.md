@@ -48,6 +48,7 @@ Jalankan dari akar repo. Pastikan dependensi sudah terpasang dengan `npm ci --in
 # Tes unit per fitur (cepat)
 npm run uji:repertoar        # aturan latihan + tantangan (murni, tanpa DOM)
 npm run uji:tantangan        # Mode Tantangan di jsdom (butuh jsdom + fake-indexeddb)
+npm run uji:repertoar-ui     # pohon cabang + latihan massal + statistik di jsdom
 npm run uji:hand-brain
 npm run uji:turing            # turingLogika + turingLichess
 npm run uji:wawasan-rating
@@ -75,6 +76,7 @@ Catatan:
 
 - **Lawan Maia (CSSLab)**: ditunda. Bobot `maia3_simplified.onnx` (sekitar 45 MB) berasal dari repositori GPL-3.0 dan lisensi bobotnya belum diverifikasi. Jangan menyalin kode mereka; hanya idenya yang boleh dipakai. Sandbox juga tidak bisa mengunduh bobot dari host model.
 - **Opening drill**: belum dikerjakan sebagai mode terpisah. Kebutuhannya sudah dijawab dua cara di Latihan Repertoar: latihan berjadwal (SRS) dan **Mode Tantangan** (seluruh jalur berurutan, tanpa petunjuk, batas waktu 30 detik per langkah, rekor terpisah di `localStorage` `kci.papan.tantangan.v1`).
+- **P2 repertoar — pohon cabang, latihan massal, statistik: SELESAI.** Pohon cabang menempelkan awalan langkah yang sama antar jalur dan membuka garis saat simpulnya diklik; langkah lawan direkonstruksi dari FEN kartu, jadi data lama tetap terbaca tanpa migrasi. Latihan massal hanya mengganti sumber kartu berikutnya (antrean lintas jalur); penjadwalan tetap `jadwalkanKartu`. Statistik adalah tampilan di halaman yang sama, bukan rute baru.
 - **Mode Tantangan — rekor hanya lokal**: rekor dan poin belum dikirim ke akun/server (sama seperti jadwal SRS repertoar) dan belum ada papan peringkat. Kalau nanti dipusatkan, `tantanganLogika.js` adalah satu-satunya tempat aturan skor; jangan menaruh logika skor di komponen.
 
 ## 5. Yang perlu dilaporkan kembali

@@ -12,8 +12,11 @@ import {
   jadwalkanKartu,
   kartuBerikutnya,
   kelompokkanPerPembukaan,
+  INTERVAL_MATANG_MS,
   posisiAkhirJalur,
   progresJalur,
+  ringkasStatistik,
+  susunPohonCabang,
   uraiUci,
 } from "./repertoarLogika.js";
 import {
@@ -27,6 +30,7 @@ import { usePengaturanBersama } from "../PapanInteraktif/bersama/PengaturanKonte
 import TataLetakModePapan from "../PapanInteraktif/bersama/TataLetakModePapan.jsx";
 import {
   BATAS_WAKTU_LANGKAH_MS,
+  KUNCI_REKOR,
   bacaRekor,
   catatRekor,
   nilaiLangkahTantangan,
@@ -60,6 +64,81 @@ const WARNA_PETUNJUK = {
   salah: "border-[#6b4c15] bg-[#2c2313] text-amber-200",
   selesai: "border-[#363431] bg-[#262421] text-gray-300",
 };
+
+const HARI_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * Seluruh rekor tantangan (`{ [lineId]: { streakTerbaik, poin } }`).
+ *
+ * Penyimpanan boleh tidak ada atau berisi JSON rusak (mode privat, kuota
+ * penuh, sisa versi lama) — layar statistik cukup menampilkan nol.
+ */
+function bacaSemuaRekor() {
+  try {
+    const mentah = JSON.parse(globalThis.localStorage?.getItem(KUNCI_REKOR) || "{}");
+    return mentah && typeof mentah === "object" ? mentah : {};
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * Satu simpul pohon cabang: langkah + penanda status kartu latihannya.
+ *
+ * Didefinisikan di luar komponen utama supaya rekursinya tidak membuat
+ * definisi komponen baru setiap render (itu akan melepas fokus & memicu
+ * render ulang seluruh subpohon).
+ */
+function SimpulPohon({ simpul, sekarang, onPilihGaris }) {
+  const { t } = useI18n();
+  const kartuDue = simpul.kartu.some((kartu) => Number(kartu.dueAt) <= sekarang);
+  const semuaMatang =
+    simpul.kartu.length > 0 &&
+    simpul.kartu.every((kartu) => Number(kartu.intervalMs) >= INTERVAL_MATANG_MS);
+
+  return (
+    <li
+      role="treeitem"
+      aria-label={`${simpul.nomor}${simpul.warna === "w" ? "." : "…"} ${simpul.san}`}
+      className="flex flex-col gap-1"
+    >
+      <button
+        type="button"
+        onClick={() => onPilihGaris(simpul.garisIds[0])}
+        title={t("papan.repertoarPohonKembali")}
+        className="flex w-fit items-center gap-2 rounded px-1 py-0.5 text-left text-xs text-gray-200 transition hover:bg-[#2c2926] hover:text-white"
+      >
+        <span className="tabular-nums text-[10px] font-semibold text-gray-500">
+          {simpul.nomor}
+          {simpul.warna === "w" ? "." : "…"}
+        </span>
+        <span className="font-semibold">{simpul.san}</span>
+        {kartuDue && (
+          <span className="rounded bg-[#3f5a26] px-1 text-[9px] font-bold uppercase tracking-wide text-[#cfe8a6]">
+            {t("papan.repertoarPohonJatuhTempo")}
+          </span>
+        )}
+        {!kartuDue && semuaMatang && (
+          <span className="rounded bg-[#2c2926] px-1 text-[9px] font-bold uppercase tracking-wide text-[#a3d168]">
+            {t("papan.repertoarPohonMatang")}
+          </span>
+        )}
+      </button>
+      {simpul.anak.length > 0 && (
+        <ul role="group" className="ml-2 flex flex-col gap-1 border-l border-[#312e2b] pl-2">
+          {simpul.anak.map((anak) => (
+            <SimpulPohon
+              key={anak.kunci}
+              simpul={anak}
+              sekarang={sekarang}
+              onPilihGaris={onPilihGaris}
+            />
+          ))}
+        </ul>
+      )}
+    </li>
+  );
+}
 
 export default function LatihanRepertoar({ pengaturan = null }) {
   const { t } = useI18n();
@@ -96,6 +175,11 @@ export default function LatihanRepertoar({ pengaturan = null }) {
   // Halaman pembukaan (gaya "Garis 1/2"): kunci pembukaan + indeks garis aktif.
   const [pembukaanAktif, setPembukaanAktif] = useState(null);
   const [indeksGaris, setIndeksGaris] = useState(0);
+  // Latihan massal: antrean id kartu dari SEMUA jalur yang jatuh tempo.
+  const [massalAktif, setMassalAktif] = useState(false);
+  const [antreanMassal, setAntreanMassal] = useState([]);
+  // Rekor tantangan per jalur untuk layar statistik (dibaca, tidak ditulis).
+  const [rekorPerJalur, setRekorPerJalur] = useState(() => bacaSemuaRekor());
   // Mode Tantangan: satu percobaan menjalankan seluruh jalur tanpa petunjuk.
   const [tantangan, setTantangan] = useState(null);
   const [detikTantangan, setDetikTantangan] = useState(0);
@@ -141,6 +225,7 @@ export default function LatihanRepertoar({ pengaturan = null }) {
       });
       const hasil = catatRekor(tantangan.lineId, ringkasan);
       setRekorTantangan({ ...hasil.rekor, baru: hasil.baru });
+      setRekorPerJalur(bacaSemuaRekor());
       setTantangan((lama) => (lama ? { ...lama, selesai: ringkasan, jawabanSalah: san } : lama));
     },
     [tantangan],
@@ -280,6 +365,25 @@ export default function LatihanRepertoar({ pengaturan = null }) {
 
   const garisAktif = pembukaanTerpilih?.garis[indeksGaris] || null;
 
+  /**
+   * Pohon cabang seluruh repertoar: garis yang berbagi awalan langkah menempel
+   * di simpul yang sama, jadi percabangan hanya muncul saat jalurnya memang
+   * berbeda. Digambar dari kartu tersimpan (langkah lawan direkonstruksi),
+   * jadi tidak ada permintaan jaringan baru dan data lama tetap terbaca.
+   */
+  const pohonCabang = useMemo(() => susunPohonCabang(daftarRepertoar), [daftarRepertoar]);
+
+  const statistik = useMemo(
+    () => ringkasStatistik(kartu, { sekarang, rekor: rekorPerJalur }),
+    [kartu, sekarang, rekorPerJalur],
+  );
+
+  /** Klik simpul pohon cabang → buka halaman pembukaan garis pemilik simpul. */
+  function pilihGarisPohon(lineId) {
+    const jalur = daftarRepertoar.find((baris) => baris.lineId === lineId);
+    if (jalur) bukaPembukaan(jalur);
+  }
+
   function bukaPembukaan(jalur) {
     const kunci = `${jalur.eco}|${jalur.nama}`;
     const grup = daftarPembukaan.find((item) => item.kunci === kunci);
@@ -324,15 +428,15 @@ export default function LatihanRepertoar({ pengaturan = null }) {
     setTampilan("koleksi");
   }
 
-  function mulaiLatihan(lineId) {
-    const berikutnya = kartuBerikutnya(kartu, lineId, Date.now());
-    if (!berikutnya) {
-      setPesan(t("papan.repertoarBelumJatuhTempo"));
-      return;
-    }
+  /**
+   * Pasang satu kartu ke papan latihan. Dipakai latihan per jalur, latihan
+   * massal, dan perpindahan kartu setelah dinilai — perilakunya sengaja sama
+   * persis dengan alur latihan lama agar SRS tidak berubah.
+   */
+  function bukaKartuLatihan(kartuBerikut, lineId) {
     setJalurAktif(lineId);
-    setKartuAktif(berikutnya);
-    setFen(berikutnya.fen);
+    setKartuAktif(kartuBerikut);
+    setFen(kartuBerikut.fen);
     setLangkahAkhir(null);
     setTerpilih(null);
     setSasaran([]);
@@ -341,6 +445,37 @@ export default function LatihanRepertoar({ pengaturan = null }) {
     hapusSemuaTanda();
     setTampilan("latihan");
     setPesan("");
+  }
+
+  function mulaiLatihan(lineId) {
+    const berikutnya = kartuBerikutnya(kartu, lineId, Date.now());
+    if (!berikutnya) {
+      setPesan(t("papan.repertoarBelumJatuhTempo"));
+      return;
+    }
+    setMassalAktif(false);
+    setAntreanMassal([]);
+    bukaKartuLatihan(berikutnya, lineId);
+  }
+
+  /**
+   * Latihan massal: satu sesi untuk SEMUA kartu yang jatuh tempo lintas jalur,
+   * diurutkan dari yang paling lama tertunda. Hanya antrean yang baru — aturan
+   * penjadwalan (`jadwalkanKartu`) dan penyimpanan tetap sama.
+   */
+  function mulaiLatihanMassal() {
+    const waktu = Date.now();
+    const siap = kartu
+      .filter((item) => Number(item.dueAt) <= waktu)
+      .slice()
+      .sort((a, b) => Number(a.dueAt) - Number(b.dueAt) || Number(a.ply) - Number(b.ply));
+    if (!siap.length) {
+      setPesan(t("papan.repertoarMassalKosong"));
+      return;
+    }
+    setMassalAktif(true);
+    setAntreanMassal(siap.map((item) => item.id));
+    bukaKartuLatihan(siap[0], siap[0].lineId);
   }
 
   function pilihPetak(square) {
@@ -432,12 +567,33 @@ export default function LatihanRepertoar({ pengaturan = null }) {
       const daftarBaru = kartu.map((item) => (item.id === diperbarui.id ? diperbarui : item));
       setKartu(daftarBaru);
       setSekarang(waktu);
-      const berikutnya = kartuBerikutnya(daftarBaru, jalurAktif, waktu);
+
+      /*
+       * Antrean massal hanya mengganti cara memilih kartu BERIKUTNYA. Kartu
+       * yang baru dinilai sudah dijadwalkan ulang (`dueAt` ke depan), jadi
+       * sisa antrean disaring ulang dan yang tidak lagi jatuh tempo dilewati.
+       * Mode per jalur tetap memakai `kartuBerikutnya` apa adanya.
+       */
+      let berikutnya;
+      if (massalAktif) {
+        const sisa = antreanMassal.filter((id) => id !== kartuAktif.id);
+        const berikutId = sisa.find((id) => {
+          const calon = daftarBaru.find((item) => item.id === id);
+          return calon && Number(calon.dueAt) <= waktu;
+        });
+        berikutnya = berikutId
+          ? daftarBaru.find((item) => item.id === berikutId) || null
+          : null;
+        setAntreanMassal(berikutId ? sisa.slice(sisa.indexOf(berikutId)) : []);
+      } else {
+        berikutnya = kartuBerikutnya(daftarBaru, jalurAktif, waktu);
+      }
       setKartuAktif(berikutnya);
       setLangkahSalah(null);
       setTerpilih(null);
       setSasaran([]);
       if (berikutnya) {
+        if (massalAktif) setJalurAktif(berikutnya.lineId);
         setFen(berikutnya.fen);
         setLangkahAkhir(null);
         setStatusLatihan("menunggu");
@@ -738,10 +894,16 @@ export default function LatihanRepertoar({ pengaturan = null }) {
                 </div>
               ) : (
                 <div className="flex w-full flex-col items-center gap-3 rounded-xl border border-[#363431] bg-[#211f1c] px-6 py-10 text-center">
-                  <p className="text-sm text-gray-300">{t("papan.repertoarSesiSelesai")}</p>
+                  <p className="text-sm text-gray-300">
+                    {massalAktif ? t("papan.repertoarMassalSelesai") : t("papan.repertoarSesiSelesai")}
+                  </p>
                   <button
                     type="button"
-                    onClick={() => setTampilan("koleksi")}
+                    onClick={() => {
+                      setTampilan("koleksi");
+                      setMassalAktif(false);
+                      setAntreanMassal([]);
+                    }}
                     className="rounded-lg bg-[#81b64c] px-4 py-2 text-sm font-bold text-[#1e1c18] transition hover:bg-[#91c45a]"
                   >
                     {t("papan.repertoarKembali")}
@@ -776,6 +938,8 @@ export default function LatihanRepertoar({ pengaturan = null }) {
                     setTampilan("koleksi");
                     setKartuAktif(null);
                     setJalurAktif(null);
+                    setMassalAktif(false);
+                    setAntreanMassal([]);
                   }}
                   title={t("papan.repertoarKembali")}
                   aria-label={t("papan.repertoarKembali")}
@@ -788,6 +952,20 @@ export default function LatihanRepertoar({ pengaturan = null }) {
                 </h1>
               </div>
               <div aria-hidden="true" className="h-px w-full bg-[#363431]" />
+
+              {massalAktif && (
+                <div
+                  data-latihan-massal
+                  className="flex flex-col gap-1 rounded-xl border border-[#3f5a26] bg-[#243016] px-3 py-2"
+                >
+                  <p className="text-xs font-bold text-[#cfe8a6]">{t("papan.repertoarMassal")}</p>
+                  <p className="text-[11px] text-gray-300">
+                    {t("papan.repertoarMassalSisa", {
+                      jumlah: Math.max(0, antreanMassal.length - (kartuAktif ? 1 : 0)),
+                    })}
+                  </p>
+                </div>
+              )}
 
               <div>
                 <div className="flex flex-wrap items-center gap-2">
@@ -876,7 +1054,9 @@ export default function LatihanRepertoar({ pengaturan = null }) {
                     : statusLatihan === "salah"
                       ? t("papan.repertoarJawabanSalah")
                       : statusLatihan === "selesai"
-                        ? t("papan.repertoarSesiSelesai")
+                        ? massalAktif
+                          ? t("papan.repertoarMassalSelesai")
+                          : t("papan.repertoarSesiSelesai")
                         : t("papan.repertoarInstruksi")}
                   {statusLatihan === "salah" && (
                     <p className="mt-1 text-xs font-semibold text-amber-300">
@@ -1228,6 +1408,193 @@ export default function LatihanRepertoar({ pengaturan = null }) {
     );
   }
 
+  /*
+   * Layar statistik: semua angka diturunkan dari kartu tersimpan + rekor
+   * tantangan (`ringkasStatistik`), jadi layar ini tidak menulis apa pun.
+   */
+  if (tampilan === "statistik") {
+    const hariInterval = Math.round(statistik.intervalTertinggiMs / HARI_MS);
+    const hariTerakhir = statistik.ditinjauTerakhirMs
+      ? Math.max(0, Math.round((sekarang - statistik.ditinjauTerakhirMs) / HARI_MS))
+      : null;
+    const maksNilai = Math.max(1, ...Object.values(statistik.nilai));
+    const kartuAngka = [
+      ["papan.repertoarStatJalur", statistik.jalur],
+      ["papan.repertoarStatPosisi", statistik.posisi],
+      ["papan.repertoarStatJatuhTempo", statistik.jatuhTempo],
+      ["papan.repertoarStatMatang", statistik.matang],
+    ];
+
+    return (
+      <TataLetakModePapan
+        judul={t("papan.menuLatihanRepertoar")}
+        tautan={{ to: "/program-kami/latihan-repertoar", label: t("papan.modeTentang") }}
+        pengaturan={sumberPengaturan}
+      >
+      <div
+        data-statistik-repertoar
+        className="flex h-full min-h-0 flex-col overflow-y-auto p-4"
+      >
+        <header className="flex shrink-0 flex-wrap items-start justify-between gap-3 border-b border-[#312e2b] pb-4">
+          <div className="flex min-w-0 items-start gap-1.5">
+            <button
+              type="button"
+              onClick={() => {
+                setTampilan("koleksi");
+                setPesan("");
+              }}
+              title={t("papan.repertoarKembali")}
+              aria-label={t("papan.repertoarKembali")}
+              className="-mt-1 shrink-0 rounded-md p-1.5 text-gray-400 transition hover:bg-[#312e2b] hover:text-white"
+            >
+              <Back />
+            </button>
+            <h1 className="text-xl font-bold text-white">{t("papan.repertoarStatistikJudul")}</h1>
+          </div>
+        </header>
+
+        {!kartu.length ? (
+          <p className="mt-6 rounded-lg border border-dashed border-[#45423d] bg-[#211f1c] px-4 py-8 text-center text-sm text-gray-400">
+            {t("papan.repertoarStatistikKosong")}
+          </p>
+        ) : (
+          <div className="mt-4 flex flex-col gap-4">
+            <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+              {kartuAngka.map(([kunci, nilai]) => (
+                <div
+                  key={kunci}
+                  className="rounded-xl border border-[#312e2b] bg-[#211f1c] p-3"
+                >
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+                    {t(kunci)}
+                  </p>
+                  <p className="mt-1 text-2xl font-bold text-white">{nilai}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+              <div className="rounded-xl border border-[#312e2b] bg-[#211f1c] p-4">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+                  {t("papan.repertoarAkurasi")}
+                </p>
+                <p className="mt-1 text-3xl font-bold text-[#a3d168]">
+                  {statistik.akurasi === null ? "—" : `${statistik.akurasi}%`}
+                </p>
+                <p className="text-[11px] text-gray-500">
+                  {statistik.dinilai
+                    ? t("papan.repertoarAkurasiRincian", {
+                        benar: statistik.benar,
+                        total: statistik.dinilai,
+                      })
+                    : t("papan.repertoarAkurasiKosong")}
+                </p>
+                <div className="mt-3 flex flex-col gap-2">
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+                    {t("papan.repertoarStatNilai")}
+                  </p>
+                  {[
+                    ["again", "papan.repertoarLagi"],
+                    ["hard", "papan.repertoarSulit"],
+                    ["good", "papan.repertoarBaik"],
+                    ["easy", "papan.repertoarMudah"],
+                  ].map(([nilai, label]) => (
+                    <div key={nilai} className="flex items-center gap-2 text-[11px]">
+                      <span className="w-12 shrink-0 text-gray-400">{t(label)}</span>
+                      <span className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-[#312e2b]">
+                        <span
+                          className="block h-full rounded-full bg-[#81b64c]"
+                          style={{ width: `${(statistik.nilai[nilai] / maksNilai) * 100}%` }}
+                        />
+                      </span>
+                      <span className="w-6 shrink-0 text-right font-semibold text-gray-200">
+                        {statistik.nilai[nilai]}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-[#312e2b] bg-[#211f1c] p-4">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+                  {t("papan.repertoarStatTantangan")}
+                </p>
+                <div className="mt-2 grid grid-cols-2 gap-3">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wide text-gray-500">
+                      {t("papan.repertoarTantanganPoin")}
+                    </p>
+                    <p className="text-xl font-bold text-white">
+                      {statistik.tantangan.poin}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wide text-gray-500">
+                      {t("papan.repertoarTantanganStreak")}
+                    </p>
+                    <p className="text-xl font-bold text-white">
+                      {statistik.tantangan.streakTerbaik}
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-3 flex flex-col gap-1 border-t border-[#312e2b] pt-3 text-[11px] text-gray-500">
+                  {hariInterval > 0 && (
+                    <p>{t("papan.repertoarStatInterval", { jumlah: hariInterval })}</p>
+                  )}
+                  {hariTerakhir === null ? (
+                    <p>{t("papan.repertoarStatBelumDitinjau")}</p>
+                  ) : (
+                    <p>{t("papan.repertoarStatTerakhir", { jumlah: hariTerakhir })}</p>
+                  )}
+                  <p>
+                    {t("papan.repertoarJumlahJatuhTempo", { jumlah: statistik.jatuhTempo })}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-[#312e2b] bg-[#211f1c] p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+                {t("papan.repertoarStatPerPembukaan")}
+              </p>
+              <ul className="mt-3 flex flex-col gap-3">
+                {daftarPembukaan.map((grup) => (
+                  <li key={grup.kunci} className="flex flex-col gap-1">
+                    <div className="flex flex-wrap items-baseline justify-between gap-2">
+                      <span className="min-w-0 truncate text-xs font-semibold text-gray-200">
+                        {grup.nama}
+                      </span>
+                      <span className="shrink-0 text-[11px] text-gray-500">
+                        {t("papan.repertoarJumlahPosisi", { jumlah: grup.jumlah })} ·{" "}
+                        {t("papan.repertoarJatuhTempo", { jumlah: grup.jatuhTempo })}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-[#312e2b]">
+                        <span
+                          className="block h-full rounded-full bg-[#81b64c]"
+                          style={{ width: `${grup.persen}%` }}
+                        />
+                      </span>
+                      <span className="w-9 shrink-0 text-right text-[11px] font-semibold text-[#a3d168]">
+                        {grup.persen}%
+                      </span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <p className="text-[11px] leading-relaxed text-gray-500">
+              {t("papan.repertoarJadwalLokal")}
+            </p>
+          </div>
+        )}
+      </div>
+      </TataLetakModePapan>
+    );
+  }
+
   return (
     <TataLetakModePapan
       judul={t("papan.menuLatihanRepertoar")}
@@ -1258,6 +1625,29 @@ export default function LatihanRepertoar({ pengaturan = null }) {
           >
             {t("papan.repertoarJelajahBuku")}
           </Link>
+          <button
+            type="button"
+            onClick={() => {
+              setTampilan("statistik");
+              setPesan("");
+            }}
+            className="rounded-md border border-[#363431] px-3 py-2 text-xs font-semibold text-gray-300 transition hover:bg-[#312e2b] hover:text-white"
+          >
+            {t("papan.repertoarStatistik")}
+          </button>
+          <button
+            type="button"
+            onClick={mulaiLatihanMassal}
+            disabled={!jumlahJatuhTempo}
+            title={
+              jumlahJatuhTempo
+                ? t("papan.repertoarMassalMulai", { jumlah: jumlahJatuhTempo })
+                : t("papan.repertoarMassalKosong")
+            }
+            className="rounded-md border border-[#81b64c] px-3 py-2 text-xs font-bold text-[#a3d168] transition hover:bg-[#2b3a22] hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {t("papan.repertoarMassalMulai", { jumlah: jumlahJatuhTempo })}
+          </button>
           <button
             type="button"
             onClick={bukaTambah}
@@ -1532,6 +1922,42 @@ export default function LatihanRepertoar({ pengaturan = null }) {
                 <span className="rounded bg-[#211f1c] px-2 py-1">{t("papan.repertoarJumlahJalur", { jumlah: daftarRepertoar.length })}</span>
                 <span className="rounded bg-[#211f1c] px-2 py-1">{t("papan.repertoarJumlahJatuhTempo", { jumlah: jumlahJatuhTempo })}</span>
               </div>
+
+              {/*
+               * Pohon cabang seluruh repertoar: awalan langkah yang sama
+               * digambar sekali, jadi percabangan antar jalur tersimpan
+               * terlihat langsung. Klik simpul membuka garis pemiliknya.
+               */}
+              {pohonCabang.jumlahLangkah > 1 ? (
+                <details
+                  data-pohon-cabang
+                  className="mb-3 rounded-lg border border-[#312e2b] bg-[#211f1c] px-3 py-2"
+                >
+                  <summary className="flex cursor-pointer flex-wrap items-baseline justify-between gap-2 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+                    <span>{t("papan.repertoarPohon")}</span>
+                    <span className="font-normal normal-case tracking-normal text-gray-500">
+                      {t("papan.repertoarPohonRingkas", {
+                        langkah: pohonCabang.jumlahLangkah,
+                        garis: pohonCabang.jumlahGaris,
+                      })}
+                    </span>
+                  </summary>
+                  <ul
+                    role="tree"
+                    aria-label={t("papan.repertoarPohon")}
+                    className="mt-2 max-h-[260px] overflow-y-auto pr-1"
+                  >
+                    {pohonCabang.anak.map((simpul) => (
+                      <SimpulPohon
+                        key={simpul.kunci}
+                        simpul={simpul}
+                        sekarang={sekarang}
+                        onPilihGaris={pilihGarisPohon}
+                      />
+                    ))}
+                  </ul>
+                </details>
+              ) : null}
               <ul className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
                 {daftarRepertoar.map((jalur) => (
                   <li
