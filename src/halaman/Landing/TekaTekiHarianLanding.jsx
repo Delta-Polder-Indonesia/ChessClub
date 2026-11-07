@@ -364,14 +364,6 @@ export default function TekaTekiHarianLanding() {
    * "Keep it up!" di worldchess.com — satu judul penyemangat, satu kalimat
    * sisa jatah, lalu segmen + dua angka kecil.
    */
-  const judulKartu = jatahHabis
-    ? t("landing.harianKartuJudulSelesai")
-    : jatahTerpakai === 0
-      ? t("landing.harianKartuJudulMulai")
-      : t("landing.harianKartuJudulLanjut");
-  const deskKartu = jatahHabis
-    ? t("landing.harianKartuDeskSelesai")
-    : t("landing.harianKartuDeskSisa", { n: sisaJatah });
   const teksStatus = pesan
     ? t(pesan.kunci)
     : t(
@@ -387,96 +379,92 @@ export default function TekaTekiHarianLanding() {
     >
       <div className="relative w-full mx-auto lg:max-w-[960px] xl:max-w-[1280px]">
         <div className="grid gap-y-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,440px)] lg:gap-x-12 lg:items-start">
-          {/* Kiri: teks + jatah harian + ajakan */}
+          {/* Kiri: susunan mengikuti referensi HomeWelcomeMessage, Rating, dan Tower. */}
           <div className="flex flex-col justify-center gap-y-6 lg:min-h-[440px] lg:max-w-[38rem]">
+            <header className="flex flex-col gap-y-2">
+              <h2 className="font-serif text-2xl font-semibold leading-tight text-grey-800">
+                Lanjutkan kerja baikmu!
+              </h2>
+              <p className="max-w-[34rem] font-serif text-base leading-relaxed text-grey-600">
+                Mainkan beberapa kali lagi untuk melihat kemampuanmu.
+              </p>
+            </header>
 
-            {/*
-             * Kartu kemajuan harian — satu-satunya batas, berlaku juga
-             * antar-halaman. Isinya sengaja tidak menampilkan angka yang tidak
-             * kita punya (mis. rating teka-teki): judul keadaan, nomor soal di
-             * dalam cincin, sisa jatah, dan track lima segmen.
-             */}
-            <div
-              data-kartu-harian
-              className="flex flex-col gap-y-4 rounded border border-grey-200 bg-paper p-5"
+            <section
+              aria-label="Progres teka-teki harian"
+              data-kartu-peringkat
+              className="flex items-center gap-6 border border-grey-200 bg-paper p-5 sm:gap-8"
             >
-              {/*
-               * Baris atas: cincin "Soal 1 / 5" di kiri, judul keadaan dan
-               * kalimat sisa jatah di kanan (pola "Rating Estimated 1 of 3" di
-               * acuan). Di layar sempit cincin turun ke bawah teks.
-               */}
-              <div className="flex flex-col items-center gap-5 sm:flex-row sm:gap-6">
-                <div className="flex min-w-0 flex-col gap-y-1 text-center sm:order-2 sm:flex-1 sm:text-left">
-                  <p className="font-serif text-lg font-semibold text-grey-800">
-                    {judulKartu}
-                  </p>
-                  <p className="font-serif text-sm leading-relaxed text-grey-600">
-                    {deskKartu}
+              <CincinKemajuan
+                ukuran={124}
+                nilai={jatahTerpakai}
+                maks={BATAS_HARIAN}
+                label="Progres"
+                nilaiTeks={`${jatahTerpakai} dari ${BATAS_HARIAN}`}
+                catatan={t("landing.harianKartuNilaiSisa", { n: sisaJatah })}
+              />
+              <div className="flex min-w-0 flex-1 flex-col gap-y-1">
+                <p className="font-sans text-sm font-semibold text-grey-800">
+                  Peringkat
+                </p>
+                <p className="font-sans text-sm text-grey-600">
+                  Perkiraan
+                </p>
+                <p className="font-serif text-xl font-semibold leading-tight text-grey-800">
+                  {jatahTerpakai} dari {BATAS_HARIAN}
+                </p>
+                <p className="font-sans text-sm leading-relaxed text-grey-600">
+                  {deskKartu}
+                </p>
+              </div>
+            </section>
+
+            <section
+              aria-label="Progres menara teka-teki"
+              data-kartu-menara
+              className="flex flex-col gap-y-4 border border-grey-200 bg-paper p-5"
+            >
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex flex-col gap-y-1">
+                  <h3 className="font-sans text-base font-semibold text-grey-800">
+                    Menara
+                  </h3>
+                  <p className="font-sans text-sm text-grey-600">
+                    Level 1
                   </p>
                 </div>
-                <CincinKemajuan
-                  className="sm:order-1"
-                  nilai={jatahTerpakai}
-                  maks={BATAS_HARIAN}
-                  label={t("landing.harianKartuLabelSoal")}
-                  nilaiTeks={t("landing.harianKartuNilaiSoal", {
-                    n: nomorSoal,
-                    total: daftar.length,
-                  })}
-                  catatan={t("landing.harianKartuNilaiSisa", { n: sisaJatah })}
+                <div className="flex items-baseline gap-1 font-serif text-xl font-semibold text-grey-800">
+                  <span>{jatahTerpakai}</span>
+                  <span className="font-sans text-sm font-normal text-grey-600">
+                    / {BATAS_HARIAN}
+                  </span>
+                </div>
+              </div>
+              <div
+                role="progressbar"
+                aria-label="Progres teka-teki harian"
+                aria-valuemin={0}
+                aria-valuemax={BATAS_HARIAN}
+                aria-valuenow={jatahTerpakai}
+                aria-valuetext={t("landing.harianKemajuan", {
+                  n: jatahTerpakai,
+                  total: BATAS_HARIAN,
+                })}
+                className="h-2 w-full overflow-hidden bg-grey-200"
+              >
+                <div
+                  className="h-full bg-primary transition-[width] duration-300"
+                  style={{ width: `${(jatahTerpakai / BATAS_HARIAN) * 100}%` }}
                 />
               </div>
-
-              {/* Track "Tower": dua titik ujung + segmen jatah harian. */}
-              <div className="flex flex-col gap-y-2 border-t border-grey-200 pt-3">
-                <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-                  <p className="font-mono text-[12px] uppercase tracking-wider text-grey-600">
-                    {t("landing.harianKartuLabelJatah")}
-                  </p>
-                  <p className="font-mono text-[12px] font-semibold uppercase tracking-wider text-grey-600">
-                    {t("landing.harianKemajuan", {
-                      n: jatahTerpakai,
-                      total: BATAS_HARIAN,
-                    })}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span
-                    aria-hidden="true"
-                    className="size-1.5 shrink-0 rounded-full bg-grey-300"
-                  />
-                  <div
-                    role="progressbar"
-                    aria-valuemin={0}
-                    aria-valuemax={BATAS_HARIAN}
-                    aria-valuenow={jatahTerpakai}
-                    aria-valuetext={t("landing.harianKemajuan", {
-                      n: jatahTerpakai,
-                      total: BATAS_HARIAN,
-                    })}
-                    aria-label={t("landing.harianNomorSoal", {
-                      n: nomorSoal,
-                      total: daftar.length,
-                    })}
-                    className="flex flex-1 items-center gap-1.5"
-                  >
-                    {Array.from({ length: BATAS_HARIAN }, (_, urutan) => (
-                      <span
-                        key={urutan}
-                        aria-hidden="true"
-                        className={`h-2 flex-1 rounded-sm transition-colors ${
-                          urutan < jatahTerpakai ? "bg-primary" : "bg-grey-200"
-                        }`}
-                      />
-                    ))}
-                  </div>
-                  <span
-                    aria-hidden="true"
-                    className="size-1.5 shrink-0 rounded-full bg-grey-300"
-                  />
-                </div>
+              <div className="flex items-center justify-between gap-3 font-sans text-xs text-grey-600">
+                <span>{t("landing.harianKartuLabelJatah")}</span>
+                <span>{t("landing.harianKemajuan", {
+                  n: jatahTerpakai,
+                  total: BATAS_HARIAN,
+                })}</span>
               </div>
-            </div>
+            </section>
 
             <div className="flex flex-wrap items-center gap-x-6 gap-y-3 font-sans">
               <Tombol
