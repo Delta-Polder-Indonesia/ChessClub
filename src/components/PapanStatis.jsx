@@ -60,7 +60,7 @@ export default function PapanStatis({
       aria-label={ariaLabel}
       className={`aspect-square w-full select-none ${className}`}
     >
-      <div className="grid aspect-square w-full grid-cols-8 overflow-hidden rounded border border-slate-300">
+      <div className="grid aspect-square w-full grid-cols-8 grid-rows-8 overflow-hidden rounded border border-slate-300">
         {barisUrut.map((baris, i) =>
           lajurUrut.map((kolom, j) => {
             const terang = (baris + kolom) % 2 === 0;
