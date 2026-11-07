@@ -50,9 +50,10 @@ export const MENU_UTAMA = [
     folder: "ProgramKami",
     path: "/program-kami",
     file: "ProgramKami.jsx",
-    // Anak dropdown disusun dua kolom berisi 4 dan 4 item yang turun ke
-    // bawah (grid-flow-col), supaya daftar panjang tidak menjang ke bawah.
-    // Lihat NavItemDesktop di Header.jsx.
+    // Anak dropdown disusun kolom yang turun ke bawah (grid-flow-col),
+    // empat baris per kolom: 4 + 4 + 3 = tiga kolom. Batas empat baris itu
+    // yang menjaga dropdown tidak menjang ke bawah. Lihat NavItemDesktop
+    // di Header.jsx.
     kolom: 4,
     children: [
       {
@@ -76,7 +77,7 @@ export const MENU_UTAMA = [
         // `src/halaman/TekaTekiHarian/TekaTekiHarian.jsx`. Ia tetap
         // didaftarkan di sini sebagai satu baris datar supaya dropdown
         // Program Kami TIDAK memakai submenu bertingkat: bentuk daftar lama
-        // (dua kolom berisi 4 + 4 baris) yang sudah dikenal pengunjung.
+        // (kolom 4 + 4 + 3 baris) yang sudah dikenal pengunjung.
         title: "nav.tekaTekiHarian",
         path: "/teka-teki-harian",
         folder: "TekaTekiHarian",
@@ -111,6 +112,28 @@ export const MENU_UTAMA = [
         path: "/program-kami/ebook-panduan",
         folder: "ProgramKami",
         file: "EbookPanduan.jsx",
+      },
+      // Tiga mode papan mandiri — seperti Lawan Bot, tiap mode adalah alat
+      // sendiri dengan sidebar sendiri. Yang ditautkan di sini halaman
+      // penjelasnya (/program-kami/*), sama seperti baris Program Kami lain;
+      // tombol masuk ke alatnya ada di halaman itu.
+      {
+        title: "nav.latihanRepertoar",
+        path: "/program-kami/latihan-repertoar",
+        folder: "ProgramKami",
+        file: "LatihanRepertoarLanding.jsx",
+      },
+      {
+        title: "nav.handBrain",
+        path: "/program-kami/hand-brain",
+        folder: "ProgramKami",
+        file: "HandBrainLanding.jsx",
+      },
+      {
+        title: "nav.turingTest",
+        path: "/program-kami/turing-test",
+        folder: "ProgramKami",
+        file: "TuringTestLanding.jsx",
       },
     ],
   },

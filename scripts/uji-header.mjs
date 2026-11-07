@@ -113,10 +113,20 @@ hasil(
   "seluruh isi dropdown berupa tautan langsung",
   anak.every((c) => typeof c.path === "string" && !c.children)
 );
+// Susunan yang diminta: kolom 1 = Teka-teki Catur, Rush, Harian, Kuis;
+// kolom 2 = Report Analisa, Pembukaan, Lawan Bot, E-Book; kolom 3 = tiga
+// mode papan mandiri. Jumlah baris 11 dengan `kolom: 4` menghasilkan
+// 4 + 4 + 3 lewat grid-flow-col.
 hasil(
-  "jumlah baris dropdown sama seperti bentuk lama",
-  anak.length === 8,
+  "jumlah baris dropdown 4 + 4 + 3 (sebelas)",
+  anak.length === 11,
   `jumlah: ${anak.length}`
+);
+const tigaMode = ["/program-kami/latihan-repertoar", "/program-kami/hand-brain", "/program-kami/turing-test"];
+hasil(
+  "tiga mode papan mengisi kolom ketiga sesuai urutan",
+  tigaMode.every((jalur, i) => anak.slice(-3)[i]?.path === jalur),
+  `ekor: ${anak.slice(-3).map((c) => c.path).join(", ")}`
 );
 
 // 5. Di DOM: tautan Teka-teki Harian harus langsung terlihat saat dropdown

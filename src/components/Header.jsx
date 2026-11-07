@@ -65,9 +65,18 @@ function useFokusDialog(terbuka, onTutup, pemicu) {
 
 /** Peta baris grid dropdown — kunci harus literal agar kebaca JIT Tailwind.
  *  `grid-flow-col` mengisi kolom demi kolom: kolom kiri penuh dulu (N baris
- *  ke bawah), sisanya di kolom kanan — susunan yang diminta untuk Program
- *  Kami (4 + 3). */
+ *  ke bawah), sisanya di kolom berikutnya — susunan yang diminta untuk
+ *  Program Kami (4 + 4 + 3). */
 const GRID_BARIS = { 2: "grid-rows-2", 3: "grid-rows-3", 4: "grid-rows-4" };
+
+/** Lebar dropdown menurut jumlah kolomnya — literal agar kebaca JIT Tailwind.
+ *  Dua kolom cukup 360 px; tiga kolom butuh ruang tambahan supaya label
+ *  panjang seperti "E-Book & Panduan" tidak terpotong. */
+const LEBAR_KOLOM = {
+  1: "w-[min(92vw,240px)]",
+  2: "w-[min(92vw,360px)]",
+  3: "w-[min(92vw,540px)]",
+};
 
 function NavItemDesktop({ item, onNavigate, scrolled, pathname, kanan = false }) {
   const { t } = useI18n();
@@ -122,7 +131,10 @@ function NavItemDesktop({ item, onNavigate, scrolled, pathname, kanan = false })
         <ul
         className={`absolute top-10 rounded-lg py-4 bg-white shadow-xl transition-all duration-200 ease-in-out ${
           item.kolom
-            ? `grid grid-flow-col w-[min(92vw,360px)] ${GRID_BARIS[item.kolom] ?? GRID_BARIS[4]}`
+            ? `grid grid-flow-col ${
+                LEBAR_KOLOM[Math.ceil(item.children.length / item.kolom)] ??
+                LEBAR_KOLOM[2]
+              } ${GRID_BARIS[item.kolom] ?? GRID_BARIS[4]}`
             : "flex w-[260px] flex-col"
         } ${
           kanan ? "right-0" : "left-0"

@@ -51,7 +51,7 @@ dengan Teka-teki, Teka-teki Rush, dan Manusia vs Mesin:
 - tidak ada lagi bilah "Kembali ke Teka-teki Catur" di atas halaman.
 
 Di menu, dropdown **Program Kami tetap berbentuk daftar datar seperti semula**
-(dua kolom, tanpa submenu bertingkat): "Teka-teki Harian" menjadi satu baris di
+(kolom 4 + 4 + 3, tanpa submenu bertingkat): "Teka-teki Harian" menjadi satu baris di
 sana. Kedudukan "berdiri sendiri" diwujudkan oleh **halamannya** (kerangka
 sidebar sendiri, tanpa bilah kembali ke Teka-teki Catur) — bukan oleh menu
 bertingkat. Uji `scripts/uji-header.mjs` mengunci hal ini: tidak boleh ada
