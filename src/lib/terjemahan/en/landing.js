@@ -20,7 +20,7 @@ export const landing = {
     harianKartuDeskSisa: "Finish {n} more puzzles today to complete the quota.",
     harianKartuDeskSelesai: "You have played every puzzle today. A new quota opens tomorrow.",
     harianKartuLabelSoal: "Puzzle",
-    harianKartuLabelSisa: "Quota left",
+    harianKartuLabelJatah: "Today's quota",
     harianKartuNilaiSoal: "{n} / {total}",
     harianKartuNilaiSisa: "{n} left",
   harianNomorSoal: "Puzzle {n} of {total}",

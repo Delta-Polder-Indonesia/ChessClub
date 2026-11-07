@@ -157,9 +157,15 @@ Batas harian:
   sehingga memuat ulang halaman tidak menambah jatah;
 - jatah harian ditampilkan sebagai **kartu kemajuan** (`data-kartu-harian`, pola
   "Keep it up!" ala worldchess.com): judul keadaan (belum mulai / ayo lanjut /
-  jatah selesai), satu kalimat sisa jatah, lima segmen ber-`role="progressbar"`,
-  lalu dua angka kecil (nomor soal dan sisa jatah). Kartu ini **tidak**
-  menampilkan rating atau angka lain yang datanya memang tidak ada di arsip.
+  jatah selesai), satu kalimat sisa jatah, **cincin `Soal 1 / 5`**
+  (`src/components/CincinKemajuan.jsx`, `data-cincin-kemajuan`), lalu **track
+  "Tower"** berisi lima segmen `role="progressbar"` dengan titik di kedua ujung
+  dan baris `Jatah hari ini · 0/5`.
+- cincin hanya penguat visual: SVG-nya `aria-hidden`, sedangkan label, angka
+  soal, dan catatan sisa jatah adalah teks sungguhan (terbaca pembaca layar dan
+  uji). Busurnya mengikuti jatah yang sudah dimainkan, jadi ikut penuh di 5/5.
+- kartu ini **tidak** menampilkan rating atau angka lain yang datanya memang
+  tidak ada di arsip (arsip hanya menyimpan `tanggal`, `fen`, `langkah`).
 
 Salinan Indonesia dan Inggris keduanya wajib ada (`npm run uji:i18n`).
 

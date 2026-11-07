@@ -20,7 +20,7 @@ export const landing = {
     harianKartuDeskSisa: "Selesaikan {n} soal lagi hari ini untuk menuntaskan jatah.",
     harianKartuDeskSelesai: "Semua soal hari ini sudah dimainkan. Jatah baru dibuka besok.",
     harianKartuLabelSoal: "Soal",
-    harianKartuLabelSisa: "Sisa jatah",
+    harianKartuLabelJatah: "Jatah hari ini",
     harianKartuNilaiSoal: "{n} / {total}",
     harianKartuNilaiSisa: "{n} soal",
   harianNomorSoal: "Soal {n} dari {total}",

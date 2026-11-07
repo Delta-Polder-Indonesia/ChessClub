@@ -31,6 +31,7 @@ import { Chess } from "chess.js";
 import { useI18n } from "../../lib/i18n.jsx";
 import { Tombol } from "../../components/Tombol.jsx";
 import { ArrowRightIcon } from "../../components/icons.jsx";
+import CincinKemajuan from "../../components/CincinKemajuan.jsx";
 import PapanTekaTeki from "../TekaTeki/PapanTekaTeki.jsx";
 import {
   AlertDialog,
@@ -398,74 +399,87 @@ export default function TekaTekiHarianLanding() {
             {/*
              * Kartu kemajuan harian — satu-satunya batas, berlaku juga
              * antar-halaman. Isinya sengaja tidak menampilkan angka yang tidak
-             * kita punya (mis. rating teka-teki): hanya judul keadaan, sisa
-             * jatah, lima segmen, lalu nomor soal + sisa jatah.
+             * kita punya (mis. rating teka-teki): judul keadaan, nomor soal di
+             * dalam cincin, sisa jatah, dan track lima segmen.
              */}
             <div
               data-kartu-harian
               className="flex flex-col gap-y-4 rounded border border-grey-200 bg-paper p-5"
             >
-              <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-                <p className="font-serif text-lg font-semibold text-grey-800">
-                  {judulKartu}
-                </p>
-                <p className="font-mono text-[12px] font-semibold uppercase tracking-wider text-grey-600">
-                  {t("landing.harianKemajuan", {
-                    n: jatahTerpakai,
-                    total: BATAS_HARIAN,
-                  })}
-                </p>
-              </div>
-
-              <p className="font-serif text-sm leading-relaxed text-grey-600">
-                {deskKartu}
-              </p>
-
-              <div
-                role="progressbar"
-                aria-valuemin={0}
-                aria-valuemax={BATAS_HARIAN}
-                aria-valuenow={jatahTerpakai}
-                aria-valuetext={t("landing.harianKemajuan", {
-                  n: jatahTerpakai,
-                  total: BATAS_HARIAN,
-                })}
-                aria-label={t("landing.harianNomorSoal", {
-                  n: nomorSoal,
-                  total: daftar.length,
-                })}
-                className="flex items-center gap-1.5"
-              >
-                {Array.from({ length: BATAS_HARIAN }, (_, urutan) => (
-                  <span
-                    key={urutan}
-                    aria-hidden="true"
-                    className={`h-2 flex-1 rounded-sm transition-colors ${
-                      urutan < jatahTerpakai ? "bg-primary" : "bg-grey-200"
-                    }`}
-                  />
-                ))}
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 border-t border-grey-200 pt-3">
-                <div className="flex flex-col gap-y-0.5">
-                  <p className="font-mono text-[12px] uppercase tracking-wider text-grey-600">
-                    {t("landing.harianKartuLabelSoal")}
+              {/*
+               * Baris atas: cincin "Soal 1 / 5" di kiri, judul keadaan dan
+               * kalimat sisa jatah di kanan (pola "Rating Estimated 1 of 3" di
+               * acuan). Di layar sempit cincin turun ke bawah teks.
+               */}
+              <div className="flex flex-col items-center gap-5 sm:flex-row sm:gap-6">
+                <div className="flex min-w-0 flex-col gap-y-1 text-center sm:order-2 sm:flex-1 sm:text-left">
+                  <p className="font-serif text-lg font-semibold text-grey-800">
+                    {judulKartu}
                   </p>
-                  <p className="font-serif text-base font-semibold text-grey-800">
-                    {t("landing.harianKartuNilaiSoal", {
-                      n: nomorSoal,
-                      total: daftar.length,
+                  <p className="font-serif text-sm leading-relaxed text-grey-600">
+                    {deskKartu}
+                  </p>
+                </div>
+                <CincinKemajuan
+                  className="sm:order-1"
+                  nilai={jatahTerpakai}
+                  maks={BATAS_HARIAN}
+                  label={t("landing.harianKartuLabelSoal")}
+                  nilaiTeks={t("landing.harianKartuNilaiSoal", {
+                    n: nomorSoal,
+                    total: daftar.length,
+                  })}
+                  catatan={t("landing.harianKartuNilaiSisa", { n: sisaJatah })}
+                />
+              </div>
+
+              {/* Track "Tower": dua titik ujung + segmen jatah harian. */}
+              <div className="flex flex-col gap-y-2 border-t border-grey-200 pt-3">
+                <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                  <p className="font-mono text-[12px] uppercase tracking-wider text-grey-600">
+                    {t("landing.harianKartuLabelJatah")}
+                  </p>
+                  <p className="font-mono text-[12px] font-semibold uppercase tracking-wider text-grey-600">
+                    {t("landing.harianKemajuan", {
+                      n: jatahTerpakai,
+                      total: BATAS_HARIAN,
                     })}
                   </p>
                 </div>
-                <div className="flex flex-col gap-y-0.5">
-                  <p className="font-mono text-[12px] uppercase tracking-wider text-grey-600">
-                    {t("landing.harianKartuLabelSisa")}
-                  </p>
-                  <p className="font-serif text-base font-semibold text-grey-800">
-                    {t("landing.harianKartuNilaiSisa", { n: sisaJatah })}
-                  </p>
+                <div className="flex items-center gap-2">
+                  <span
+                    aria-hidden="true"
+                    className="size-1.5 shrink-0 rounded-full bg-grey-300"
+                  />
+                  <div
+                    role="progressbar"
+                    aria-valuemin={0}
+                    aria-valuemax={BATAS_HARIAN}
+                    aria-valuenow={jatahTerpakai}
+                    aria-valuetext={t("landing.harianKemajuan", {
+                      n: jatahTerpakai,
+                      total: BATAS_HARIAN,
+                    })}
+                    aria-label={t("landing.harianNomorSoal", {
+                      n: nomorSoal,
+                      total: daftar.length,
+                    })}
+                    className="flex flex-1 items-center gap-1.5"
+                  >
+                    {Array.from({ length: BATAS_HARIAN }, (_, urutan) => (
+                      <span
+                        key={urutan}
+                        aria-hidden="true"
+                        className={`h-2 flex-1 rounded-sm transition-colors ${
+                          urutan < jatahTerpakai ? "bg-primary" : "bg-grey-200"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <span
+                    aria-hidden="true"
+                    className="size-1.5 shrink-0 rounded-full bg-grey-300"
+                  />
                 </div>
               </div>
             </div>

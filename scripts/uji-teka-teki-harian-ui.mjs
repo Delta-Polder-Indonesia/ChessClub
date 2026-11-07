@@ -856,6 +856,32 @@ async function selesaikanSoalWidget(catatan) {
         kamusLanding.harianKartuNilaiSisa.replace("{n}", "5")
       )
   );
+
+  /*
+   * Cincin "Soal 1 / 5" (pola "Rating Estimated 1 of 3" di acuan). Angka di
+   * dalamnya harus teks sungguhan, bukan bagian SVG, supaya pembaca layar dan
+   * uji teks tetap membacanya; busurnya mengikuti jatah yang sudah dimainkan.
+   */
+  const cincin = kartuHarian?.querySelector("[data-cincin-kemajuan]");
+  uji("kartu punya cincin kemajuan", Boolean(cincin));
+  uji(
+    "cincin menyembunyikan SVG dari pembaca layar",
+    cincin?.querySelector("svg")?.getAttribute("aria-hidden") === "true"
+  );
+  uji(
+    "cincin menampilkan label dan nomor soal sebagai teks",
+    (cincin?.textContent || "").includes(kamusLanding.harianKartuLabelSoal) &&
+      (cincin?.textContent || "").includes(
+        kamusLanding.harianKartuNilaiSoal.replace("{n}", "1").replace("{total}", "5")
+      )
+  );
+  const busurAwal = cincin?.querySelector("[data-busur-cincin]");
+  uji("busur cincin menandai nol jatah terpakai", busurAwal?.getAttribute("data-busur-cincin") === "0");
+  uji(
+    "busur cincin punya panjang nol di awal",
+    (busurAwal?.getAttribute("stroke-dasharray") || "").startsWith("0 "),
+    busurAwal?.getAttribute("stroke-dasharray")
+  );
   const tautan = [...dok.querySelectorAll("a")].map((a) => a.getAttribute("href"));
   uji("ada tautan ke halaman teka-teki harian", tautan.includes("/teka-teki-harian"));
   uji(
@@ -918,6 +944,18 @@ async function selesaikanSoalWidget(catatan) {
   {
     const bilah = dok.querySelector("[data-kartu-harian] [role='progressbar']");
     uji("empat segmen terisi setelah empat soal", bilah?.querySelectorAll(".bg-primary").length === 4);
+    const busur = dok.querySelector("[data-kartu-harian] [data-busur-cincin]");
+    uji(
+      "busur cincin ikut terisi setelah empat soal",
+      busur?.getAttribute("data-busur-cincin") === "4" &&
+        !(busur?.getAttribute("stroke-dasharray") || "").startsWith("0 ")
+    );
+    uji(
+      "cincin menampilkan soal 5 / 5 dan sisa 1 soal",
+      (dok.querySelector("[data-cincin-kemajuan]")?.textContent || "").includes(
+        kamusLanding.harianKartuNilaiSoal.replace("{n}", "5").replace("{total}", "5")
+      )
+    );
     uji(
       "judul kartu berubah menjadi ajakan lanjut",
       (dok.querySelector("[data-kartu-harian]")?.textContent || "").includes(
