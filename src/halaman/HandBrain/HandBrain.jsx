@@ -153,7 +153,6 @@ export default function HandBrain({ pengaturan = null }) {
       className="mx-auto grid h-full min-h-0 w-full max-w-[1280px] grid-cols-1 gap-3 overflow-x-hidden overflow-y-auto p-2 sm:gap-4 sm:p-4 md:px-8 lg:grid-cols-[auto_minmax(0,1fr)] lg:overflow-hidden"
     >
       <div className="mx-auto flex w-full max-w-[520px] min-w-0 flex-col sm:my-auto lg:w-[min(520px,calc(100dvh-140px),calc(100vw-634px))]">
-        <h1 className="mb-2 text-xl font-bold text-white">{t("papan.hbJudul")}</h1>
         {/* Spacer selebar bilah evaluasi (w-9 + gap-1.5) di Manusia vs Mesin:
             papan di sini berukuran sama persis dengan mode yang sudah berjalan. */}
         <BarisProfil
