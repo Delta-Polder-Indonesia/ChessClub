@@ -380,243 +380,263 @@ export default function TekaTekiHarianLanding() {
       aria-labelledby="teka-teki-harian-judul"
       className="w-full pl-6 md:pl-8 pr-6 md:pr-8 pb-12 xl:pb-16 pt-12 xl:pt-16 overflow-hidden"
     >
-      <div className="relative w-full mx-auto lg:max-w-[960px] xl:max-w-[1280px]">
-        <div className="grid gap-y-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,440px)] lg:gap-x-12 lg:items-start">
-          {/* Kiri: susunan mengikuti referensi HomeWelcomeMessage, Rating, dan Tower. */}
-          <div className="flex flex-col justify-center gap-y-6 lg:min-h-[440px] lg:max-w-[38rem]">
-            <header className="flex flex-col gap-y-2">
-              <h2 className="font-serif text-2xl font-semibold leading-tight text-grey-800">
-                Lanjutkan kerja baikmu!
-              </h2>
-              <p className="max-w-[34rem] font-serif text-base leading-relaxed text-grey-600">
-                Mainkan beberapa kali lagi untuk melihat kemampuanmu.
-              </p>
-            </header>
+      <div className="relative mx-auto w-full max-w-[1440px]">
+        <div className="grid items-center gap-x-6 gap-y-10 lg:grid-cols-[minmax(260px,0.95fr)_minmax(360px,1.3fr)_minmax(230px,0.85fr)] xl:gap-x-8">
+          {/* Kiri: progres dan pintu masuk ke halaman teka-teki penuh. */}
+          <div className="flex min-w-0 flex-col justify-center gap-y-6 lg:min-h-[440px]">
+            <header className="flex flex-col gap-y-2">
+              <h2 className="font-serif text-2xl font-semibold leading-tight text-grey-800">
+                Lanjutkan kerja baikmu!
+              </h2>
+              <p className="max-w-[34rem] font-serif text-base leading-relaxed text-grey-600">
+                Mainkan beberapa kali lagi untuk melihat kemampuanmu.
+              </p>
+            </header>
 
-            <section
-              aria-label="Progres teka-teki harian"
-              data-kartu-peringkat
-              className="flex items-center gap-6 border border-grey-200 bg-paper p-5 sm:gap-8"
-            >
-              <CincinKemajuan
-                ukuran={124}
-                nilai={jatahTerpakai}
-                maks={BATAS_HARIAN}
-                label="Progres"
-                nilaiTeks={`${jatahTerpakai} dari ${BATAS_HARIAN}`}
-                catatan={t("landing.harianKartuNilaiSisa", { n: sisaJatah })}
-              />
-              <div className="flex min-w-0 flex-1 flex-col gap-y-1">
-                <p className="font-sans text-sm font-semibold text-grey-800">
-                  Peringkat
-                </p>
-                <p className="font-sans text-sm text-grey-600">
-                  Perkiraan
-                </p>
-                <p className="font-serif text-xl font-semibold leading-tight text-grey-800">
-                  {jatahTerpakai} dari {BATAS_HARIAN}
-                </p>
-                <p className="font-sans text-sm leading-relaxed text-grey-600">
-                  {deskKartu}
-                </p>
-              </div>
-            </section>
+            <section
+              aria-label="Progres teka-teki harian"
+              data-kartu-peringkat
+              className="flex items-center gap-5 border border-grey-200 bg-paper p-4 sm:gap-6 sm:p-5"
+            >
+              <CincinKemajuan
+                ukuran={124}
+                nilai={jatahTerpakai}
+                maks={BATAS_HARIAN}
+                label="Progres"
+                nilaiTeks={`${jatahTerpakai} dari ${BATAS_HARIAN}`}
+                catatan={t("landing.harianKartuNilaiSisa", { n: sisaJatah })}
+              />
+              <div className="flex min-w-0 flex-1 flex-col gap-y-1">
+                <p className="font-sans text-sm font-semibold text-grey-800">
+                  Peringkat
+                </p>
+                <p className="font-sans text-sm text-grey-600">
+                  Perkiraan
+                </p>
+                <p className="font-serif text-xl font-semibold leading-tight text-grey-800">
+                  {jatahTerpakai} dari {BATAS_HARIAN}
+                </p>
+                <p className="font-sans text-sm leading-relaxed text-grey-600">
+                  {deskKartu}
+                </p>
+              </div>
+            </section>
 
-            <section
-              aria-label="Progres menara teka-teki"
-              data-kartu-menara
-              className="flex flex-col gap-y-4 border border-grey-200 bg-paper p-5"
-            >
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex flex-col gap-y-1">
-                  <h3 className="font-sans text-base font-semibold text-grey-800">
-                    Menara
-                  </h3>
-                  <p className="font-sans text-sm text-grey-600">
-                    Level 1
-                  </p>
-                </div>
-                <div className="flex items-baseline gap-1 font-serif text-xl font-semibold text-grey-800">
-                  <span>{jatahTerpakai}</span>
-                  <span className="font-sans text-sm font-normal text-grey-600">
-                    / {BATAS_HARIAN}
-                  </span>
-                </div>
-              </div>
-              <div
-                role="progressbar"
-                aria-label="Progres teka-teki harian"
-                aria-valuemin={0}
-                aria-valuemax={BATAS_HARIAN}
-                aria-valuenow={jatahTerpakai}
-                aria-valuetext={t("landing.harianKemajuan", {
-                  n: jatahTerpakai,
-                  total: BATAS_HARIAN,
-                })}
-                className="h-2 w-full overflow-hidden bg-grey-200"
-              >
-                <div
-                  className="h-full bg-primary transition-[width] duration-300"
-                  style={{ width: `${(jatahTerpakai / BATAS_HARIAN) * 100}%` }}
-                />
-              </div>
-              <div className="flex items-center justify-between gap-3 font-sans text-xs text-grey-600">
-                <span>{t("landing.harianKartuLabelJatah")}</span>
-                <span>{t("landing.harianKemajuan", {
-                  n: jatahTerpakai,
-                  total: BATAS_HARIAN,
-                })}</span>
-              </div>
-            </section>
+            <section
+              aria-label="Progres menara teka-teki"
+              data-kartu-menara
+              className="flex flex-col gap-y-4 border border-grey-200 bg-paper p-5"
+            >
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex flex-col gap-y-1">
+                  <h3 className="font-sans text-base font-semibold text-grey-800">
+                    Menara
+                  </h3>
+                  <p className="font-sans text-sm text-grey-600">
+                    Level 1
+                  </p>
+                </div>
+                <div className="flex items-baseline gap-1 font-serif text-xl font-semibold text-grey-800">
+                  <span>{jatahTerpakai}</span>
+                  <span className="font-sans text-sm font-normal text-grey-600">
+                    / {BATAS_HARIAN}
+                  </span>
+                </div>
+              </div>
+              <div
+                role="progressbar"
+                aria-label="Progres teka-teki harian"
+                aria-valuemin={0}
+                aria-valuemax={BATAS_HARIAN}
+                aria-valuenow={jatahTerpakai}
+                aria-valuetext={t("landing.harianKemajuan", {
+                  n: jatahTerpakai,
+                  total: BATAS_HARIAN,
+                })}
+                className="h-2 w-full overflow-hidden bg-grey-200"
+              >
+                <div
+                  className="h-full bg-primary transition-[width] duration-300"
+                  style={{ width: `${(jatahTerpakai / BATAS_HARIAN) * 100}%` }}
+                />
+              </div>
+              <div className="flex items-center justify-between gap-3 font-sans text-xs text-grey-600">
+                <span>{t("landing.harianKartuLabelJatah")}</span>
+                <span>
+                  {t("landing.harianKemajuan", {
+                    n: jatahTerpakai,
+                    total: BATAS_HARIAN,
+                  })}
+                </span>
+              </div>
+            </section>
 
-            <div className="flex flex-wrap items-center gap-x-6 gap-y-3 font-sans">
-              <Tombol
-                to={RUTE_HARIAN}
-                variant="garis"
-                className="h-12 px-4 md:px-6"
-                aria-label={`${t("landing.harianCta")}: ${t("landing.harianJudul")}`}
-              >
-                <span className="order-1">{t("landing.harianCta")}</span>
-                <ArrowRightIcon className="size-5 order-2" />
-              </Tombol>
-              {soal && (
-                <a
-                  href={soal.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-sans text-sm font-semibold text-grey-600 underline-offset-4 transition-colors hover:text-primary hover:underline"
-                >
-                  {t("landing.harianSumber")}
-                </a>
-              )}
-            </div>
-          </div>
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-3 font-sans">
+              <Tombol
+                to={RUTE_HARIAN}
+                variant="garis"
+                className="h-12 px-4 md:px-6"
+                aria-label={`${t("landing.harianCta")}: ${t("landing.harianJudul")}`}
+              >
+                <span className="order-1">{t("landing.harianCta")}</span>
+                <ArrowRightIcon className="size-5 order-2" />
+              </Tombol>
+              {soal && (
+                <a
+                  href={soal.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-sans text-sm font-semibold text-grey-600 underline-offset-4 transition-colors hover:text-primary hover:underline"
+                >
+                  {t("landing.harianSumber")}
+                </a>
+              )}
+            </div>
+          </div>
 
-          {/* Kanan: pemutar mini / keadaan jatah habis */}
-          <div className="w-full max-w-[440px]">
-            {jatahHabis ? (
-              <div className="flex flex-col gap-3 rounded border border-grey-200 bg-paper p-5">
-                <p className="font-sans text-sm font-bold text-grey-800">
-                  {t("landing.harianTerkunciJudul", { total: BATAS_HARIAN })}
-                </p>
-                <p className="font-serif text-sm leading-relaxed text-grey-600">
-                  {t("landing.harianTerkunciDesk")}
-                </p>
-                <div className="flex flex-wrap gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setDialogGabung(true)}
-                    className="tombol-kci inline-flex items-center justify-center rounded border border-primary bg-primary px-4 py-2.5 font-sans text-sm font-semibold text-white transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                  >
-                    {t("landing.harianGabung")}
-                  </button>
-                  <Tombol to={RUTE_HARIAN} variant="garis" className="h-11 px-4">
-                    {t("landing.harianCta")}
-                  </Tombol>
-                </div>
-              </div>
-            ) : soal ? (
-              <>
-                <div className="relative">
-                  <PapanTekaTeki
-                    fen={posisi || soal.fen}
-                    orientasi={orientasi}
-                    terpilih={terpilih}
-                    sasaran={sasaran}
-                    petunjuk={petunjuk}
-                    kesalahan={kesalahan}
-                    langkahAkhir={langkahAkhir}
-                    panahMesin={petunjuk ? { ...petunjuk, warna: "bawaan" } : null}
-                    terkunci={selesaiSoal || menungguLawan || !!promosi || !sisa.length}
-                    membeku={menungguLawan}
-                    onKlik={klikPetak}
-                    onPilih={pilihPetak}
-                    onJatuh={cobaLangkah}
-                  />
+          {/* Tengah: papan demo menjadi fokus visual utama. */}
+          <div className="flex w-full min-w-0 justify-center">
+            {jatahHabis ? (
+              <div className="flex w-full max-w-[34rem] flex-col gap-3 border border-grey-200 bg-paper p-5 sm:p-6">
+                <p className="font-sans text-base font-bold text-grey-800">
+                  {t("landing.harianTerkunciJudul", { total: BATAS_HARIAN })}
+                </p>
+                <p className="font-serif text-base leading-relaxed text-grey-600">
+                  {t("landing.harianTerkunciDesk")}
+                </p>
+                <div className="flex flex-wrap gap-3 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setDialogGabung(true)}
+                    className="tombol-kci inline-flex items-center justify-center rounded border border-primary bg-primary px-4 py-2.5 font-sans text-sm font-semibold text-white transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                  >
+                    {t("landing.harianGabung")}
+                  </button>
+                  <Tombol to={RUTE_HARIAN} variant="garis" className="h-11 px-4">
+                    {t("landing.harianCta")}
+                  </Tombol>
+                </div>
+              </div>
+            ) : soal ? (
+              <div className="w-full max-w-[34rem]">
+                <div className="relative">
+                  <PapanTekaTeki
+                    fen={posisi || soal.fen}
+                    orientasi={orientasi}
+                    terpilih={terpilih}
+                    sasaran={sasaran}
+                    petunjuk={petunjuk}
+                    kesalahan={kesalahan}
+                    langkahAkhir={langkahAkhir}
+                    panahMesin={petunjuk ? { ...petunjuk, warna: "bawaan" } : null}
+                    terkunci={selesaiSoal || menungguLawan || !!promosi || !sisa.length}
+                    membeku={menungguLawan}
+                    onKlik={klikPetak}
+                    onPilih={pilihPetak}
+                    onJatuh={cobaLangkah}
+                  />
 
-                  {/* Pemilih bidak promosi — hanya muncul saat memang perlu. */}
-                  {promosi && (
-                    <div className="absolute inset-0 z-50 flex flex-col items-center justify-center gap-3 rounded bg-black/55 p-3">
-                      <p className="font-sans text-xs font-bold uppercase tracking-wider text-white">
-                        {t("tekaTekiHarian.promosiJudul")}
-                      </p>
-                      <div className="flex flex-wrap justify-center gap-2">
-                        {PILIHAN_PROMOSI.map(([kode, kunci]) => (
-                          <button
-                            key={kode}
-                            type="button"
-                            onClick={() => {
-                              const { from, to } = promosi;
-                              setPromosi(null);
-                              cobaLangkah(from, to, kode);
-                            }}
-                            className="rounded bg-white px-2.5 py-1.5 font-sans text-xs font-semibold text-grey-800 transition-colors hover:bg-grey-100"
-                          >
-                            {t(kunci)}
-                          </button>
-                        ))}
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setPromosi(null)}
-                        className="font-sans text-xs font-semibold text-white/80 underline underline-offset-2"
-                      >
-                        {t("tekaTekiHarian.promosiBatal")}
-                      </button>
-                    </div>
-                  )}
-                </div>
+                  {/* Pemilih promosi tetap berada di atas papan demo. */}
+                  {promosi && (
+                    <div className="absolute inset-0 z-50 flex flex-col items-center justify-center gap-3 rounded bg-black/55 p-3">
+                      <p className="font-sans text-xs font-bold uppercase tracking-wider text-white">
+                        {t("tekaTekiHarian.promosiJudul")}
+                      </p>
+                      <div className="flex flex-wrap justify-center gap-2">
+                        {PILIHAN_PROMOSI.map(([kode, kunci]) => (
+                          <button
+                            key={kode}
+                            type="button"
+                            onClick={() => {
+                              const { from, to } = promosi;
+                              setPromosi(null);
+                              cobaLangkah(from, to, kode);
+                            }}
+                            className="rounded bg-white px-2.5 py-1.5 font-sans text-xs font-semibold text-grey-800 transition-colors hover:bg-grey-100"
+                          >
+                            {t(kunci)}
+                          </button>
+                        ))}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setPromosi(null)}
+                        className="font-sans text-xs font-semibold text-white/80 underline underline-offset-2"
+                      >
+                        {t("tekaTekiHarian.promosiBatal")}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div
+                aria-hidden="true"
+                className="aspect-square w-full max-w-[34rem] animate-pulse border border-grey-200 bg-grey-50"
+              />
+            )}
+          </div>
 
-                {/* Status + kontrol ringkas */}
-                <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-                  <p
-                    aria-live="polite"
-                    className={`font-sans text-sm font-semibold ${
-                      selesaiSoal
-                        ? "text-primary"
-                        : pesan?.jenis === "salah"
-                          ? "text-accent-600"
-                          : "text-grey-600"
-                    }`}
-                  >
-                    {teksStatus}
-                  </p>
-                  <div className="flex items-center gap-2 font-sans">
-                    <button
-                      type="button"
-                      onClick={tampilkanPetunjuk}
-                      disabled={selesaiSoal || menungguLawan}
-                      className="rounded border border-grey-200 px-2.5 py-1 text-xs font-semibold text-grey-700 transition-colors hover:border-primary hover:text-primary disabled:opacity-40"
-                    >
-                      {t("landing.harianPetunjuk")}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => pasangSoal(soal)}
-                      className="rounded border border-grey-200 px-2.5 py-1 text-xs font-semibold text-grey-700 transition-colors hover:border-primary hover:text-primary"
-                    >
-                      {t("landing.harianUlangi")}
-                    </button>
-                  </div>
-                </div>
+          {/* Kanan: konteks promosi dan kontrol demo, bukan panel permainan penuh. */}
+          <aside
+            aria-label="Informasi dan kontrol demo teka-teki harian"
+            className="flex min-w-0 flex-col justify-center gap-y-7 lg:min-h-[440px]"
+          >
+            <header className="flex flex-col gap-y-3">
+              <p className="font-sans text-sm font-semibold text-primary">
+                {t("landing.harianLabel")}
+              </p>
+              <h3 className="font-serif text-2xl font-semibold leading-tight text-grey-800">
+                {t("landing.harianJudul")}
+              </h3>
+              <p className="font-serif text-base leading-relaxed text-grey-600">
+                {t("landing.harianDesk")}
+              </p>
+            </header>
 
-                <p className="mt-1 font-mono text-[12px] uppercase tracking-wider text-grey-600">
-                  {t("landing.harianNomorSoal", { n: nomorSoal, total: daftar.length })}
-                  {" · "}
-                  {t("landing.harianEdisi", { tanggal: soal.tanggal })}
-                </p>
-              </>
-            ) : (
-              <div
-                aria-hidden="true"
-                className="aspect-square w-full animate-pulse rounded border border-grey-200 bg-grey-50"
-              />
-            )}
-          </div>
-        </div>
-      </div>
+            {!jatahHabis && soal && (
+              <section className="border-t border-grey-200 pt-5">
+                <p
+                  aria-live="polite"
+                  className={`font-sans text-sm font-semibold ${
+                    selesaiSoal
+                      ? "text-primary"
+                      : pesan?.jenis === "salah"
+                        ? "text-accent-600"
+                        : "text-grey-600"
+                  }`}
+                >
+                  {teksStatus}
+                </p>
+                <div className="mt-4 flex flex-wrap items-center gap-2 font-sans">
+                  <button
+                    type="button"
+                    onClick={tampilkanPetunjuk}
+                    disabled={selesaiSoal || menungguLawan}
+                    className="rounded border border-grey-200 px-3 py-2 text-sm font-semibold text-grey-700 transition-colors hover:border-primary hover:text-primary disabled:opacity-40"
+                  >
+                    {t("landing.harianPetunjuk")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => pasangSoal(soal)}
+                    className="rounded border border-grey-200 px-3 py-2 text-sm font-semibold text-grey-700 transition-colors hover:border-primary hover:text-primary"
+                  >
+                    {t("landing.harianUlangi")}
+                  </button>
+                </div>
+                <p className="mt-4 font-mono text-xs uppercase tracking-wider text-grey-600">
+                  {t("landing.harianNomorSoal", { n: nomorSoal, total: daftar.length })}
+                  {" · "}
+                  {t("landing.harianEdisi", { tanggal: soal.tanggal })}
+                </p>
+              </section>
+            )}
+          </aside>
+        </div>
+      </div>
 
-      {/* Dialog ajakan bergabung setelah 5 soal. Radix dipakai supaya fokus
+            {/* Dialog ajakan bergabung setelah 5 soal. Radix dipakai supaya fokus
           terkunci dan Escape berperilaku sama dengan dialog lain di situs. */}
       <AlertDialog open={dialogGabung} onOpenChange={setDialogGabung}>
         <AlertDialogContent>
