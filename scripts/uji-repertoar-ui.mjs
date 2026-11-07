@@ -68,6 +68,13 @@ if (kartuSicilia.length !== 2 || kartuKingPawn.length !== 3) {
 }
 await simpanKartuRepertoar(semuaKartu);
 
+// Rekor tantangan untuk satu jalur, disemai SEBELUM render: kartu katalog dan
+// layar statistik harus membacanya tanpa menulis apa pun.
+globalThis.localStorage.setItem(
+  "kci.papan.tantangan.v1",
+  JSON.stringify({ [kartuSicilia[0].lineId]: { streakTerbaik: 3, poin: 40 } }),
+);
+
 const catatanGalat = [];
 const galatAsli = console.error;
 console.error = (...argumen) => {
@@ -122,6 +129,13 @@ const klik = async (target) => {
 const kartuKatalog = semua("[data-kartu-repertoar]");
 hasil("katalog tidak mencetak kunci i18n mentah", kunciMentah().length === 0, kunciMentah()[0]);
 hasil("dua jalur tersimpan tampil di katalog", kartuKatalog.length === 2, `${kartuKatalog.length}`);
+
+const rekorKartu = el("[data-rekor-tantangan]");
+hasil(
+  "kartu menampilkan rekor tantangan jalur itu",
+  Boolean(rekorKartu) && rekorKartu.textContent.includes("rentetan 3") && rekorKartu.textContent.includes("poin 40"),
+  rekorKartu?.textContent,
+);
 
 const pohon = el("[data-pohon-cabang]");
 hasil("panel pohon cabang tersedia di katalog", Boolean(pohon));
@@ -245,6 +259,12 @@ hasil("jumlah posisi terhitung", /Posisi\s*5/.test(statistik?.textContent || "")
 hasil("jatuh tempo nol setelah sesi", /Jatuh tempo\s*0/.test(statistik?.textContent || ""));
 hasil("akurasi 100% setelah semua dijawab benar", statistik?.textContent.includes("100%"));
 hasil("distribusi nilai menyebut Baik", statistik?.textContent.includes("Baik"));
+hasil(
+  "rekor tantangan ikut diringkas di statistik",
+  /Poin\s*40/.test(statistik?.textContent || "") &&
+    /Rentetan benar\s*3/.test(statistik?.textContent || ""),
+  statistik?.textContent.match(/Tantangan[\s\S]{0,80}/)?.[0],
+);
 hasil(
   "daftar per pembukaan memuat kedua pembukaan",
   statistik?.textContent.includes("Sicilian Defence") &&

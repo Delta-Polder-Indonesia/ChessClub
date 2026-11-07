@@ -44,6 +44,55 @@ export default function LatihanRepertoarLanding() {
             </div>
           </div>
         </section>
+
+        {/*
+         * Ringkasan tiga cara berlatih + statistik. Ditulis sebagai blok
+         * eksplisit (bukan map kunci dinamis) supaya setiap kunci i18n
+         * terbaca sebagai literal dan tetap diaudit `uji:i18n`.
+         */}
+        <section className="w-full border-t border-grey-200 bg-paper">
+          <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
+            <div className="flex flex-col gap-y-8">
+              <h2 className="font-serif text-3xl font-light text-grey-800">
+                {t("latihanRepertoarLanding.caraJudul")}
+              </h2>
+              <div className="grid gap-8 md:grid-cols-3">
+                <div className="flex flex-col gap-y-3">
+                  <h3 className="font-serif text-xl text-grey-800">
+                    {t("latihanRepertoarLanding.cara1Judul")}
+                  </h3>
+                  <p className="m-0 font-serif text-base leading-relaxed text-grey-600">
+                    {t("latihanRepertoarLanding.cara1")}
+                  </p>
+                </div>
+                <div className="flex flex-col gap-y-3">
+                  <h3 className="font-serif text-xl text-grey-800">
+                    {t("latihanRepertoarLanding.cara2Judul")}
+                  </h3>
+                  <p className="m-0 font-serif text-base leading-relaxed text-grey-600">
+                    {t("latihanRepertoarLanding.cara2")}
+                  </p>
+                </div>
+                <div className="flex flex-col gap-y-3">
+                  <h3 className="font-serif text-xl text-grey-800">
+                    {t("latihanRepertoarLanding.cara3Judul")}
+                  </h3>
+                  <p className="m-0 font-serif text-base leading-relaxed text-grey-600">
+                    {t("latihanRepertoarLanding.cara3")}
+                  </p>
+                </div>
+              </div>
+              <div className="border-t border-grey-200 pt-8">
+                <h3 className="font-serif text-xl text-grey-800">
+                  {t("latihanRepertoarLanding.statistikJudul")}
+                </h3>
+                <p className="m-0 mt-3 max-w-3xl font-serif text-base leading-relaxed text-grey-600">
+                  {t("latihanRepertoarLanding.statistik")}
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
     </HalamanIsi>
   );

@@ -2013,6 +2013,17 @@ export default function LatihanRepertoar({ pengaturan = null }) {
                       <p className="text-[11px] text-gray-500">
                         {t("papan.repertoarJatuhTempo", { jumlah: jalur.jatuhTempo })}
                       </p>
+                      {/* Rekor tantangan menempel di kartu, terpisah dari
+                          progres SRS — sama seperti acuan "Latihan % /
+                          Tantangan %", tapi tanpa mengubah jadwal. */}
+                      {rekorPerJalur[jalur.lineId] && (
+                        <p className="text-[11px] text-[#a3d168]" data-rekor-tantangan>
+                          {t("papan.repertoarTantanganRekor", {
+                            streak: Number(rekorPerJalur[jalur.lineId].streakTerbaik) || 0,
+                            poin: Number(rekorPerJalur[jalur.lineId].poin) || 0,
+                          })}
+                        </p>
+                      )}
                     </div>
 
                     <div className="mt-auto flex gap-2">
