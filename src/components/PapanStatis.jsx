@@ -112,7 +112,7 @@ export default function PapanStatis({
                   </span>
                 )}
                 {bidak && (
-                  <div className="relative z-[1] flex h-[84%] w-[84%] items-center justify-center">
+                  <div className="relative z-[1] flex h-[70%] w-[70%] items-center justify-center">
                     <ChessPiece
                       piece={
                         bidak.color === "w" ? bidak.type.toUpperCase() : bidak.type
