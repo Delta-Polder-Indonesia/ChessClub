@@ -38,7 +38,10 @@ for (const [bahasa, t] of Object.entries(kamus)) {
 
     const menu = page.getByRole("navigation", { name: bahasa === "en" ? "Board modes" : "Mode papan" });
     await menu.getByRole("link", { name: t.menu }).click();
-    await expect(page.getByRole("heading", { name: t.menu })).toBeVisible();
+    // Judul mode tidak lagi digambar di atas papan (hanya tombol kembali di
+    // kepala daftar), jadi kehadiran halaman diperiksa dari judul dokumen yang
+    // diisi tata letak dari label menu yang sama.
+    await expect(page).toHaveTitle(new RegExp(t.menu));
     await expect(page.locator("[data-petak]")).toHaveCount(64, { timeout: 60_000 });
 
     const status = page.getByRole("status");

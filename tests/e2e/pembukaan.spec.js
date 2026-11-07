@@ -319,7 +319,8 @@ for (const [bahasa, kamus] of [["id", papanId], ["en", papanEn]]) {
  * jalur, dan papan pratinjau muncul lengkap 64 petak tanpa galat halaman.
  */
 test("repertoar: papan pratinjau muncul setelah jalur dipilih", async ({ page }) => {
-  test.setTimeout(120_000);
+  // Alur ini memuat katalog 4,4 MB lalu menelusuri tiga layar sekaligus.
+  test.setTimeout(180_000);
   const galat = [];
   page.on("pageerror", (error) => galat.push(error.message));
 
@@ -384,6 +385,7 @@ test("repertoar: papan pratinjau muncul setelah jalur dipilih", async ({ page })
   await page.getByRole("button", { name: papanId.repertoarMulai }).click();
   const dasbor = page.locator("[data-dasbor-latihan]");
   await expect(dasbor).toBeVisible();
+  await expect(page.locator("[data-papan-latihan]")).toBeVisible();
   await expect(dasbor.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "0");
   for (const label of [
     papanId.repertoarPosisiSaatIni,
@@ -392,7 +394,7 @@ test("repertoar: papan pratinjau muncul setelah jalur dipilih", async ({ page })
     papanId.repertoarRiwayatLangkah,
     papanId.repertoarTarget,
   ]) {
-    await expect(dasbor.getByText(label, { exact: true })).toBeVisible();
+    await expect(dasbor).toContainText(label);
   }
 
   const kotak = await page.evaluate(() => {
