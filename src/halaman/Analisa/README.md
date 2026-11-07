@@ -503,7 +503,7 @@ Di luar rangkaian itu:
 | `uji-tarik-api.mjs` | 7 |
 | `uji-wawasan-rating.mjs` | 10 |
 | `uji-integritas-suite.mjs` | 9 |
-| `uji-i18n.mjs` | 3393 kunci ID = 3393 EN, 1704 terpakai |
+| `uji-i18n.mjs` | 3402 kunci ID = 3402 EN, 1710 terpakai |
 
 ### Bundle & build
 
@@ -1274,7 +1274,7 @@ Status verifikasi (diperbarui 2026-11-06 — angka lama sengaja tidak
 dipertahankan): 51 lulus / 0 gagal; `uji:analisa-menyeluruh` (18 skrip,
 1133 pemeriksaan), `uji:analisa` (34), `uji:analisa-ui` (153), `uji:anticheat`
 (417), `uji:tarik-api` (7), `uji:basisdata` (34), `uji:akun-database` (16),
-`uji:i18n` (3393 kunci ID = EN), `uji:integritas-suite` (9), dan `npm run
+`uji:i18n` (3402 kunci ID = EN), `uji:integritas-suite` (9), dan `npm run
 build` semuanya hijau. Jalur jaringan chess.com/lichess TIDAK diverifikasi
 live — sandbox agent hanya mengizinkan github/npm/pypi, jadi `accuracies`
 diverifikasi lewat bentuk respons yang didokumentasikan API keduanya.
@@ -1391,7 +1391,7 @@ Status verifikasi (diperbarui 2026-11-06): `uji:akurasi` 50/0, `uji-hasil`
 27/0, `uji-evaluasi` 90/0, `uji-anticheat` 417/0, `uji-wawasan-profil` 51/0,
 `uji-analisa-ui` 152/0, `uji-analisa` 34/0, `uji-wawasan-rating` 10/0,
 `uji-klasifikasi` 63/0, `uji-parser-pgn` 36/0, `uji-langkah-kritis` 54/0,
-`uji-i18n` (3393 kunci ID = EN), `uji-integritas-suite` 9/0, `npm run lint`
+`uji-i18n` (3402 kunci ID = EN), `uji-integritas-suite` 9/0, `npm run lint`
 bersih, `npm run build` OK.
 **Tampilan panel Ringkasan belum diverifikasi visual** — `localhost` tidak
 terjangkau dari sandbox agent, jadi semua klaim di atas berasal dari uji di atas

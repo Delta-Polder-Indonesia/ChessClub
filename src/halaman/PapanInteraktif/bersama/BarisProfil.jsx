@@ -9,7 +9,19 @@ import TangkapanBidak from "./TangkapanBidak.jsx";
  * diimpor tiga mode lain dari sana; dipindah ke sini agar tiap mode punya
  * rumah sendiri tanpa mengimpor dari rumah mode lain.
  */
-export function BarisProfil({ nama, putih, tangkapan, setBidak, avatar, namaDiBawah = false, className = "" }) {
+export function BarisProfil({
+  nama,
+  putih,
+  tangkapan,
+  setBidak,
+  avatar,
+  namaDiBawah = false,
+  // Baris di atas/bawah papan menjorok 42 px agar sejajar kolom petak (papan
+  // punya lajur koordinat). Halaman yang memusatkan papan (dasbor latihan
+  // repertoar) mematikan jorokan itu supaya avatar ikut center.
+  tanpaJorokan = false,
+  className = "",
+}) {
   const labelNama = (
     <span
       className={`truncate text-sm font-bold text-[#fffaec] ${namaDiBawah ? "leading-tight" : ""}`}
@@ -23,7 +35,9 @@ export function BarisProfil({ nama, putih, tangkapan, setBidak, avatar, namaDiBa
     </div>
   );
   return (
-    <div className={`flex items-center justify-between gap-3 pl-[42px] pr-1 ${className}`}>
+    <div
+      className={`flex items-center justify-between gap-3 pr-1 ${tanpaJorokan ? "pl-0" : "pl-[42px]"} ${className}`}
+    >
       <div className="flex min-w-0 flex-1 items-center gap-3">
         <div
           className={`flex h-10 w-10 shrink-0 items-end justify-center overflow-hidden rounded-md shadow-md ${

@@ -380,5 +380,58 @@ test("repertoar: papan pratinjau muncul setelah jalur dipilih", async ({ page })
   await expect(page.getByText(papanId.repertoarProgresLatihan).first()).toBeVisible();
   await expect(page.getByRole("button", { name: papanId.repertoarMulai })).toBeEnabled();
 
+  // Layar latihan: papan sebagai fokus (kiri, 60%) + dasbor latihan (kanan, 40%).
+  await page.getByRole("button", { name: papanId.repertoarMulai }).click();
+  const dasbor = page.locator("[data-dasbor-latihan]");
+  await expect(dasbor).toBeVisible();
+  await expect(dasbor.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "0");
+  for (const label of [
+    papanId.repertoarPosisiSaatIni,
+    papanId.repertoarAkurasi,
+    papanId.repertoarPetunjuk,
+    papanId.repertoarRiwayatLangkah,
+    papanId.repertoarTarget,
+  ]) {
+    await expect(dasbor.getByText(label, { exact: true })).toBeVisible();
+  }
+
+  const kotak = await page.evaluate(() => {
+    const ambil = (pemilih) => {
+      const el = document.querySelector(pemilih);
+      if (!el) return null;
+      const r = el.getBoundingClientRect();
+      return { x: r.x, y: r.y, lebar: r.width, tinggi: r.height };
+    };
+    const bungkus = document.querySelector("[data-bungkus-latihan]");
+    return {
+      bungkus: ambil("[data-bungkus-latihan]"),
+      bungkusLebarIsi: bungkus ? Number.parseFloat(getComputedStyle(bungkus).maxWidth) : 0,
+      kolom: ambil("[data-kolom-papan]"),
+      papan: ambil("[data-papan-latihan]"),
+      dasbor: ambil("[data-dasbor-latihan]"),
+      lebarLayar: window.innerWidth,
+    };
+  });
+
+  // Wadah konten dibatasi 1400 px dan tidak pernah melebihi lebar layar.
+  expect(kotak.bungkusLebarIsi).toBeLessThanOrEqual(1400);
+  expect(kotak.bungkus.x + kotak.bungkus.lebar).toBeLessThanOrEqual(kotak.lebarLayar + 1);
+  expect(kotak.bungkus.x).toBeGreaterThanOrEqual(-1);
+
+  // Papan benar-benar center terhadap kolom kirinya (toleransi 2 px).
+  const tengahPapan = kotak.papan.x + kotak.papan.lebar / 2;
+  const tengahKolom = kotak.kolom.x + kotak.kolom.lebar / 2;
+  expect(Math.abs(tengahPapan - tengahKolom)).toBeLessThanOrEqual(2);
+
+  if (kotak.lebarLayar >= 1024) {
+    // Desktop: dua kolom — dasbor di kanan, papan mengisi kolom kiri dengan lega.
+    expect(kotak.dasbor.x).toBeGreaterThanOrEqual(kotak.kolom.x + kotak.kolom.lebar - 1);
+    expect(kotak.papan.lebar).toBeGreaterThanOrEqual(380);
+  } else {
+    // Tablet & ponsel: papan prioritas, dasbor pindah ke bawah papan.
+    expect(kotak.dasbor.y).toBeGreaterThanOrEqual(kotak.papan.y + kotak.papan.tinggi);
+    expect(kotak.papan.lebar).toBeGreaterThanOrEqual(kotak.lebarLayar - 80);
+  }
+
   expect(galat).toEqual([]);
 });
