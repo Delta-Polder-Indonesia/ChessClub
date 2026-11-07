@@ -76,6 +76,11 @@
     <changefreq>weekly</changefreq>
 </url>
 <url>
+    <loc>%%SITE_URL%%program-kami/teka-teki-harian</loc>
+    <lastmod>%%LASTMOD%%</lastmod>
+    <changefreq>daily</changefreq>
+</url>
+<url>
     <loc>%%SITE_URL%%teka-teki/problem</loc>
     <lastmod>%%LASTMOD%%</lastmod>
     <changefreq>weekly</changefreq>

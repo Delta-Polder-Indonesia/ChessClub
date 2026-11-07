@@ -56,7 +56,14 @@ sana. Kedudukan "berdiri sendiri" diwujudkan oleh **halamannya** (kerangka
 sidebar sendiri, tanpa bilah kembali ke Teka-teki Catur) — bukan oleh menu
 bertingkat. Uji `scripts/uji-header.mjs` mengunci hal ini: tidak boleh ada
 submenu bertingkat di dalam dropdown Program Kami, dan tautan
-`/teka-teki-harian` harus langsung terlihat saat dropdown dibuka.
+`/program-kami/teka-teki-harian` harus langsung terlihat saat dropdown dibuka.
+
+**Pintu masuknya halaman penjelas** `/program-kami/teka-teki-harian`
+(`src/halaman/ProgramKami/TekaTekiHarianKonten.jsx`), sama seperti baris
+Program Kami lain: satu klik dari menu selalu mendarat di halaman isi, dan
+tombol "Mainkan Teka-teki Hari Ini" di sana membuka alatnya. Berkasnya sengaja
+bernama `Konten` karena `src/halaman/Landing/TekaTekiHarianLanding.jsx` adalah
+widget papan di Beranda, bukan halaman ini.
 
 Yang dibagi dengan keluarga papan hanyalah kerangka, tema, dan komponen
 `PapanTekaTeki` — bukan navigasi atau alur halamannya.

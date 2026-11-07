@@ -47,6 +47,11 @@ export const program = {
         deskripsi:
           "Play directly against a local chess engine — from weakened opponents for beginners to Maia 3 and Stockfish for advanced players.",
       },
+      tekaTekiHarian: {
+        judul: "Daily Puzzle",
+        deskripsi:
+          "A new tactical position every day with hints and an archive of earlier dates, playable straight in the browser.",
+      },
       latihanRepertoar: {
         judul: "Repertoire Training",
         deskripsi:
@@ -646,4 +651,18 @@ export const turingTestLanding = {
     intro2:
       "You guess which move is human, and your score counts the correct guesses. The engine runs locally in the browser, so no game is ever sent to a community server.",
     cta: "Start Guessing",
+};
+
+export const tekaTekiHarianLanding = {
+    judul: "Daily Puzzle",
+    deskripsi:
+      "A fresh tactical puzzle every day — opened straight in the browser, with hints and the archive of earlier dates.",
+    metaDeskripsi:
+      "Daily Puzzle of Komunitas Catur Indonesia — a new tactical position each day you can play right in the browser, with hints and an archive of earlier dates.",
+    introJudul: "A New Tactic Every Day",
+    intro1:
+      "The Daily Puzzle always shows the newest position: taken from a real game, with one best move to find and an opponent that answers automatically on the board.",
+    intro2:
+      "Missed a few days? The archive opens any date you like. Everything runs in the browser without an account, and the record of which puzzles you finished stays on your own device.",
+    cta: "Play Today's Puzzle",
 };

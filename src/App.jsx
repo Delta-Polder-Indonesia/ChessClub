@@ -38,6 +38,9 @@ const ManusiaVsMesinLanding = lazy(() => import("./halaman/ProgramKami/ManusiaVs
 const LatihanRepertoarLanding = lazy(() => import("./halaman/ProgramKami/LatihanRepertoarLanding.jsx"));
 const HandBrainLanding = lazy(() => import("./halaman/ProgramKami/HandBrainLanding.jsx"));
 const TuringTestLanding = lazy(() => import("./halaman/ProgramKami/TuringTestLanding.jsx"));
+// Halaman penjelas Teka-teki Harian. Namanya `Konten` karena `Landing/`
+// sudah punya widget TekaTekiHarianLanding.jsx yang bisa dimainkan.
+const TekaTekiHarianKonten = lazy(() => import("./halaman/ProgramKami/TekaTekiHarianKonten.jsx"));
 const Pembukaan = lazy(() => import("./halaman/ProgramKami/Pembukaan.jsx"));
 const EbookPanduan = lazy(() => import("./halaman/ProgramKami/EbookPanduan.jsx"));
 
@@ -221,6 +224,7 @@ const RUTE_HALAMAN = [
   ["/program-kami/latihan-repertoar", LatihanRepertoarLanding],
   ["/program-kami/hand-brain", HandBrainLanding],
   ["/program-kami/turing-test", TuringTestLanding],
+  ["/program-kami/teka-teki-harian", TekaTekiHarianKonten],
   ["/program-kami/pembukaan", Pembukaan],
   ["/program-kami/analisa", AnalisaLanding],
   ["/program-kami/analisa/papan", Analisa],

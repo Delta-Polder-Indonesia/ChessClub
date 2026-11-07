@@ -47,6 +47,11 @@ export const program = {
         deskripsi:
           "Bermain langsung melawan mesin catur lokal — dari lawan lemah untuk pemula hingga Maia 3 dan Stockfish untuk pemain lanjut.",
       },
+      tekaTekiHarian: {
+        judul: "Teka-teki Harian",
+        deskripsi:
+          "Satu soal taktik baru setiap hari dengan petunjuk dan arsip tanggal sebelumnya, langsung dimainkan di peramban.",
+      },
       latihanRepertoar: {
         judul: "Latihan Repertoar",
         deskripsi:
@@ -650,4 +655,18 @@ export const turingTestLanding = {
     intro2:
       "Anda menebak mana langkah manusia, dan skor dihitung dari jumlah tebakan benar. Engine berjalan lokal di peramban, jadi tidak ada partai yang dikirim ke server komunitas.",
     cta: "Mulai Menebak",
+};
+
+export const tekaTekiHarianLanding = {
+    judul: "Teka-teki Harian",
+    deskripsi:
+      "Satu soal taktik baru setiap hari — dibuka langsung di peramban, lengkap dengan petunjuk dan arsip tanggal sebelumnya.",
+    metaDeskripsi:
+      "Teka-teki Harian Komunitas Catur Indonesia — soal taktik baru tiap hari yang bisa dimainkan langsung di peramban, dengan petunjuk dan arsip tanggal sebelumnya.",
+    introJudul: "Taktik Baru Setiap Hari, Tanpa Bolos",
+    intro1:
+      "Teka-teki Harian selalu menampilkan soal terbaru: posisi dari partai sungguhan, satu langkah terbaik yang harus Anda temukan, dan lawan yang membalas otomatis di papan.",
+    intro2:
+      "Kalau ketinggalan beberapa hari, arsip per tanggal bisa dibuka kapan saja. Semua berjalan di peramban tanpa akun, dan catatan soal mana yang sudah Anda selesaikan disimpan di perangkat sendiri.",
+    cta: "Mainkan Teka-teki Hari Ini",
 };

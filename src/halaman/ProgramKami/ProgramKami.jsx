@@ -56,6 +56,11 @@ export default function ProgramKami() {
       to: "/program-kami/turing-test",
       label: t("program.kartu.turingTest.judul"),
     },
+    {
+      kunci: "tekaTekiHarian",
+      to: "/program-kami/teka-teki-harian",
+      label: t("program.kartu.tekaTekiHarian.judul"),
+    },
   ];
 
   return (

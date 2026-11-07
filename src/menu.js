@@ -69,19 +69,16 @@ export const MENU_UTAMA = [
         file: "RushTekaTekiLanding.jsx",
       },
       {
-        // Halaman alat, bukan halaman konten: alamatnya sejajar dengan
-        // /teka-teki/problem dan /teka-teki-rush.
-        //
-        // Catatan: halaman ini BERDIRI SENDIRI (kerangka sidebar sendiri,
-        // sefamili papan interaktif) — lihat
-        // `src/halaman/TekaTekiHarian/TekaTekiHarian.jsx`. Ia tetap
-        // didaftarkan di sini sebagai satu baris datar supaya dropdown
-        // Program Kami TIDAK memakai submenu bertingkat: bentuk daftar lama
-        // (kolom 4 + 4 + 3 baris) yang sudah dikenal pengunjung.
+        // Menaut ke halaman penjelasnya, bukan langsung ke alatnya: alatnya
+        // (`/teka-teki-harian`) BERDIRI SENDIRI dengan kerangka sidebar
+        // sendiri, sefamili papan interaktif, dan halaman penjelas itulah
+        // pintu masuk yang seragam dengan baris Program Kami lain.
+        // Barisnya tetap datar supaya dropdown TIDAK memakai submenu
+        // bertingkat (bentuk kolom 4 + 4 + 3 yang dikenal pengunjung).
         title: "nav.tekaTekiHarian",
-        path: "/teka-teki-harian",
-        folder: "TekaTekiHarian",
-        file: "TekaTekiHarian.jsx",
+        path: "/program-kami/teka-teki-harian",
+        folder: "ProgramKami",
+        file: "TekaTekiHarianKonten.jsx",
       },
       {
         title: "nav.quizCatur",
@@ -102,10 +99,12 @@ export const MENU_UTAMA = [
         file: "Pembukaan.jsx",
       },
       {
+        // Sama seperti tiga mode papan lain: baris menu menuju halaman
+        // penjelas, dan tombol masuk ke papannya ada di halaman itu.
         title: "nav.lawanBot",
-        path: "/papan-interaktif/manusia-vs-mesin",
-        folder: "ManusiaVsMesin",
-        file: "ManusiaVsMesin.jsx",
+        path: "/program-kami/manusia-vs-mesin",
+        folder: "ProgramKami",
+        file: "ManusiaVsMesinLanding.jsx",
       },
       {
         title: "nav.eBookPanduan",

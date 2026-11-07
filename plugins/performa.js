@@ -77,6 +77,7 @@ export const RUTE_PUBLIK = [
   "/program-kami/latihan-repertoar",
   "/program-kami/hand-brain",
   "/program-kami/turing-test",
+  "/program-kami/teka-teki-harian",
   "/teka-teki/problem",
   "/teka-teki-rush",
   "/teka-teki-harian",
@@ -234,6 +235,10 @@ export const META_RUTE = {
   "/program-kami/turing-test": {
     judulKey: "turingTestLanding.judul",
     deskripsiKey: "turingTestLanding.metaDeskripsi",
+  },
+  "/program-kami/teka-teki-harian": {
+    judulKey: "tekaTekiHarianLanding.judul",
+    deskripsiKey: "tekaTekiHarianLanding.metaDeskripsi",
   },
   "/program-kami/ebook-panduan": {
     judul: "E-Book & Panduan",

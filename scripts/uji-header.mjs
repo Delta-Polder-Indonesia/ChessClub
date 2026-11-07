@@ -101,13 +101,16 @@ hasil(
   bersarang.length === 0,
   `grup bersarang: ${bersarang.map((c) => c.title).join(", ")}`
 );
+// Dua baris ini dulu menaut langsung ke alatnya. Sekarang keduanya menuju
+// halaman penjelasnya, sama seperti baris Program Kami lain — alatnya tetap
+// di /teka-teki-harian dan /papan-interaktif/manusia-vs-mesin.
 hasil(
-  "Teka-teki Harian tetap satu baris di dropdown Program Kami",
-  anak.some((c) => c.path === "/teka-teki-harian")
+  "Teka-teki Harian tetap satu baris dan menuju halaman penjelasnya",
+  anak.some((c) => c.path === "/program-kami/teka-teki-harian")
 );
 hasil(
-  "Lawan Bot tetap satu baris (bukan di dalam grup)",
-  anak.some((c) => c.path === "/papan-interaktif/manusia-vs-mesin")
+  "Lawan Bot tetap satu baris dan menuju halaman penjelasnya",
+  anak.some((c) => c.path === "/program-kami/manusia-vs-mesin")
 );
 hasil(
   "seluruh isi dropdown berupa tautan langsung",
@@ -139,8 +142,8 @@ await act(async () => {
 });
 hasil(
   "tautan Teka-teki Harian langsung tampil di dropdown",
-  Boolean(document.querySelector('a[href="/teka-teki-harian"]')),
-  "tautan /teka-teki-harian tidak tampil"
+  Boolean(document.querySelector('a[href="/program-kami/teka-teki-harian"]')),
+  "tautan /program-kami/teka-teki-harian tidak tampil"
 );
 hasil(
   "tidak ada tombol panah submenu di dropdown Program Kami",

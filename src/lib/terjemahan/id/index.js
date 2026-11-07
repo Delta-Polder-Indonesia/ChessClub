@@ -61,6 +61,7 @@ import {
   latihanRepertoarLanding,
   handBrainLanding,
   turingTestLanding,
+  tekaTekiHarianLanding,
 } from "./program.js";
 
 import {
@@ -161,6 +162,7 @@ export const ID = {
   latihanRepertoarLanding,
   handBrainLanding,
   turingTestLanding,
+  tekaTekiHarianLanding,
   turnamen,
   turnamenBulanan,
   ligaMusiman,
