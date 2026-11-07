@@ -154,7 +154,18 @@ Batas harian:
 - setelah soal kelima selesai, muncul **dialog Radix** mengajak bergabung ke
   **Blunder Skuad**; aksinya menuju `/pendaftaran-anggota`;
 - bila jatah habis, panel papan diganti keterangan jatah habis + tombol gabung,
-  sehingga memuat ulang halaman tidak menambah jatah.
+  sehingga memuat ulang halaman tidak menambah jatah;
+- jatah harian ditampilkan sebagai **kartu kemajuan** (`data-kartu-harian`, pola
+  "Keep it up!" ala worldchess.com): judul keadaan (belum mulai / ayo lanjut /
+  jatah selesai), satu kalimat sisa jatah, **cincin `Soal 1 / 5`**
+  (`src/components/CincinKemajuan.jsx`, `data-cincin-kemajuan`), lalu **track
+  "Tower"** berisi lima segmen `role="progressbar"` dengan titik di kedua ujung
+  dan baris `Jatah hari ini · 0/5`.
+- cincin hanya penguat visual: SVG-nya `aria-hidden`, sedangkan label, angka
+  soal, dan catatan sisa jatah adalah teks sungguhan (terbaca pembaca layar dan
+  uji). Busurnya mengikuti jatah yang sudah dimainkan, jadi ikut penuh di 5/5.
+- kartu ini **tidak** menampilkan rating atau angka lain yang datanya memang
+  tidak ada di arsip (arsip hanya menyimpan `tanggal`, `fen`, `langkah`).
 
 Salinan Indonesia dan Inggris keduanya wajib ada (`npm run uji:i18n`).
 

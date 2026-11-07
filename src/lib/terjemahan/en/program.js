@@ -623,6 +623,19 @@ export const latihanRepertoarLanding = {
     intro2:
       "A correct answer pushes the next review further out (3 days, 6 days, 12 days, up to 24 days) while a miss brings it back in 10 minutes. All progress lives on your device — no move is ever sent to a server.",
     cta: "Start Training",
+    caraJudul: "Three Ways to Practise",
+    cara1Judul: "Scheduled practice",
+    cara1:
+      "One card per position, graded yourself as again/hard/good/easy. A correct answer pushes the next review out, a miss brings it back within ten minutes.",
+    cara2Judul: "Challenge mode",
+    cara2:
+      "The whole line is played in order from the first move, with no hints and 30 seconds per move. One wrong move or a timeout ends the attempt, and its score is recorded separately from the practice schedule.",
+    cara3Judul: "Bulk practice",
+    cara3:
+      "One session for every position that is due across all saved lines, ordered from the most overdue.",
+    statistikJudul: "Move tree and statistics",
+    statistik:
+      "The move tree merges shared prefixes across lines so branching becomes visible at a glance, while the statistics screen summarises line count, mature positions, accuracy, and challenge records — all computed on your device.",
 };
 
 export const handBrainLanding = {

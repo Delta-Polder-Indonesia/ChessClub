@@ -627,6 +627,19 @@ export const latihanRepertoarLanding = {
     intro2:
       "Jawaban benar menunda tinjauan berikutnya (3 hari, 6 hari, 12 hari, sampai 24 hari), jawaban keliru mengembalikannya dalam 10 menit. Semua progres disimpan di perangkat Anda — tidak ada langkah yang dikirim ke server.",
     cta: "Mulai Latihan",
+    caraJudul: "Tiga Cara Berlatih",
+    cara1Judul: "Latihan berjadwal",
+    cara1:
+      "Satu kartu per posisi, dinilai sendiri lagi/sulit/baik/mudah. Jawaban benar menunda tinjauan berikutnya, jawaban keliru mengembalikannya dalam sepuluh menit.",
+    cara2Judul: "Mode tantangan",
+    cara2:
+      "Seluruh jalur dimainkan berurutan dari langkah pertama, tanpa petunjuk, dengan 30 detik per langkah. Sekali keliru atau kehabisan waktu, percobaan berhenti dan rekornya dicatat terpisah dari jadwal latihan.",
+    cara3Judul: "Latihan massal",
+    cara3:
+      "Satu sesi untuk semua posisi yang jatuh tempo dari seluruh jalur tersimpan, diurutkan dari yang paling lama tertunda.",
+    statistikJudul: "Pohon cabang dan statistik",
+    statistik:
+      "Pohon cabang menempelkan awalan langkah yang sama antar jalur sehingga percabangan pembukaan terlihat sekilas, sedangkan layar statistik merangkum jumlah jalur, posisi matang, akurasi, dan rekor tantangan — semuanya dihitung di perangkat Anda.",
 };
 
 export const handBrainLanding = {

@@ -207,6 +207,212 @@ export function progresJalur(kartuJalur = []) {
 }
 
 /**
+ * Rekonstruksi daftar langkah satu jalur dari kartu yang tersimpan.
+ *
+ * Kartu hanya menyimpan langkah PEMILIK jalur (`expectedUci`) beserta FEN
+ * sebelum langkah itu; langkah lawan tidak disimpan. Untungnya kartu
+ * berurutan berjarak dua ply, jadi langkah lawan bisa ditemukan dengan
+ * mencoba langkah-langkah sah dari posisi sesudah langkah kita sampai ada
+ * yang menghasilkan FEN kartu berikutnya (FEN selalu berbeda antar langkah,
+ * sehingga tidak ada dua kandidat untuk posisi yang sama).
+ *
+ * Fungsi ini murni dan tidak menyentuh penyimpanan: kartu lama yang dibuat
+ * sebelum fitur pohon cabang ada tetap bisa digambar tanpa migrasi data.
+ *
+ * @param {Array<object>} daftarKartu kartu satu `lineId`
+ * @returns {{moves: string[], san: string[], fens: string[]}} `fens[i]` adalah
+ *   posisi SEBELUM `moves[i]`; jalur yang rusak dipotong di langkah terakhir
+ *   yang masih bisa dipastikan, bukan dilempar sebagai galat.
+ */
+export function rekonstruksiJalur(daftarKartu = []) {
+  const kartu = (Array.isArray(daftarKartu) ? daftarKartu : [])
+    .filter((item) => item && item.fen && item.expectedUci && Number.isFinite(Number(item.ply)))
+    .slice()
+    .sort((a, b) => Number(a.ply) - Number(b.ply));
+  const kosong = { moves: [], san: [], fens: [] };
+  if (!kartu.length) return kosong;
+
+  const petaKartu = new Map(kartu.map((item) => [item.fen, item]));
+  const game = new Chess();
+  const moves = [];
+  const san = [];
+  const fens = [];
+  const plyTerakhir = Number(kartu[kartu.length - 1].ply) || 0;
+  // Ply terakhir milik pemilik jalur; satu langkah lawan sesudahnya tidak
+  // diperlukan untuk menggambar pohon.
+  const batas = Math.min(plyTerakhir + 1, 60);
+
+  while (moves.length < batas) {
+    const fenSekarang = game.fen();
+    const kartuDiSini = petaKartu.get(fenSekarang);
+
+    if (kartuDiSini) {
+      const urai = uraiUci(kartuDiSini.expectedUci);
+      let pindah = null;
+      try {
+        pindah = urai ? game.move(urai) : null;
+      } catch {
+        // Kartu rusak: jalur berhenti di langkah terakhir yang pasti.
+      }
+      if (!pindah) break;
+      fens.push(fenSekarang);
+      moves.push(`${pindah.from}${pindah.to}${pindah.promotion || ""}`);
+      san.push(pindah.san);
+      continue;
+    }
+
+    // Bukan posisi kartu → langkah lawan. Cari langkah sah menuju FEN kartu
+    // berikutnya; bila tidak ketemu, jalur berhenti di sini (kartu bolong).
+    const berikut = kartu.find((item) => Number(item.ply) > moves.length);
+    if (!berikut) break;
+    let pindahLawan = null;
+    for (const kandidat of game.moves({ verbose: true })) {
+      const uji = new Chess(fenSekarang);
+      try {
+        uji.move({
+          from: kandidat.from,
+          to: kandidat.to,
+          ...(kandidat.promotion ? { promotion: kandidat.promotion } : {}),
+        });
+      } catch {
+        continue;
+      }
+      if (uji.fen() === berikut.fen) {
+        pindahLawan = kandidat;
+        break;
+      }
+    }
+    if (!pindahLawan) break;
+    game.move({
+      from: pindahLawan.from,
+      to: pindahLawan.to,
+      ...(pindahLawan.promotion ? { promotion: pindahLawan.promotion } : {}),
+    });
+    fens.push(fenSekarang);
+    moves.push(`${pindahLawan.from}${pindahLawan.to}${pindahLawan.promotion || ""}`);
+    san.push(pindahLawan.san);
+  }
+
+  return { moves, san, fens };
+}
+
+/**
+ * Susun pohon cabang dari beberapa garis satu pembukaan.
+ *
+ * Awalan langkah yang sama digambar sekali; percabangan muncul hanya ketika
+ * dua garis benar-benar berbeda. Setiap simpul menandai garis mana yang
+ * melewatinya (`garisIds`) dan kartu latihan mana yang dijawab di posisi itu
+ * (`kartu`), sehingga UI bisa menampilkan mana yang jatuh tempo atau matang.
+ *
+ * @param {Array<{lineId:string, warna:string, daftarKartu:Array<object>}>} garisList
+ * @returns {{anak: Array<object>, jumlahGaris: number, jumlahLangkah: number}}
+ */
+export function susunPohonCabang(garisList = []) {
+  const akar = { anak: [], garisIds: [] };
+  let jumlahLangkah = 0;
+  let jumlahGaris = 0;
+
+  for (const garis of Array.isArray(garisList) ? garisList : []) {
+    if (!garis?.lineId) continue;
+    const { moves, san, fens } = rekonstruksiJalur(garis.daftarKartu);
+    if (!moves.length) continue;
+    jumlahGaris += 1;
+
+    let simpul = akar;
+    if (!simpul.garisIds.includes(garis.lineId)) simpul.garisIds.push(garis.lineId);
+
+    for (let ply = 0; ply < moves.length; ply += 1) {
+      const uci = moves[ply];
+      let berikut = simpul.anak.find((item) => item.uci === uci);
+      if (!berikut) {
+        berikut = {
+          kunci: `${garis.lineId}:${ply}:${uci}`,
+          uci,
+          san: san[ply],
+          ply,
+          warna: ply % 2 === 0 ? "w" : "b",
+          nomor: Math.floor(ply / 2) + 1,
+          garisIds: [],
+          kartu: [],
+          anak: [],
+        };
+        simpul.anak.push(berikut);
+        jumlahLangkah += 1;
+      }
+      if (!berikut.garisIds.includes(garis.lineId)) berikut.garisIds.push(garis.lineId);
+
+      // Kartu milik posisi SEBELUM langkah ini: pemain menjawab dengan langkah
+      // yang sama, jadi simpul ini adalah soal latihan untuk garis tersebut.
+      const kartu = (garis.daftarKartu || []).find(
+        (item) => item && item.fen === fens[ply] && item.expectedUci === uci,
+      );
+      if (kartu) berikut.kartu.push(kartu);
+
+      simpul = berikut;
+    }
+  }
+
+  return { anak: akar.anak, jumlahGaris, jumlahLangkah };
+}
+
+/**
+ * Angka ringkas untuk layar statistik repertoar.
+ *
+ * Semua nilai diturunkan dari kartu yang sudah tersimpan plus peta rekor
+ * tantangan (`{ [lineId]: { streakTerbaik, poin } }`), jadi layar statistik
+ * tidak menulis apa pun ke penyimpanan.
+ */
+export function ringkasStatistik(kartuList = [], { sekarang = Date.now(), rekor = {} } = {}) {
+  const daftar = (Array.isArray(kartuList) ? kartuList : []).filter(Boolean);
+  const nilai = { again: 0, hard: 0, good: 0, easy: 0 };
+  const jalur = new Set();
+  let jatuhTempo = 0;
+  let matang = 0;
+  let intervalTertinggiMs = 0;
+  let ditinjauTerakhirMs = 0;
+
+  for (const kartu of daftar) {
+    if (kartu.lineId) jalur.add(kartu.lineId);
+    if (Number(kartu.dueAt) <= Number(sekarang)) jatuhTempo += 1;
+    if ((Number(kartu.intervalMs) || 0) >= INTERVAL_MATANG_MS) matang += 1;
+    intervalTertinggiMs = Math.max(intervalTertinggiMs, Number(kartu.intervalMs) || 0);
+    if (kartu.lastReviewedAt) {
+      ditinjauTerakhirMs = Math.max(ditinjauTerakhirMs, Number(kartu.lastReviewedAt) || 0);
+    }
+    if (kartu.lastGrade && nilai[kartu.lastGrade] !== undefined) nilai[kartu.lastGrade] += 1;
+  }
+
+  const dinilai = nilai.again + nilai.hard + nilai.good + nilai.easy;
+  const benar = nilai.good + nilai.easy;
+
+  let jalurTantangan = 0;
+  let poinTantangan = 0;
+  let streakTantangan = 0;
+  for (const lineId of jalur) {
+    const catatan = rekor?.[lineId];
+    if (!catatan) continue;
+    if (Number(catatan.poin) > 0 || Number(catatan.streakTerbaik) > 0) jalurTantangan += 1;
+    poinTantangan += Number(catatan.poin) || 0;
+    streakTantangan = Math.max(streakTantangan, Number(catatan.streakTerbaik) || 0);
+  }
+
+  return {
+    jalur: jalur.size,
+    posisi: daftar.length,
+    jatuhTempo,
+    matang,
+    persenMatang: daftar.length ? Math.round((matang / daftar.length) * 100) : 0,
+    dinilai,
+    benar,
+    akurasi: dinilai ? Math.round((benar / dinilai) * 100) : null,
+    nilai,
+    intervalTertinggiMs,
+    ditinjauTerakhirMs: ditinjauTerakhirMs || null,
+    tantangan: { jalur: jalurTantangan, poin: poinTantangan, streakTerbaik: streakTantangan },
+  };
+}
+
+/**
  * Kelompokkan ringkasan jalur per pembukaan (ECO + nama) untuk halaman
  * bergaya "Garis 1/2": satu pembukaan bisa punya dua garis bila pengguna
  * melatih sisi Putih dan Hitam sekaligus.
