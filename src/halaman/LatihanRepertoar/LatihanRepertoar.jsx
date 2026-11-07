@@ -448,7 +448,10 @@ export default function LatihanRepertoar({ pengaturan = null }) {
     const sisiAktif = sesiLatihan?.warna === "w" ? t("papan.pvePutih") : t("papan.pveHitam");
     return (
       <section aria-label={t("papan.repertoarJudul")} className="h-full min-h-0 overflow-y-auto">
-        <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-4 p-4 sm:gap-6 sm:p-6">
+        <div
+          data-bungkus-latihan
+          className="mx-auto flex w-full max-w-[1400px] flex-col gap-4 p-4 sm:gap-6 sm:p-6"
+        >
           {/*
            * Papan di kiri, dasbor latihan di kanan. Kolom papan menyalin tata
            * letak papan /papan-interaktif apa adanya — tanpa kartu, bingkai,
@@ -456,7 +459,10 @@ export default function LatihanRepertoar({ pengaturan = null }) {
            * papan tampak seragam di seluruh mode.
            */}
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,520px)_minmax(0,480px)] lg:items-start lg:justify-center lg:gap-6">
-            <div className="mx-auto flex w-full max-w-[520px] min-w-0 flex-col justify-center lg:mx-0 lg:max-w-[min(520px,calc(100dvh-140px),calc(100vw-634px))]">
+            <div
+              data-kolom-papan
+              className="mx-auto flex w-full max-w-[520px] min-w-0 flex-col justify-center lg:mx-0 lg:max-w-[min(520px,calc(100dvh-140px),calc(100vw-634px))]"
+            >
               {kartuAktif && (
                 <BarisProfil
                   nama={kartuAktif.warna === "w" ? t("papan.pveHitam") : t("papan.pvePutih")}
@@ -519,7 +525,10 @@ export default function LatihanRepertoar({ pengaturan = null }) {
 
             {/* Dasbor latihan: identitas, progres, posisi, akurasi, petunjuk,
                 riwayat langkah, dan target. */}
-            <aside className="flex min-w-0 flex-col gap-5 self-start rounded-2xl border border-[#312e2b] bg-[#211f1c] p-4 text-sm text-gray-200 shadow-[0_18px_45px_-30px_rgba(0,0,0,0.9)] sm:p-6">
+            <aside
+              data-dasbor-latihan
+              className="flex min-w-0 flex-col gap-5 self-start rounded-2xl border border-[#312e2b] bg-[#211f1c] p-4 text-sm text-gray-200 shadow-[0_18px_45px_-30px_rgba(0,0,0,0.9)] sm:p-6"
+            >
               {/* Kepala panel: tombol kembali sejajar judul mode, lalu pembatas. */}
               <div className="flex items-center gap-2">
                 <button
@@ -901,7 +910,7 @@ export default function LatihanRepertoar({ pengaturan = null }) {
          */
         <section
           aria-label={garisAktif.nama}
-          className="mt-4 grid min-h-0 flex-1 gap-4 lg:grid-cols-[minmax(0,1fr)_320px]"
+          className="mt-4 grid gap-4 lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,1fr)_320px]"
         >
           <div className="flex min-h-0 flex-col gap-3">
             <div className="flex items-center justify-between gap-2">
