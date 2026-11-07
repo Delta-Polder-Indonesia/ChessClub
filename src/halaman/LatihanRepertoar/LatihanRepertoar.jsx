@@ -449,70 +449,72 @@ export default function LatihanRepertoar({ pengaturan = null }) {
     return (
       <section aria-label={t("papan.repertoarJudul")} className="h-full min-h-0 overflow-y-auto">
         <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-4 p-4 sm:gap-6 sm:p-6">
-          {/* 60/40: papan sebagai fokus di kiri, dasbor latihan di kanan. */}
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:items-start lg:gap-6">
-            {/* Kolom papan: avatar lawan → papan → avatar pemain, semua center. */}
-            <div className="flex flex-col items-center rounded-2xl border border-[#312e2b] bg-[#211f1c] p-4 shadow-[0_18px_45px_-30px_rgba(0,0,0,0.9)] sm:p-6">
-              <div className="mx-auto flex w-full max-w-[560px] flex-col items-center gap-3 lg:max-w-[min(560px,calc(100dvh-300px))]">
-                {kartuAktif && (
-                  <BarisProfil
-                    nama={kartuAktif.warna === "w" ? t("papan.pveHitam") : t("papan.pvePutih")}
-                    putih={kartuAktif.warna === "b"}
-                    tangkapan={[]}
-                    setBidak={pp.bidak}
-                    tanpaJorokan
-                    className="w-full"
-                  />
-                )}
+          {/*
+           * Papan di kiri, dasbor latihan di kanan. Kolom papan menyalin tata
+           * letak papan /papan-interaktif apa adanya — tanpa kartu, bingkai,
+           * atau bayangan tambahan, dan dengan rumus ukuran yang sama — supaya
+           * papan tampak seragam di seluruh mode.
+           */}
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,520px)_minmax(0,480px)] lg:items-start lg:justify-center lg:gap-6">
+            <div className="mx-auto flex w-full max-w-[520px] min-w-0 flex-col justify-center lg:mx-0 lg:max-w-[min(520px,calc(100dvh-140px),calc(100vw-634px))]">
+              {kartuAktif && (
+                <BarisProfil
+                  nama={kartuAktif.warna === "w" ? t("papan.pveHitam") : t("papan.pvePutih")}
+                  putih={kartuAktif.warna === "b"}
+                  tangkapan={[]}
+                  setBidak={pp.bidak}
+                  tanpaJorokan
+                  className="mb-2 w-full"
+                />
+              )}
 
-                {kartuAktif ? (
-                  <div className="w-full overflow-hidden rounded-lg shadow-[0_22px_50px_-24px_rgba(0,0,0,0.95)] ring-1 ring-black/40">
-                    <PapanTekaTeki
-                      fen={fen}
-                      orientasi={kartuAktif.warna}
-                      terpilih={terpilih}
-                      sasaran={sasaran}
-                      langkahAkhir={langkahAkhir}
-                      terkunci={statusLatihan !== "menunggu"}
-                      membeku={false}
-                      tanda={tanda}
-                      setBidak={pp.bidak}
-                      tema={pp.warnaPapan}
-                      onKlik={(square) => {
-                        if (terpilih && sasaran.includes(square)) jawabLangkah(terpilih, square);
-                        else pilihPetak(square);
-                      }}
-                      onJatuh={jawabLangkah}
-                      onTandaPetak={tandaPetak}
-                      onTandaPanah={tandaPanah}
-                      onHapusTanda={hapusSemuaTanda}
-                    />
-                  </div>
-                ) : (
-                  <div className="flex w-full flex-col items-center gap-3 rounded-xl border border-[#363431] bg-[#262421] px-6 py-10 text-center">
-                    <p className="text-sm text-gray-300">{t("papan.repertoarSesiSelesai")}</p>
-                    <button
-                      type="button"
-                      onClick={() => setTampilan("koleksi")}
-                      className="rounded-lg bg-[#81b64c] px-4 py-2 text-sm font-bold text-[#1e1c18] transition hover:bg-[#91c45a]"
-                    >
-                      {t("papan.repertoarKembali")}
-                    </button>
-                  </div>
-                )}
-
-                {kartuAktif && (
-                  <BarisProfil
-                    nama={t("papan.pveAnda")}
-                    putih={kartuAktif.warna === "w"}
-                    tangkapan={[]}
+              {kartuAktif ? (
+                <div data-papan-latihan className="relative w-full min-w-0">
+                  <PapanTekaTeki
+                    fen={fen}
+                    orientasi={kartuAktif.warna}
+                    terpilih={terpilih}
+                    sasaran={sasaran}
+                    langkahAkhir={langkahAkhir}
+                    terkunci={statusLatihan !== "menunggu"}
+                    membeku={false}
+                    tanda={tanda}
                     setBidak={pp.bidak}
-                    namaDiBawah
-                    tanpaJorokan
-                    className="w-full"
+                    tema={pp.warnaPapan}
+                    onKlik={(square) => {
+                      if (terpilih && sasaran.includes(square)) jawabLangkah(terpilih, square);
+                      else pilihPetak(square);
+                    }}
+                    onJatuh={jawabLangkah}
+                    onTandaPetak={tandaPetak}
+                    onTandaPanah={tandaPanah}
+                    onHapusTanda={hapusSemuaTanda}
                   />
-                )}
-              </div>
+                </div>
+              ) : (
+                <div className="flex w-full flex-col items-center gap-3 rounded-xl border border-[#363431] bg-[#211f1c] px-6 py-10 text-center">
+                  <p className="text-sm text-gray-300">{t("papan.repertoarSesiSelesai")}</p>
+                  <button
+                    type="button"
+                    onClick={() => setTampilan("koleksi")}
+                    className="rounded-lg bg-[#81b64c] px-4 py-2 text-sm font-bold text-[#1e1c18] transition hover:bg-[#91c45a]"
+                  >
+                    {t("papan.repertoarKembali")}
+                  </button>
+                </div>
+              )}
+
+              {kartuAktif && (
+                <BarisProfil
+                  nama={t("papan.pveAnda")}
+                  putih={kartuAktif.warna === "w"}
+                  tangkapan={[]}
+                  setBidak={pp.bidak}
+                  namaDiBawah
+                  tanpaJorokan
+                  className="mt-3 w-full"
+                />
+              )}
             </div>
 
             {/* Dasbor latihan: identitas, progres, posisi, akurasi, petunjuk,
