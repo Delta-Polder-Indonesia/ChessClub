@@ -1,11 +1,19 @@
 import assert from "node:assert/strict";
 import "fake-indexeddb/auto";
 import {
+  BATAS_INTERVAL_MS,
   buatKartuDariJalur,
+  cocokLangkahBuku,
   indeksJalurPembukaan,
   jadwalkanKartu,
   kartuBerikutnya,
+  INTERVAL_MATANG_MS,
+  kelompokkanPerPembukaan,
+  posisiAkhirJalur,
+  progresJalur,
+  uraiUci,
 } from "../src/halaman/LatihanRepertoar/repertoarLogika.js";
+import { Chess } from "chess.js";
 import {
   bacaKartuRepertoar,
   hapusJalurRepertoar,
@@ -36,10 +44,211 @@ assert.equal(kartuEasy.dueAt, sekarang + 7 * 24 * 60 * 60 * 1000, "Easy pertama 
 const kartuAgain = jadwalkanKartu(kartuPutih[0], "again", sekarang);
 assert.equal(kartuAgain.dueAt, sekarang + 10 * 60 * 1000, "Again dijadwalkan sepuluh menit lagi");
 
+// Plafon jarak tinjauan: pengali 2,5× tidak boleh menumbuhkan interval tanpa henti.
+const kartuLama = { ...kartuPutih[0], intervalMs: 300 * 24 * 60 * 60 * 1000, repetitions: 9 };
+assert.equal(
+  jadwalkanKartu(kartuLama, "easy", sekarang).intervalMs,
+  BATAS_INTERVAL_MS,
+  "interval tinjauan dibatasi satu tahun",
+);
+assert.equal(
+  jadwalkanKartu(kartuLama, "good", sekarang).intervalMs,
+  BATAS_INTERVAL_MS,
+  "plafon berlaku untuk semua nilai, bukan hanya Easy",
+);
+
+/*
+ * Promosi: pilihan bidak pemain tidak menentukan benar/salah — hanya petak
+ * asal/tujuan yang dinilai, karena posisi akhir selalu mengikuti buku.
+ */
+assert.deepEqual(uraiUci("e7e8q"), { from: "e7", to: "e8", promotion: "q" });
+assert.deepEqual(uraiUci("e2e4"), { from: "e2", to: "e4" });
+assert.equal(uraiUci("e2"), null, "UCI tidak lengkap ditolak");
+
+const promosiPutih = { from: "e7", to: "e8", promotion: "n" };
+assert.equal(
+  cocokLangkahBuku(promosiPutih, "e7e8q"),
+  true,
+  "promosi kuda tetap dihitung benar saat buku meminta ratu",
+);
+assert.equal(cocokLangkahBuku({ from: "e7", to: "d8" }, "e7e8q"), false, "petak tujuan lain tetap salah");
+assert.equal(cocokLangkahBuku(null, "e7e8q"), false, "langkah ilegal bukan jawaban benar");
+
+// Papan dimajukan dengan langkah buku, bukan langkah pemain.
+const posisiPromosi = new Chess("4k3/3P4/8/8/8/8/8/4K3 w - - 0 1");
+const papanBuku = new Chess(posisiPromosi.fen());
+papanBuku.move(uraiUci("d7d8q"));
+assert.ok(papanBuku.fen().startsWith("3Qk3"), "papan dimajukan dengan bidak promosi buku (ratu)");
+
+/*
+ * Pratinjau posisi di layar pemilihan jalur (papan statis panel kanan).
+ */
+const pratinjau = posisiAkhirJalur(["e2e4", "e7e5", "g1f3"]);
+assert.deepEqual(pratinjau.san, ["e4", "e5", "Nf3"], "SAN pratinjau urut sesuai jalur");
+assert.deepEqual(pratinjau.terakhir, { from: "g1", to: "f3" }, "petak langkah terakhir ditandai");
+assert.ok(
+  pratinjau.fen.startsWith("rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b"),
+  "FEN pratinjau adalah posisi akhir jalur",
+);
+assert.equal(posisiAkhirJalur([]), null, "jalur kosong tidak menghasilkan pratinjau");
+assert.equal(posisiAkhirJalur(["e2e5"]), null, "langkah tidak sah membatalkan pratinjau");
+assert.equal(posisiAkhirJalur(null), null, "argumen kosong aman");
+
+/*
+ * Progres kartu katalog: persen dihitung dari kartu "matang" (interval
+ * tinjauan ≥ tiga minggu), dan FEN mini-board memakai posisi SESUDAH langkah
+ * pemain pada kartu terdalam.
+ */
+const kartuProgres = [
+  { ...kartuPutih[0], intervalMs: INTERVAL_MATANG_MS },
+  { ...kartuPutih[1], intervalMs: INTERVAL_MATANG_MS - 1 },
+  { ...kartuPutih[2], intervalMs: 0 },
+];
+const progres = progresJalur(kartuProgres);
+assert.equal(progres.total, 3, "total posisi dihitung");
+assert.equal(progres.matang, 1, "hanya kartu ber-interval ≥ 21 hari yang matang");
+assert.equal(progres.persen, 33, "persen dibulatkan dari kartu matang");
+assert.ok(
+  progres.fenAkhir?.startsWith("r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R b"),
+  "mini board memakai posisi sesudah langkah kartu terdalam",
+);
+assert.deepEqual(
+  progresJalur([]),
+  { total: 0, matang: 0, persen: 0, fenAkhir: null },
+  "jalur tanpa kartu tidak menghasilkan progres palsu",
+);
+
+/*
+ * Pengelompokan halaman pembukaan ("Garis 1/2"): satu pembukaan bisa punya
+ * garis Putih dan Hitam; Putih selalu tampil lebih dulu.
+ */
+const grupPembukaan = kelompokkanPerPembukaan([
+  { lineId: "karo:b", eco: "B10", nama: "Caro-Kann", warna: "b", jumlah: 4, jatuhTempo: 2, persen: 50 },
+  { lineId: "karo:w", eco: "B10", nama: "Caro-Kann", warna: "w", jumlah: 6, jatuhTempo: 0, persen: 10 },
+  { lineId: "sisi:w", eco: "B20", nama: "Sicilian", warna: "w", jumlah: 5, jatuhTempo: 5, persen: 0 },
+]);
+assert.equal(grupPembukaan.length, 2, "dua pembukaan berbeda jadi dua kartu");
+assert.deepEqual(
+  grupPembukaan[0].garis.map((garis) => garis.warna),
+  ["w", "b"],
+  "garis Putih tampil lebih dulu",
+);
+assert.equal(grupPembukaan[0].jumlah, 10, "jumlah posisi dijumlahkan per pembukaan");
+assert.equal(grupPembukaan[0].persen, 26, "persen pembukaan = rata-rata berbobot jumlah posisi");
+assert.equal(grupPembukaan[0].jatuhTempo, 2, "posisi siap dilatih dijumlahkan");
+assert.deepEqual(kelompokkanPerPembukaan([]), [], "daftar kosong aman");
+
 await simpanKartuRepertoar([kartuPutih[0], kartuPutih[1]]);
 const tersimpan = await bacaKartuRepertoar();
 assert.equal(tersimpan.length, 2, "kartu tersimpan di IndexedDB");
 await hapusJalurRepertoar(kartuPutih[0].lineId);
 assert.equal((await bacaKartuRepertoar()).length, 0, "hapus jalur menghapus semua kartunya");
 
-console.log("OK — pemilihan jalur, kartu per giliran, jadwal tinjauan, dan IndexedDB repertoar.");
+assert.equal(
+  jadwalkanKartu(kartuPutih[0], "good", sekarang).diperbarui,
+  sekarang,
+  "penjadwalan menstempel waktu `diperbarui` untuk penggabungan penyimpanan",
+);
+
+/*
+ * ── Cermin localStorage ──────────────────────────────────────────────
+ * Regresi: dulu kartu yang gagal ditulis ke IndexedDB hanya mendarat di
+ * localStorage, sedangkan pembacaan selalu memprioritaskan IndexedDB — kartu
+ * itu tampil lalu hilang setelah halaman dimuat ulang.
+ */
+const simpanan = new Map();
+globalThis.localStorage = {
+  getItem: (kunci) => (simpanan.has(kunci) ? simpanan.get(kunci) : null),
+  setItem: (kunci, nilai) => {
+    simpanan.set(kunci, String(nilai));
+  },
+  removeItem: (kunci) => {
+    simpanan.delete(kunci);
+  },
+  clear: () => simpanan.clear(),
+};
+simpanan.clear();
+
+const kartuA = {
+  id: "ujiA:0",
+  lineId: "ujiA",
+  warna: "w",
+  ply: 0,
+  dueAt: sekarang,
+  repetitions: 0,
+  createdAt: sekarang,
+  diperbarui: sekarang,
+};
+const kartuB = {
+  id: "ujiB:0",
+  lineId: "ujiB",
+  warna: "w",
+  ply: 0,
+  dueAt: sekarang,
+  repetitions: 0,
+  createdAt: sekarang,
+  diperbarui: sekarang,
+};
+
+assert.equal(await simpanKartuRepertoar([kartuA]), true, "penyimpanan normal berhasil");
+
+const transaksiAsli = IDBDatabase.prototype.transaction;
+IDBDatabase.prototype.transaction = () => {
+  throw new Error("kuota penuh");
+};
+assert.equal(
+  await simpanKartuRepertoar([kartuB]),
+  true,
+  "IndexedDB menolak, tetapi cermin localStorage tetap menyimpan",
+);
+IDBDatabase.prototype.transaction = transaksiAsli;
+
+const setelahGagal = await bacaKartuRepertoar();
+assert.deepEqual(
+  setelahGagal.map((kartu) => kartu.id).sort(),
+  ["ujiA:0", "ujiB:0"],
+  "kartu yang dulu hanya sempat di localStorage tidak hilang setelah muat ulang",
+);
+
+// Cermin dibersihkan (mis. pengguna menghapus data situs); kartu harus sudah
+// dimigrasikan ke IndexedDB pada pembacaan sebelumnya.
+simpanan.clear();
+assert.deepEqual(
+  (await bacaKartuRepertoar()).map((kartu) => kartu.id).sort(),
+  ["ujiA:0", "ujiB:0"],
+  "kartu cermin dimigrasikan balik ke IndexedDB saat penyimpanan sehat lagi",
+);
+
+// Rekaman terbaru menang saat dua sumber berbeda.
+const kartuATerbaru = { ...kartuA, repetitions: 3, diperbarui: sekarang + 60_000 };
+await simpanKartuRepertoar([kartuATerbaru]);
+assert.equal(
+  (await bacaKartuRepertoar()).find((kartu) => kartu.id === "ujiA:0")?.repetitions,
+  3,
+  "penggabungan memilih rekaman dengan stempel terbaru",
+);
+
+// Hapus saat IndexedDB menolak: tombstone menjaga agar jalur tidak hidup lagi.
+IDBDatabase.prototype.transaction = () => {
+  throw new Error("kuota penuh");
+};
+assert.equal(await hapusJalurRepertoar("ujiB"), true, "penghapusan tetap tercatat di cermin");
+IDBDatabase.prototype.transaction = transaksiAsli;
+
+assert.deepEqual(
+  (await bacaKartuRepertoar()).map((kartu) => kartu.id),
+  ["ujiA:0"],
+  "jalur yang sudah dihapus tidak dihidupkan lagi oleh sisa data IndexedDB",
+);
+assert.deepEqual(
+  JSON.parse(simpanan.get("kci.papan.repertoar.hapus.v1") || "[]"),
+  [],
+  "tombstone dibersihkan setelah IndexedDB ikut terhapus",
+);
+
+await hapusJalurRepertoar("ujiA");
+assert.equal((await bacaKartuRepertoar()).length, 0, "repertoar uji bersih di akhir");
+
+console.log(
+  "OK — pemilihan jalur, kartu per giliran, jadwal tinjauan, IndexedDB + cermin localStorage repertoar.",
+);

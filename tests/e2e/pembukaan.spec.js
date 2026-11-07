@@ -309,3 +309,126 @@ for (const [bahasa, kamus] of [["id", papanId], ["en", papanEn]]) {
     expect(galat).toEqual([]);
   });
 }
+
+/**
+ * Pratinjau papan di layar "Tambah jalur" Repertoar.
+ *
+ * Panel kanan layar pemilihan dulu hanya berisi teks dan ruang kosong; sejak
+ * revisi, posisi akhir jalur yang dipilih digambar dengan `PapanStatis`.
+ * Uji ini menjaga dua hal sekaligus: klik baris katalog benar-benar memilih
+ * jalur, dan papan pratinjau muncul lengkap 64 petak tanpa galat halaman.
+ */
+test("repertoar: papan pratinjau muncul setelah jalur dipilih", async ({ page }) => {
+  // Alur ini memuat katalog 4,4 MB lalu menelusuri tiga layar sekaligus.
+  test.setTimeout(180_000);
+  const galat = [];
+  page.on("pageerror", (error) => galat.push(error.message));
+
+  // Kunci bahasa dipatok seperti uji lain supaya label tombol dapat diprediksi
+  // (peramban CI memakai locale en-US).
+  await page.addInitScript(() => localStorage.setItem("kci-bahasa", "id"));
+  await page.goto("/papan-interaktif/latihan-repertoar");
+  const judul = page.getByRole("heading", { name: papanId.repertoarJudul });
+  await expect(judul).toBeVisible({ timeout: 30_000 });
+
+  // Tombol kembali duduk sebaris dengan judul: pusat vertikalnya sejajar judul
+  // (toleransi 6 px) dan berada di kiri judul.
+  const kepala = page.locator("header").first();
+  const tombolKembali = kepala.getByRole("button", { name: papanId.repertoarKembali });
+  await expect(tombolKembali).toBeVisible();
+  const kotakTombol = await tombolKembali.boundingBox();
+  const kotakJudul = await judul.boundingBox();
+  const tengahTombol = kotakTombol.y + kotakTombol.height / 2;
+  const tengahJudul = kotakJudul.y + kotakJudul.height / 2;
+  expect(Math.abs(tengahTombol - tengahJudul)).toBeLessThan(6);
+  expect(kotakTombol.x + kotakTombol.width).toBeLessThanOrEqual(kotakJudul.x + 1);
+
+  await page.getByRole("button", { name: papanId.repertoarTambahJalur }).first().click();
+
+  // Katalog pembukaan ±4 MB: beri waktu lebih longgar daripada bawaan.
+  const daftar = page.locator('[data-katalog="pembukaan"] li > button').first();
+  await expect(daftar).toBeVisible({ timeout: 60_000 });
+  await daftar.click();
+
+  const papan = page.getByRole("img", { name: /Pratinjau posisi jalur|Position preview for the/ });
+  await expect(papan).toBeVisible();
+  await expect(papan.locator("[data-petak]")).toHaveCount(64);
+  // Bidak yang tersisa setelah jalur dijalankan (bisa ada tangkapan).
+  expect(await papan.locator('[data-bidak]:not([data-bidak=""])').count()).toBeGreaterThan(20);
+
+  // Simpan jalur → kembali ke katalog berbentuk kartu dengan progres latihan.
+  await page.getByRole("button", { name: papanId.repertoarSimpanJalur }).click();
+  const kartu = page.locator("[data-kartu-repertoar]").first();
+  await expect(kartu).toBeVisible();
+  await expect(kartu.getByRole("img", { name: /Pratinjau posisi jalur|Position preview for the/ })).toBeVisible();
+  await expect(kartu.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "0");
+  await expect(kartu).toContainText(papanId.repertoarProgresLatihan);
+  await expect(kartu.getByRole("button", { name: papanId.repertoarMulaiBelajar })).toBeVisible();
+
+  // Halaman pembukaan gaya "Garis 1/2": papan besar, penunjuk garis, tombol mulai.
+  await kartu.getByRole("button", { name: papanId.repertoarMulaiBelajar }).click();
+  await expect(
+    page.getByRole("img", { name: /Pratinjau posisi jalur|Position preview for the/ }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(papanId.repertoarGaris.replace("{indeks}", "1").replace("{total}", "1")),
+  ).toBeVisible();
+  await expect(page.getByText(papanId.repertoarProgresLatihan).first()).toBeVisible();
+  await expect(page.getByRole("button", { name: papanId.repertoarMulai })).toBeEnabled();
+
+  // Layar latihan: papan sebagai fokus (kiri, 60%) + dasbor latihan (kanan, 40%).
+  await page.getByRole("button", { name: papanId.repertoarMulai }).click();
+  const dasbor = page.locator("[data-dasbor-latihan]");
+  await expect(dasbor).toBeVisible();
+  await expect(page.locator("[data-papan-latihan]")).toBeVisible();
+  await expect(dasbor.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "0");
+  for (const label of [
+    papanId.repertoarPosisiSaatIni,
+    papanId.repertoarAkurasi,
+    papanId.repertoarPetunjuk,
+    papanId.repertoarRiwayatLangkah,
+    papanId.repertoarTarget,
+  ]) {
+    await expect(dasbor).toContainText(label);
+  }
+
+  const kotak = await page.evaluate(() => {
+    const ambil = (pemilih) => {
+      const el = document.querySelector(pemilih);
+      if (!el) return null;
+      const r = el.getBoundingClientRect();
+      return { x: r.x, y: r.y, lebar: r.width, tinggi: r.height };
+    };
+    const bungkus = document.querySelector("[data-bungkus-latihan]");
+    return {
+      bungkus: ambil("[data-bungkus-latihan]"),
+      bungkusLebarIsi: bungkus ? Number.parseFloat(getComputedStyle(bungkus).maxWidth) : 0,
+      kolom: ambil("[data-kolom-papan]"),
+      papan: ambil("[data-papan-latihan]"),
+      dasbor: ambil("[data-dasbor-latihan]"),
+      lebarLayar: window.innerWidth,
+    };
+  });
+
+  // Wadah konten dibatasi 1400 px dan tidak pernah melebihi lebar layar.
+  expect(kotak.bungkusLebarIsi).toBeLessThanOrEqual(1400);
+  expect(kotak.bungkus.x + kotak.bungkus.lebar).toBeLessThanOrEqual(kotak.lebarLayar + 1);
+  expect(kotak.bungkus.x).toBeGreaterThanOrEqual(-1);
+
+  // Papan benar-benar center terhadap kolom kirinya (toleransi 2 px).
+  const tengahPapan = kotak.papan.x + kotak.papan.lebar / 2;
+  const tengahKolom = kotak.kolom.x + kotak.kolom.lebar / 2;
+  expect(Math.abs(tengahPapan - tengahKolom)).toBeLessThanOrEqual(2);
+
+  if (kotak.lebarLayar >= 1024) {
+    // Desktop: dua kolom — dasbor di kanan, papan mengisi kolom kiri dengan lega.
+    expect(kotak.dasbor.x).toBeGreaterThanOrEqual(kotak.kolom.x + kotak.kolom.lebar - 1);
+    expect(kotak.papan.lebar).toBeGreaterThanOrEqual(380);
+  } else {
+    // Tablet & ponsel: papan prioritas, dasbor pindah ke bawah papan.
+    expect(kotak.dasbor.y).toBeGreaterThanOrEqual(kotak.papan.y + kotak.papan.tinggi);
+    expect(kotak.papan.lebar).toBeGreaterThanOrEqual(kotak.lebarLayar - 80);
+  }
+
+  expect(galat).toEqual([]);
+});

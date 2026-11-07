@@ -60,7 +60,7 @@ export default function PapanStatis({
       aria-label={ariaLabel}
       className={`aspect-square w-full select-none ${className}`}
     >
-      <div className="grid aspect-square w-full grid-cols-8 overflow-hidden rounded border border-slate-300">
+      <div className="grid aspect-square w-full grid-cols-8 grid-rows-8 overflow-hidden rounded border border-slate-300">
         {barisUrut.map((baris, i) =>
           lajurUrut.map((kolom, j) => {
             const terang = (baris + kolom) % 2 === 0;
@@ -97,7 +97,7 @@ export default function PapanStatis({
                 )}
                 {tampilLajur && (
                   <span
-                    className="absolute bottom-0.5 right-1 font-mono text-[8px] font-bold leading-none"
+                    className="absolute bottom-0.5 right-1 z-10 font-mono text-[8px] font-bold leading-none"
                     style={{ color: terang ? PETAK_GELAP : PETAK_TERANG }}
                   >
                     {FILE[kolom]}
@@ -105,14 +105,14 @@ export default function PapanStatis({
                 )}
                 {tampilBaris && (
                   <span
-                    className="absolute left-1 top-0.5 font-mono text-[8px] font-bold leading-none"
+                    className="absolute left-1 top-0.5 z-10 font-mono text-[8px] font-bold leading-none"
                     style={{ color: terang ? PETAK_GELAP : PETAK_TERANG }}
                   >
                     {RANK[baris]}
                   </span>
                 )}
                 {bidak && (
-                  <div className="relative z-[1] flex h-[84%] w-[84%] items-center justify-center">
+                  <div className="relative z-[1] flex h-[70%] w-[70%] items-center justify-center">
                     <ChessPiece
                       piece={
                         bidak.color === "w" ? bidak.type.toUpperCase() : bidak.type

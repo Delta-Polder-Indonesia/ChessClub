@@ -3,6 +3,21 @@ import { Chess } from "chess.js";
 const HARI = 24 * 60 * 60 * 1000;
 const SEPULUH_MENIT = 10 * 60 * 1000;
 
+/**
+ * Plafon jarak tinjauan. Tanpa batas, pengali 2,5× pada "Mudah" menumbuhkan
+ * interval tanpa henti (10× tinjauan ≈ 8 tahun) sehingga kartu praktis hilang
+ * dari jadwal. Satu tahun adalah plafon yang dipakai aplikasi serupa.
+ */
+export const BATAS_INTERVAL_MS = 365 * HARI;
+
+/**
+ * Ambang "sudah dikuasai" untuk progres kartu katalog: kartu yang jarak
+ * tinjauannya sudah mencapai tiga minggu dianggap menempel di ingatan.
+ * Ambang ini sengaja dihitung dari `intervalMs` (bukan `repetitions`) supaya
+ * kartu lama yang dinilai "Sulit" berulang tidak ikut dihitung matang.
+ */
+export const INTERVAL_MATANG_MS = 21 * HARI;
+
 export function idJalurPembukaan({ eco, nama, warna }) {
   return encodeURIComponent(`${eco}|${nama}|${warna}`);
 }
@@ -80,6 +95,7 @@ export function buatKartuDariJalur(jalur, warna, sekarang = Date.now()) {
         lastGrade: null,
         lastReviewedAt: null,
         createdAt: sekarang,
+        diperbarui: sekarang,
       });
     }
   }
@@ -113,6 +129,8 @@ export function jadwalkanKartu(kartu, nilai, sekarang = Date.now()) {
       break;
   }
 
+  intervalMs = Math.min(intervalMs, BATAS_INTERVAL_MS);
+
   return {
     ...kartu,
     dueAt: sekarang + intervalMs,
@@ -120,7 +138,141 @@ export function jadwalkanKartu(kartu, nilai, sekarang = Date.now()) {
     repetitions,
     lastGrade: nilai,
     lastReviewedAt: sekarang,
+    // Dipakai `repertoarStorage.js` untuk memilih rekaman terbaru saat
+    // menggabungkan IndexedDB dengan cermin localStorage.
+    diperbarui: sekarang,
   };
+}
+
+/**
+ * Uraikan satu langkah UCI (`e2e4`, `e7e8q`) menjadi argumen `chess.js`.
+ */
+export function uraiUci(uci) {
+  const teks = String(uci || "").trim();
+  if (teks.length < 4) return null;
+  return {
+    from: teks.slice(0, 2),
+    to: teks.slice(2, 4),
+    ...(teks.length > 4 ? { promotion: teks[4] } : {}),
+  };
+}
+
+/**
+ * Cocokkan langkah pemain dengan langkah buku.
+ *
+ * Hanya petak asal/tujuan yang dinilai: ketika buku mempromosikan bidak,
+ * pilihan bidak promosi pemain (ratu/kuda/benteng/gajah) tidak boleh membuat
+ * langkah yang benar dianggap salah — posisi akhirnya tetap mengikuti buku.
+ */
+export function cocokLangkahBuku(pindah, expectedUci) {
+  if (!pindah || !expectedUci) return false;
+  return `${pindah.from}${pindah.to}` === String(expectedUci).slice(0, 4);
+}
+
+/**
+ * Ringkasan satu jalur untuk kartu katalog: jumlah posisi, berapa yang sudah
+ * dikuasai, persentase, dan FEN akhir untuk gambar papan mini.
+ *
+ * FEN akhir diambil dari kartu terdalam (`ply` terbesar) lalu langkah
+ * `expectedUci` kartu itu dijalankan — kartu menyimpan posisi SEBELUM langkah
+ * pemain, sehingga tanpa langkah tambahan papannya akan tampak mundur satu ply.
+ */
+export function progresJalur(kartuJalur = []) {
+  const daftar = (Array.isArray(kartuJalur) ? kartuJalur : []).filter(Boolean);
+  const total = daftar.length;
+  const matang = daftar.filter((kartu) => (Number(kartu.intervalMs) || 0) >= INTERVAL_MATANG_MS).length;
+
+  const terdalam = daftar.reduce(
+    (pilihan, kartu) => (!pilihan || Number(kartu.ply) > Number(pilihan.ply) ? kartu : pilihan),
+    null,
+  );
+
+  let fenAkhir = null;
+  if (terdalam?.fen) {
+    try {
+      const game = new Chess(terdalam.fen);
+      const urai = uraiUci(terdalam.expectedUci);
+      if (urai && game.move(urai)) fenAkhir = game.fen();
+    } catch {
+      fenAkhir = null;
+    }
+  }
+
+  return {
+    total,
+    matang,
+    persen: total ? Math.round((matang / total) * 100) : 0,
+    fenAkhir,
+  };
+}
+
+/**
+ * Kelompokkan ringkasan jalur per pembukaan (ECO + nama) untuk halaman
+ * bergaya "Garis 1/2": satu pembukaan bisa punya dua garis bila pengguna
+ * melatih sisi Putih dan Hitam sekaligus.
+ *
+ * Urutan garis: Putih dulu, lalu Hitam; di dalam sisi yang sama, garis dengan
+ * progres tertinggi tampil lebih dulu supaya stepper membuka yang termahir.
+ */
+export function kelompokkanPerPembukaan(jalurList = []) {
+  const map = new Map();
+  for (const jalur of Array.isArray(jalurList) ? jalurList : []) {
+    if (!jalur || !jalur.lineId) continue;
+    const kunci = `${jalur.eco}|${jalur.nama}`;
+    let grup = map.get(kunci);
+    if (!grup) {
+      grup = { kunci, eco: jalur.eco, nama: jalur.nama, garis: [], jumlah: 0, jatuhTempo: 0 };
+      map.set(kunci, grup);
+    }
+    grup.garis.push(jalur);
+    grup.jumlah += Number(jalur.jumlah) || 0;
+    grup.jatuhTempo += Number(jalur.jatuhTempo) || 0;
+  }
+
+  return [...map.values()]
+    .map((grup) => {
+      const urutanSisi = (jalur) => (jalur.warna === "w" ? 0 : 1);
+      const garis = [...grup.garis].sort(
+        (a, b) =>
+          urutanSisi(a) - urutanSisi(b) || (Number(b.persen) || 0) - (Number(a.persen) || 0),
+      );
+      // Persen pembukaan = rata-rata berbobot jumlah posisi tiap garis.
+      const berbobot = garis.reduce(
+        (jumlah, baris) => jumlah + (Number(baris.persen) || 0) * (Number(baris.jumlah) || 0),
+        0,
+      );
+      return {
+        ...grup,
+        garis,
+        persen: grup.jumlah ? Math.round(berbobot / grup.jumlah) : 0,
+      };
+    })
+    .sort((a, b) => a.nama.localeCompare(b.nama));
+}
+
+/**
+ * Posisi akhir sebuah jalur untuk pratinjau (papan statis di layar pemilihan).
+ * Mengembalikan `null` bila jalur kosong atau ada langkah yang tidak sah —
+ * papan lalu tidak ditampilkan, bukan menampilkan posisi yang menyesatkan.
+ */
+export function posisiAkhirJalur(moves) {
+  const daftar = Array.isArray(moves) ? moves : [];
+  if (!daftar.length) return null;
+  const game = new Chess();
+  let terakhir = null;
+  const san = [];
+  for (const uci of daftar) {
+    const urai = uraiUci(uci);
+    if (!urai) return null;
+    try {
+      const pindah = game.move(urai);
+      terakhir = { from: pindah.from, to: pindah.to };
+      san.push(pindah.san);
+    } catch {
+      return null;
+    }
+  }
+  return { fen: game.fen(), terakhir, san };
 }
 
 export function kartuBerikutnya(kartu, lineId, sekarang = Date.now()) {
