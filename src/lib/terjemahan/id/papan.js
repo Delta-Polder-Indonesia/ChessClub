@@ -297,6 +297,7 @@ export const papan = {
     repertoarHapusDeskripsi:
       "Jalur \"{nama}\" beserta {jumlah} posisi latihan dan jadwal tinjauannya akan dihapus dari perangkat ini. Tindakan ini tidak bisa dibatalkan.",
     repertoarBatal: "Batal",
+    repertoarMuatLagi: "Muat lebih banyak ({ditampilkan} dari {jumlah})",
     penjelajah: "Penjelajah Pembukaan",
     penjelajahDeskripsi:
       "Telusuri variasi pembukaan langkah demi langkah dan lihat statistik setiap kelanjutan.",

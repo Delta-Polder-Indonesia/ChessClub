@@ -6,10 +6,12 @@ import { BarisProfil } from "../PapanInteraktif/bersama/BarisProfil.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 import {
   buatKartuDariJalur,
+  cocokLangkahBuku,
   idJalurPembukaan,
   indeksJalurPembukaan,
   jadwalkanKartu,
   kartuBerikutnya,
+  uraiUci,
 } from "./repertoarLogika.js";
 import {
   bacaKartuRepertoar,
@@ -31,10 +33,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "../../components/ui/alert-dialog.jsx";
-
-function uciDariPindahan(pindah) {
-  return `${pindah.from}${pindah.to}${pindah.promotion || ""}`;
-}
 
 /** Pola petak papan yang sah (a1–h8). */
 const POLA_PETAK = /^[a-h][1-8]$/;
@@ -122,14 +120,24 @@ export default function LatihanRepertoar({ pengaturan = null }) {
     void muatBuku();
   }
 
-  const jalurTersaring = useMemo(() => {
+  // Katalog berisi ribuan jalur; daftar ditampilkan bertahap supaya hasil
+  // pencarian yang lebar tidak terpotong diam-diam di 60 baris pertama.
+  const [batasKatalog, setBatasKatalog] = useState(60);
+
+  useEffect(() => {
+    setBatasKatalog(60);
+  }, [pencarian]);
+
+  const jalurCocok = useMemo(() => {
     const term = pencarian.trim().toLowerCase();
-    if (!term) return jalurBuku.slice(0, 60);
-    return jalurBuku
-      .filter((jalur) => `${jalur.eco} ${jalur.nama}`.toLowerCase().includes(term)
-      )
-      .slice(0, 60);
+    if (!term) return jalurBuku;
+    return jalurBuku.filter((jalur) => `${jalur.eco} ${jalur.nama}`.toLowerCase().includes(term));
   }, [jalurBuku, pencarian]);
+
+  const jalurTersaring = useMemo(
+    () => jalurCocok.slice(0, batasKatalog),
+    [jalurCocok, batasKatalog],
+  );
 
   const daftarRepertoar = useMemo(() => {
     const map = new Map();
@@ -251,10 +259,26 @@ export default function LatihanRepertoar({ pengaturan = null }) {
     setSasaran([]);
     setLangkahSalah(null);
     setPesan("");
-    if (uciDariPindahan(pindah) === kartuAktif.expectedUci) {
-      setFen(game.fen());
-      setLangkahAkhir({ from: pindah.from, to: pindah.to });
-      setStatusLatihan("benar");
+    if (cocokLangkahBuku(pindah, kartuAktif.expectedUci)) {
+      // Papan dimajukan dengan langkah BUKU, bukan langkah pemain: pada
+      // promosi, pilihan bidak pemain boleh berbeda dari buku tanpa membuat
+      // jawabannya salah — posisi berikutnya harus tetap posisi buku.
+      const buku = new Chess(fen);
+      const urai = uraiUci(kartuAktif.expectedUci);
+      let langkahBuku;
+      try {
+        langkahBuku = urai ? buku.move(urai) : null;
+      } catch {
+        langkahBuku = null;
+      }
+      if (langkahBuku) {
+        setFen(buku.fen());
+        setLangkahAkhir({ from: langkahBuku.from, to: langkahBuku.to });
+        setStatusLatihan("benar");
+      } else {
+        setLangkahSalah(pindah.san);
+        setStatusLatihan("salah");
+      }
     } else {
       setLangkahSalah(pindah.san);
       setStatusLatihan("salah");
@@ -527,6 +551,20 @@ export default function LatihanRepertoar({ pengaturan = null }) {
                   </ul>
                 ) : (
                   <p className="p-4 text-sm text-gray-400">{t("papan.repertoarTakAdaHasil")}</p>
+                )}
+                {bukuSiap && jalurCocok.length > jalurTersaring.length && (
+                  <div className="border-t border-[#312e2b] p-2">
+                    <button
+                      type="button"
+                      onClick={() => setBatasKatalog((batas) => batas + 60)}
+                      className="w-full rounded-md border border-[#363431] px-3 py-2 text-xs font-semibold text-gray-300 transition hover:bg-[#2c2926] hover:text-white"
+                    >
+                      {t("papan.repertoarMuatLagi", {
+                        ditampilkan: jalurTersaring.length,
+                        jumlah: jalurCocok.length,
+                      })}
+                    </button>
+                  </div>
                 )}
               </div>
 

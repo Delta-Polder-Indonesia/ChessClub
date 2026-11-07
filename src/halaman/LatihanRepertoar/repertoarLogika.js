@@ -3,6 +3,13 @@ import { Chess } from "chess.js";
 const HARI = 24 * 60 * 60 * 1000;
 const SEPULUH_MENIT = 10 * 60 * 1000;
 
+/**
+ * Plafon jarak tinjauan. Tanpa batas, pengali 2,5× pada "Mudah" menumbuhkan
+ * interval tanpa henti (10× tinjauan ≈ 8 tahun) sehingga kartu praktis hilang
+ * dari jadwal. Satu tahun adalah plafon yang dipakai aplikasi serupa.
+ */
+export const BATAS_INTERVAL_MS = 365 * HARI;
+
 export function idJalurPembukaan({ eco, nama, warna }) {
   return encodeURIComponent(`${eco}|${nama}|${warna}`);
 }
@@ -114,6 +121,8 @@ export function jadwalkanKartu(kartu, nilai, sekarang = Date.now()) {
       break;
   }
 
+  intervalMs = Math.min(intervalMs, BATAS_INTERVAL_MS);
+
   return {
     ...kartu,
     dueAt: sekarang + intervalMs,
@@ -125,6 +134,31 @@ export function jadwalkanKartu(kartu, nilai, sekarang = Date.now()) {
     // menggabungkan IndexedDB dengan cermin localStorage.
     diperbarui: sekarang,
   };
+}
+
+/**
+ * Uraikan satu langkah UCI (`e2e4`, `e7e8q`) menjadi argumen `chess.js`.
+ */
+export function uraiUci(uci) {
+  const teks = String(uci || "").trim();
+  if (teks.length < 4) return null;
+  return {
+    from: teks.slice(0, 2),
+    to: teks.slice(2, 4),
+    ...(teks.length > 4 ? { promotion: teks[4] } : {}),
+  };
+}
+
+/**
+ * Cocokkan langkah pemain dengan langkah buku.
+ *
+ * Hanya petak asal/tujuan yang dinilai: ketika buku mempromosikan bidak,
+ * pilihan bidak promosi pemain (ratu/kuda/benteng/gajah) tidak boleh membuat
+ * langkah yang benar dianggap salah — posisi akhirnya tetap mengikuti buku.
+ */
+export function cocokLangkahBuku(pindah, expectedUci) {
+  if (!pindah || !expectedUci) return false;
+  return `${pindah.from}${pindah.to}` === String(expectedUci).slice(0, 4);
 }
 
 export function kartuBerikutnya(kartu, lineId, sekarang = Date.now()) {

@@ -297,6 +297,7 @@ export const papan = {
     repertoarHapusDeskripsi:
       "\"{nama}\" with {jumlah} practice positions and its review schedule will be deleted from this device. This cannot be undone.",
     repertoarBatal: "Cancel",
+    repertoarMuatLagi: "Load more ({ditampilkan} of {jumlah})",
     penjelajah: "Opening Explorer",
     penjelajahDeskripsi:
       "Explore opening variations move by move and see the statistics for each continuation.",

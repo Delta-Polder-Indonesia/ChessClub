@@ -1,11 +1,15 @@
 import assert from "node:assert/strict";
 import "fake-indexeddb/auto";
 import {
+  BATAS_INTERVAL_MS,
   buatKartuDariJalur,
+  cocokLangkahBuku,
   indeksJalurPembukaan,
   jadwalkanKartu,
   kartuBerikutnya,
+  uraiUci,
 } from "../src/halaman/LatihanRepertoar/repertoarLogika.js";
+import { Chess } from "chess.js";
 import {
   bacaKartuRepertoar,
   hapusJalurRepertoar,
@@ -35,6 +39,42 @@ const kartuEasy = jadwalkanKartu(kartuPutih[0], "easy", sekarang);
 assert.equal(kartuEasy.dueAt, sekarang + 7 * 24 * 60 * 60 * 1000, "Easy pertama jatuh tempo tujuh hari lagi");
 const kartuAgain = jadwalkanKartu(kartuPutih[0], "again", sekarang);
 assert.equal(kartuAgain.dueAt, sekarang + 10 * 60 * 1000, "Again dijadwalkan sepuluh menit lagi");
+
+// Plafon jarak tinjauan: pengali 2,5× tidak boleh menumbuhkan interval tanpa henti.
+const kartuLama = { ...kartuPutih[0], intervalMs: 300 * 24 * 60 * 60 * 1000, repetitions: 9 };
+assert.equal(
+  jadwalkanKartu(kartuLama, "easy", sekarang).intervalMs,
+  BATAS_INTERVAL_MS,
+  "interval tinjauan dibatasi satu tahun",
+);
+assert.equal(
+  jadwalkanKartu(kartuLama, "good", sekarang).intervalMs,
+  BATAS_INTERVAL_MS,
+  "plafon berlaku untuk semua nilai, bukan hanya Easy",
+);
+
+/*
+ * Promosi: pilihan bidak pemain tidak menentukan benar/salah — hanya petak
+ * asal/tujuan yang dinilai, karena posisi akhir selalu mengikuti buku.
+ */
+assert.deepEqual(uraiUci("e7e8q"), { from: "e7", to: "e8", promotion: "q" });
+assert.deepEqual(uraiUci("e2e4"), { from: "e2", to: "e4" });
+assert.equal(uraiUci("e2"), null, "UCI tidak lengkap ditolak");
+
+const promosiPutih = { from: "e7", to: "e8", promotion: "n" };
+assert.equal(
+  cocokLangkahBuku(promosiPutih, "e7e8q"),
+  true,
+  "promosi kuda tetap dihitung benar saat buku meminta ratu",
+);
+assert.equal(cocokLangkahBuku({ from: "e7", to: "d8" }, "e7e8q"), false, "petak tujuan lain tetap salah");
+assert.equal(cocokLangkahBuku(null, "e7e8q"), false, "langkah ilegal bukan jawaban benar");
+
+// Papan dimajukan dengan langkah buku, bukan langkah pemain.
+const posisiPromosi = new Chess("4k3/3P4/8/8/8/8/8/4K3 w - - 0 1");
+const papanBuku = new Chess(posisiPromosi.fen());
+papanBuku.move(uraiUci("d7d8q"));
+assert.ok(papanBuku.fen().startsWith("3Qk3"), "papan dimajukan dengan bidak promosi buku (ratu)");
 
 await simpanKartuRepertoar([kartuPutih[0], kartuPutih[1]]);
 const tersimpan = await bacaKartuRepertoar();
