@@ -42,4 +42,111 @@ assert.equal(tersimpan.length, 2, "kartu tersimpan di IndexedDB");
 await hapusJalurRepertoar(kartuPutih[0].lineId);
 assert.equal((await bacaKartuRepertoar()).length, 0, "hapus jalur menghapus semua kartunya");
 
-console.log("OK — pemilihan jalur, kartu per giliran, jadwal tinjauan, dan IndexedDB repertoar.");
+assert.equal(
+  jadwalkanKartu(kartuPutih[0], "good", sekarang).diperbarui,
+  sekarang,
+  "penjadwalan menstempel waktu `diperbarui` untuk penggabungan penyimpanan",
+);
+
+/*
+ * ── Cermin localStorage ──────────────────────────────────────────────
+ * Regresi: dulu kartu yang gagal ditulis ke IndexedDB hanya mendarat di
+ * localStorage, sedangkan pembacaan selalu memprioritaskan IndexedDB — kartu
+ * itu tampil lalu hilang setelah halaman dimuat ulang.
+ */
+const simpanan = new Map();
+globalThis.localStorage = {
+  getItem: (kunci) => (simpanan.has(kunci) ? simpanan.get(kunci) : null),
+  setItem: (kunci, nilai) => {
+    simpanan.set(kunci, String(nilai));
+  },
+  removeItem: (kunci) => {
+    simpanan.delete(kunci);
+  },
+  clear: () => simpanan.clear(),
+};
+simpanan.clear();
+
+const kartuA = {
+  id: "ujiA:0",
+  lineId: "ujiA",
+  warna: "w",
+  ply: 0,
+  dueAt: sekarang,
+  repetitions: 0,
+  createdAt: sekarang,
+  diperbarui: sekarang,
+};
+const kartuB = {
+  id: "ujiB:0",
+  lineId: "ujiB",
+  warna: "w",
+  ply: 0,
+  dueAt: sekarang,
+  repetitions: 0,
+  createdAt: sekarang,
+  diperbarui: sekarang,
+};
+
+assert.equal(await simpanKartuRepertoar([kartuA]), true, "penyimpanan normal berhasil");
+
+const transaksiAsli = IDBDatabase.prototype.transaction;
+IDBDatabase.prototype.transaction = () => {
+  throw new Error("kuota penuh");
+};
+assert.equal(
+  await simpanKartuRepertoar([kartuB]),
+  true,
+  "IndexedDB menolak, tetapi cermin localStorage tetap menyimpan",
+);
+IDBDatabase.prototype.transaction = transaksiAsli;
+
+const setelahGagal = await bacaKartuRepertoar();
+assert.deepEqual(
+  setelahGagal.map((kartu) => kartu.id).sort(),
+  ["ujiA:0", "ujiB:0"],
+  "kartu yang dulu hanya sempat di localStorage tidak hilang setelah muat ulang",
+);
+
+// Cermin dibersihkan (mis. pengguna menghapus data situs); kartu harus sudah
+// dimigrasikan ke IndexedDB pada pembacaan sebelumnya.
+simpanan.clear();
+assert.deepEqual(
+  (await bacaKartuRepertoar()).map((kartu) => kartu.id).sort(),
+  ["ujiA:0", "ujiB:0"],
+  "kartu cermin dimigrasikan balik ke IndexedDB saat penyimpanan sehat lagi",
+);
+
+// Rekaman terbaru menang saat dua sumber berbeda.
+const kartuATerbaru = { ...kartuA, repetitions: 3, diperbarui: sekarang + 60_000 };
+await simpanKartuRepertoar([kartuATerbaru]);
+assert.equal(
+  (await bacaKartuRepertoar()).find((kartu) => kartu.id === "ujiA:0")?.repetitions,
+  3,
+  "penggabungan memilih rekaman dengan stempel terbaru",
+);
+
+// Hapus saat IndexedDB menolak: tombstone menjaga agar jalur tidak hidup lagi.
+IDBDatabase.prototype.transaction = () => {
+  throw new Error("kuota penuh");
+};
+assert.equal(await hapusJalurRepertoar("ujiB"), true, "penghapusan tetap tercatat di cermin");
+IDBDatabase.prototype.transaction = transaksiAsli;
+
+assert.deepEqual(
+  (await bacaKartuRepertoar()).map((kartu) => kartu.id),
+  ["ujiA:0"],
+  "jalur yang sudah dihapus tidak dihidupkan lagi oleh sisa data IndexedDB",
+);
+assert.deepEqual(
+  JSON.parse(simpanan.get("kci.papan.repertoar.hapus.v1") || "[]"),
+  [],
+  "tombstone dibersihkan setelah IndexedDB ikut terhapus",
+);
+
+await hapusJalurRepertoar("ujiA");
+assert.equal((await bacaKartuRepertoar()).length, 0, "repertoar uji bersih di akhir");
+
+console.log(
+  "OK — pemilihan jalur, kartu per giliran, jadwal tinjauan, IndexedDB + cermin localStorage repertoar.",
+);

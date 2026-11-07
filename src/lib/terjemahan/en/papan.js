@@ -289,8 +289,14 @@ export const papan = {
     repertoarJalurKosong: "This line contains no moves that can be turned into practice cards.",
     repertoarBerhasilTambah: "Added {jumlah} practice positions.",
     repertoarMemuatBukuPlaceholder: "Choose an opening from the catalog.",
-    repertoarPenyimpananTerbatas: "Database storage limited — data saved in localStorage for this session only.",
+    repertoarPenyimpananTerbatas:
+      "This device refused to save — progress may be lost when the page is closed.",
     repertoarLangkahIlegal: "Illegal move.",
+    repertoarPlyPendek: "{jumlah} ply",
+    repertoarHapusJudul: "Delete this line?",
+    repertoarHapusDeskripsi:
+      "\"{nama}\" with {jumlah} practice positions and its review schedule will be deleted from this device. This cannot be undone.",
+    repertoarBatal: "Cancel",
     penjelajah: "Opening Explorer",
     penjelajahDeskripsi:
       "Explore opening variations move by move and see the statistics for each continuation.",

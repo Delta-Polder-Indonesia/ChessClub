@@ -289,8 +289,14 @@ export const papan = {
     repertoarJalurKosong: "Tidak ada langkah yang dapat dijadikan kartu latihan.",
     repertoarBerhasilTambah: "Ditambahkan {jumlah} posisi latihan.",
     repertoarMemuatBukuPlaceholder: "Pilih sebuah pembukaan dari katalog.",
-    repertoarPenyimpananTerbatas: "Penyimpanan database terbatas — data disimpan di localStorage untuk sesi ini saja.",
+    repertoarPenyimpananTerbatas:
+      "Penyimpanan perangkat menolak menyimpan — progres mungkin hilang saat halaman ditutup.",
     repertoarLangkahIlegal: "Langkah tidak diizinkan.",
+    repertoarPlyPendek: "{jumlah} ply",
+    repertoarHapusJudul: "Hapus jalur ini?",
+    repertoarHapusDeskripsi:
+      "Jalur \"{nama}\" beserta {jumlah} posisi latihan dan jadwal tinjauannya akan dihapus dari perangkat ini. Tindakan ini tidak bisa dibatalkan.",
+    repertoarBatal: "Batal",
     penjelajah: "Penjelajah Pembukaan",
     penjelajahDeskripsi:
       "Telusuri variasi pembukaan langkah demi langkah dan lihat statistik setiap kelanjutan.",

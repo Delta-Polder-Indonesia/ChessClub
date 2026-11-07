@@ -80,6 +80,7 @@ export function buatKartuDariJalur(jalur, warna, sekarang = Date.now()) {
         lastGrade: null,
         lastReviewedAt: null,
         createdAt: sekarang,
+        diperbarui: sekarang,
       });
     }
   }
@@ -120,6 +121,9 @@ export function jadwalkanKartu(kartu, nilai, sekarang = Date.now()) {
     repetitions,
     lastGrade: nilai,
     lastReviewedAt: sekarang,
+    // Dipakai `repertoarStorage.js` untuk memilih rekaman terbaru saat
+    // menggabungkan IndexedDB dengan cermin localStorage.
+    diperbarui: sekarang,
   };
 }
 

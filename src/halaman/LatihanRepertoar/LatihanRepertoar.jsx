@@ -21,6 +21,16 @@ import { PENGATURAN_AWAL, usePengaturanPapan } from "../PapanInteraktif/bersama/
 import { usePengaturanBersama } from "../PapanInteraktif/bersama/PengaturanKonteks.jsx";
 import { Link } from "react-router-dom";
 import { useTandaBantu } from "../../lib/tandaBantu.js";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "../../components/ui/alert-dialog.jsx";
 
 function uciDariPindahan(pindah) {
   return `${pindah.from}${pindah.to}${pindah.promotion || ""}`;
@@ -29,22 +39,8 @@ function uciDariPindahan(pindah) {
 /** Pola petak papan yang sah (a1–h8). */
 const POLA_PETAK = /^[a-h][1-8]$/;
 
-function _tanggalRingkas(timestamp, bahasa) {
-  if (!timestamp) return "";
-  const date = new Date(Number(timestamp) || 0);
-  if (isNaN(date.getTime())) return "—";
-  try {
-    return new Intl.DateTimeFormat(bahasa === "en" ? "en-US" : "id-ID", {
-      dateStyle: "medium",
-      timeStyle: "short",
-    }).format(date);
-  } catch {
-    return date.toLocaleString();
-  }
-}
-
 export default function LatihanRepertoar({ pengaturan = null }) {
-  const { t, bahasa: _bahasa } = useI18n();
+  const { t } = useI18n();
   // Terima pengaturan dari tata letak /papan-interaktif/* (konteks bersama);
   // tanpa itu buat state lokal agar komponen tetap berdiri sendiri.
   const pengaturanLokal = usePengaturanPapan();
@@ -72,6 +68,7 @@ export default function LatihanRepertoar({ pengaturan = null }) {
   const [statusLatihan, setStatusLatihan] = useState("menunggu");
   const [langkahSalah, setLangkahSalah] = useState(null);
   const [menyimpan, setMenyimpan] = useState(false);
+  const [jalurAkanDihapus, setJalurAkanDihapus] = useState(null);
   const { tanda, tandaPetak, tandaPanah, hapusSemuaTanda } = useTandaBantu();
 
   useEffect(() => {
@@ -86,6 +83,13 @@ export default function LatihanRepertoar({ pengaturan = null }) {
     return () => {
       aktif = false;
     };
+  }, []);
+
+  // Status "jatuh tempo" dihitung dari `sekarang`; tanpa detak, tab yang
+  // dibiarkan terbuka akan menampilkan jadwal basi (tombol Mulai tetap mati).
+  useEffect(() => {
+    const timer = setInterval(() => setSekarang(Date.now()), 60_000);
+    return () => clearInterval(timer);
   }, []);
 
   // Otomatis hapus pesan status setelah 5 detik agar layar tidak penuh teks.
@@ -139,13 +143,11 @@ export default function LatihanRepertoar({ pengaturan = null }) {
           warna: item.warna,
           jumlah: 0,
           jatuhTempo: 0,
-          berikutnya: Infinity,
         };
         map.set(item.lineId, jalur);
       }
       jalur.jumlah += 1;
       if (Number(item.dueAt) <= sekarang) jalur.jatuhTempo += 1;
-      jalur.berikutnya = Math.min(jalur.berikutnya, Number(item.dueAt) || 0);
     }
     return [...map.values()].sort((a, b) => a.nama.localeCompare(b.nama));
   }, [kartu, sekarang]);
@@ -516,7 +518,9 @@ export default function LatihanRepertoar({ pengaturan = null }) {
                         >
                           <span className="shrink-0 rounded bg-[#81b64c]/15 px-1.5 py-0.5 text-[10px] font-bold text-[#a3d168]">{jalur.eco}</span>
                           <span className="min-w-0 flex-1 truncate text-xs" title={jalur.nama}>{jalur.nama}</span>
-                          <span className="shrink-0 text-[10px] text-gray-500">{jalur.moves.length} ply</span>
+                          <span className="shrink-0 text-[10px] text-gray-500">
+                            {t("papan.repertoarPlyPendek", { jumlah: jalur.moves.length })}
+                          </span>
                         </button>
                       </li>
                     ))}
@@ -588,7 +592,7 @@ export default function LatihanRepertoar({ pengaturan = null }) {
                       </button>
                       <button
                         type="button"
-                        onClick={() => void hapusJalur(jalur.lineId)}
+                        onClick={() => setJalurAkanDihapus(jalur)}
                         title={t("papan.repertoarHapus")}
                         className="rounded-md border border-[#363431] px-3 py-2 text-xs text-gray-400 hover:border-red-800 hover:text-red-300"
                       >
@@ -614,6 +618,47 @@ export default function LatihanRepertoar({ pengaturan = null }) {
           )}
         </section>
       )}
+
+      {/*
+       * Konfirmasi sebelum menghapus. Progres latihan hanya ada di perangkat
+       * ini, jadi satu klik tanpa konfirmasi berarti kehilangan jadwal yang
+       * tidak bisa dikembalikan.
+       */}
+      <AlertDialog
+        open={Boolean(jalurAkanDihapus)}
+        onOpenChange={(terbuka) => {
+          if (!terbuka) setJalurAkanDihapus(null);
+        }}
+      >
+        <AlertDialogContent className="border-[#312e2b] bg-[#211f1c] text-gray-200">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white">
+              {t("papan.repertoarHapusJudul")}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-400">
+              {t("papan.repertoarHapusDeskripsi", {
+                nama: jalurAkanDihapus?.nama || "",
+                jumlah: jalurAkanDihapus?.jumlah ?? 0,
+              })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="border-[#363431] bg-transparent text-gray-300 hover:bg-[#312e2b] hover:text-white">
+              {t("papan.repertoarBatal")}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-700 text-white hover:bg-red-600"
+              onClick={() => {
+                const lineId = jalurAkanDihapus?.lineId;
+                setJalurAkanDihapus(null);
+                if (lineId) void hapusJalur(lineId);
+              }}
+            >
+              {t("papan.repertoarHapus")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
