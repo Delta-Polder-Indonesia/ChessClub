@@ -403,69 +403,90 @@ export default function TekaTekiHarianLanding() {
               data-component="HomeRatingProgress"
               className="flex min-w-0 items-center gap-4 py-2 sm:gap-5"
             >
-              <div className="relative inline-flex h-[110px] w-[110px] shrink-0 items-center justify-center">
+              <div className="relative mx-auto h-[200px] w-[200px] shrink-0">
                 <svg
-                  aria-hidden="true"
-                  viewBox="0 0 110 110"
+                  aria-label={`Peringkat Perkiraan. Teka-teki harian: ${jatahTerpakai} dari ${BATAS_HARIAN}. Mainkan 5 game untuk memperkirakan.`}
+                  role="img"
+                  viewBox="0 0 200 200"
                   className="h-full w-full"
                   fill="none"
                 >
                   <circle
-                    r="54"
-                    cx="55"
-                    cy="55"
+                    r="94"
+                    cx="100"
+                    cy="100"
                     stroke="currentColor"
-                    strokeWidth="0.5"
-                    strokeDasharray="254.469 339.292"
-                    strokeDashoffset="0"
+                    strokeWidth="0.8"
+                    strokeDasharray="442.96 590.62"
                     className="text-grey-200"
                     strokeLinecap="butt"
-                    transform="rotate(135 55 55)"
+                    transform="rotate(135 100 100)"
                     shapeRendering="geometricPrecision"
                   />
                   <circle
-                    r="54"
-                    cx="55"
-                    cy="55"
+                    r="94"
+                    cx="100"
+                    cy="100"
                     stroke="currentColor"
-                    strokeWidth="0.5"
-                    strokeDasharray="254.469 339.292"
-                    strokeDashoffset={254.469 * (1 - jatahTerpakai / BATAS_HARIAN)}
+                    strokeWidth="0.8"
+                    strokeDasharray="442.96 590.62"
+                    strokeDashoffset={442.96 * (1 - jatahTerpakai / BATAS_HARIAN)}
                     className="text-primary transition-[stroke-dashoffset] duration-700 ease-in-out"
                     strokeLinecap="butt"
-                    transform="rotate(135 55 55)"
+                    transform="rotate(135 100 100)"
                     shapeRendering="geometricPrecision"
                   />
-                </svg>
-              </div>
-
-              <div className="flex min-w-0 flex-1 flex-col gap-y-1">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex min-w-0 flex-col gap-y-1">
-                    <p className="font-sans text-sm font-semibold text-grey-800">
-                      Progres
-                    </p>
-                    <p className="font-sans text-sm text-grey-600">
+                  <g textAnchor="middle">
+                    <text
+                      x="100"
+                      y="65"
+                      fill="currentColor"
+                      className="font-sans text-[13px] font-semibold text-grey-800"
+                    >
+                      Peringkat
+                    </text>
+                    <text
+                      x="100"
+                      y="82"
+                      fill="currentColor"
+                      className="font-sans text-[12px] text-grey-600"
+                    >
+                      Perkiraan
+                    </text>
+                    <text
+                      x="100"
+                      y="105"
+                      fill="currentColor"
+                      className="font-sans text-[12px] text-grey-600"
+                    >
                       Teka-teki harian
-                    </p>
-                  </div>
-                  <span
-                    role="img"
-                    aria-label="Informasi progres harian"
-                    title="Progres dihitung dari jumlah soal harian yang telah diselesaikan."
-                    className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center text-grey-600"
-                  >
-                    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor">
-                      <path d="M12.03 18.01a.9.9 0 0 0 .67-.27.9.9 0 0 0 .27-.67.9.9 0 0 0-.27-.66.91.91 0 0 0-.67-.27.9.9 0 0 0-.67.27.91.91 0 0 0-.27.67c0 .26.1.48.28.66.18.18.4.27.66.27m-.61-3.94 1.15 0c.03-.52.13-.94.29-1.26.16-.32.5-.74 1.01-1.24.53-.53.93-1 1.19-1.43.26-.42.39-.9.39-1.46 0-.94-.33-1.68-1-2.24a3.51 3.51 0 0 0-2.33-.84c-.86 0-1.58.24-2.18.7-.6.47-1.04 1-1.32 1.6l1.1.46c.19-.43.46-.82.82-1.15.35-.33.86-.5 1.53-.5.78 0 1.34.21 1.7.64.35.42.53.89.53 1.4 0 .4-.11.78-.34 1.1-.22.32-.5.65-.87.98a6.06 6.06 0 0 0-1.35 1.62 3.6 3.6 0 0 0-.32 1.62M12 22.5a10.83 10.83 0 0 1-9.87-6.53c-.56-1.3-.84-2.7-.84-4.18a10.83 10.83 0 0 1 6.53-9.87c1.3-.57 2.7-.85 4.18-.85a10.83 10.83 0 0 1 9.87 6.53c.56 1.3.84 2.7.84 4.18a10.83 10.83 0 0 1-6.53 9.87c-1.3.57-2.7.85-4.18.85m0-1.19a9.2 9.2 0 0 0 6.76-2.77 9.2 9.2 0 0 0 2.76-6.75 9.2 9.2 0 0 0-2.76-6.76A9.2 9.2 0 0 0 12 2.26a9.2 9.2 0 0 0-6.76 2.77 9.2 9.2 0 0 0-2.76 6.76 9.2 9.2 0 0 0 2.76 6.75A9.2 9.2 0 0 0 12 21.31" />
-                    </svg>
-                  </span>
-                </div>
-                <p className="font-serif text-2xl font-semibold leading-tight text-grey-800">
-                  {jatahTerpakai} dari {BATAS_HARIAN}
-                </p>
-                <p className="font-sans text-sm leading-relaxed text-grey-600">
-                  {deskKartu}
-                </p>
+                    </text>
+                    <text
+                      x="100"
+                      y="135"
+                      fill="currentColor"
+                      className="font-serif text-[24px] font-semibold text-grey-800"
+                    >
+                      {jatahTerpakai} dari {BATAS_HARIAN}
+                    </text>
+                    <text
+                      x="100"
+                      y="155"
+                      fill="currentColor"
+                      className="font-sans text-[11px] text-grey-600"
+                    >
+                      Mainkan 5 game untuk
+                    </text>
+                    <text
+                      x="100"
+                      y="170"
+                      fill="currentColor"
+                      className="font-sans text-[11px] text-grey-600"
+                    >
+                      memperkirakan
+                    </text>
+                  </g>
+                </svg>
               </div>
             </section>
 
