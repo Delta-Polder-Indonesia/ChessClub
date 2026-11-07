@@ -411,29 +411,10 @@ export default function TekaTekiHarianLanding() {
                   className="h-full w-full"
                   fill="none"
                 >
-                  <circle
-                    r="94"
-                    cx="100"
-                    cy="100"
-                    stroke="currentColor"
-                    strokeWidth="0.8"
-                    strokeDasharray="442.96 590.62"
-                    className="text-grey-200"
-                    strokeLinecap="butt"
-                    transform="rotate(135 100 100)"
-                    shapeRendering="geometricPrecision"
-                  />
-                  <circle
-                    r="94"
-                    cx="100"
-                    cy="100"
-                    stroke="currentColor"
-                    strokeWidth="0.8"
-                    strokeDasharray="442.96 590.62"
-                    strokeDashoffset={442.96 * (1 - jatahTerpakai / BATAS_HARIAN)}
-                    className="text-grey-800 transition-[stroke-dashoffset] duration-700 ease-in-out"
-                    strokeLinecap="butt"
-                    transform="rotate(135 100 100)"
+                  <path
+                    d="M12,22q-2.07,0-3.9-0.79q-1.82-0.79-3.17-2.14Q3.58,17.73 2.79,15.9T2,12Q2,9.92 2.79,8.1Q3.58,6.27 4.93,4.93Q6.28,3.57 8.1,2.79Q9.93,2 12,2t3.9,0.79t3.17,2.14q1.35,1.35 2.14,3.17Q22,9.92 22,12t-0.79,3.9t-2.14,3.17q-1.35,1.35-3.17,2.14T12,22Zm0-2q3.35,0 5.68-2.32T20,12T17.68,6.32T12,4T6.33,6.32T4,12t2.33,5.68T12,20Z"
+                    fill="#000000"
+                    transform="translate(-12.8 -12.8) scale(9.4)"
                     shapeRendering="geometricPrecision"
                   />
                   <g textAnchor="middle">
