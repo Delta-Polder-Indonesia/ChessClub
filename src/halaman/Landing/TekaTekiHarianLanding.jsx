@@ -358,6 +358,9 @@ export default function TekaTekiHarianLanding() {
   const nomorSoal = Math.min(indeks + 1, daftar.length);
   const jatahTerpakai = Math.min(progres.selesai, BATAS_HARIAN);
   const sisaJatah = Math.max(0, BATAS_HARIAN - jatahTerpakai);
+  const deskKartu = jatahHabis
+    ? t("landing.harianKartuDeskSelesai")
+    : t("landing.harianKartuDeskSisa", { n: sisaJatah });
   /*
    * Teks kartu kemajuan mengikuti keadaan pemain, bukan satu kalimat statis:
    * belum mulai, sedang berjalan, lalu selesai. Polanya meniru kartu progres
