@@ -125,6 +125,17 @@ hasil(
   anak.length === 11,
   `jumlah: ${anak.length}`
 );
+// Setiap baris dropdown harus benar-benar rute publik yang terdaftar —
+// menunya peta folder sekaligus peta rute, jadi salah ketik path berarti
+// tautan mati yang tidak ketahuan sampai pengunjung mengkliknya.
+const { RUTE_PUBLIK } = await import("../plugins/performa.js");
+const mati = anak.filter((c) => !RUTE_PUBLIK.includes(c.path.split("#")[0]));
+hasil(
+  "semua baris dropdown menuju rute yang terdaftar",
+  mati.length === 0,
+  `tidak terdaftar: ${mati.map((c) => c.path).join(", ")}`
+);
+
 const tigaMode = ["/program-kami/latihan-repertoar", "/program-kami/hand-brain", "/program-kami/turing-test"];
 hasil(
   "tiga mode papan mengisi kolom ketiga sesuai urutan",

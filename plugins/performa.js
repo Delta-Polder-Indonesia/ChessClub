@@ -227,18 +227,30 @@ export const META_RUTE = {
   "/program-kami/latihan-repertoar": {
     judulKey: "latihanRepertoarLanding.judul",
     deskripsiKey: "latihanRepertoarLanding.metaDeskripsi",
+    gambar: "/images/ProgramKami/pembukaan-hero.webp",
+    gambarUkuran: "1672",
+    gambarTinggi: "941",
   },
   "/program-kami/hand-brain": {
     judulKey: "handBrainLanding.judul",
     deskripsiKey: "handBrainLanding.metaDeskripsi",
+    gambar: "/images/ProgramKami/analisa-hero.webp",
+    gambarUkuran: "1672",
+    gambarTinggi: "941",
   },
   "/program-kami/turing-test": {
     judulKey: "turingTestLanding.judul",
     deskripsiKey: "turingTestLanding.metaDeskripsi",
+    gambar: "/images/ProgramKami/teka-teki-hero.webp",
+    gambarUkuran: "1672",
+    gambarTinggi: "941",
   },
   "/program-kami/teka-teki-harian": {
     judulKey: "tekaTekiHarianLanding.judul",
     deskripsiKey: "tekaTekiHarianLanding.metaDeskripsi",
+    gambar: "/images/ProgramKami/teka-teki-hero.webp",
+    gambarUkuran: "1672",
+    gambarTinggi: "941",
   },
   "/program-kami/ebook-panduan": {
     judul: "E-Book & Panduan",

@@ -630,7 +630,7 @@ export const handBrainLanding = {
     deskripsi:
       "A two-player variant on one device: the system draws a piece type every turn, and you may only move pieces of that type.",
     metaDeskripsi:
-      "Hand & Brain by Indonesian Chess Community — a local two-player chess variant on one device with a drawn piece type each turn, played on an interactive board in the browser.",
+      "Hand & Brain by Indonesian Chess Community — a two-player variant on one device where a piece type is drawn each turn, played on an interactive board.",
     introJudul: "Chess With Hand and Brain Split Apart",
     intro1:
       "In Hand & Brain two players share one board. Each turn the system draws a piece type among the pieces that still have a legal move; moves with another piece type are rejected with a clear message.",
@@ -658,7 +658,7 @@ export const tekaTekiHarianLanding = {
     deskripsi:
       "A fresh tactical puzzle every day — opened straight in the browser, with hints and the archive of earlier dates.",
     metaDeskripsi:
-      "Daily Puzzle of Komunitas Catur Indonesia — a new tactical position each day you can play right in the browser, with hints and an archive of earlier dates.",
+      "Daily Puzzle by Indonesian Chess Community — a new tactical position each day you can play right in the browser, with hints and an archive of earlier dates.",
     introJudul: "A New Tactic Every Day",
     intro1:
       "The Daily Puzzle always shows the newest position: taken from a real game, with one best move to find and an opponent that answers automatically on the board.",

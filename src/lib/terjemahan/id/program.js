@@ -634,7 +634,7 @@ export const handBrainLanding = {
     deskripsi:
       "Varian dua pemain di satu perangkat: sistem mengundi satu jenis bidak setiap giliran, dan Anda hanya boleh menggerakkan bidak jenis itu.",
     metaDeskripsi:
-      "Hand & Brain Komunitas Catur Indonesia — varian catur lokal dua pemain di satu perangkat dengan undian jenis bidak tiap giliran, lengkap dengan papan interaktif di peramban.",
+      "Hand & Brain Komunitas Catur Indonesia — varian dua pemain di satu perangkat dengan undian jenis bidak tiap giliran, dimainkan di papan interaktif peramban.",
     introJudul: "Catur dengan Tangan dan Otak Terpisah",
     intro1:
       "Di Hand & Brain, dua pemain berbagi satu papan. Tiap giliran sistem mengundi satu jenis bidak dari bidak yang masih punya langkah legal; langkah dengan jenis bidak lain ditolak dengan pesan yang jelas.",
