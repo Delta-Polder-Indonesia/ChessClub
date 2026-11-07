@@ -390,11 +390,6 @@ export default function TekaTekiHarianLanding() {
         <div className="grid gap-y-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,440px)] lg:gap-x-12 lg:items-start">
           {/* Kiri: teks + jatah harian + ajakan */}
           <div className="flex flex-col justify-center gap-y-6 lg:min-h-[440px] lg:max-w-[38rem]">
-            <p className={LABEL_SEKSI}>{t("landing.harianLabel")}</p>
-            <h2 id="teka-teki-harian-judul" className={`${JUDUL_SEKSI} text-balance`}>
-              {t("landing.harianJudul")}
-            </h2>
-            <p className={LEAD_SEKSI}>{t("landing.harianDesk")}</p>
 
             {/*
              * Kartu kemajuan harian — satu-satunya batas, berlaku juga
