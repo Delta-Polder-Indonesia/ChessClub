@@ -538,16 +538,23 @@ jsdom tidak melakukan paint/layout).
 ## Peta berkas layar Database (Fase 3)
 
 `komponen/nav/layarDatabase.jsx` dulu 2331 baris dan memuat semuanya sekaligus
-(kueri data, state UI, tata letak, dan komponen tabel). Sejak Fase 3 ia tinggal
-**orkestrasi** (±1430 baris: state, cache sesi, alur IndexedDB, tata letak
-panel) dan komponen presentasionalnya dipindah ke `komponen/nav/database/`:
+(kueri data, state UI, tata letak, dan komponen tabel). Fase 3 memindahkan
+komponen presentasionalnya ke `komponen/nav/database/`, dan **lanjutan Fase 3
+(2026-11-07)** memindahkan sisa markup panelnya sehingga layar tinggal
+**orkestrasi 894 baris**: state, cache sesi, alur IndexedDB, dan perakitan
+panel. Tidak ada fitur yang ditambah atau diubah — hanya perpindahan teks.
 
-| Berkas | Isi | Dipakai oleh |
+| Berkas | Baris | Isi |
 | --- | --- | --- |
-| `database/formatDatabase.js` | `formatTanggal`, `formatUkuran`, `daftarHalaman`, `statusHasil`, `BIRU`, dan konstanta tata letak (`BARIS_PER_HALAMAN`, `TINGGI_BARIS`, `JUMLAH_BARIS_SKELETON`, `LEBAR_JENDELA_HALAMAN`) | layar + dua tabel |
-| `database/ikonDatabase.jsx` | `IkonSearch`, `IkonSort` (publik), `_IkonCopy`, `_IkonPlay` (internal) | layar + dua tabel |
-| `database/tabelPartai.jsx` | `DropdownPilih`, `BarisSkeleton`, `HeaderTabel`, `BarisPartai`, `HeaderKolom`, `MenuKolom` | layar + tabel Ringkasan |
-| `database/tabelRingkasan.jsx` | `TabelRingkasan` (+ `BATAS_MUAT_RINGKAS`, `PERIODE_MUNDUR`) | layar |
+| `database/formatDatabase.js` | 68 | `formatTanggal`, `formatUkuran`, `daftarHalaman`, `statusHasil`, `BIRU`, dan konstanta tata letak (`BARIS_PER_HALAMAN`, `TINGGI_BARIS`, `JUMLAH_BARIS_SKELETON`, `LEBAR_JENDELA_HALAMAN`) |
+| `database/ikonDatabase.jsx` | 111 | `IkonSearch`, `IkonSort` (publik), `_IkonCopy`, `_IkonPlay` (internal) |
+| `database/tabelPartai.jsx` | 428 | `DropdownPilih`, `BarisSkeleton`, `HeaderTabel`, `BarisPartai`, `HeaderKolom`, `MenuKolom` |
+| `database/tabelRingkasan.jsx` | 325 | `TabelRingkasan` (+ `BATAS_MUAT_RINGKAS`, `PERIODE_MUNDUR`) |
+| `database/toolbarTabel.jsx` | 73 | Toolbar tab Partai: pemilih koleksi + filter hasil/waktu |
+| `database/kolomKoleksi.jsx` | 174 | Kolom kiri: pencarian koleksi + kartu tiap profil/akun |
+| `database/panelRingkasanDatabase.jsx` | 59 | Kolom kanan mode `data`: `TabelRingkasan` + tombol hapus semua |
+| `database/panelTabelData.jsx` | 339 | Kolom kanan mode `tabel`: tab Partai/Pemain/Event, kotak cari, tabel + paginasi, rekap pemain & event |
+| `database/dialogDatabase.jsx` | 134 | Empat `AlertDialog`: ekspor kosong, hapus partai, hapus koleksi, kosongkan semua |
 
 Aturan yang dipakai saat memecah: **cache sesi tetap milik
 `layarDatabase.jsx`** (`cacheRingkasan`, `cacheTabelPartai`, `rekapPemainCache`,
@@ -556,6 +563,29 @@ Aturan yang dipakai saat memecah: **cache sesi tetap milik
 menerima data lewat props dan membaca `basisData.js` sendiri bila perlu.
 Badan setiap fungsi dipindah **byte-identik** — diverifikasi dengan
 membandingkan teks fungsi di berkas asli dan berkas baru.
+
+### Peta berkas layar Wawasan (lanjutan Fase 3)
+
+`komponen/nav/layarWawasan.jsx` semula 1172 baris dan menampung **tujuh**
+sub-komponennya sendiri. Sekarang layar tinggal 370 baris (perakitan data +
+tata letak), sedangkan sub-komponennya ada di `komponen/nav/wawasan/`:
+
+| Berkas | Baris | Isi |
+| --- | --- | --- |
+| `wawasan/opsiWawasan.js` | 35 | `OPSI_WAKTU`, `OPSI_WARNA`, `OPSI_TANGGAL`, `KELAS_RATING` (dipakai filter & kartu profil) |
+| `wawasan/kartuProfil.jsx` | 171 | `KartuProfilWawasan` + `formatTanggalGabung` (bendera, gelar, tombol segarkan) |
+| `wawasan/filterBar.jsx` | 65 | `FilterBar` — kontrol waktu, warna bidak, rentang tanggal |
+| `wawasan/kpiGrid.jsx` | 30 | `KpiGrid` — empat kartu KPI |
+| `wawasan/grafikTrenRating.jsx` | 88 | `GrafikTrenRating` — grafik garis rating |
+| `wawasan/distribusiHasil.jsx` | 61 | `DistribusiHasil` + `BarisHasil` |
+| `wawasan/kartuPembukaan.jsx` | 117 | `KartuPembukaanTeratas` — tab Semua/Putih/Hitam |
+| `wawasan/kartuAkurasi.jsx` | 270 | `KartuAkurasiPartai` — akurasi & kesalahan taktikal satu partai |
+
+Pemisahan memakai aturan yang sama seperti Database: nama prop sengaja **sama
+dengan nama state induk**, sehingga badan fungsi bisa dipindah apa adanya tanpa
+mengganti satu identifier pun. `BENDERA` (glob aset SVG) ikut pindah ke
+`wawasan/kartuProfil.jsx` dengan jalur `../../flags/*.svg` — satu-satunya
+perubahan non-kosmetik, karena kedalaman foldernya berubah.
 
 ### Peta berkas papan (Fase 3, langkah 2)
 
@@ -1106,8 +1136,8 @@ Berkas acuan yang dibaca dan dipetakan 1:1:
 | `analyzeGame.ts` → `summarizeColor` | `mesin/ringkasanAnalisis.js` → `ringkasWarna` / `ringkasAnalisis` |
 | `workspace/reducer.ts` → `analysis.resultsByGameId` | `mesin/analisisTersimpan.js` (peta sesi + langganan) |
 | `chesscomSchemas.ts` + `ingestionService.ts` → `accuracies` | `akun/muatPartaiAkun.js` + `basisData.js` → field `accuracies` |
-| `TacticalMistakesCard.tsx` | `layarWawasan.jsx` → `KartuTaktikal` |
-| `TopOpeningsCard.tsx` (kolom Moves) | `layarWawasan.jsx` → `KartuPembukaanTeratas` |
+| `TacticalMistakesCard.tsx` | `wawasan/kartuAkurasi.jsx` → `KartuAkurasiPartai` |
+| `TopOpeningsCard.tsx` (kolom Moves) | `wawasan/kartuPembukaan.jsx` → `KartuPembukaanTeratas` |
 
 ### Rantai nama pembukaan (acuan)
 
