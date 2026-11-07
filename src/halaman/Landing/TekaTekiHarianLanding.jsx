@@ -473,7 +473,7 @@ export default function TekaTekiHarianLanding() {
                       x="100"
                       y="155"
                       fill="currentColor"
-                      className="font-sans text-[11px] text-grey-600"
+                      className="font-sans text-[12px] text-grey-600"
                     >
                       Mainkan 5 game untuk
                     </text>
@@ -481,7 +481,7 @@ export default function TekaTekiHarianLanding() {
                       x="100"
                       y="170"
                       fill="currentColor"
-                      className="font-sans text-[11px] text-grey-600"
+                      className="font-sans text-[12px] text-grey-600"
                     >
                       memperkirakan
                     </text>
