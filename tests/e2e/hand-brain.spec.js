@@ -34,13 +34,10 @@ for (const [bahasa, t] of Object.entries(kamus)) {
     const galat = [];
     page.on("pageerror", (error) => galat.push(error.message));
     await page.addInitScript((nilai) => localStorage.setItem("kci-bahasa", nilai), bahasa);
-    await page.goto("/papan-interaktif", { waitUntil: "domcontentloaded" });
-
-    const menu = page.getByRole("navigation", { name: bahasa === "en" ? "Board modes" : "Mode papan" });
-    await menu.getByRole("link", { name: t.menu }).click();
-    // Judul mode tidak lagi digambar di atas papan (hanya tombol kembali di
-    // kepala daftar), jadi kehadiran halaman diperiksa dari judul dokumen yang
-    // diisi tata letak dari label menu yang sama.
+    // Mode ini halaman mandiri (sidebar sendiri), bukan anggota sidebar
+    // Workspace: dibuka langsung dari rutenya, sama seperti Manusia vs Mesin.
+    await page.goto("/papan-interaktif/hand-brain", { waitUntil: "domcontentloaded" });
+    // Judul tab ditulis halaman itu sendiri lewat kerangka mode papan.
     await expect(page).toHaveTitle(new RegExp(t.menu));
     await expect(page.locator("[data-petak]")).toHaveCount(64, { timeout: 60_000 });
 

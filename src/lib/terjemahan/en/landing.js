@@ -96,6 +96,18 @@ export const landing = {
     alatManusiaVsMesinDesk:
       "Play chess against a local engine — from weakened opponents for beginners to Maia 3 and Stockfish for advanced players.",
     alatManusiaVsMesinCta: "Start playing",
+    alatLatihanRepertoarJudul: "Repertoire Training",
+    alatLatihanRepertoarDesk:
+      "Save opening lines and practise your moves with a review schedule kept on your device.",
+    alatLatihanRepertoarCta: "Start learning",
+    alatHandBrainJudul: "Hand & Brain",
+    alatHandBrainDesk:
+      "Two players, one board: the system draws a piece type each turn, and only that type may move.",
+    alatHandBrainCta: "Start playing",
+    alatTuringTestJudul: "Turing Test",
+    alatTuringTestDesk:
+      "Tell human moves from Stockfish moves in the same position and test your read on playing style.",
+    alatTuringTestCta: "Start guessing",
     tigaJalanJudul: "Pick the path that fits",
     tigaJalanJudulAccent: "your level",
     tigaJalanAkademiKicker: "Chess Academy",

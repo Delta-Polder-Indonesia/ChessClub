@@ -164,7 +164,9 @@ vertikal (dapat di-scroll pengguna), persis pola empat halaman mode.
 
 ## 5. Pemeriksaan yang bersih (tidak perlu diulang)
 
-1. **Empat halaman mode** (MvM, Latihan Repertoar, Hand & Brain, Turing Test) sudah memakai
+1. **Empat halaman mode** (MvM, Latihan Repertoar, Hand & Brain, Turing Test) — sejak 2026-11-07
+   ketiganya memakai kerangka mandiri `PapanInteraktif/bersama/TataLetakModePapan.jsx` —
+   semuanya sudah memakai
    `grid … overflow-y-auto … lg:overflow-hidden` + papan `max-w-[520px]` dengan rumus
    `lg:w-[min(520px,calc(100dvh-140px),calc(100vw-634px))]` — responsif dan konsisten.
 2. **`PapanTekaTeki`** — `w-full aspect-square`, grid 8×8 proporsional, `touchAction: "none"`
@@ -173,8 +175,9 @@ vertikal (dapat di-scroll pengguna), persis pola empat halaman mode.
    dipakai `BarisProfil` dan dua baris profil inline; sejajar di semua lebar.
 4. **Tabel panel** (`LangkahExplorer` `min-w-[510px]`, `PanelBasisDataAwan` `min-w-[420px]`)
    sudah dibungkus `overflow-x-auto`.
-5. **Workspace** — `h-dvh`, nav mobile `grid-cols-5` + `truncate` (e2e `menuMeluap === false`),
-   sidebar 220 px di lg; `HalamanPapanBuku` lazy.
+5. **Workspace** — `h-dvh`, nav mobile `grid-cols-2` (`truncate`; dulu `grid-cols-5` sebelum
+   tiga mode latihan pindah ke halaman mandiri, e2e `menuMeluap === false`), sidebar 220 px di
+   lg; `HalamanPapanBuku` lazy.
 6. **`useEngineCatur`** — efek bergantung pada primitif (`kunciEngine` string), jadi ganti
    warna papan/bidak/komentator TIDAK me-restart worker engine (kekhawatiran `opsiEngine`
    beridentitas baru tiap `ubah()` tidak beralasan).

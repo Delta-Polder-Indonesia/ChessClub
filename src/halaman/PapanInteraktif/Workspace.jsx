@@ -35,19 +35,26 @@ export function HalamanPapanBuku() {
   );
 }
 
-/** Menu mode papan — tiap mode kini rute sendiri, bukan tab state. */
+/**
+ * Menu inti Workspace — hanya fitur yang memang tinggal di dalamnya.
+ *
+ * Latihan Repertoar, Hand & Brain, dan Turing test kini BERDIRI SENDIRI
+ * seperti Manusia vs Mesin: tiap halaman membawa sidebar, navigasi, dan judul
+ * dokumennya sendiri (lihat `bersama/TataLetakModePapan.jsx`). Alamat rutenya
+ * tetap di bawah `/papan-interaktif/*` supaya URL publik tidak berubah.
+ */
 const MENU_PAPAN = [
   { ke: "/papan-interaktif", akhir: true, ikon: "analisa", label: "papan.menuAnalisa" },
-  { ke: "/papan-interaktif/latihan-repertoar", ikon: "books", label: "papan.menuLatihanRepertoar" },
-  { ke: "/papan-interaktif/hand-brain", ikon: "games", label: "papan.menuHandBrain" },
-  { ke: "/papan-interaktif/turing-test", ikon: "users", label: "papan.menuTuring" },
   { ke: "/papan-interaktif/pengaturan", ikon: "settings", label: "papan.pengaturan" },
 ];
 
 /**
- * Tata letak seluruh halaman di bawah `/papan-interaktif/*`: sidebar + outlet.
- * Pengaturan papan disediakan lewat konteks sehingga nilainya tetap ada saat
- * berpindah antar halaman mode (dulu ini state tab Workspace).
+ * Tata letak fitur inti Papan Interaktif: papan buku/Analisa + Pengaturan.
+ *
+ * Mode latihan (Latihan Repertoar, Hand & Brain, Turing test) TIDAK lagi
+ * memakai tata letak ini — masing-masing halaman mandiri dengan sidebar
+ * sendiri, sama seperti Manusia vs Mesin. Pengaturan papan tetap disediakan
+ * lewat konteks untuk dua halaman yang tinggal di sini.
  */
 export default function TataLetakPapan() {
   const { t } = useI18n();
@@ -71,7 +78,7 @@ export default function TataLetakPapan() {
 
             <nav
               aria-label={t("papan.menuMode")}
-              className="grid w-full grid-cols-5 gap-1 px-1 py-1.5 lg:flex lg:flex-col lg:gap-1 lg:px-3 lg:pb-2 lg:pt-0"
+              className="grid w-full grid-cols-2 gap-1 px-1 py-1.5 lg:flex lg:flex-col lg:gap-1 lg:px-3 lg:pb-2 lg:pt-0"
             >
               {MENU_PAPAN.map((item) => (
                 <NavLink

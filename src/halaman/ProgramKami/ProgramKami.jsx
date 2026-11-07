@@ -39,6 +39,23 @@ export default function ProgramKami() {
     { kunci: "simultan" },
     { kunci: "tekaTeki", to: "/program-kami/teka-teki", label: t("nav.tekaTeki") },
     { kunci: "manusiaVsMesin", to: "/program-kami/manusia-vs-mesin", label: t("program.kartu.manusiaVsMesin.judul") },
+    // Tiga mode papan mandiri: pintu masuknya halaman Program Kami ini,
+    // bukan lagi sidebar Workspace Papan Interaktif.
+    {
+      kunci: "latihanRepertoar",
+      to: "/program-kami/latihan-repertoar",
+      label: t("program.kartu.latihanRepertoar.judul"),
+    },
+    {
+      kunci: "handBrain",
+      to: "/program-kami/hand-brain",
+      label: t("program.kartu.handBrain.judul"),
+    },
+    {
+      kunci: "turingTest",
+      to: "/program-kami/turing-test",
+      label: t("program.kartu.turingTest.judul"),
+    },
   ];
 
   return (

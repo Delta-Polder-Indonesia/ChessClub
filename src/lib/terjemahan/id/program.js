@@ -47,6 +47,21 @@ export const program = {
         deskripsi:
           "Bermain langsung melawan mesin catur lokal — dari lawan lemah untuk pemula hingga Maia 3 dan Stockfish untuk pemain lanjut.",
       },
+      latihanRepertoar: {
+        judul: "Latihan Repertoar",
+        deskripsi:
+          "Simpan jalur pembukaan pilihan Anda, lalu latih langkah pada giliran Anda dengan pengulangan terjadwal di perangkat.",
+      },
+      handBrain: {
+        judul: "Hand & Brain",
+        deskripsi:
+          "Varian dua pemain di satu perangkat: sistem mengundi satu jenis bidak tiap giliran dan Anda hanya boleh menggerakkan jenis itu.",
+      },
+      turingTest: {
+        judul: "Turing Test",
+        deskripsi:
+          "Tebak langkah mana yang dimainkan manusia dan mana yang dibuat Stockfish dari posisi yang sama.",
+      },
     },
     h1: "Panduan dan Latihan Mandiri",
     p3a: "Bagi anggota yang ingin belajar atau mengulang dasar-dasar permainan, situs ini menyediakan halaman",
@@ -593,4 +608,46 @@ export const manusiaVsMesinLanding = {
     intro2:
       "Tiga tangga tersedia: sunfish yang dilemahkan untuk pemula–menengah, Maia 3 yang meniru gaya manusia untuk menengah–lanjut, serta Stockfish untuk pemain lanjut–master.",
     cta: "Mulai Bermain",
+};
+
+export const latihanRepertoarLanding = {
+    judul: "Latihan Repertoar",
+    deskripsi:
+      "Simpan jalur pembukaan pilihan Anda, lalu latih langkah pada giliran Anda dengan pengulangan terjadwal yang tersimpan di perangkat.",
+    metaDeskripsi:
+      "Latihan Repertoar Komunitas Catur Indonesia — simpan jalur pembukaan dari buku Lichess, latih langkah sisi Anda, dan jadwalkan tinjauan ulang tanpa server.",
+    introJudul: "Hafalkan Pembukaan Lewat Latihan Berjadwal",
+    intro1:
+      "Pilih pembukaan dari buku pembukaan Lichess, simpan sebagai jalur untuk sisi Putih atau Hitam, lalu latih hanya langkah pada giliran Anda. Tiap posisi menjadi satu kartu yang punya jadwal tinjauan sendiri.",
+    intro2:
+      "Jawaban benar menunda tinjauan berikutnya (3 hari, 6 hari, 12 hari, sampai 24 hari), jawaban keliru mengembalikannya dalam 10 menit. Semua progres disimpan di perangkat Anda — tidak ada langkah yang dikirim ke server.",
+    cta: "Mulai Latihan",
+};
+
+export const handBrainLanding = {
+    judul: "Hand & Brain",
+    deskripsi:
+      "Varian dua pemain di satu perangkat: sistem mengundi satu jenis bidak setiap giliran, dan Anda hanya boleh menggerakkan bidak jenis itu.",
+    metaDeskripsi:
+      "Hand & Brain Komunitas Catur Indonesia — varian catur lokal dua pemain di satu perangkat dengan undian jenis bidak tiap giliran, lengkap dengan papan interaktif di peramban.",
+    introJudul: "Catur dengan Tangan dan Otak Terpisah",
+    intro1:
+      "Di Hand & Brain, dua pemain berbagi satu papan. Tiap giliran sistem mengundi satu jenis bidak dari bidak yang masih punya langkah legal; langkah dengan jenis bidak lain ditolak dengan pesan yang jelas.",
+    intro2:
+      "Tidak perlu akun dan tidak ada koneksi ke server: papan berjalan langsung di peramban, riwayat langkah tampil di samping papan, dan aturan undiannya diuji otomatis agar tidak ada jenis bidak yang mustahil dimainkan.",
+    cta: "Mulai Bermain",
+};
+
+export const turingTestLanding = {
+    judul: "Turing Test",
+    deskripsi:
+      "Tebak langkah mana yang dimainkan manusia dan mana yang dibuat Stockfish pada posisi yang sama — uji seberapa tajam insting Anda membaca gaya permainan.",
+    metaDeskripsi:
+      "Turing Test Komunitas Catur Indonesia — tebak langkah manusia versus langkah Stockfish dari PGN partai Anda sendiri atau akun Lichess, langsung di peramban.",
+    introJudul: "Bedakan Langkah Manusia dan Langkah Mesin",
+    intro1:
+      "Tempel PGN partai manusia — atau tarik partai dari akun Lichess — lalu tiap soal menampilkan dua langkah pada posisi yang sama: satu dari partai asli, satu buatan Stockfish.",
+    intro2:
+      "Anda menebak mana langkah manusia, dan skor dihitung dari jumlah tebakan benar. Engine berjalan lokal di peramban, jadi tidak ada partai yang dikirim ke server komunitas.",
+    cta: "Mulai Menebak",
 };

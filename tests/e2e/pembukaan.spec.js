@@ -101,9 +101,14 @@ for (const [bahasa, kamus] of [["id", papanId], ["en", papanEn]]) {
     const menu = page.getByRole("navigation", { name: kamus.menuMode });
     const analisa = menu.getByRole("link", { name: kamus.menuAnalisa, exact: true });
     await expect(analisa).toHaveAttribute("aria-current", "page");
-    // Sidebar adalah tautan rute: lima link internal (Manusia vs Mesin kini rute
-    // mandiri dengan sidebar sendiri), semuanya tetap di bawah /papan-interaktif.
-    await expect(menu.getByRole("link")).toHaveCount(5);
+    // Sidebar Workspace kini hanya fitur inti: Analisa + Pengaturan. Mode
+    // latihan (repertoar, Hand & Brain, Turing test) berdiri sendiri seperti
+    // Manusia vs Mesin, jadi tidak lagi muncul di sini walau rutenya tetap di
+    // bawah /papan-interaktif.
+    await expect(menu.getByRole("link")).toHaveCount(2);
+    for (const ruteMandiri of ["latihan-repertoar", "hand-brain", "turing-test"]) {
+      await expect(page.locator(`a[href="/papan-interaktif/${ruteMandiri}"]`)).toHaveCount(0);
+    }
     const hrefMenu = await menu.getByRole("link").evaluateAll((tautan) => tautan.map((a) => a.getAttribute("href")));
     for (const href of hrefMenu) expect(href.startsWith("/papan-interaktif")).toBe(true);
     await expect(page.locator('a[href="/program-kami/analisa"]')).toHaveCount(0);

@@ -17,11 +17,12 @@ sudah diuji di sandbox, apa yang harus diuji di laptop, dan perintahnya.
 ### 2a. Impor Lichess untuk Turing test (paling penting)
 Sandbox tidak bisa mengakses `lichess.org`, jadi ini belum pernah jalan sungguhan.
 
-1. `npm run dev`, buka `http://localhost:5173/papan-interaktif` (atau port yang muncul).
-2. Pilih mode **Turing test**.
-3. Isi "Atau ambil dari Lichess" dengan nama akun publik yang punya banyak partai, misalnya `DrNykterstein`.
-4. Klik **Ambil partai**. Kotak PGN harus terisi teks PGN (berisi `[Event ...]`).
-5. Klik **Mulai tebak**. Soal pertama harus muncul dalam beberapa detik sampai puluhan detik.
+1. `npm run dev`, buka `http://localhost:5173/program-kami/turing-test` (halaman penjelas mode),
+   lalu klik tombol masuk — atau langsung `http://localhost:5173/papan-interaktif/turing-test`
+   (sejak 2026-11-07 mode ini halaman mandiri, bukan lagi item sidebar Workspace).
+2. Isi "Atau ambil dari Lichess" dengan nama akun publik yang punya banyak partai, misalnya `DrNykterstein`.
+3. Klik **Ambil partai**. Kotak PGN harus terisi teks PGN (berisi `[Event ...]`).
+4. Klik **Mulai tebak**. Soal pertama harus muncul dalam beberapa detik sampai puluhan detik.
 
 Yang perlu dicek:
 - Di tab Network, permintaan ke `https://lichess.org/api/games/user/<nama>?moves=true&pgnInJson=false...` harus berstatus 200.

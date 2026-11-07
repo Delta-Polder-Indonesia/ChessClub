@@ -58,6 +58,9 @@ import {
   rushLanding,
   kuisLanding,
   manusiaVsMesinLanding,
+  latihanRepertoarLanding,
+  handBrainLanding,
+  turingTestLanding,
 } from "./program.js";
 
 import {
@@ -155,6 +158,9 @@ export const ID = {
   rushLanding,
   kuisLanding,
   manusiaVsMesinLanding,
+  latihanRepertoarLanding,
+  handBrainLanding,
+  turingTestLanding,
   turnamen,
   turnamenBulanan,
   ligaMusiman,

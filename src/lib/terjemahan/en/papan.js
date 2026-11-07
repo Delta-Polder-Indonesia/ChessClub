@@ -10,6 +10,7 @@ export const papan = {
     judul: "Chess Opening Explorer",
     remah: "Opening",
     menuMode: "Board modes",
+    modeTentang: "About this mode",
     menuAnalisa: "Analysis",
     menuManusiaMesin: "Human vs computer",
     menuLatihanRepertoar: "Repertoire Practice",

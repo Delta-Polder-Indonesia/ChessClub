@@ -1,6 +1,6 @@
 ---
 name: kci-papan-interaktif
-description: Panduan halaman Papan Interaktif (/papan-interaktif/*) - Workspace.jsx sebagai tata letak rute dengan sidebar lima tautan (papan buku, Latihan Repertoar, Hand & Brain, Turing test, Pengaturan); Manusia vs Mesin adalah rute mandiri di luar tata letak dengan sidebar miliknya sendiri (pola Teka-teki/Rush); tiap mode di rumah foldernya sendiri (ManusiaVsMesin, LatihanRepertoar, HandBrain, TuringTest), komponen bersama di PapanInteraktif/bersama/, Buku Pembukaan (PapanInteraktif.jsx), worker Stockfish on-demand, dan penyimpanan latihan di IndexedDB. Batasnya adalah tidak menduplikasi Analisa/Teka-teki/Teka-teki Rush; En Croissant hanya referensi konsep. Use when editing /papan-interaktif/*, board practice modes, opening book explorer, or running npm run uji:repertoar and npm run uji:bantuan-langkah.
+description: Panduan halaman Papan Interaktif (/papan-interaktif/*) - Workspace.jsx sebagai tata letak fitur inti dengan sidebar dua tautan (Analisa/papan buku + Pengaturan); Manusia vs Mesin, Latihan Repertoar, Hand & Brain, dan Turing test adalah rute mandiri di luar tata letak dengan sidebar miliknya sendiri lewat bersama/TataLetakModePapan.jsx (pola Teka-teki/Rush); tiap mode di rumah foldernya sendiri (ManusiaVsMesin, LatihanRepertoar, HandBrain, TuringTest), komponen bersama di PapanInteraktif/bersama/, Buku Pembukaan (PapanInteraktif.jsx), worker Stockfish on-demand, dan penyimpanan latihan di IndexedDB. Batasnya adalah tidak menduplikasi Analisa/Teka-teki/Teka-teki Rush; En Croissant hanya referensi konsep. Use when editing /papan-interaktif/*, board practice modes, opening book explorer, or running npm run uji:repertoar and npm run uji:bantuan-langkah.
 metadata:
   project: chessclub-kci
   area: frontend
@@ -25,7 +25,8 @@ Jangan memindahkan komponen catur ke `src/components/konten/` atau memaksanya me
 
 | Kebutuhan | Berkas |
 | --- | --- |
-| Tata letak rute dan sidebar lima tautan | `src/halaman/PapanInteraktif/Workspace.jsx` (`TataLetakPapan` + `<Outlet/>`) |
+| Tata letak rute inti dan sidebar dua tautan | `src/halaman/PapanInteraktif/Workspace.jsx` (`TataLetakPapan` + `<Outlet/>`) |
+| Kerangka mode mandiri (sidebar + judul dokumen + pengaturan) | `src/halaman/PapanInteraktif/bersama/TataLetakModePapan.jsx` |
 | Pengaturan papan & engine (konteks bersama di tata letak) | `src/halaman/PapanInteraktif/LayarPengaturan.jsx`, `bersama/gunakanPengaturanPapan.js`, `bersama/PengaturanKonteks.jsx` |
 | Mode yang ada (tiap mode satu rute + satu folder) | `src/halaman/{ManusiaVsMesin,LatihanRepertoar,HandBrain,TuringTest}/*.jsx` |
 | Logika dan penyimpanan repertoar | `src/halaman/LatihanRepertoar/{repertoarLogika,repertoarStorage}.js` |
@@ -35,16 +36,16 @@ Jangan memindahkan komponen catur ke `src/components/konten/` atau memaksanya me
 
 ## Arah produk
 
-`/papan-interaktif/*` adalah area papan catur modular: satu tata letak dengan sidebar lima tautan, tiap mode adalah rute sendiri:
+`/papan-interaktif/*` adalah area papan catur modular: Workspace hanya memuat fitur inti (Analisa/papan buku + Pengaturan), sedangkan tiap mode latihan adalah halaman mandiri dengan sidebar sendiri:
 1. **Analisa** (`/papan-interaktif`) — papan bebas/Opening Book; tampil langsung saat halaman dibuka, bukan pintasan ke Report Analisa.
 2. **Latihan Repertoar** (`/papan-interaktif/latihan-repertoar`) — latihan mengingat jalur pembukaan dengan pengulangan terjadwal, bukan bank soal taktik kedua.
 3. **Hand & Brain** (`/papan-interaktif/hand-brain`) — varian lokal dua pemain di satu perangkat.
 4. **Turing test** (`/papan-interaktif/turing-test`) — tebak langkah manusia vs langkah mesin.
 5. **Pengaturan** (`/papan-interaktif/pengaturan`) — layar pengaturan papan (set bidak, warna papan, suara, panah engine, bantuan langkah, tampilan basis data awan, komentator) dan engine analisa (mesin, kedalaman, threads, hash, MultiPV, skill level). Nilainya terhubung langsung ke Papan Interaktif dan tetap ada saat berpindah halaman mode.
 
-**Manusia vs Mesin** (`/papan-interaktif/manusia-vs-mesin`) tetap satu keluarga dengan mode di atas tetapi **rute mandiri di luar `TataLetakPapan`** (terdaftar di `RUTE_HALAMAN` `src/App.jsx`, bukan `RUTE_PAPAN`): ia membawa sidebar miliknya sendiri dengan pola yang sama seperti Teka-teki dan Teka-teki Rush — brand BlunderSkuad + label mode, tombol Partai baru/Tanding ulang/Pengaturan permainan, dan Lisensi & Atribusi di bawah. Karena di luar `PenyediaPengaturanPapan`, pengaturan pannya jatuh ke fallback lokal halaman.
+**Manusia vs Mesin** (`/papan-interaktif/manusia-vs-mesin`), **Latihan Repertoar** (`/papan-interaktif/latihan-repertoar`), **Hand & Brain** (`/papan-interaktif/hand-brain`), dan **Turing test** (`/papan-interaktif/turing-test`) satu keluarga dengan mode di atas tetapi **rute mandiri di luar `TataLetakPapan`** (terdaftar di `RUTE_HALAMAN` `src/App.jsx`, bukan `RUTE_PAPAN`); pintu masuk masing-masing adalah halaman `/program-kami/*`-nya. Manusia vs Mesin membawa kerangkanya sendiri, tiga mode lain memakai `bersama/TataLetakModePapan.jsx`: ia membawa sidebar miliknya sendiri dengan pola yang sama seperti Teka-teki dan Teka-teki Rush — brand BlunderSkuad + label mode, tombol Partai baru/Tanding ulang/Pengaturan permainan, dan Lisensi & Atribusi di bawah. Karena di luar `PenyediaPengaturanPapan`, pengaturan pannya jatuh ke fallback lokal halaman.
 
-Jangan menambahkan item sidebar keenam tanpa permintaan terpisah. Buku Pembukaan yang sudah ada tetap dipertahankan di mode Analisa, bukan item sidebar tersendiri. Tab `Analisa | Buku | Penjelajah | Partai` adalah tab detail panel kanan papan, bukan pilihan sidebar atau Report Analisa.
+Jangan menambahkan item ke sidebar Workspace tanpa permintaan terpisah (isinya sekarang hanya Analisa + Pengaturan). Buku Pembukaan yang sudah ada tetap dipertahankan di mode Analisa, bukan item sidebar tersendiri. Tab `Analisa | Buku | Penjelajah | Partai` adalah tab detail panel kanan papan, bukan pilihan sidebar atau Report Analisa.
 
 Sebelum membangun tiap mode baru, bandingkan dengan halaman Report Analisa, Teka-teki, Teka-teki Rush, Database PGN, dan fitur yang sudah ada. Gunakan kembali bagian yang relevan tanpa menautkan sidebar Papan Interaktif ke fitur lain atau membuat salinannya. Daftar menu ini membatasi pilihan navigasi, bukan izin untuk mengimplementasikan semua perilaku mode sekaligus.
 
@@ -69,7 +70,7 @@ Bank soal taktik/skakmat, filter, alur menyelesaikan teka-teki, dan Rush sudah a
 
 ## Arsitektur
 
-- `Workspace.jsx` adalah tata letak rute: sidebar kiri (tautan `NavLink`) + `<Outlet/>`. `src/App.jsx` memuat tata letak dan tiap halaman mode secara lazy; daftar rutenya ada di `RUTE_PAPAN` (format pasangan `[jalur, Komponen]` agar terbaca `scripts/uji-rute.mjs`). Manusia vs Mesin terdaftar di `RUTE_HALAMAN` karena rutenya mandiri di luar `TataLetakPapan`.
+- `Workspace.jsx` adalah tata letak rute fitur inti: sidebar kiri (tautan `NavLink`) + `<Outlet/>`. `src/App.jsx` memuat tata letak dan tiap halaman secara lazy; rute inti ada di `RUTE_PAPAN` (format pasangan `[jalur, Komponen]` agar terbaca `scripts/uji-rute.mjs`), sedangkan Manusia vs Mesin, Latihan Repertoar, Hand & Brain, dan Turing test terdaftar di `RUTE_HALAMAN` karena rutenya mandiri di luar `TataLetakPapan`.
 - **State pengaturan disediakan tata letak** lewat `PenyediaPengaturanPapan` (`bersama/PengaturanKonteks.jsx`, memakai `usePengaturanPapan()` dari `bersama/gunakanPengaturanPapan.js`), sehingga tidak hilang saat berpindah halaman mode. Tiap halaman membacanya lewat `usePengaturanBersama()` (prop `pengaturan`/`{ nilai, ubah }` tetap didukung sebagai override). Jangan kembali menyimpan pengaturan ini sebagai state lokal di halaman mode.
 - Pengaturan engine diteruskan ke `useEngineCatur(fen, opsi)` (`src/lib/gunakanEngineCatur.js`): `url`, `hash`, `threads`, `skill` membuat ulang worker; `kedalaman` dan `multiPv` dipakai per analisis. Suara dan komentator tetap tersimpan di localStorage (`useSuara()`, `usePreferensiKomentator()`).
 - `Analisa` memilih papan Opening Book di area kerja; Report Analisa (`/program-kami/analisa`) tetap terpisah di menu Program Kami.
@@ -107,7 +108,7 @@ Bank soal taktik/skakmat, filter, alur menyelesaikan teka-teki, dan Rush sudah a
 
 - Panel kanan: `analisa | books | explorer | games` (label ID/EN melalui `papan.*`).
 - `books`: daftar jalur/saran pembukaan; `explorer`: artikel pembukaan; `games`: statistik/kelanjutan buku atau basis data awan; `analisa`: panel posisi pembukaan yang sudah ada.
-- Sidebar kiri `TataLetakPapan` berisi lima tautan rute: Analisa (papan Opening Book, langsung tampil), Latihan Repertoar, Hand & Brain, Turing test, dan Pengaturan. Manusia vs Mesin berdiri sendiri dengan sidebar halamannya (Partai baru, Tanding ulang, Pengaturan permainan, Atribusi). Tautan Jelajah Buku Pembukaan di Repertoar kembali ke halaman Analisa; tidak menambah item sidebar keenam atau tautan ke fitur lain.
+- Sidebar kiri `TataLetakPapan` berisi dua tautan rute: Analisa (papan Opening Book, langsung tampil) dan Pengaturan. Latihan Repertoar, Hand & Brain, dan Turing test berdiri sendiri lewat `bersama/TataLetakModePapan.jsx` (brand + label mode + Pengaturan + tautan "Tentang mode ini" + Atribusi), Manusia vs Mesin dengan sidebar halamannya sendiri (Partai baru, Tanding ulang, Pengaturan permainan, Atribusi). Tautan Jelajah Buku Pembukaan di Repertoar kembali ke halaman Analisa; tidak menambah item sidebar keenam atau tautan ke fitur lain.
 - Pada laptop, papan dan panel tampil dalam satu layar tanpa scrollbar halaman/papan. Konten panjang pada tab panel kanan boleh digulir di dalam panel agar fiturnya tetap terjangkau.
 - Manusia vs Mesin mendukung pilihan warna, tingkat waktu Stockfish, partai baru, papan interaktif, dan riwayat langkah; pengaturan pannya disimpan lokal di halaman (fallback `pengaturanLokal`). Tidak menampilkan panah best-move saat pemain sedang bermain.
 - Latihan Repertoar mencari jalur dari buku CC0, membangun kartu hanya untuk warna yang dipilih, menilai lagi/sulit/baik/mudah, dan menyimpan jadwal lokal **di IndexedDB + cermin `localStorage`** (`repertoarStorage.js`): setiap tulis/hapus selalu menyentuh cermin, pembacaan menggabungkan keduanya per `id` dengan rekaman ber-`diperbarui` terbaru menang, dan penghapusan memakai tombstone `kci.papan.repertoar.hapus.v1` supaya jalur yang sudah dihapus tidak hidup lagi dari sisa IndexedDB. Jangan kembali ke pola "fallback hanya saat gagal" — itu membuat kartu hilang setelah muat ulang. Penjadwalan memakai plafon satu tahun (`BATAS_INTERVAL_MS`), dan penilaian jawaban hanya membandingkan petak asal/tujuan sehingga pilihan bidak promosi tidak membuat jawaban benar dianggap salah — papan dimajukan dengan langkah buku (`uraiUci`).

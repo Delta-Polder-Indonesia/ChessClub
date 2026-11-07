@@ -74,6 +74,9 @@ export const RUTE_PUBLIK = [
   "/program-kami/rush-teka-teki",
   "/program-kami/kuis-catur",
   "/program-kami/manusia-vs-mesin",
+  "/program-kami/latihan-repertoar",
+  "/program-kami/hand-brain",
+  "/program-kami/turing-test",
   "/teka-teki/problem",
   "/teka-teki-rush",
   "/teka-teki-harian",
@@ -219,6 +222,18 @@ export const META_RUTE = {
     gambar: "/images/ProgramKami/analisa-hero.webp",
     gambarUkuran: "1672",
     gambarTinggi: "941",
+  },
+  "/program-kami/latihan-repertoar": {
+    judulKey: "latihanRepertoarLanding.judul",
+    deskripsiKey: "latihanRepertoarLanding.metaDeskripsi",
+  },
+  "/program-kami/hand-brain": {
+    judulKey: "handBrainLanding.judul",
+    deskripsiKey: "handBrainLanding.metaDeskripsi",
+  },
+  "/program-kami/turing-test": {
+    judulKey: "turingTestLanding.judul",
+    deskripsiKey: "turingTestLanding.metaDeskripsi",
   },
   "/program-kami/ebook-panduan": {
     judul: "E-Book & Panduan",

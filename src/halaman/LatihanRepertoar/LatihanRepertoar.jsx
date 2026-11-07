@@ -24,6 +24,7 @@ import {
 import { FEN_AWAL } from "../PapanInteraktif/bersama/konstanta.js";
 import { PENGATURAN_AWAL, usePengaturanPapan } from "../PapanInteraktif/bersama/gunakanPengaturanPapan.js";
 import { usePengaturanBersama } from "../PapanInteraktif/bersama/PengaturanKonteks.jsx";
+import TataLetakModePapan from "../PapanInteraktif/bersama/TataLetakModePapan.jsx";
 import { Link, useNavigate } from "react-router-dom";
 import { useTandaBantu } from "../../lib/tandaBantu.js";
 import PapanStatis from "../../components/PapanStatis.jsx";
@@ -59,7 +60,8 @@ export default function LatihanRepertoar({ pengaturan = null }) {
   // tanpa itu buat state lokal agar komponen tetap berdiri sendiri.
   const pengaturanLokal = usePengaturanPapan();
   const pengaturanBersama = usePengaturanBersama();
-  const pp = (pengaturan ?? pengaturanBersama ?? pengaturanLokal).nilai ?? PENGATURAN_AWAL;
+  const sumberPengaturan = pengaturan ?? pengaturanBersama ?? pengaturanLokal;
+  const pp = sumberPengaturan.nilai ?? PENGATURAN_AWAL;
 
   const [kartu, setKartu] = useState([]);
   const [memuatKartu, setMemuatKartu] = useState(true);
@@ -394,8 +396,8 @@ export default function LatihanRepertoar({ pengaturan = null }) {
   /*
    * Tombol kembali di kepala halaman katalog. Dari sub-layar (tambah jalur /
    * halaman pembukaan) ia kembali ke katalog; dari katalog ia keluar dari mode
-   * ini ke halaman sebelumnya (mundur riwayat) atau ke papan buku bila halaman
-   * dibuka langsung tanpa riwayat.
+   * ini ke halaman sebelumnya (mundur riwayat) atau ke halaman penjelas mode
+   * (/program-kami/latihan-repertoar) bila dibuka langsung tanpa riwayat.
    */
   function kembaliKeInduk() {
     if (tampilan !== "koleksi") {
@@ -404,8 +406,11 @@ export default function LatihanRepertoar({ pengaturan = null }) {
       setJalurAktif(null);
       return;
     }
+    // Halaman ini mandiri (bukan mode di dalam sidebar Workspace), jadi
+    // tanpa riwayat pengguna dikembalikan ke halaman penjelas mode ini —
+    // bukan ke papan Analisa yang sudah jadi alamat lain.
     if ((window.history.state?.idx ?? 0) > 0) navigasi(-1);
-    else navigasi("/papan-interaktif");
+    else navigasi("/program-kami/latihan-repertoar");
   }
 
   const jumlahJatuhTempo = kartu.filter((item) => Number(item.dueAt) <= sekarang).length;
@@ -447,6 +452,11 @@ export default function LatihanRepertoar({ pengaturan = null }) {
   if (tampilan === "latihan") {
     const sisiAktif = sesiLatihan?.warna === "w" ? t("papan.pvePutih") : t("papan.pveHitam");
     return (
+      <TataLetakModePapan
+        judul={t("papan.menuLatihanRepertoar")}
+        tautan={{ to: "/program-kami/latihan-repertoar", label: t("papan.modeTentang") }}
+        pengaturan={sumberPengaturan}
+      >
       <section aria-label={t("papan.repertoarJudul")} className="h-full min-h-0 overflow-y-auto">
         <div
           data-bungkus-latihan
@@ -731,10 +741,16 @@ export default function LatihanRepertoar({ pengaturan = null }) {
           </div>
         </div>
       </section>
+      </TataLetakModePapan>
     );
   }
 
   return (
+    <TataLetakModePapan
+      judul={t("papan.menuLatihanRepertoar")}
+      tautan={{ to: "/program-kami/latihan-repertoar", label: t("papan.modeTentang") }}
+      pengaturan={sumberPengaturan}
+    >
     <div className="flex h-full min-h-0 flex-col overflow-y-auto p-4">
       <header className="flex shrink-0 flex-wrap items-start justify-between gap-3 border-b border-[#312e2b] pb-4">
         {/* Tombol kembali satu baris dengan judul; deskripsi menjorok sejajar judul. */}
@@ -1159,5 +1175,6 @@ export default function LatihanRepertoar({ pengaturan = null }) {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+    </TataLetakModePapan>
   );
 }

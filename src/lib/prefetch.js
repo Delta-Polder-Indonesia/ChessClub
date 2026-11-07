@@ -39,6 +39,12 @@ const PEMUAT_RUTE = new Map([
   ["/teka-teki-rush", () => import("../halaman/TekaTekiRush/TekaTekiRush.jsx")],
   ["/quiz-catur", () => import("../halaman/QuizCatur/QuizCatur.jsx")],
   ["/papan-interaktif", () => import("../halaman/PapanInteraktif/Workspace.jsx")],
+  [
+    "/program-kami/latihan-repertoar",
+    () => import("../halaman/ProgramKami/LatihanRepertoarLanding.jsx"),
+  ],
+  ["/program-kami/hand-brain", () => import("../halaman/ProgramKami/HandBrainLanding.jsx")],
+  ["/program-kami/turing-test", () => import("../halaman/ProgramKami/TuringTestLanding.jsx")],
   ["/papan-interaktif/manusia-vs-mesin", () => import("../halaman/ManusiaVsMesin/ManusiaVsMesin.jsx")],
   ["/papan-interaktif/latihan-repertoar", () => import("../halaman/LatihanRepertoar/LatihanRepertoar.jsx")],
   ["/papan-interaktif/hand-brain", () => import("../halaman/HandBrain/HandBrain.jsx")],
