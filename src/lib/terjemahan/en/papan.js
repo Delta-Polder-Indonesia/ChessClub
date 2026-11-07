@@ -266,6 +266,8 @@ export const papan = {
     repertoarJumlahJalur: "{jumlah} lines",
     repertoarJumlahJatuhTempo: "{jumlah} positions due",
     repertoarJumlahPosisi: "{jumlah} positions",
+    repertoarProgresLatihan: "Practice",
+    repertoarMulaiBelajar: "Start learning",
     repertoarJatuhTempo: "{jumlah} positions ready to practice",
     repertoarMulai: "Start practice",
     repertoarBelumJatuhTempo: "Not due yet",

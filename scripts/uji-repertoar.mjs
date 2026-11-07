@@ -7,7 +7,9 @@ import {
   indeksJalurPembukaan,
   jadwalkanKartu,
   kartuBerikutnya,
+  INTERVAL_MATANG_MS,
   posisiAkhirJalur,
+  progresJalur,
   uraiUci,
 } from "../src/halaman/LatihanRepertoar/repertoarLogika.js";
 import { Chess } from "chess.js";
@@ -90,6 +92,30 @@ assert.ok(
 assert.equal(posisiAkhirJalur([]), null, "jalur kosong tidak menghasilkan pratinjau");
 assert.equal(posisiAkhirJalur(["e2e5"]), null, "langkah tidak sah membatalkan pratinjau");
 assert.equal(posisiAkhirJalur(null), null, "argumen kosong aman");
+
+/*
+ * Progres kartu katalog: persen dihitung dari kartu "matang" (interval
+ * tinjauan ≥ tiga minggu), dan FEN mini-board memakai posisi SESUDAH langkah
+ * pemain pada kartu terdalam.
+ */
+const kartuProgres = [
+  { ...kartuPutih[0], intervalMs: INTERVAL_MATANG_MS },
+  { ...kartuPutih[1], intervalMs: INTERVAL_MATANG_MS - 1 },
+  { ...kartuPutih[2], intervalMs: 0 },
+];
+const progres = progresJalur(kartuProgres);
+assert.equal(progres.total, 3, "total posisi dihitung");
+assert.equal(progres.matang, 1, "hanya kartu ber-interval ≥ 21 hari yang matang");
+assert.equal(progres.persen, 33, "persen dibulatkan dari kartu matang");
+assert.ok(
+  progres.fenAkhir?.startsWith("r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R b"),
+  "mini board memakai posisi sesudah langkah kartu terdalam",
+);
+assert.deepEqual(
+  progresJalur([]),
+  { total: 0, matang: 0, persen: 0, fenAkhir: null },
+  "jalur tanpa kartu tidak menghasilkan progres palsu",
+);
 
 await simpanKartuRepertoar([kartuPutih[0], kartuPutih[1]]);
 const tersimpan = await bacaKartuRepertoar();

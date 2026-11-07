@@ -343,7 +343,15 @@ test("repertoar: papan pratinjau muncul setelah jalur dipilih", async ({ page })
   await expect(papan.locator("[data-petak]")).toHaveCount(64);
   // Bidak yang tersisa setelah jalur dijalankan (bisa ada tangkapan).
   expect(await papan.locator('[data-bidak]:not([data-bidak=""])').count()).toBeGreaterThan(20);
-  await expect(page.getByRole("button", { name: papanId.repertoarSimpanJalur })).toBeVisible();
+
+  // Simpan jalur → kembali ke katalog berbentuk kartu dengan progres latihan.
+  await page.getByRole("button", { name: papanId.repertoarSimpanJalur }).click();
+  const kartu = page.locator("[data-kartu-repertoar]").first();
+  await expect(kartu).toBeVisible();
+  await expect(kartu.getByRole("img", { name: /Pratinjau posisi jalur|Position preview for the/ })).toBeVisible();
+  await expect(kartu.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "0");
+  await expect(kartu).toContainText(papanId.repertoarProgresLatihan);
+  await expect(kartu.getByRole("button", { name: papanId.repertoarMulaiBelajar })).toBeVisible();
 
   expect(galat).toEqual([]);
 });

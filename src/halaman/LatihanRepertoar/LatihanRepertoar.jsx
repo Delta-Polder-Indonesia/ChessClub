@@ -12,6 +12,7 @@ import {
   jadwalkanKartu,
   kartuBerikutnya,
   posisiAkhirJalur,
+  progresJalur,
   uraiUci,
 } from "./repertoarLogika.js";
 import {
@@ -172,13 +173,17 @@ export default function LatihanRepertoar({ pengaturan = null }) {
           warna: item.warna,
           jumlah: 0,
           jatuhTempo: 0,
+          daftarKartu: [],
         };
         map.set(item.lineId, jalur);
       }
       jalur.jumlah += 1;
+      jalur.daftarKartu.push(item);
       if (Number(item.dueAt) <= sekarang) jalur.jatuhTempo += 1;
     }
-    return [...map.values()].sort((a, b) => a.nama.localeCompare(b.nama));
+    return [...map.values()]
+      .map((jalur) => ({ ...jalur, ...progresJalur(jalur.daftarKartu) }))
+      .sort((a, b) => a.nama.localeCompare(b.nama));
   }, [kartu, sekarang]);
 
   async function tambahJalur() {
@@ -653,15 +658,61 @@ export default function LatihanRepertoar({ pengaturan = null }) {
               </div>
               <ul className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
                 {daftarRepertoar.map((jalur) => (
-                  <li key={jalur.lineId} className="flex flex-col gap-3 rounded-lg border border-[#312e2b] bg-[#211f1c] p-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="text-[10px] font-bold uppercase tracking-wide text-[#a3d168]">{jalur.eco} · {jalur.warna === "w" ? t("papan.pvePutih") : t("papan.pveHitam")}</p>
-                        <h2 className="mt-1 text-sm font-bold text-white">{jalur.nama}</h2>
+                  <li
+                    key={jalur.lineId}
+                    data-kartu-repertoar={jalur.lineId}
+                    className="flex flex-col gap-3 rounded-lg border border-[#312e2b] bg-[#211f1c] p-4 transition hover:border-[#45423d]"
+                  >
+                    {/* Papan mini + identitas: meniru kartu katalog pembukaan. */}
+                    <div className="flex items-start gap-3">
+                      <div className="w-[88px] shrink-0">
+                        {jalur.fenAkhir ? (
+                          <PapanStatis
+                            fen={jalur.fenAkhir}
+                            orientasi={jalur.warna}
+                            setBidak={pp.bidak}
+                            ariaLabel={t("papan.repertoarPratinjau", { nama: jalur.nama })}
+                          />
+                        ) : (
+                          <div className="aspect-square w-full rounded border border-[#312e2b] bg-[#262421]" />
+                        )}
                       </div>
-                      <span className="shrink-0 rounded bg-[#262421] px-2 py-1 text-[10px] text-gray-400">{t("papan.repertoarJumlahPosisi", { jumlah: jalur.jumlah })}</span>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[10px] font-bold uppercase tracking-wide text-[#a3d168]">
+                          {jalur.eco} · {jalur.warna === "w" ? t("papan.pvePutih") : t("papan.pveHitam")}
+                        </p>
+                        <h2 className="mt-1 line-clamp-2 text-sm font-bold text-white" title={jalur.nama}>
+                          {jalur.nama}
+                        </h2>
+                        <p className="mt-1 text-[11px] text-gray-500">
+                          {t("papan.repertoarJumlahPosisi", { jumlah: jalur.jumlah })}
+                        </p>
+                      </div>
                     </div>
-                    <p className="text-xs text-gray-400">{t("papan.repertoarJatuhTempo", { jumlah: jalur.jatuhTempo })}</p>
+
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center justify-between text-[11px]">
+                        <span className="text-gray-400">{t("papan.repertoarProgresLatihan")}</span>
+                        <span className="font-semibold text-[#a3d168]">{jalur.persen}%</span>
+                      </div>
+                      <div
+                        role="progressbar"
+                        aria-label={t("papan.repertoarProgresLatihan")}
+                        aria-valuenow={jalur.persen}
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                        className="h-1.5 w-full overflow-hidden rounded-full bg-[#312e2b]"
+                      >
+                        <div
+                          className="h-full rounded-full bg-[#81b64c] transition-[width] duration-300"
+                          style={{ width: `${jalur.persen}%` }}
+                        />
+                      </div>
+                      <p className="text-[11px] text-gray-500">
+                        {t("papan.repertoarJatuhTempo", { jumlah: jalur.jatuhTempo })}
+                      </p>
+                    </div>
+
                     <div className="mt-auto flex gap-2">
                       <button
                         type="button"
@@ -669,7 +720,7 @@ export default function LatihanRepertoar({ pengaturan = null }) {
                         onClick={() => mulaiLatihan(jalur.lineId)}
                         className="flex-1 rounded-md bg-[#81b64c] px-3 py-2 text-xs font-bold text-[#1e1c18] hover:bg-[#91c45a] disabled:cursor-not-allowed disabled:opacity-40"
                       >
-                        {jalur.jatuhTempo ? t("papan.repertoarMulai") : t("papan.repertoarBelumJatuhTempo")}
+                        {jalur.jatuhTempo ? t("papan.repertoarMulaiBelajar") : t("papan.repertoarBelumJatuhTempo")}
                       </button>
                       <button
                         type="button"

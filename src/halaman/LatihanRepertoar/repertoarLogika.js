@@ -10,6 +10,14 @@ const SEPULUH_MENIT = 10 * 60 * 1000;
  */
 export const BATAS_INTERVAL_MS = 365 * HARI;
 
+/**
+ * Ambang "sudah dikuasai" untuk progres kartu katalog: kartu yang jarak
+ * tinjauannya sudah mencapai tiga minggu dianggap menempel di ingatan.
+ * Ambang ini sengaja dihitung dari `intervalMs` (bukan `repetitions`) supaya
+ * kartu lama yang dinilai "Sulit" berulang tidak ikut dihitung matang.
+ */
+export const INTERVAL_MATANG_MS = 21 * HARI;
+
 export function idJalurPembukaan({ eco, nama, warna }) {
   return encodeURIComponent(`${eco}|${nama}|${warna}`);
 }
@@ -159,6 +167,43 @@ export function uraiUci(uci) {
 export function cocokLangkahBuku(pindah, expectedUci) {
   if (!pindah || !expectedUci) return false;
   return `${pindah.from}${pindah.to}` === String(expectedUci).slice(0, 4);
+}
+
+/**
+ * Ringkasan satu jalur untuk kartu katalog: jumlah posisi, berapa yang sudah
+ * dikuasai, persentase, dan FEN akhir untuk gambar papan mini.
+ *
+ * FEN akhir diambil dari kartu terdalam (`ply` terbesar) lalu langkah
+ * `expectedUci` kartu itu dijalankan — kartu menyimpan posisi SEBELUM langkah
+ * pemain, sehingga tanpa langkah tambahan papannya akan tampak mundur satu ply.
+ */
+export function progresJalur(kartuJalur = []) {
+  const daftar = (Array.isArray(kartuJalur) ? kartuJalur : []).filter(Boolean);
+  const total = daftar.length;
+  const matang = daftar.filter((kartu) => (Number(kartu.intervalMs) || 0) >= INTERVAL_MATANG_MS).length;
+
+  const terdalam = daftar.reduce(
+    (pilihan, kartu) => (!pilihan || Number(kartu.ply) > Number(pilihan.ply) ? kartu : pilihan),
+    null,
+  );
+
+  let fenAkhir = null;
+  if (terdalam?.fen) {
+    try {
+      const game = new Chess(terdalam.fen);
+      const urai = uraiUci(terdalam.expectedUci);
+      if (urai && game.move(urai)) fenAkhir = game.fen();
+    } catch {
+      fenAkhir = null;
+    }
+  }
+
+  return {
+    total,
+    matang,
+    persen: total ? Math.round((matang / total) * 100) : 0,
+    fenAkhir,
+  };
 }
 
 /**
