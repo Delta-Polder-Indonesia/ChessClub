@@ -438,5 +438,21 @@ test("repertoar: papan pratinjau muncul setelah jalur dipilih", async ({ page })
     expect(kotak.papan.lebar).toBeGreaterThanOrEqual(kotak.lebarLayar - 80);
   }
 
+  // Mode Tantangan berdiri di samping latihan: papan + dasbor sendiri
+  // (`data-dasbor-tantangan`), tanpa panel jadwal tinjauan, dan bisa dimulai
+  // dari kartu katalog walau belum ada kartu jatuh tempo.
+  await page.locator("[data-dasbor-latihan] button[aria-label]").click();
+  const kartuKatalog = page.locator("[data-kartu-repertoar]").first();
+  await expect(kartuKatalog).toBeVisible();
+  await kartuKatalog.getByRole("button", { name: papanId.repertoarTantangan }).click();
+
+  const dasborTantangan = page.locator("[data-dasbor-tantangan]");
+  await expect(dasborTantangan).toBeVisible();
+  await expect(dasborTantangan.locator("h1")).toHaveText(papanId.repertoarTantanganJudul);
+  await expect(dasborTantangan.getByRole("timer")).toBeVisible();
+  await expect(page.locator("[data-papan-tantangan] [data-petak]")).toHaveCount(64);
+  await expect(page.locator("[data-dasbor-latihan]")).toHaveCount(0);
+  await expect(dasborTantangan).toContainText(papanId.repertoarTantanganDeskripsi.split("{detik}")[0].trim());
+
   expect(galat).toEqual([]);
 });

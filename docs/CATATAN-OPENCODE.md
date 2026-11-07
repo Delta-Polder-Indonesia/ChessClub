@@ -46,6 +46,8 @@ Jalankan dari akar repo. Pastikan dependensi sudah terpasang dengan `npm ci --in
 
 ```bash
 # Tes unit per fitur (cepat)
+npm run uji:repertoar        # aturan latihan + tantangan (murni, tanpa DOM)
+npm run uji:tantangan        # Mode Tantangan di jsdom (butuh jsdom + fake-indexeddb)
 npm run uji:hand-brain
 npm run uji:turing            # turingLogika + turingLichess
 npm run uji:wawasan-rating
@@ -72,7 +74,8 @@ Catatan:
 ## 4. Yang belum dikerjakan (sengaja)
 
 - **Lawan Maia (CSSLab)**: ditunda. Bobot `maia3_simplified.onnx` (sekitar 45 MB) berasal dari repositori GPL-3.0 dan lisensi bobotnya belum diverifikasi. Jangan menyalin kode mereka; hanya idenya yang boleh dipakai. Sandbox juga tidak bisa mengunduh bobot dari host model.
-- **Opening drill**: belum dikerjakan. Latihan Repertoar sudah mencakup sebagian besar kebutuhannya, jadi nilai tambahnya dinilai kecil.
+- **Opening drill**: belum dikerjakan sebagai mode terpisah. Kebutuhannya sudah dijawab dua cara di Latihan Repertoar: latihan berjadwal (SRS) dan **Mode Tantangan** (seluruh jalur berurutan, tanpa petunjuk, batas waktu 30 detik per langkah, rekor terpisah di `localStorage` `kci.papan.tantangan.v1`).
+- **Mode Tantangan — rekor hanya lokal**: rekor dan poin belum dikirim ke akun/server (sama seperti jadwal SRS repertoar) dan belum ada papan peringkat. Kalau nanti dipusatkan, `tantanganLogika.js` adalah satu-satunya tempat aturan skor; jangan menaruh logika skor di komponen.
 
 ## 5. Yang perlu dilaporkan kembali
 

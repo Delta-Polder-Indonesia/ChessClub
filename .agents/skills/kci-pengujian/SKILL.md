@@ -24,7 +24,7 @@ Rincian per area (frontend, analisa, backend, konten, e2e) ada di
   `uji:akun-database`, `uji:tarik-api`, `uji:buku-analisa`, `uji:lencana-skakmat`, `uji:tanda-papan`,
   `uji:animasi-bidak`, `uji:glob-aset`, `uji:render-bidak`,
   `uji:evaluasi-manusia-vs-mesin`, `uji:bantuan-langkah`,
-  `uji:repertoar`, `uji:sunfish`, `uji:tekateki-solusi`, `uji:tekateki-alur`,
+  `uji:repertoar`, `uji:tantangan`, `uji:sunfish`, `uji:tekateki-solusi`, `uji:tekateki-alur`,
   `uji:tekateki-rute`, `uji:rush`,
   `uji:api-csrf`, `uji:sesi-ebook`, `uji:kerangka-penuh`, `uji:quiz`, `uji:gambar`,
   `uji-identitas` (node langsung), `uji:skema`, `uji-ebook` (node langsung),
@@ -103,6 +103,7 @@ Rincian per area (frontend, analisa, backend, konten, e2e) ada di
   selesainya bisa diatur eksplisit; setiap bagian memasang mount React baru supaya pekerjaan
   Worker palsu yang menggantung dari bagian sebelumnya tidak mencemari bagian berikutnya.
 - `npm run uji:repertoar` — pemilihan jalur pembukaan, kartu per warna, jadwal pengulangan, dan penyimpanan IndexedDB.
+- `npm run uji:tantangan` — Mode Tantangan Latihan Repertoar di jsdom dengan IndexedDB palsu: entri dari kartu katalog dan panel pembukaan, langkah buku vs langkah salah vs waktu habis, poin/akurasi, rekor per jalur di `localStorage`, dan bukti jadwal SRS kartu latihan tidak berubah. Aturan murninya diuji lebih dulu di `scripts/uji-repertoar.mjs`.
 - `npm run uji:desain` — mengaudit keluarga halaman konten publik, bukan UI catur/fitur. Pemeriksaan menolak penambahan ukuran arbitrary, teks terlalu kecil, gradient, glassmorphism, radius/shadow berlebihan, hover-scale, serta `<button>`, `<table>`, dan `<svg>` ad-hoc terhadap baseline per berkas. Konten baru wajib melalui `PageBagian`/`components/konten`. Visual catur reusable berpusat di `src/halaman/Analisa/komponen/` dan diverifikasi melalui rangkaian uji Analisa/papan/teka-teki yang relevan; Program non-catur dan Pengurus mengikuti uji domainnya. Baseline hanya boleh diperbarui setelah audit dan persetujuan perubahan standar.
 - `npm run uji:sunfish` — engine lawan level pemula (`public/engines/sunfish/sunfish.js`):
   lisensi/atribusi GPL di header, protokol UCI termasuk `position fen` dan cabang Web Worker,

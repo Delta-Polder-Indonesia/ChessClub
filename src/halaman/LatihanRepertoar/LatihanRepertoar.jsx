@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Chess } from "chess.js";
 import PapanTekaTeki from "../TekaTeki/PapanTekaTeki.jsx";
 import Back from "../PapanInteraktif/bersama/ikon/back.jsx";
@@ -25,6 +25,14 @@ import { FEN_AWAL } from "../PapanInteraktif/bersama/konstanta.js";
 import { PENGATURAN_AWAL, usePengaturanPapan } from "../PapanInteraktif/bersama/gunakanPengaturanPapan.js";
 import { usePengaturanBersama } from "../PapanInteraktif/bersama/PengaturanKonteks.jsx";
 import TataLetakModePapan from "../PapanInteraktif/bersama/TataLetakModePapan.jsx";
+import {
+  BATAS_WAKTU_LANGKAH_MS,
+  bacaRekor,
+  catatRekor,
+  nilaiLangkahTantangan,
+  ringkasTantangan,
+  susunTantangan,
+} from "./tantanganLogika.js";
 import { Link, useNavigate } from "react-router-dom";
 import { useTandaBantu } from "../../lib/tandaBantu.js";
 import PapanStatis from "../../components/PapanStatis.jsx";
@@ -88,6 +96,10 @@ export default function LatihanRepertoar({ pengaturan = null }) {
   // Halaman pembukaan (gaya "Garis 1/2"): kunci pembukaan + indeks garis aktif.
   const [pembukaanAktif, setPembukaanAktif] = useState(null);
   const [indeksGaris, setIndeksGaris] = useState(0);
+  // Mode Tantangan: satu percobaan menjalankan seluruh jalur tanpa petunjuk.
+  const [tantangan, setTantangan] = useState(null);
+  const [detikTantangan, setDetikTantangan] = useState(0);
+  const [rekorTantangan, setRekorTantangan] = useState({ streakTerbaik: 0, poin: 0, baru: false });
   const { tanda, tandaPetak, tandaPanah, hapusSemuaTanda } = useTandaBantu();
 
   useEffect(() => {
@@ -110,6 +122,58 @@ export default function LatihanRepertoar({ pengaturan = null }) {
     const timer = setInterval(() => setSekarang(Date.now()), 60_000);
     return () => clearInterval(timer);
   }, []);
+
+  /**
+   * Tutup percobaan: hitung ringkasan, simpan rekor, tampilkan hasil.
+   *
+   * Dideklarasikan sebagai `useCallback` supaya efek waktu habis bisa
+   * memanggilnya tanpa mematikan aturan dependensi React Hooks.
+   */
+  const selesaikanTantangan = useCallback(
+    ({ benar, streakTerbaik, poin, alasan = null, san = null }) => {
+      if (!tantangan || tantangan.selesai) return;
+      const ringkasan = ringkasTantangan({
+        total: tantangan.soal.length,
+        benar,
+        streakTerbaik,
+        poin,
+        alasan,
+      });
+      const hasil = catatRekor(tantangan.lineId, ringkasan);
+      setRekorTantangan({ ...hasil.rekor, baru: hasil.baru });
+      setTantangan((lama) => (lama ? { ...lama, selesai: ringkasan, jawabanSalah: san } : lama));
+    },
+    [tantangan],
+  );
+
+  /*
+   * Jam Mode Tantangan. Sisa waktu diturunkan dari `mulaiMs` + `Date.now()`
+   * (bukan dihitung mundur dari nilai sebelumnya), jadi tab yang sempat
+   * dibekukan peramban tidak memberi waktu tambahan.
+   */
+  useEffect(() => {
+    if (tampilan !== "tantangan" || !tantangan || tantangan.selesai) return undefined;
+    const hitung = () => {
+      const sisaMs = BATAS_WAKTU_LANGKAH_MS - (Date.now() - tantangan.mulaiMs);
+      setDetikTantangan(Math.max(0, Math.ceil(sisaMs / 1000)));
+    };
+    hitung();
+    const jam = setInterval(hitung, 250);
+    return () => clearInterval(jam);
+  }, [tampilan, tantangan]);
+
+  // Waktu habis: percobaan berhenti dengan alasan "waktu" (bukan "salah").
+  useEffect(() => {
+    if (tampilan !== "tantangan" || !tantangan || tantangan.selesai) return;
+    if (detikTantangan > 0) return;
+    selesaikanTantangan({
+      benar: tantangan.indeks,
+      streakTerbaik: tantangan.streakTerbaik,
+      poin: tantangan.poin,
+      alasan: "waktu",
+      san: tantangan.soal[tantangan.indeks]?.expectedSan ?? null,
+    });
+  }, [detikTantangan, tampilan, tantangan, selesaikanTantangan]);
 
   // Otomatis hapus pesan status setelah 5 detik agar layar tidak penuh teks.
   useEffect(() => {
@@ -391,6 +455,171 @@ export default function LatihanRepertoar({ pengaturan = null }) {
     setKartu((lama) => lama.filter((item) => item.lineId !== lineId));
     if (!berhasil) setPesan(t("papan.repertoarPenyimpananTerbatas"));
     else setPesan("");
+  }
+
+  /**
+   * Mulai satu percobaan Mode Tantangan dari kartu tersimpan satu jalur.
+   *
+   * Tantangan tidak memakai jadwal tinjauan: seluruh langkah jalur dimainkan
+   * berurutan, jadi bisa dimulai kapan pun walau belum ada kartu jatuh tempo.
+   */
+  function mulaiTantangan(jalur, asalPaksa = null) {
+    const soal = susunTantangan(jalur?.daftarKartu);
+    if (!soal.length) {
+      setPesan(t("papan.repertoarTantanganKosong"));
+      return;
+    }
+    setRekorTantangan({ ...bacaRekor(jalur.lineId), baru: false });
+    setTantangan({
+      asal: asalPaksa ?? (tampilan === "pembukaan" ? "pembukaan" : "koleksi"),
+      lineId: jalur.lineId,
+      nama: jalur.nama,
+      eco: jalur.eco,
+      warna: jalur.warna,
+      soal,
+      indeks: 0,
+      streak: 0,
+      streakTerbaik: 0,
+      poin: 0,
+      mulaiMs: Date.now(),
+      selesai: null,
+      jawabanSalah: null,
+    });
+    setDetikTantangan(Math.ceil(BATAS_WAKTU_LANGKAH_MS / 1000));
+    setFen(soal[0].fen);
+    setLangkahAkhir(null);
+    setTerpilih(null);
+    setSasaran([]);
+    setLangkahSalah(null);
+    setPesan("");
+    hapusSemuaTanda();
+    setTampilan("tantangan");
+  }
+
+  function cobaLagiTantangan() {
+    const jalur = daftarRepertoar.find((item) => item.lineId === tantangan?.lineId);
+    if (jalur) mulaiTantangan(jalur, tantangan.asal);
+  }
+
+  function pilihPetakTantangan(square) {
+    if (!tantangan || tantangan.selesai) return;
+    if (!POLA_PETAK.test(square)) {
+      setTerpilih(null);
+      setSasaran([]);
+      return;
+    }
+    if (terpilih === square) {
+      setTerpilih(null);
+      setSasaran([]);
+      return;
+    }
+    try {
+      const game = new Chess(fen);
+      const piece = game.get(square);
+      if (piece && piece.color === tantangan.warna && game.turn() === tantangan.warna) {
+        setTerpilih(square);
+        setSasaran(game.moves({ square, verbose: true }).map((move) => move.to));
+      } else {
+        setTerpilih(null);
+        setSasaran([]);
+      }
+    } catch {
+      setTerpilih(null);
+      setSasaran([]);
+    }
+  }
+
+  function jawabTantangan(from, to) {
+    if (!tantangan || tantangan.selesai) return;
+    if (!POLA_PETAK.test(from) || !POLA_PETAK.test(to)) return;
+    const soal = tantangan.soal[tantangan.indeks];
+    if (!soal) return;
+
+    const game = new Chess(fen);
+    const piece = game.get(from);
+    const promotion = piece?.type === "p" && (to.endsWith("1") || to.endsWith("8")) ? "q" : undefined;
+    let pindah = null;
+    try {
+      pindah = game.move({ from, to, ...(promotion ? { promotion } : {}) });
+    } catch {
+      // Langkah ilegal: `pindah` tetap null dan pesan ditampilkan di bawah.
+    }
+    if (!pindah) {
+      setPesan(t("papan.repertoarLangkahIlegal"));
+      setTerpilih(null);
+      setSasaran([]);
+      return;
+    }
+
+    setTerpilih(null);
+    setSasaran([]);
+    setPesan("");
+
+    const nilai = nilaiLangkahTantangan({
+      expectedUci: soal.expectedUci,
+      jawabanUci: `${pindah.from}${pindah.to}${pindah.promotion || ""}`,
+      durasiMs: Date.now() - tantangan.mulaiMs,
+    });
+
+    // Salah atau lewat batas waktu: percobaan berhenti di langkah ini.
+    if (!nilai.benar) {
+      setLangkahSalah(pindah.san);
+      selesaikanTantangan({
+        benar: tantangan.indeks,
+        streakTerbaik: tantangan.streakTerbaik,
+        poin: tantangan.poin,
+        alasan: nilai.alasan,
+        san: soal.expectedSan || null,
+      });
+      return;
+    }
+
+    // Papan dimajukan dengan langkah BUKU (aturan yang sama dengan latihan).
+    const buku = new Chess(soal.fen);
+    const urai = uraiUci(soal.expectedUci);
+    let langkahBuku = null;
+    try {
+      langkahBuku = urai ? buku.move(urai) : null;
+    } catch {
+      // Kartu rusak: papan tetap di posisi soal berikutnya, tanpa sorotan.
+    }
+
+    const indeksBaru = tantangan.indeks + 1;
+    const streakBaru = tantangan.streak + 1;
+    const streakTerbaik = Math.max(tantangan.streakTerbaik, streakBaru);
+    const poinBaru = tantangan.poin + nilai.poin;
+    setLangkahSalah(null);
+
+    if (indeksBaru >= tantangan.soal.length) {
+      if (langkahBuku) {
+        setFen(buku.fen());
+        setLangkahAkhir({ from: langkahBuku.from, to: langkahBuku.to });
+      }
+      setTantangan((lama) =>
+        lama ? { ...lama, indeks: indeksBaru, streak: streakBaru, streakTerbaik, poin: poinBaru } : lama,
+      );
+      selesaikanTantangan({ benar: indeksBaru, streakTerbaik, poin: poinBaru });
+      return;
+    }
+
+    const berikut = tantangan.soal[indeksBaru];
+    setTantangan((lama) =>
+      lama
+        ? {
+            ...lama,
+            indeks: indeksBaru,
+            streak: streakBaru,
+            streakTerbaik,
+            poin: poinBaru,
+            mulaiMs: Date.now(),
+          }
+        : lama,
+    );
+    setDetikTantangan(Math.ceil(BATAS_WAKTU_LANGKAH_MS / 1000));
+    setFen(berikut.fen);
+    // Posisi soal berikutnya sudah melewati balasan lawan, jadi sorotan
+    // langkah terakhir dikosongkan agar tidak menunjuk bidak yang keliru.
+    setLangkahAkhir(null);
   }
 
   /*
@@ -745,6 +974,260 @@ export default function LatihanRepertoar({ pengaturan = null }) {
     );
   }
 
+  /*
+   * Mode Tantangan — papan yang sama, tanpa panel jadwal tinjauan. Satu
+   * percobaan menjalankan seluruh jalur berurutan; sekali salah atau habis
+   * waktu, percobaan berhenti dan hasilnya dicatat sebagai rekor terpisah.
+   */
+  if (tampilan === "tantangan" && tantangan) {
+    const sisiTantangan = tantangan.warna === "w" ? t("papan.pvePutih") : t("papan.pveHitam");
+    const jumlahSoal = tantangan.soal.length;
+    const nomorSoal = Math.min(tantangan.indeks + 1, jumlahSoal);
+    const hasil = tantangan.selesai;
+    const persenWaktu = Math.max(
+      0,
+      Math.min(100, Math.round((detikTantangan * 1000 * 100) / BATAS_WAKTU_LANGKAH_MS)),
+    );
+    const teksAlasan = hasil
+      ? hasil.alasan === "waktu"
+        ? t("papan.repertoarTantanganWaktu", { langkah: tantangan.jawabanSalah || "—" })
+        : t("papan.repertoarTantanganSalah", { langkah: tantangan.jawabanSalah || "—" })
+      : "";
+
+    return (
+      <TataLetakModePapan
+        judul={t("papan.menuLatihanRepertoar")}
+        tautan={{ to: "/program-kami/latihan-repertoar", label: t("papan.modeTentang") }}
+        pengaturan={sumberPengaturan}
+      >
+      <section aria-label={t("papan.repertoarTantanganJudul")} className="h-full min-h-0 overflow-y-auto">
+        <div
+          data-bungkus-tantangan
+          className="mx-auto flex w-full max-w-[1400px] flex-col gap-4 p-4 sm:gap-6 sm:p-6"
+        >
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,520px)_minmax(0,480px)] lg:items-start lg:justify-center lg:gap-6">
+            <div
+              data-kolom-papan
+              className="mx-auto flex w-full max-w-[520px] min-w-0 flex-col justify-center lg:mx-0 lg:max-w-[min(520px,calc(100dvh-140px),calc(100vw-634px))]"
+            >
+              <BarisProfil
+                nama={tantangan.warna === "w" ? t("papan.pveHitam") : t("papan.pvePutih")}
+                putih={tantangan.warna === "b"}
+                tangkapan={[]}
+                setBidak={pp.bidak}
+                tanpaJorokan
+                className="mb-2 w-full"
+              />
+
+              <div data-papan-tantangan className="relative w-full min-w-0">
+                <PapanTekaTeki
+                  fen={fen}
+                  orientasi={tantangan.warna}
+                  terpilih={terpilih}
+                  sasaran={sasaran}
+                  langkahAkhir={langkahAkhir}
+                  terkunci={Boolean(hasil)}
+                  membeku={false}
+                  tanda={tanda}
+                  setBidak={pp.bidak}
+                  tema={pp.warnaPapan}
+                  onKlik={(square) => {
+                    if (terpilih && sasaran.includes(square)) jawabTantangan(terpilih, square);
+                    else pilihPetakTantangan(square);
+                  }}
+                  onJatuh={jawabTantangan}
+                  onTandaPetak={tandaPetak}
+                  onTandaPanah={tandaPanah}
+                  onHapusTanda={hapusSemuaTanda}
+                />
+              </div>
+
+              <BarisProfil
+                nama={t("papan.pveAnda")}
+                putih={tantangan.warna === "w"}
+                tangkapan={[]}
+                setBidak={pp.bidak}
+                namaDiBawah
+                tanpaJorokan
+                className="mt-3 w-full"
+              />
+            </div>
+
+            {/* Dasbor tantangan: waktu, kemajuan langkah, rentetan, poin, rekor. */}
+            <aside
+              data-dasbor-tantangan
+              className="flex min-w-0 flex-col gap-5 self-start rounded-2xl border border-[#312e2b] bg-[#211f1c] p-4 text-sm text-gray-200 shadow-[0_18px_45px_-30px_rgba(0,0,0,0.9)] sm:p-6"
+            >
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTampilan(tantangan.asal);
+                    setTantangan(null);
+                  }}
+                  title={t("papan.repertoarKembali")}
+                  aria-label={t("papan.repertoarKembali")}
+                  className="shrink-0 rounded-lg p-2 text-gray-400 transition hover:bg-[#312e2b] hover:text-white"
+                >
+                  <Back />
+                </button>
+                <h1 className="truncate text-lg font-bold text-white">
+                  {t("papan.repertoarTantanganJudul")}
+                </h1>
+              </div>
+              <div aria-hidden="true" className="h-px w-full bg-[#363431]" />
+
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="rounded bg-[#2c2926] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#a3d168]">
+                    {tantangan.eco || "—"}
+                  </span>
+                  <span className="rounded bg-[#2c2926] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-gray-300">
+                    {sisiTantangan}
+                  </span>
+                </div>
+                <h2 className="mt-2 text-lg font-bold leading-tight text-white">{tantangan.nama}</h2>
+                <p className="mt-1 text-xs text-gray-500">
+                  {t("papan.repertoarSisiDimainkan", { sisi: sisiTantangan })}
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+                    {t("papan.repertoarTantanganLangkah", { sekarang: nomorSoal, total: jumlahSoal })}
+                  </span>
+                  <span
+                    role="timer"
+                    className={`text-sm font-bold ${persenWaktu <= 30 && !hasil ? "text-amber-300" : "text-[#a3d168]"}`}
+                  >
+                    {t("papan.repertoarTantanganSisa", { detik: detikTantangan })}
+                  </span>
+                </div>
+                <div aria-hidden="true" className="h-2 w-full overflow-hidden rounded-full bg-[#312e2b]">
+                  <div
+                    className={`h-full rounded-full transition-[width] duration-200 ${persenWaktu <= 30 && !hasil ? "bg-amber-400" : "bg-[#81b64c]"}`}
+                    style={{ width: `${persenWaktu}%` }}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-xl border border-[#312e2b] bg-[#262421] p-3">
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+                    {t("papan.repertoarTantanganStreak")}
+                  </p>
+                  <p className="mt-1 text-base font-bold text-white">{tantangan.streak}</p>
+                </div>
+                <div className="rounded-xl border border-[#312e2b] bg-[#262421] p-3">
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+                    {t("papan.repertoarTantanganPoin")}
+                  </p>
+                  <p className="mt-1 text-base font-bold text-[#a3d168]">{tantangan.poin}</p>
+                </div>
+              </div>
+
+              <p className="text-[11px] text-gray-500">
+                {t("papan.repertoarTantanganRekor", {
+                  streak: Math.max(rekorTantangan.streakTerbaik, tantangan.streakTerbaik),
+                  poin: Math.max(rekorTantangan.poin, tantangan.poin),
+                })}
+              </p>
+
+              {hasil ? (
+                <div
+                  data-hasil-tantangan
+                  aria-live="polite"
+                  className="flex flex-col gap-3 rounded-xl border border-[#312e2b] bg-[#262421] p-3"
+                >
+                  <p className="text-sm font-bold text-white">
+                    {hasil.selesai
+                      ? t("papan.repertoarTantanganBerhasil")
+                      : teksAlasan}
+                  </p>
+                  <dl className="grid grid-cols-2 gap-2 text-xs">
+                    <div>
+                      <dt className="text-[10px] uppercase tracking-wide text-gray-500">
+                        {t("papan.repertoarAkurasi")}
+                      </dt>
+                      <dd className="font-bold text-white">
+                        {t("papan.repertoarTantanganAkurasi", { persen: hasil.akurasi })}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-[10px] uppercase tracking-wide text-gray-500">
+                        {t("papan.repertoarTantanganStreak")}
+                      </dt>
+                      <dd className="font-bold text-white">{hasil.streakTerbaik}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-[10px] uppercase tracking-wide text-gray-500">
+                        {t("papan.repertoarTantanganPoin")}
+                      </dt>
+                      <dd className="font-bold text-[#a3d168]">{hasil.poin}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-[10px] uppercase tracking-wide text-gray-500">
+                        {t("papan.repertoarProgresLatihan")}
+                      </dt>
+                      <dd className="font-bold text-white">
+                        {hasil.benar}
+                        <span className="text-xs font-semibold text-gray-500">
+                          {" / "}
+                          {hasil.total}
+                        </span>
+                      </dd>
+                    </div>
+                  </dl>
+                  {rekorTantangan.baru && (
+                    <p className="text-xs font-bold text-[#a3d168]">
+                      {t("papan.repertoarTantanganRekorBaru")}
+                    </p>
+                  )}
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={cobaLagiTantangan}
+                      className="rounded-lg bg-[#81b64c] px-3 py-2.5 text-xs font-bold text-[#1e1c18] transition hover:bg-[#91c45a]"
+                    >
+                      {t("papan.repertoarTantanganCobaLagi")}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setTampilan(tantangan.asal);
+                        setTantangan(null);
+                      }}
+                      className="rounded-lg border border-[#363431] bg-[#262421] px-3 py-2.5 text-xs font-semibold text-gray-200 transition hover:border-[#81b64c] hover:text-white"
+                    >
+                      {t("papan.repertoarKembali")}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div aria-live="polite" className="flex flex-col gap-1.5">
+                  <p className="rounded-xl border border-[#363431] bg-[#262421] px-3 py-2.5 text-sm text-gray-200">
+                    {t("papan.repertoarInstruksi")}
+                  </p>
+                  <p className="text-[11px] leading-relaxed text-gray-500">
+                    {t("papan.repertoarTantanganDeskripsi", {
+                      detik: Math.round(BATAS_WAKTU_LANGKAH_MS / 1000),
+                    })}
+                  </p>
+                </div>
+              )}
+
+              <p className="border-t border-[#312e2b] pt-3 text-[11px] leading-relaxed text-gray-500">
+                {t("papan.repertoarJadwalLokal")}
+              </p>
+            </aside>
+          </div>
+        </div>
+      </section>
+      </TataLetakModePapan>
+    );
+  }
+
   return (
     <TataLetakModePapan
       judul={t("papan.menuLatihanRepertoar")}
@@ -1021,6 +1504,15 @@ export default function LatihanRepertoar({ pengaturan = null }) {
             >
               {garisAktif.jatuhTempo ? t("papan.repertoarMulai") : t("papan.repertoarBelumJatuhTempo")}
             </button>
+            {/* Tantangan selalu bisa dimulai: seluruh jalur dimainkan dari awal,
+                tidak menunggu kartu jatuh tempo dan tidak menyentuh jadwalnya. */}
+            <button
+              type="button"
+              onClick={() => mulaiTantangan(garisAktif)}
+              className="rounded-md border border-[#81b64c] px-3 py-2.5 text-sm font-bold text-[#a3d168] transition hover:bg-[#2b3a22] hover:text-white"
+            >
+              {t("papan.repertoarTantanganMulai")}
+            </button>
             <button
               type="button"
               onClick={() => setJalurAkanDihapus(garisAktif)}
@@ -1104,6 +1596,13 @@ export default function LatihanRepertoar({ pengaturan = null }) {
                         className="flex-1 rounded-md bg-[#81b64c] px-3 py-2 text-xs font-bold text-[#1e1c18] hover:bg-[#91c45a]"
                       >
                         {t("papan.repertoarMulaiBelajar")}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => mulaiTantangan(jalur)}
+                        className="rounded-md border border-[#81b64c] px-3 py-2 text-xs font-bold text-[#a3d168] transition hover:bg-[#2b3a22] hover:text-white"
+                      >
+                        {t("papan.repertoarTantangan")}
                       </button>
                       <button
                         type="button"

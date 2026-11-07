@@ -19,6 +19,19 @@ import {
   hapusJalurRepertoar,
   simpanKartuRepertoar,
 } from "../src/halaman/LatihanRepertoar/repertoarStorage.js";
+import {
+  AMBANG_CEPAT_MS,
+  BATAS_WAKTU_LANGKAH_MS,
+  KUNCI_REKOR,
+  POIN_CEPAT,
+  POIN_DASAR,
+  bacaRekor,
+  catatRekor,
+  nilaiLangkahTantangan,
+  poinLangkah,
+  ringkasTantangan,
+  susunTantangan,
+} from "../src/halaman/LatihanRepertoar/tantanganLogika.js";
 
 const sekarang = 1_700_000_000_000;
 const jalur = indeksJalurPembukaan([
@@ -249,6 +262,103 @@ assert.deepEqual(
 await hapusJalurRepertoar("ujiA");
 assert.equal((await bacaKartuRepertoar()).length, 0, "repertoar uji bersih di akhir");
 
+/* ------------------------------------------------------- Mode Tantangan */
+
+// Soal disusun dari kartu yang sudah tersimpan, urut ply, tanpa membuka buku.
+const soalPutih = susunTantangan([...kartuPutih].reverse());
+assert.deepEqual(
+  soalPutih.map((soal) => soal.expectedSan),
+  ["e4", "Nf3", "Bb5"],
+  "soal tantangan diurutkan menurut ply, bukan urutan simpan",
+);
+assert.deepEqual(
+  Object.keys(soalPutih[0]).sort(),
+  ["expectedSan", "expectedUci", "fen", "ply"],
+  "soal hanya membawa yang dibutuhkan papan",
+);
+assert.deepEqual(susunTantangan([]), [], "tanpa kartu tidak ada soal");
+assert.deepEqual(
+  susunTantangan([null, { ply: 0 }, { ply: 2, fen: "x", expectedUci: "e2e4" }]).length,
+  1,
+  "kartu tanpa fen/langkah dilewati",
+);
+
+// Poin: dasar, dengan bonus bila dijawab cepat.
+assert.equal(poinLangkah(AMBANG_CEPAT_MS), POIN_DASAR + POIN_CEPAT, "tepat di ambang cepat masih bonus");
+assert.equal(poinLangkah(AMBANG_CEPAT_MS + 1), POIN_DASAR, "lewat ambang cepat hanya poin dasar");
+
+// Penilaian langkah.
+assert.deepEqual(
+  nilaiLangkahTantangan({ expectedUci: "e2e4", jawabanUci: "e2e4", durasiMs: 1200 }),
+  { benar: true, alasan: null, poin: POIN_DASAR + POIN_CEPAT },
+  "langkah buku yang cepat dinilai benar + bonus",
+);
+assert.deepEqual(
+  nilaiLangkahTantangan({ expectedUci: "g1f3", jawabanUci: "b1c3", durasiMs: 800 }),
+  { benar: false, alasan: "salah", poin: 0 },
+  "langkah lain dinilai salah",
+);
+assert.deepEqual(
+  nilaiLangkahTantangan({ expectedUci: "e2e4", jawabanUci: "e2e4", durasiMs: BATAS_WAKTU_LANGKAH_MS + 5 }),
+  { benar: false, alasan: "waktu", poin: 0 },
+  "jawaban yang melewati batas waktu dihitung habis waktu",
+);
+assert.equal(
+  nilaiLangkahTantangan({ expectedUci: "e7e8q", jawabanUci: "e7e8n" }).benar,
+  true,
+  "promosi berbeda bidak tetap benar (aturan yang sama dengan latihan)",
+);
+assert.equal(
+  nilaiLangkahTantangan({ expectedUci: "e2e4", jawabanUci: null }).alasan,
+  "waktu",
+  "tanpa jawaban berarti waktu habis",
+);
+
+// Ringkasan.
+assert.deepEqual(
+  ringkasTantangan({ total: 3, benar: 3, streakTerbaik: 3, poin: 40 }),
+  { total: 3, benar: 3, akurasi: 100, selesai: true, alasan: null, streakTerbaik: 3, poin: 40 },
+  "semua benar berarti percobaan selesai",
+);
+assert.deepEqual(
+  ringkasTantangan({ total: 3, benar: 1, streakTerbaik: 1, poin: 10, alasan: "waktu" }),
+  { total: 3, benar: 1, akurasi: 33, selesai: false, alasan: "waktu", streakTerbaik: 1, poin: 10 },
+  "gagal menyimpan alasan dan akurasi",
+);
+assert.equal(ringkasTantangan({ total: 0 }).akurasi, 0, "tanpa soal akurasi nol, bukan NaN");
+assert.equal(ringkasTantangan({ total: 2, benar: 5 }).benar, 2, "jawaban benar tidak melebihi jumlah soal");
+
+// Rekor disimpan per jalur dan hanya naik.
+const gudangTantangan = new Map();
+const penyimpananUji = {
+  getItem: (k) => (gudangTantangan.has(k) ? gudangTantangan.get(k) : null),
+  setItem: (k, v) => gudangTantangan.set(k, String(v)),
+};
+assert.deepEqual(bacaRekor("jalurA", penyimpananUji), { streakTerbaik: 0, poin: 0 }, "rekor awal nol");
+assert.deepEqual(
+  catatRekor("jalurA", { streakTerbaik: 2, poin: 25 }, penyimpananUji),
+  { rekor: { streakTerbaik: 2, poin: 25 }, baru: true, tersimpan: true },
+  "percobaan pertama menjadi rekor",
+);
+assert.equal(
+  catatRekor("jalurA", { streakTerbaik: 1, poin: 10 }, penyimpananUji).baru,
+  false,
+  "hasil yang lebih rendah tidak menurunkan rekor",
+);
+assert.deepEqual(bacaRekor("jalurA", penyimpananUji), { streakTerbaik: 2, poin: 25 }, "rekor tersimpan");
+assert.deepEqual(bacaRekor("jalurB", penyimpananUji), { streakTerbaik: 0, poin: 0 }, "rekor per jalur terpisah");
+assert.ok(JSON.parse(gudangTantangan.get(KUNCI_REKOR)).jalurA, "kunci penyimpanan rekor sesuai kontrak");
+assert.deepEqual(
+  bacaRekor("jalurA", { getItem: () => "{bukan json" }),
+  { streakTerbaik: 0, poin: 0 },
+  "isi rusak tidak membuat halaman galat",
+);
+assert.deepEqual(
+  catatRekor("jalurA", { streakTerbaik: 9, poin: 99 }, { getItem: () => null, setItem: () => { throw new Error("kuota"); } }),
+  { rekor: { streakTerbaik: 9, poin: 99 }, baru: true, tersimpan: false },
+  "penyimpanan menolak: rekor sesi ini tetap dilaporkan",
+);
+
 console.log(
-  "OK — pemilihan jalur, kartu per giliran, jadwal tinjauan, IndexedDB + cermin localStorage repertoar.",
+  "OK — pemilihan jalur, kartu per giliran, jadwal tinjauan, IndexedDB + cermin localStorage repertoar, mode tantangan (waktu, poin, rekor).",
 );
