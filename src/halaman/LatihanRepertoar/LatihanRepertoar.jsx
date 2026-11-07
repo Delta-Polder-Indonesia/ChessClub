@@ -11,6 +11,7 @@ import {
   indeksJalurPembukaan,
   jadwalkanKartu,
   kartuBerikutnya,
+  posisiAkhirJalur,
   uraiUci,
 } from "./repertoarLogika.js";
 import {
@@ -23,6 +24,7 @@ import { PENGATURAN_AWAL, usePengaturanPapan } from "../PapanInteraktif/bersama/
 import { usePengaturanBersama } from "../PapanInteraktif/bersama/PengaturanKonteks.jsx";
 import { Link } from "react-router-dom";
 import { useTandaBantu } from "../../lib/tandaBantu.js";
+import PapanStatis from "../../components/PapanStatis.jsx";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -138,6 +140,25 @@ export default function LatihanRepertoar({ pengaturan = null }) {
     () => jalurCocok.slice(0, batasKatalog),
     [jalurCocok, batasKatalog],
   );
+
+  /*
+   * Pratinjau posisi akhir jalur untuk panel kanan. Cukup `PapanStatis`:
+   * papan pemutar penuh (`PapanTekaTeki`) akan menarik chunk besar dan
+   * mengaktifkan seret bidak yang tidak diperlukan di layar pemilihan.
+   */
+  const pratinjauJalur = useMemo(
+    () => posisiAkhirJalur(jalurTerpilih?.moves),
+    [jalurTerpilih],
+  );
+
+  const teksLangkahPratinjau = useMemo(() => {
+    if (!pratinjauJalur) return "";
+    return pratinjauJalur.san
+      .map((langkah, indeks) =>
+        indeks % 2 === 0 ? `${Math.floor(indeks / 2) + 1}. ${langkah}` : langkah,
+      )
+      .join(" ");
+  }, [pratinjauJalur]);
 
   const daftarRepertoar = useMemo(() => {
     const map = new Map();
@@ -525,7 +546,10 @@ export default function LatihanRepertoar({ pengaturan = null }) {
             </div>
           ) : (
             <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(250px,0.8fr)]">
-              <div className="min-h-[220px] overflow-y-auto rounded-md border border-[#312e2b] bg-[#211f1c]">
+              <div
+                data-katalog="pembukaan"
+                className="min-h-[220px] overflow-y-auto rounded-md border border-[#312e2b] bg-[#211f1c]"
+              >
                 {!bukuSiap ? null : jalurTersaring.length ? (
                   <ul>
                     {jalurTersaring.map((jalur) => (
@@ -576,10 +600,29 @@ export default function LatihanRepertoar({ pengaturan = null }) {
                       <h2 className="mt-1 text-base font-bold text-white">{jalurTerpilih.nama}</h2>
                       <p className="mt-2 text-xs text-gray-500">{t("papan.repertoarPly", { jumlah: jalurTerpilih.moves.length })}</p>
                     </div>
+
+                    {/* Isi ruang kosong di tengah panel: posisi akhir jalur. */}
+                    {pratinjauJalur && (
+                      <figure className="mt-auto flex flex-col items-center gap-2">
+                        <div className="w-full max-w-[300px]">
+                          <PapanStatis
+                            fen={pratinjauJalur.fen}
+                            orientasi={warnaLatihan}
+                            terakhir={pratinjauJalur.terakhir}
+                            setBidak={pp.bidak}
+                            ariaLabel={t("papan.repertoarPratinjau", { nama: jalurTerpilih.nama })}
+                          />
+                        </div>
+                        <figcaption className="w-full text-center font-mono text-[10px] leading-relaxed text-gray-500">
+                          {teksLangkahPratinjau}
+                        </figcaption>
+                      </figure>
+                    )}
+
                     <button
                       type="button"
                       onClick={() => void tambahJalur()}
-                      className="mt-auto rounded-md bg-[#81b64c] px-3 py-2.5 text-sm font-bold text-[#1e1c18] hover:bg-[#91c45a]"
+                      className={`rounded-md bg-[#81b64c] px-3 py-2.5 text-sm font-bold text-[#1e1c18] hover:bg-[#91c45a] ${pratinjauJalur ? "" : "mt-auto"}`}
                     >
                       {t("papan.repertoarSimpanJalur")}
                     </button>

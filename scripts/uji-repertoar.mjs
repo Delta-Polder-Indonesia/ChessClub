@@ -7,6 +7,7 @@ import {
   indeksJalurPembukaan,
   jadwalkanKartu,
   kartuBerikutnya,
+  posisiAkhirJalur,
   uraiUci,
 } from "../src/halaman/LatihanRepertoar/repertoarLogika.js";
 import { Chess } from "chess.js";
@@ -75,6 +76,20 @@ const posisiPromosi = new Chess("4k3/3P4/8/8/8/8/8/4K3 w - - 0 1");
 const papanBuku = new Chess(posisiPromosi.fen());
 papanBuku.move(uraiUci("d7d8q"));
 assert.ok(papanBuku.fen().startsWith("3Qk3"), "papan dimajukan dengan bidak promosi buku (ratu)");
+
+/*
+ * Pratinjau posisi di layar pemilihan jalur (papan statis panel kanan).
+ */
+const pratinjau = posisiAkhirJalur(["e2e4", "e7e5", "g1f3"]);
+assert.deepEqual(pratinjau.san, ["e4", "e5", "Nf3"], "SAN pratinjau urut sesuai jalur");
+assert.deepEqual(pratinjau.terakhir, { from: "g1", to: "f3" }, "petak langkah terakhir ditandai");
+assert.ok(
+  pratinjau.fen.startsWith("rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b"),
+  "FEN pratinjau adalah posisi akhir jalur",
+);
+assert.equal(posisiAkhirJalur([]), null, "jalur kosong tidak menghasilkan pratinjau");
+assert.equal(posisiAkhirJalur(["e2e5"]), null, "langkah tidak sah membatalkan pratinjau");
+assert.equal(posisiAkhirJalur(null), null, "argumen kosong aman");
 
 await simpanKartuRepertoar([kartuPutih[0], kartuPutih[1]]);
 const tersimpan = await bacaKartuRepertoar();

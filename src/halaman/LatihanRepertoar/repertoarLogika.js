@@ -161,6 +161,31 @@ export function cocokLangkahBuku(pindah, expectedUci) {
   return `${pindah.from}${pindah.to}` === String(expectedUci).slice(0, 4);
 }
 
+/**
+ * Posisi akhir sebuah jalur untuk pratinjau (papan statis di layar pemilihan).
+ * Mengembalikan `null` bila jalur kosong atau ada langkah yang tidak sah —
+ * papan lalu tidak ditampilkan, bukan menampilkan posisi yang menyesatkan.
+ */
+export function posisiAkhirJalur(moves) {
+  const daftar = Array.isArray(moves) ? moves : [];
+  if (!daftar.length) return null;
+  const game = new Chess();
+  let terakhir = null;
+  const san = [];
+  for (const uci of daftar) {
+    const urai = uraiUci(uci);
+    if (!urai) return null;
+    try {
+      const pindah = game.move(urai);
+      terakhir = { from: pindah.from, to: pindah.to };
+      san.push(pindah.san);
+    } catch {
+      return null;
+    }
+  }
+  return { fen: game.fen(), terakhir, san };
+}
+
 export function kartuBerikutnya(kartu, lineId, sekarang = Date.now()) {
   return (
     kartu

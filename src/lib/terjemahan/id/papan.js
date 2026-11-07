@@ -293,6 +293,7 @@ export const papan = {
       "Penyimpanan perangkat menolak menyimpan — progres mungkin hilang saat halaman ditutup.",
     repertoarLangkahIlegal: "Langkah tidak diizinkan.",
     repertoarPlyPendek: "{jumlah} ply",
+    repertoarPratinjau: "Pratinjau posisi jalur {nama}",
     repertoarHapusJudul: "Hapus jalur ini?",
     repertoarHapusDeskripsi:
       "Jalur \"{nama}\" beserta {jumlah} posisi latihan dan jadwal tinjauannya akan dihapus dari perangkat ini. Tindakan ini tidak bisa dibatalkan.",

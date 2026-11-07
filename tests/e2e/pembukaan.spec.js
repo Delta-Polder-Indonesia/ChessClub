@@ -309,3 +309,41 @@ for (const [bahasa, kamus] of [["id", papanId], ["en", papanEn]]) {
     expect(galat).toEqual([]);
   });
 }
+
+/**
+ * Pratinjau papan di layar "Tambah jalur" Repertoar.
+ *
+ * Panel kanan layar pemilihan dulu hanya berisi teks dan ruang kosong; sejak
+ * revisi, posisi akhir jalur yang dipilih digambar dengan `PapanStatis`.
+ * Uji ini menjaga dua hal sekaligus: klik baris katalog benar-benar memilih
+ * jalur, dan papan pratinjau muncul lengkap 64 petak tanpa galat halaman.
+ */
+test("repertoar: papan pratinjau muncul setelah jalur dipilih", async ({ page }) => {
+  test.setTimeout(120_000);
+  const galat = [];
+  page.on("pageerror", (error) => galat.push(error.message));
+
+  // Kunci bahasa dipatok seperti uji lain supaya label tombol dapat diprediksi
+  // (peramban CI memakai locale en-US).
+  await page.addInitScript(() => localStorage.setItem("kci-bahasa", "id"));
+  await page.goto("/papan-interaktif/latihan-repertoar");
+  await expect(page.getByRole("heading", { name: papanId.repertoarJudul })).toBeVisible({
+    timeout: 30_000,
+  });
+
+  await page.getByRole("button", { name: papanId.repertoarTambahJalur }).first().click();
+
+  // Katalog pembukaan ±4 MB: beri waktu lebih longgar daripada bawaan.
+  const daftar = page.locator('[data-katalog="pembukaan"] li > button').first();
+  await expect(daftar).toBeVisible({ timeout: 60_000 });
+  await daftar.click();
+
+  const papan = page.getByRole("img", { name: /Pratinjau posisi jalur|Position preview for the/ });
+  await expect(papan).toBeVisible();
+  await expect(papan.locator("[data-petak]")).toHaveCount(64);
+  // Bidak yang tersisa setelah jalur dijalankan (bisa ada tangkapan).
+  expect(await papan.locator('[data-bidak]:not([data-bidak=""])').count()).toBeGreaterThan(20);
+  await expect(page.getByRole("button", { name: papanId.repertoarSimpanJalur })).toBeVisible();
+
+  expect(galat).toEqual([]);
+});

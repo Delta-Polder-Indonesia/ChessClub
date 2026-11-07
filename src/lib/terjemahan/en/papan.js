@@ -293,6 +293,7 @@ export const papan = {
       "This device refused to save — progress may be lost when the page is closed.",
     repertoarLangkahIlegal: "Illegal move.",
     repertoarPlyPendek: "{jumlah} ply",
+    repertoarPratinjau: "Position preview for the {nama} line",
     repertoarHapusJudul: "Delete this line?",
     repertoarHapusDeskripsi:
       "\"{nama}\" with {jumlah} practice positions and its review schedule will be deleted from this device. This cannot be undone.",
