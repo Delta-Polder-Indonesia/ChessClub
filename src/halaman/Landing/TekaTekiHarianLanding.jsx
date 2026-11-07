@@ -31,7 +31,6 @@ import { Chess } from "chess.js";
 import { useI18n } from "../../lib/i18n.jsx";
 import { Tombol } from "../../components/Tombol.jsx";
 import { ArrowRightIcon } from "../../components/icons.jsx";
-import CincinKemajuan from "../../components/CincinKemajuan.jsx";
 import PapanTekaTeki from "../TekaTeki/PapanTekaTeki.jsx";
 import {
   AlertDialog,
@@ -382,9 +381,15 @@ export default function TekaTekiHarianLanding() {
     >
       <div className="relative mx-auto w-full max-w-[1440px]">
         <div className="grid items-center gap-x-6 gap-y-10 xl:grid-cols-[minmax(260px,0.95fr)_minmax(360px,1.3fr)_minmax(230px,0.85fr)] xl:gap-x-8">
-          {/* Kiri: progres dan pintu masuk ke halaman teka-teki penuh. */}
-          <div className="flex min-w-0 flex-col justify-center gap-y-6 xl:min-h-[440px]">
-            <header className="flex flex-col gap-y-2">
+          {/* Kiri: susunan mengikuti HomeWelcomeMessage, HomeRatingProgress, dan GameTowerProgress. */}
+          <div
+            data-component="HomeLayoutDesktopLeft"
+            className="flex min-w-0 flex-col justify-center gap-y-6 xl:min-h-[440px]"
+          >
+            <header
+              data-component="HomeWelcomeMessage"
+              className="flex flex-col gap-y-2"
+            >
               <h2 className="font-serif text-2xl font-semibold leading-tight text-grey-800">
                 Lanjutkan kerja baikmu!
               </h2>
@@ -395,25 +400,67 @@ export default function TekaTekiHarianLanding() {
 
             <section
               aria-label="Progres teka-teki harian"
-              data-kartu-peringkat
-              className="flex items-center gap-5 border border-grey-200 bg-paper p-4 sm:gap-6 sm:p-5"
+              data-component="HomeRatingProgress"
+              className="flex min-w-0 items-center gap-4 py-2 sm:gap-5"
             >
-              <CincinKemajuan
-                ukuran={124}
-                nilai={jatahTerpakai}
-                maks={BATAS_HARIAN}
-                label="Progres"
-                nilaiTeks={`${jatahTerpakai} dari ${BATAS_HARIAN}`}
-                catatan={t("landing.harianKartuNilaiSisa", { n: sisaJatah })}
-              />
+              <div className="relative inline-flex h-[110px] w-[110px] shrink-0 items-center justify-center">
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 110 110"
+                  className="h-full w-full"
+                  fill="none"
+                >
+                  <circle
+                    r="54"
+                    cx="55"
+                    cy="55"
+                    stroke="currentColor"
+                    strokeWidth="0.5"
+                    strokeDasharray="254.469 339.292"
+                    strokeDashoffset="0"
+                    className="text-grey-200"
+                    strokeLinecap="butt"
+                    transform="rotate(135 55 55)"
+                    shapeRendering="geometricPrecision"
+                  />
+                  <circle
+                    r="54"
+                    cx="55"
+                    cy="55"
+                    stroke="currentColor"
+                    strokeWidth="0.5"
+                    strokeDasharray="254.469 339.292"
+                    strokeDashoffset={254.469 * (1 - jatahTerpakai / BATAS_HARIAN)}
+                    className="text-primary transition-[stroke-dashoffset] duration-700 ease-in-out"
+                    strokeLinecap="butt"
+                    transform="rotate(135 55 55)"
+                    shapeRendering="geometricPrecision"
+                  />
+                </svg>
+              </div>
+
               <div className="flex min-w-0 flex-1 flex-col gap-y-1">
-                <p className="font-sans text-sm font-semibold text-grey-800">
-                  Peringkat
-                </p>
-                <p className="font-sans text-sm text-grey-600">
-                  Perkiraan
-                </p>
-                <p className="font-serif text-xl font-semibold leading-tight text-grey-800">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex min-w-0 flex-col gap-y-1">
+                    <p className="font-sans text-sm font-semibold text-grey-800">
+                      Progres
+                    </p>
+                    <p className="font-sans text-sm text-grey-600">
+                      Teka-teki harian
+                    </p>
+                  </div>
+                  <span
+                    role="img"
+                    aria-label="Informasi progres harian"
+                    title="Progres dihitung dari jumlah soal harian yang telah diselesaikan."
+                    className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center text-grey-600"
+                  >
+                    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor">
+                      <path d="M12.03 18.01a.9.9 0 0 0 .67-.27.9.9 0 0 0 .27-.67.9.9 0 0 0-.27-.66.91.91 0 0 0-.67-.27.9.9 0 0 0-.67.27.91.91 0 0 0-.27.67c0 .26.1.48.28.66.18.18.4.27.66.27m-.61-3.94 1.15 0c.03-.52.13-.94.29-1.26.16-.32.5-.74 1.01-1.24.53-.53.93-1 1.19-1.43.26-.42.39-.9.39-1.46 0-.94-.33-1.68-1-2.24a3.51 3.51 0 0 0-2.33-.84c-.86 0-1.58.24-2.18.7-.6.47-1.04 1-1.32 1.6l1.1.46c.19-.43.46-.82.82-1.15.35-.33.86-.5 1.53-.5.78 0 1.34.21 1.7.64.35.42.53.89.53 1.4 0 .4-.11.78-.34 1.1-.22.32-.5.65-.87.98a6.06 6.06 0 0 0-1.35 1.62 3.6 3.6 0 0 0-.32 1.62M12 22.5a10.83 10.83 0 0 1-9.87-6.53c-.56-1.3-.84-2.7-.84-4.18a10.83 10.83 0 0 1 6.53-9.87c1.3-.57 2.7-.85 4.18-.85a10.83 10.83 0 0 1 9.87 6.53c.56 1.3.84 2.7.84 4.18a10.83 10.83 0 0 1-6.53 9.87c-1.3.57-2.7.85-4.18.85m0-1.19a9.2 9.2 0 0 0 6.76-2.77 9.2 9.2 0 0 0 2.76-6.75 9.2 9.2 0 0 0-2.76-6.76A9.2 9.2 0 0 0 12 2.26a9.2 9.2 0 0 0-6.76 2.77 9.2 9.2 0 0 0-2.76 6.76 9.2 9.2 0 0 0 2.76 6.75A9.2 9.2 0 0 0 12 21.31" />
+                    </svg>
+                  </span>
+                </div>
+                <p className="font-serif text-2xl font-semibold leading-tight text-grey-800">
                   {jatahTerpakai} dari {BATAS_HARIAN}
                 </p>
                 <p className="font-sans text-sm leading-relaxed text-grey-600">
@@ -423,29 +470,37 @@ export default function TekaTekiHarianLanding() {
             </section>
 
             <section
-              aria-label="Progres menara teka-teki"
-              data-kartu-menara
-              className="flex flex-col gap-y-4 border border-grey-200 bg-paper p-5"
+              aria-label="Jatah teka-teki harian"
+              data-component="GameTowerProgress"
+              className="flex min-w-0 flex-col gap-y-4 border-t border-grey-200 pt-4"
             >
               <div className="flex items-center justify-between gap-4">
-                <div className="flex flex-col gap-y-1">
-                  <h3 className="font-sans text-base font-semibold text-grey-800">
-                    Menara
-                  </h3>
-                  <p className="font-sans text-sm text-grey-600">
-                    Level 1
-                  </p>
+                <div className="flex min-w-0 items-center gap-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center border border-grey-200 text-grey-800">
+                    <svg aria-hidden="true" viewBox="0 0 16 16" className="h-4 w-4" fill="none">
+                      <path d="M0.75 6.1 8 0.75l7.25 5.35v9.15H0.75V6.1Z" stroke="currentColor" strokeWidth="1.1" />
+                    </svg>
+                  </div>
+                  <div className="flex min-w-0 flex-col gap-y-0.5">
+                    <h3 className="font-sans text-base font-semibold text-grey-800">
+                      Jatah harian
+                    </h3>
+                    <p className="font-sans text-sm text-grey-600">
+                      Teka-teki
+                    </p>
+                  </div>
                 </div>
-                <div className="flex items-baseline gap-1 font-serif text-xl font-semibold text-grey-800">
+                <div className="flex shrink-0 items-baseline gap-1 font-serif text-xl font-semibold text-grey-800">
                   <span>{jatahTerpakai}</span>
                   <span className="font-sans text-sm font-normal text-grey-600">
                     / {BATAS_HARIAN}
                   </span>
                 </div>
               </div>
+
               <div
                 role="progressbar"
-                aria-label="Progres teka-teki harian"
+                aria-label="Progres jatah teka-teki harian"
                 aria-valuemin={0}
                 aria-valuemax={BATAS_HARIAN}
                 aria-valuenow={jatahTerpakai}
@@ -453,11 +508,16 @@ export default function TekaTekiHarianLanding() {
                   n: jatahTerpakai,
                   total: BATAS_HARIAN,
                 })}
-                className="h-2 w-full overflow-hidden bg-grey-200"
+                className="relative h-1.5 w-full bg-grey-200"
               >
                 <div
-                  className="h-full bg-primary transition-[width] duration-300"
+                  className="absolute inset-y-0 left-0 bg-primary transition-[width] duration-300"
                   style={{ width: `${(jatahTerpakai / BATAS_HARIAN) * 100}%` }}
+                />
+                <span
+                  aria-hidden="true"
+                  className="absolute top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 bg-primary"
+                  style={{ left: `${(jatahTerpakai / BATAS_HARIAN) * 100}%` }}
                 />
               </div>
               <div className="flex items-center justify-between gap-3 font-sans text-xs text-grey-600">
