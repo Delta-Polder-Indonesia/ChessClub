@@ -604,7 +604,7 @@ export default function LatihanRepertoar({ pengaturan = null }) {
                     {/* Isi ruang kosong di tengah panel: posisi akhir jalur. */}
                     {pratinjauJalur && (
                       <figure className="mt-auto flex flex-col items-center gap-2">
-                        <div className="w-full max-w-[300px]">
+                        <div className="w-full max-w-[250px]">
                           <PapanStatis
                             fen={pratinjauJalur.fen}
                             orientasi={warnaLatihan}
