@@ -431,7 +431,7 @@ export default function TekaTekiHarianLanding() {
                     strokeWidth="0.8"
                     strokeDasharray="442.96 590.62"
                     strokeDashoffset={442.96 * (1 - jatahTerpakai / BATAS_HARIAN)}
-                    className="text-primary transition-[stroke-dashoffset] duration-700 ease-in-out"
+                    className="text-grey-800 transition-[stroke-dashoffset] duration-700 ease-in-out"
                     strokeLinecap="butt"
                     transform="rotate(135 100 100)"
                     shapeRendering="geometricPrecision"
