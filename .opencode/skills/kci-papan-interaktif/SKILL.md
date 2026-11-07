@@ -32,6 +32,7 @@ Jangan memindahkan komponen catur ke `src/components/konten/` atau memaksanya me
 | Logika dan penyimpanan repertoar | `src/halaman/LatihanRepertoar/{repertoarLogika,repertoarStorage}.js` |
 | Mode Tantangan (aturan + rekor) | `src/halaman/LatihanRepertoar/tantanganLogika.js`, `scripts/uji-tantangan.mjs` |
 | Pohon cabang + statistik repertoar | `rekonstruksiJalur`/`susunPohonCabang`/`ringkasStatistik` di `repertoarLogika.js`, `scripts/uji-repertoar-ui.mjs` |
+| Catatan modul + pekerjaan tertunda repertoar | `src/halaman/LatihanRepertoar/README.md` |
 | Buku pembukaan (halaman `/papan-interaktif`) | `src/halaman/PapanInteraktif/PapanInteraktif.jsx` |
 | Utilitas papan/riwayat + komponen bersama | `src/halaman/PapanInteraktif/bersama/` (`utilPapan.js`, `BarisProfil.jsx`, tombol langkah, `BilahEvaluasi`, `TangkapanBidak`, `konstanta.js`, `ikon/`) |
 | Ringkasan halaman | `src/halaman/PapanInteraktif/SKILL.md` |
