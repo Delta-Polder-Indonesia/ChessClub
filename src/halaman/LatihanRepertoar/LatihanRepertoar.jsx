@@ -720,14 +720,6 @@ export default function LatihanRepertoar({ pengaturan = null }) {
         >
           <div className="flex min-h-0 flex-col gap-3">
             <div className="flex items-center justify-between gap-2">
-              <button
-                type="button"
-                onClick={() => setTampilan("koleksi")}
-                className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-semibold text-gray-300 transition hover:bg-[#312e2b] hover:text-white"
-              >
-                <Back />
-                {t("papan.repertoarKembali")}
-              </button>
               <span className="rounded bg-[#211f1c] px-2 py-1 text-[11px] text-gray-400">
                 {t("papan.repertoarGaris", {
                   indeks: indeksGaris + 1,
