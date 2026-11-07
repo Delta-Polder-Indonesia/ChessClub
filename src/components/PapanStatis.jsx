@@ -97,7 +97,7 @@ export default function PapanStatis({
                 )}
                 {tampilLajur && (
                   <span
-                    className="absolute bottom-0.5 right-1 font-mono text-[8px] font-bold leading-none"
+                    className="absolute bottom-0.5 right-1 z-10 font-mono text-[8px] font-bold leading-none"
                     style={{ color: terang ? PETAK_GELAP : PETAK_TERANG }}
                   >
                     {FILE[kolom]}
@@ -105,7 +105,7 @@ export default function PapanStatis({
                 )}
                 {tampilBaris && (
                   <span
-                    className="absolute left-1 top-0.5 font-mono text-[8px] font-bold leading-none"
+                    className="absolute left-1 top-0.5 z-10 font-mono text-[8px] font-bold leading-none"
                     style={{ color: terang ? PETAK_GELAP : PETAK_TERANG }}
                   >
                     {RANK[baris]}
