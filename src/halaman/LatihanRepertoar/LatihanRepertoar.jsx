@@ -407,19 +407,6 @@ export default function LatihanRepertoar({ pengaturan = null }) {
       >
         <div className="mx-auto flex w-full max-w-[520px] min-w-0 flex-col lg:w-[min(520px,calc(100dvh-140px),calc(100vw-634px))]">
           <div className="mb-2 flex shrink-0 items-center gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                setTampilan("koleksi");
-                setKartuAktif(null);
-                setJalurAktif(null);
-              }}
-              title={t("papan.repertoarKembali")}
-              aria-label={t("papan.repertoarKembali")}
-              className="shrink-0 rounded-md p-1.5 text-gray-400 transition hover:bg-[#312e2b] hover:text-white"
-            >
-              <Back />
-            </button>
             <h1 className="truncate text-xl font-bold text-white">{t("papan.repertoarJudul")}</h1>
           </div>
           {kartuAktif && (
@@ -473,6 +460,19 @@ export default function LatihanRepertoar({ pengaturan = null }) {
         </div>
 
         <aside className="flex min-h-0 flex-col gap-3 self-stretch rounded-lg border border-[#312e2b] bg-[#211f1c] p-4 text-sm text-gray-200">
+            <button
+              type="button"
+              onClick={() => {
+                setTampilan("koleksi");
+                setKartuAktif(null);
+                setJalurAktif(null);
+              }}
+              title={t("papan.repertoarKembali")}
+              aria-label={t("papan.repertoarKembali")}
+              className="self-start rounded-md p-1.5 text-gray-400 transition hover:bg-[#312e2b] hover:text-white"
+            >
+              <Back />
+            </button>
             <p className="truncate font-semibold text-white">{kartuAktif?.nama || t("papan.repertoarSesi")}</p>
             <div aria-live="polite" className="rounded-md border border-[#363431] bg-[#262421] px-3 py-2 text-sm text-gray-200">
               {statusLatihan === "benar"
