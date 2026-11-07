@@ -55,7 +55,6 @@ import {
   tanggalHariIni,
   warnaGiliran,
 } from "../../lib/tekaTekiHarian.js";
-import { JUDUL_SEKSI, LEAD_SEKSI, LABEL_SEKSI } from "./gayaTeks.jsx";
 
 const RUTE_HARIAN = "/teka-teki-harian";
 const RUTE_GABUNG = "/pendaftaran-anggota";
