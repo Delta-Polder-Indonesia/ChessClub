@@ -361,12 +361,7 @@ export default function TekaTekiHarianLanding() {
   const deskKartu = jatahHabis
     ? t("landing.harianKartuDeskSelesai")
     : t("landing.harianKartuDeskSisa", { n: sisaJatah });
-  /*
-   * Teks kartu kemajuan mengikuti keadaan pemain, bukan satu kalimat statis:
-   * belum mulai, sedang berjalan, lalu selesai. Polanya meniru kartu progres
-   * "Keep it up!" di worldchess.com — satu judul penyemangat, satu kalimat
-   * sisa jatah, lalu segmen + dua angka kecil.
-   */
+  
   const teksStatus = pesan
     ? t(pesan.kunci)
     : t(
@@ -382,7 +377,7 @@ export default function TekaTekiHarianLanding() {
     >
       <div className="relative w-full mx-auto lg:max-w-[960px] xl:max-w-[1280px]">
         <div className="grid gap-y-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,440px)] lg:gap-x-12 lg:items-start">
-          {/* Kiri: susunan mengikuti referensi HomeWelcomeMessage, Rating, dan Tower. */}
+          {/* Kiri: disamakan 100% dengan tata letak referensi */}
           <div className="flex flex-col justify-center gap-y-6 lg:min-h-[440px] lg:max-w-[38rem]">
             <header className="flex flex-col gap-y-2">
               <h2 className="font-serif text-2xl font-semibold leading-tight text-grey-800">
@@ -393,79 +388,65 @@ export default function TekaTekiHarianLanding() {
               </p>
             </header>
 
+            {/* Kartu Progres Peringkat & Menara */}
             <section
-              aria-label="Progres teka-teki harian"
+              aria-label="Progres teka-teki harian dan menara"
               data-kartu-peringkat
-              className="flex items-center gap-6 border border-grey-200 bg-paper p-5 sm:gap-8"
+              className="flex flex-col gap-y-6 border border-grey-200 bg-paper p-6"
             >
-              <CincinKemajuan
-                ukuran={124}
-                nilai={jatahTerpakai}
-                maks={BATAS_HARIAN}
-                label="Progres"
-                nilaiTeks={`${jatahTerpakai} dari ${BATAS_HARIAN}`}
-                catatan={t("landing.harianKartuNilaiSisa", { n: sisaJatah })}
-              />
-              <div className="flex min-w-0 flex-1 flex-col gap-y-1">
-                <p className="font-sans text-sm font-semibold text-grey-800">
-                  Peringkat
-                </p>
-                <p className="font-sans text-sm text-grey-600">
-                  Perkiraan
-                </p>
-                <p className="font-serif text-xl font-semibold leading-tight text-grey-800">
-                  {jatahTerpakai} dari {BATAS_HARIAN}
-                </p>
-                <p className="font-sans text-sm leading-relaxed text-grey-600">
-                  {deskKartu}
-                </p>
-              </div>
-            </section>
-
-            <section
-              aria-label="Progres menara teka-teki"
-              data-kartu-menara
-              className="flex flex-col gap-y-4 border border-grey-200 bg-paper p-5"
-            >
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex flex-col gap-y-1">
-                  <h3 className="font-sans text-base font-semibold text-grey-800">
-                    Menara
-                  </h3>
-                  <p className="font-sans text-sm text-grey-600">
-                    Level 1
+              <div className="flex items-center gap-6 sm:gap-8">
+                <CincinKemajuan
+                  ukuran={124}
+                  nilai={jatahTerpakai}
+                  maks={BATAS_HARIAN}
+                  label="Peringkat Perkiraan"
+                  nilaiTeks={`${jatahTerpakai} dari ${BATAS_HARIAN}`}
+                  catatan={`Mainkan ${BATAS_HARIAN} game untuk memperkirakan`}
+                />
+                <div className="flex min-w-0 flex-1 flex-col gap-y-1">
+                  <p className="font-sans text-xs font-bold uppercase tracking-wider text-grey-600">
+                    Peringkat Perkiraan
+                  </p>
+                  <p className="font-serif text-2xl font-semibold leading-tight text-grey-800">
+                    {jatahTerpakai} dari {BATAS_HARIAN}
+                  </p>
+                  <p className="font-sans text-sm leading-relaxed text-grey-600">
+                    Mainkan {BATAS_HARIAN} game untuk memperkirakan kemampuanmu.
                   </p>
                 </div>
-                <div className="flex items-baseline gap-1 font-serif text-xl font-semibold text-grey-800">
-                  <span>{jatahTerpakai}</span>
-                  <span className="font-sans text-sm font-normal text-grey-600">
-                    / {BATAS_HARIAN}
-                  </span>
+              </div>
+
+              {/* Seksi Menara */}
+              <div className="border-t border-grey-200 pt-5 flex flex-col gap-y-3">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <span className="flex size-8 items-center justify-center rounded bg-grey-100 text-grey-700">
+                      <svg className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M3 21h18M5 21V7l4-4v4h6V3l4 4v14" />
+                      </svg>
+                    </span>
+                    <div className="flex flex-col">
+                      <span className="font-sans text-sm font-semibold text-grey-800">Menara</span>
+                      <span className="font-sans text-xs text-grey-600">Level 1</span>
+                    </div>
+                  </div>
+                  <div className="font-serif text-base font-semibold text-grey-800">
+                    0 / 50
+                  </div>
                 </div>
-              </div>
-              <div
-                role="progressbar"
-                aria-label="Progres teka-teki harian"
-                aria-valuemin={0}
-                aria-valuemax={BATAS_HARIAN}
-                aria-valuenow={jatahTerpakai}
-                aria-valuetext={t("landing.harianKemajuan", {
-                  n: jatahTerpakai,
-                  total: BATAS_HARIAN,
-                })}
-                className="h-2 w-full overflow-hidden bg-grey-200"
-              >
                 <div
-                  className="h-full bg-primary transition-[width] duration-300"
-                  style={{ width: `${(jatahTerpakai / BATAS_HARIAN) * 100}%` }}
-                />
-              </div>
-              <div className="flex items-center justify-between gap-3 font-sans text-xs text-grey-600">
-                <span>{t("landing.harianKartuLabelJatah")}</span>
-                <span>{t("landing.harianKemajuan", {
-                  n: jatahTerpakai,
-                  total: BATAS_HARIAN,
-                })}</span>
+                  role="progressbar"
+                  aria-label="Progres menara"
+                  aria-valuemin={0}
+                  aria-valuemax={50}
+                  aria-valuenow={0}
+                  className="h-2 w-full overflow-hidden bg-grey-200"
+                >
+                  <div
+                    className="h-full bg-primary transition-[width] duration-300"
+                    style={{ width: "0%" }}
+                  />
+                </div>
               </div>
             </section>
 
@@ -616,8 +597,7 @@ export default function TekaTekiHarianLanding() {
         </div>
       </div>
 
-      {/* Dialog ajakan bergabung setelah 5 soal. Radix dipakai supaya fokus
-          terkunci dan Escape berperilaku sama dengan dialog lain di situs. */}
+      {/* Dialog ajakan bergabung setelah 5 soal. */}
       <AlertDialog open={dialogGabung} onOpenChange={setDialogGabung}>
         <AlertDialogContent>
           <AlertDialogHeader>
