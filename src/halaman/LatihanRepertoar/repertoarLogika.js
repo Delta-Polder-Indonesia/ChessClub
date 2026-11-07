@@ -207,6 +207,50 @@ export function progresJalur(kartuJalur = []) {
 }
 
 /**
+ * Kelompokkan ringkasan jalur per pembukaan (ECO + nama) untuk halaman
+ * bergaya "Garis 1/2": satu pembukaan bisa punya dua garis bila pengguna
+ * melatih sisi Putih dan Hitam sekaligus.
+ *
+ * Urutan garis: Putih dulu, lalu Hitam; di dalam sisi yang sama, garis dengan
+ * progres tertinggi tampil lebih dulu supaya stepper membuka yang termahir.
+ */
+export function kelompokkanPerPembukaan(jalurList = []) {
+  const map = new Map();
+  for (const jalur of Array.isArray(jalurList) ? jalurList : []) {
+    if (!jalur || !jalur.lineId) continue;
+    const kunci = `${jalur.eco}|${jalur.nama}`;
+    let grup = map.get(kunci);
+    if (!grup) {
+      grup = { kunci, eco: jalur.eco, nama: jalur.nama, garis: [], jumlah: 0, jatuhTempo: 0 };
+      map.set(kunci, grup);
+    }
+    grup.garis.push(jalur);
+    grup.jumlah += Number(jalur.jumlah) || 0;
+    grup.jatuhTempo += Number(jalur.jatuhTempo) || 0;
+  }
+
+  return [...map.values()]
+    .map((grup) => {
+      const urutanSisi = (jalur) => (jalur.warna === "w" ? 0 : 1);
+      const garis = [...grup.garis].sort(
+        (a, b) =>
+          urutanSisi(a) - urutanSisi(b) || (Number(b.persen) || 0) - (Number(a.persen) || 0),
+      );
+      // Persen pembukaan = rata-rata berbobot jumlah posisi tiap garis.
+      const berbobot = garis.reduce(
+        (jumlah, baris) => jumlah + (Number(baris.persen) || 0) * (Number(baris.jumlah) || 0),
+        0,
+      );
+      return {
+        ...grup,
+        garis,
+        persen: grup.jumlah ? Math.round(berbobot / grup.jumlah) : 0,
+      };
+    })
+    .sort((a, b) => a.nama.localeCompare(b.nama));
+}
+
+/**
  * Posisi akhir sebuah jalur untuk pratinjau (papan statis di layar pemilihan).
  * Mengembalikan `null` bila jalur kosong atau ada langkah yang tidak sah —
  * papan lalu tidak ditampilkan, bukan menampilkan posisi yang menyesatkan.

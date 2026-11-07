@@ -353,5 +353,16 @@ test("repertoar: papan pratinjau muncul setelah jalur dipilih", async ({ page })
   await expect(kartu).toContainText(papanId.repertoarProgresLatihan);
   await expect(kartu.getByRole("button", { name: papanId.repertoarMulaiBelajar })).toBeVisible();
 
+  // Halaman pembukaan gaya "Garis 1/2": papan besar, penunjuk garis, tombol mulai.
+  await kartu.getByRole("button", { name: papanId.repertoarMulaiBelajar }).click();
+  await expect(
+    page.getByRole("img", { name: /Pratinjau posisi jalur|Position preview for the/ }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(papanId.repertoarGaris.replace("{indeks}", "1").replace("{total}", "1")),
+  ).toBeVisible();
+  await expect(page.getByText(papanId.repertoarProgresLatihan).first()).toBeVisible();
+  await expect(page.getByRole("button", { name: papanId.repertoarMulai })).toBeEnabled();
+
   expect(galat).toEqual([]);
 });

@@ -11,6 +11,7 @@ import {
   indeksJalurPembukaan,
   jadwalkanKartu,
   kartuBerikutnya,
+  kelompokkanPerPembukaan,
   posisiAkhirJalur,
   progresJalur,
   uraiUci,
@@ -70,6 +71,9 @@ export default function LatihanRepertoar({ pengaturan = null }) {
   const [langkahSalah, setLangkahSalah] = useState(null);
   const [menyimpan, setMenyimpan] = useState(false);
   const [jalurAkanDihapus, setJalurAkanDihapus] = useState(null);
+  // Halaman pembukaan (gaya "Garis 1/2"): kunci pembukaan + indeks garis aktif.
+  const [pembukaanAktif, setPembukaanAktif] = useState(null);
+  const [indeksGaris, setIndeksGaris] = useState(0);
   const { tanda, tandaPetak, tandaPanah, hapusSemuaTanda } = useTandaBantu();
 
   useEffect(() => {
@@ -185,6 +189,35 @@ export default function LatihanRepertoar({ pengaturan = null }) {
       .map((jalur) => ({ ...jalur, ...progresJalur(jalur.daftarKartu) }))
       .sort((a, b) => a.nama.localeCompare(b.nama));
   }, [kartu, sekarang]);
+
+  const daftarPembukaan = useMemo(
+    () => kelompokkanPerPembukaan(daftarRepertoar),
+    [daftarRepertoar],
+  );
+
+  const pembukaanTerpilih = useMemo(
+    () => daftarPembukaan.find((grup) => grup.kunci === pembukaanAktif) || null,
+    [daftarPembukaan, pembukaanAktif],
+  );
+
+  const garisAktif = pembukaanTerpilih?.garis[indeksGaris] || null;
+
+  function bukaPembukaan(jalur) {
+    const kunci = `${jalur.eco}|${jalur.nama}`;
+    const grup = daftarPembukaan.find((item) => item.kunci === kunci);
+    if (!grup) return;
+    const posisi = grup.garis.findIndex((item) => item.lineId === jalur.lineId);
+    setPembukaanAktif(kunci);
+    setIndeksGaris(posisi >= 0 ? posisi : 0);
+    setTampilan("pembukaan");
+    setPesan("");
+  }
+
+  function pindahGaris(arah) {
+    if (!pembukaanTerpilih) return;
+    const total = pembukaanTerpilih.garis.length;
+    setIndeksGaris((lama) => (lama + arah + total) % total);
+  }
 
   async function tambahJalur() {
     if (!jalurTerpilih) return;
@@ -646,6 +679,125 @@ export default function LatihanRepertoar({ pengaturan = null }) {
             </div>
           )}
         </section>
+      ) : tampilan === "pembukaan" && pembukaanTerpilih && garisAktif ? (
+        /*
+         * Halaman pembukaan bergaya "Garis 1/2": papan pratinjau besar,
+         * identitas pembukaan, progres, dan tombol mulai latihan.
+         */
+        <section
+          aria-label={garisAktif.nama}
+          className="mt-4 grid min-h-0 flex-1 gap-4 lg:grid-cols-[minmax(0,1fr)_320px]"
+        >
+          <div className="flex min-h-0 flex-col gap-3">
+            <div className="flex items-center justify-between gap-2">
+              <button
+                type="button"
+                onClick={() => setTampilan("koleksi")}
+                className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-semibold text-gray-300 transition hover:bg-[#312e2b] hover:text-white"
+              >
+                <Back />
+                {t("papan.repertoarKembali")}
+              </button>
+              <span className="rounded bg-[#211f1c] px-2 py-1 text-[11px] text-gray-400">
+                {t("papan.repertoarGaris", {
+                  indeks: indeksGaris + 1,
+                  total: pembukaanTerpilih.garis.length,
+                })}
+              </span>
+            </div>
+
+            <div className="mx-auto w-full max-w-[380px]">
+              {garisAktif.fenAkhir ? (
+                <PapanStatis
+                  fen={garisAktif.fenAkhir}
+                  orientasi={garisAktif.warna}
+                  setBidak={pp.bidak}
+                  ariaLabel={t("papan.repertoarPratinjau", { nama: garisAktif.nama })}
+                />
+              ) : null}
+            </div>
+
+            {pembukaanTerpilih.garis.length > 1 && (
+              <div className="mx-auto flex w-full max-w-[380px] items-center justify-between gap-2">
+                <button
+                  type="button"
+                  onClick={() => pindahGaris(-1)}
+                  aria-label={t("papan.repertoarGarisSebelumnya")}
+                  className="rounded-md border border-[#363431] px-3 py-1.5 text-xs text-gray-300 transition hover:bg-[#2c2926] hover:text-white"
+                >
+                  ←
+                </button>
+                <span className="text-[11px] text-gray-500">
+                  {pembukaanTerpilih.garis
+                    .map((baris) => (baris.warna === "w" ? t("papan.pvePutih") : t("papan.pveHitam")))
+                    .join(" · ")}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => pindahGaris(1)}
+                  aria-label={t("papan.repertoarGarisBerikutnya")}
+                  className="rounded-md border border-[#363431] px-3 py-1.5 text-xs text-gray-300 transition hover:bg-[#2c2926] hover:text-white"
+                >
+                  →
+                </button>
+              </div>
+            )}
+          </div>
+
+          <aside className="flex flex-col gap-3 rounded-lg border border-[#312e2b] bg-[#211f1c] p-4 text-sm text-gray-200">
+            <p className="text-[10px] font-bold uppercase tracking-wide text-[#a3d168]">
+              {garisAktif.eco} · {garisAktif.warna === "w" ? t("papan.pvePutih") : t("papan.pveHitam")}
+            </p>
+            <h1 className="text-lg font-bold leading-tight text-white">{garisAktif.nama}</h1>
+            <p className="text-xs text-gray-400">
+              {t("papan.repertoarSisiDimainkan", {
+                sisi: garisAktif.warna === "w" ? t("papan.pvePutih") : t("papan.pveHitam"),
+              })}
+            </p>
+            <p className="text-xs text-gray-400">
+              {t("papan.repertoarJumlahPosisi", { jumlah: garisAktif.jumlah })}
+            </p>
+
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="text-gray-400">{t("papan.repertoarProgresLatihan")}</span>
+                <span className="font-semibold text-[#a3d168]">{garisAktif.persen}%</span>
+              </div>
+              <div
+                role="progressbar"
+                aria-label={t("papan.repertoarProgresLatihan")}
+                aria-valuenow={garisAktif.persen}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                className="h-1.5 w-full overflow-hidden rounded-full bg-[#312e2b]"
+              >
+                <div
+                  className="h-full rounded-full bg-[#81b64c] transition-[width] duration-300"
+                  style={{ width: `${garisAktif.persen}%` }}
+                />
+              </div>
+              <p className="text-[11px] text-gray-500">
+                {t("papan.repertoarJatuhTempo", { jumlah: garisAktif.jatuhTempo })}
+              </p>
+            </div>
+
+            <button
+              type="button"
+              disabled={!garisAktif.jatuhTempo}
+              onClick={() => mulaiLatihan(garisAktif.lineId)}
+              className="mt-auto rounded-md bg-[#81b64c] px-3 py-2.5 text-sm font-bold text-[#1e1c18] hover:bg-[#91c45a] disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {garisAktif.jatuhTempo ? t("papan.repertoarMulai") : t("papan.repertoarBelumJatuhTempo")}
+            </button>
+            <button
+              type="button"
+              onClick={() => setJalurAkanDihapus(garisAktif)}
+              className="rounded-md border border-[#363431] px-3 py-2 text-xs text-gray-400 transition hover:border-red-800 hover:text-red-300"
+            >
+              {t("papan.repertoarHapus")}
+            </button>
+          </aside>
+        </section>
       ) : (
         <section className="mt-4 min-h-0 flex-1 overflow-y-auto">
           {memuatKartu ? (
@@ -716,11 +868,10 @@ export default function LatihanRepertoar({ pengaturan = null }) {
                     <div className="mt-auto flex gap-2">
                       <button
                         type="button"
-                        disabled={!jalur.jatuhTempo}
-                        onClick={() => mulaiLatihan(jalur.lineId)}
-                        className="flex-1 rounded-md bg-[#81b64c] px-3 py-2 text-xs font-bold text-[#1e1c18] hover:bg-[#91c45a] disabled:cursor-not-allowed disabled:opacity-40"
+                        onClick={() => bukaPembukaan(jalur)}
+                        className="flex-1 rounded-md bg-[#81b64c] px-3 py-2 text-xs font-bold text-[#1e1c18] hover:bg-[#91c45a]"
                       >
-                        {jalur.jatuhTempo ? t("papan.repertoarMulaiBelajar") : t("papan.repertoarBelumJatuhTempo")}
+                        {t("papan.repertoarMulaiBelajar")}
                       </button>
                       <button
                         type="button"

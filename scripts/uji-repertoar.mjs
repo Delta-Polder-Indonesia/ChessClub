@@ -8,6 +8,7 @@ import {
   jadwalkanKartu,
   kartuBerikutnya,
   INTERVAL_MATANG_MS,
+  kelompokkanPerPembukaan,
   posisiAkhirJalur,
   progresJalur,
   uraiUci,
@@ -116,6 +117,26 @@ assert.deepEqual(
   { total: 0, matang: 0, persen: 0, fenAkhir: null },
   "jalur tanpa kartu tidak menghasilkan progres palsu",
 );
+
+/*
+ * Pengelompokan halaman pembukaan ("Garis 1/2"): satu pembukaan bisa punya
+ * garis Putih dan Hitam; Putih selalu tampil lebih dulu.
+ */
+const grupPembukaan = kelompokkanPerPembukaan([
+  { lineId: "karo:b", eco: "B10", nama: "Caro-Kann", warna: "b", jumlah: 4, jatuhTempo: 2, persen: 50 },
+  { lineId: "karo:w", eco: "B10", nama: "Caro-Kann", warna: "w", jumlah: 6, jatuhTempo: 0, persen: 10 },
+  { lineId: "sisi:w", eco: "B20", nama: "Sicilian", warna: "w", jumlah: 5, jatuhTempo: 5, persen: 0 },
+]);
+assert.equal(grupPembukaan.length, 2, "dua pembukaan berbeda jadi dua kartu");
+assert.deepEqual(
+  grupPembukaan[0].garis.map((garis) => garis.warna),
+  ["w", "b"],
+  "garis Putih tampil lebih dulu",
+);
+assert.equal(grupPembukaan[0].jumlah, 10, "jumlah posisi dijumlahkan per pembukaan");
+assert.equal(grupPembukaan[0].persen, 26, "persen pembukaan = rata-rata berbobot jumlah posisi");
+assert.equal(grupPembukaan[0].jatuhTempo, 2, "posisi siap dilatih dijumlahkan");
+assert.deepEqual(kelompokkanPerPembukaan([]), [], "daftar kosong aman");
 
 await simpanKartuRepertoar([kartuPutih[0], kartuPutih[1]]);
 const tersimpan = await bacaKartuRepertoar();
