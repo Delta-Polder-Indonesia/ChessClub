@@ -9,19 +9,17 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { AlertCircleIcon, CheckCircle2Icon, InfoIcon } from "lucide-react";
 import PanelLayar from "./PanelLayar.jsx";
 import Database from "../svg/database.jsx";
-import Trash from "../svg/trash.jsx";
-import Download from "../svg/download.jsx";
 import Back from "../svg/back.jsx";
-import DualRingSpinner from "../loading/DualRingSpinner.jsx";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "../../../../components/ui/alert-dialog.jsx";
 import { Alert, Alertjudul } from "../../../../components/ui/alert.jsx";
 import { useI18n } from "../../../../lib/i18n.jsx";
 import { ambilDaftarPartai, ambilPartai, ambilSemuaKoleksi, bacaRevisiBasis, bersihkanBasisData, eksporPgnKoleksi, hapusKoleksi, hapusPartai, hitungStatistikBasisData, hitungStatistikKoleksiRingan, langgananRevisi, pastikanKoleksi } from "../../basisData.js";
 import { bacaDaftarAkun } from "../../akun/daftarAkun.js";
-import { BARIS_PER_HALAMAN, formatUkuran, JUMLAH_BARIS_SKELETON, daftarHalaman, BIRU, formatTanggal } from "./database/formatDatabase.js";
-import { DropdownPilih, HeaderTabel, BarisSkeleton, BarisPartai } from "./database/tabelPartai.jsx";
-import { IkonSearch } from "./database/ikonDatabase.jsx";
-import { TabelRingkasan } from "./database/tabelRingkasan.jsx";
+import { BARIS_PER_HALAMAN } from "./database/formatDatabase.js";
+import ToolbarTabel from "./database/toolbarTabel.jsx";
+import KolomKoleksi from "./database/kolomKoleksi.jsx";
+import PanelRingkasanDatabase from "./database/panelRingkasanDatabase.jsx";
+import PanelTabelData from "./database/panelTabelData.jsx";
+import DialogDatabase from "./database/dialogDatabase.jsx";
 
 /*
  * Cache sesi ringkasan Database: daftar koleksi + statistik seluruh basis +
@@ -710,57 +708,7 @@ export default function LayarDatabase({
     ? koleksiList.find((k) => k.id === dialogHapusKoleksi)
     : null;
 
-  const toolbarTabel =
-    mode === "tabel" ? (
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex flex-wrap items-center gap-2 min-w-0 flex-grow">
-          {/* Pemilih Koleksi */}
-          <DropdownPilih
-            ariaLabel={t("analisa.basisData.koleksi")}
-            nilai={koleksiTerpilih}
-            onPilih={setKoleksiTerpilih}
-            opsi={[
-              {
-                nilai: "",
-                label: `${t("analisa.basisData.semuaKoleksi")} (${stats?.totalPartai || 0})`,
-              },
-              ...koleksiList.map((k) => ({
-                nilai: k.id,
-                label: `${k.label} (${k.jumlahPartai})`,
-              })),
-            ]}
-          />
 
-          {/* Filter Hasil */}
-          <DropdownPilih
-            ariaLabel={t("analisa.basisData.filterHasil")}
-            nilai={filterHasil}
-            onPilih={setFilterHasil}
-            opsi={[
-              { nilai: "", label: t("analisa.basisData.semuaHasil") },
-              { nilai: "white", label: `${t("analisa.basisData.menang")} Putih` },
-              { nilai: "black", label: `${t("analisa.basisData.menang")} Hitam` },
-              { nilai: "draw", label: t("analisa.basisData.seri") },
-            ]}
-          />
-
-          {/* Filter Waktu — sejajar kanan agar tidak meluber keluar panel */}
-          <DropdownPilih
-            ariaLabel={t("analisa.basisData.filterWaktu")}
-            nilai={filterWaktu}
-            onPilih={setFilterWaktu}
-            sejajar="kanan"
-            opsi={[
-              { nilai: "", label: t("analisa.basisData.semuaWaktu") },
-              { nilai: "blitz", label: "Blitz" },
-              { nilai: "rapid", label: "Rapid" },
-              { nilai: "bullet", label: "Bullet" },
-              { nilai: "classical", label: "Klasik" },
-            ]}
-          />
-        </div>
-      </div>
-    ) : null;
 
   return (
     <PanelLayar
@@ -840,7 +788,18 @@ export default function LayarDatabase({
               <Alertjudul className="font-medium leading-tight">{notifikasi.pesan}</Alertjudul>
             </Alert>
           ) : null}
-          {toolbarTabel}
+          {mode === "tabel" ? (
+            <ToolbarTabel
+              koleksiTerpilih={koleksiTerpilih}
+              setKoleksiTerpilih={setKoleksiTerpilih}
+              koleksiList={koleksiList}
+              stats={stats}
+              filterHasil={filterHasil}
+              setFilterHasil={setFilterHasil}
+              filterWaktu={filterWaktu}
+              setFilterWaktu={setFilterWaktu}
+            />
+          ) : null}
           {mode === "data" ? (
             <button
               type="button"
@@ -856,580 +815,80 @@ export default function LayarDatabase({
     >
       <div className="flex flex-1 min-h-0 flex-col gap-3">
         <div className="flex min-h-0 flex-1 flex-col gap-3 sm:gap-4 lg:flex-row">
-          {/* ── Kolom Kiri: daftar profil / koleksi (sembunyi dalam mode tabel biar tabel full layar) ── */}
-          <div
-            className={`flex w-full shrink-0 flex-col gap-3 lg:w-[300px] lg:min-h-0 lg:max-h-none max-h-[45vh] sm:max-h-[38vh] lg:overflow-visible ${
-              mode === "tabel" ? "hidden" : "flex"
-            }`}
-          >
-            {/* Pencarian koleksi */}
-            <div className="relative">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-foregroundGrey">
-                <IkonSearch className="h-4 w-4" />
-              </div>
-              <input
-                type="search"
-                value={cariKoleksi}
-                onChange={(e) => setCariKoleksi(e.target.value)}
-                placeholder={t("analisa.basisData.cariKoleksi")}
-                aria-label={t("analisa.basisData.cariKoleksi")}
-                className="w-full rounded-borderRoundness border border-border bg-backgroundBoxBox pl-9 pr-3 py-1.5 text-sm text-foreground outline-none transition-colors placeholder:text-foregroundGrey hover:border-borderHighlighted focus:border-borderHighlighted"
-              />
-            </div>
-
-            {koleksiList.length === 0 ? (
-              <div className="flex flex-1 flex-col items-center justify-center gap-3 rounded-borderRoundness border border-border bg-backgroundBox p-6 text-center">
-                <Database width={32} height={32} className="fill-foregroundGrey/30" />
-                <p className="font-bold text-foreground">{t("analisa.basisData.belumAdaKoleksi")}</p>
-                <p className="max-w-[220px] text-xs leading-5 text-foregroundGrey">{t("analisa.basisData.kosongIsi")}</p>
-                <button
-                  type="button"
-                  onClick={() => onBukaAkun?.()}
-                  className="cursor-pointer rounded-borderRoundness bg-backgroundBoxBoxHighlighted px-3.5 py-1.5 text-xs font-bold text-foregroundBlackDark hover:bg-backgroundBoxBoxHighlightedHover"
-                >
-                  {t("analisa.akun.tambahBaru")}
-                </button>
-              </div>
-            ) : daftarKoleksi.length === 0 ? (
-              <div className="flex flex-1 flex-col items-center justify-center gap-2 rounded-borderRoundness border border-border bg-backgroundBox p-6 text-center">
-                <IkonSearch className="h-6 w-6 text-foregroundGrey/50" />
-                <p className="text-sm text-foregroundGrey">{t("analisa.partai.tidakCocok")}</p>
-              </div>
-            ) : (
-              <div className="flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto pr-1">
-                {daftarKoleksi.map((k) => {
-                  const aktif = k.id === koleksiTerpilih;
-                  const st = statMap[k.id];
-                  return (
-                    <div
-                      key={k.id}
-                      role="button"
-                      tabIndex={0}
-                      onClick={() => {
-                        setKoleksiTerpilih(k.id);
-                        setMode("data");
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          e.preventDefault();
-                          setKoleksiTerpilih(k.id);
-                          setMode("data");
-                        }
-                      }}
-                      aria-pressed={aktif}
-                      className={`flex cursor-pointer flex-col gap-2.5 rounded-[0.4rem] border p-3.5 transition-colors ${
-                        aktif
-                          ? "border-[var(--analisa-backgroundBoxBoxHighlighted)] bg-backgroundBox ring-1 ring-[var(--analisa-backgroundBoxBoxHighlighted)]"
-                          : "border-border bg-backgroundBox hover:border-borderHighlighted"
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <Database
-                          width={16}
-                          height={16}
-                          className={`shrink-0 ${aktif ? "fill-foregroundHighlighted" : "fill-foregroundGrey"}`}
-                        />
-                        <span className="min-w-0 flex-1 truncate text-sm font-semibold text-foreground">{k.label}</span>
-                        <svg
-                          viewBox="0 0 24 24"
-                          width="16"
-                          height="16"
-                          aria-hidden="true"
-                          className={`shrink-0 ${aktif ? "text-[#f5a623]" : "text-foregroundGrey/40"}`}
-                        >
-                          <path
-                            fill="currentColor"
-                            d="M12 2l2.9 6.26 6.86.6-5.2 4.5 1.55 6.7L12 17.1 5.89 20.6l1.55-6.7-5.2-4.5 6.86-.6z"
-                          />
-                        </svg>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <div className="text-[10px] font-bold uppercase tracking-wide text-foregroundGrey">
-                            {t("analisa.basisData.dataGames")}
-                          </div>
-                          <div className="text-base font-bold tabular-nums text-foreground">
-                            {st?.jumlah ?? k.jumlahPartai ?? "…"}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-[10px] font-bold uppercase tracking-wide text-foregroundGrey">
-                            {t("analisa.basisData.storage")}
-                          </div>
-                          <div className="text-base font-bold tabular-nums text-foreground">
-                            {st ? formatUkuran(st.ukuran) : "…"}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Aksi per kartu — stopPropagation agar tidak ikut memilih koleksi */}
-                      <div
-                        className="flex items-center gap-2"
-                        onClick={(e) => e.stopPropagation()}
-                        onKeyDown={(e) => e.stopPropagation()}
-                      >
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            tanganiEksporPgn(k.id);
-                          }}
-                          className="inline-flex flex-1 items-center justify-center gap-1 rounded-borderRoundness border border-border bg-backgroundBoxBox px-2 py-1 text-[10px] font-semibold text-foreground transition-colors hover:bg-backgroundBoxBoxHover hover:text-foregroundHighlighted cursor-pointer"
-                        >
-                          <Download className="h-3 w-3 shrink-0" />
-                          <span>{t("analisa.basisData.eksporPgn")}</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            tanganiHapusKoleksi(k.id);
-                          }}
-                          className="inline-flex flex-1 items-center justify-center gap-1 rounded-borderRoundness border border-border bg-backgroundBoxBox px-2 py-1 text-[10px] font-semibold text-lossRed transition-colors hover:bg-backgroundBoxBoxHover cursor-pointer"
-                        >
-                          <Trash className="h-3 w-3 shrink-0" />
-                          <span>{t("analisa.basisData.hapusKoleksi")}</span>
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-            </div>
+          <KolomKoleksi
+            mode={mode}
+            koleksiList={koleksiList}
+            daftarKoleksi={daftarKoleksi}
+            statMap={statMap}
+            koleksiTerpilih={koleksiTerpilih}
+            setKoleksiTerpilih={setKoleksiTerpilih}
+            setMode={setMode}
+            cariKoleksi={cariKoleksi}
+            setCariKoleksi={setCariKoleksi}
+            tanganiEksporPgn={tanganiEksporPgn}
+            tanganiHapusKoleksi={tanganiHapusKoleksi}
+            onBukaAkun={onBukaAkun}
+          />
 
           {/* ── Kolom Kanan: Data / Tabel ─────────────────────────── */}
           <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-3 sm:gap-4">
             {mode === "data" ? (
-              <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto rounded-borderRoundness border border-border bg-backgroundBox p-4">
-                {koleksi ? (
-                  <>
-                    <TabelRingkasan
-                      koleksiId={koleksiTerpilih}
-                      t={t}
-                      locale={locale}
-                      revisi={revisiRingkasan}
-                      username={koleksi?.username || ""}
-                      tanganiAnalisa={tanganiAnalisa}
-                    />
-
-                    {!koleksiTerpilih && totalPartai > 0 ? (
-                      <>
-                        <hr className="shrink-0 border-border" />
-
-                        <div className="shrink-0">
-                          <div className="text-xs font-bold uppercase tracking-wide text-foregroundGrey">{t("analisa.basisData.aksi")}</div>
-                          <div className="mt-3 grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-1.5">
-                            <button type="button" onClick={tanganiKosongkanSemua} className="inline-flex items-center gap-1.5 rounded-borderRoundness border border-border bg-backgroundBoxBox px-2.5 py-1.5 text-xs font-semibold text-lossRed transition-colors hover:bg-backgroundBoxBoxHover cursor-pointer">
-                              <Trash className="h-3.5 w-3.5 shrink-0" />
-                              <span>{t("analisa.basisData.hapusSemua")}</span>
-                            </button>
-                          </div>
-                        </div>
-                      </>
-                    ) : null}
-                  </>
-                ) : (
-                  <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 text-center">
-                    <Database width={32} height={32} className="fill-foregroundGrey/30" />
-                    <p className="font-bold text-foreground">{t("analisa.basisData.belumAdaKoleksi")}</p>
-                  </div>
-                )}
-              </div>
+              <PanelRingkasanDatabase
+                koleksi={koleksi}
+                koleksiTerpilih={koleksiTerpilih}
+                locale={locale}
+                revisiRingkasan={revisiRingkasan}
+                tanganiAnalisa={tanganiAnalisa}
+                tanganiKosongkanSemua={tanganiKosongkanSemua}
+                totalPartai={totalPartai}
+              />
             ) : (
-              <>
-      {/* Toolbar tabel: tab tampilan (Partai/Pemain/Event) + pencarian kecil - responsive */}
-      <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2 pb-2.5 shrink-0">
-        <div
-          role="tablist"
-          aria-label={t("analisa.basisData.judul")}
-          className="flex shrink-0 rounded-borderRoundness border border-border bg-backgroundBoxBox p-0.5 w-full sm:w-auto overflow-x-auto"
-        >
-          {[
-            { k: "partai", label: t("analisa.basisData.dataGames") },
-            { k: "pemain", label: t("analisa.basisData.dataPlayers") },
-            { k: "event", label: t("analisa.basisData.dataEvents") },
-          ].map((tab) => (
-            <button
-              key={tab.k}
-              type="button"
-              role="tab"
-              aria-selected={tampilan === tab.k}
-              onClick={() => setTampilan(tab.k)}
-              className={`cursor-pointer rounded-borderRoundness px-3 py-1 text-xs font-bold transition-colors ${
-                tampilan === tab.k
-                  ? "bg-backgroundBoxBoxHighlighted text-foregroundBlackDark"
-                  : "text-foregroundGrey hover:text-foregroundHighlighted"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Pencarian berlaku untuk semua tab: tab Partai menyaring nama
-            pemain/event/isi PGN via basis, tab Pemain & Event menyaring
-            rekap yang sudah dimuat secara langsung. */}
-        <div className="relative w-full sm:w-56">
-          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-foregroundGrey">
-            <IkonSearch className="h-4 w-4" />
-          </div>
-          <input
-            type="search"
-            value={cari}
-            onChange={(e) => setCari(e.target.value)}
-            placeholder={t("analisa.basisData.cariPlaceholder")}
-            aria-label={t("analisa.basisData.cariPlaceholder")}
-            className="w-full rounded-borderRoundness border border-border bg-backgroundBoxBox pl-9 pr-3 py-1.5 text-sm text-foreground outline-none transition-colors placeholder:text-foregroundGrey hover:border-borderHighlighted focus:border-borderHighlighted"
-          />
-        </div>
-      </div>
-
-      {tampilan === "partai" ? (
-        <>
-      {/* ── Tabel Permainan ─────────────────────────────────────── */}
-      {/* flex-1: kotak mengisi sisa tinggi kolom kanan — tabel selalu
-          mentok ke bawah, ada isi atau kosong. */}
-      <div className="relative w-full min-h-0 flex-1 overflow-y-auto overflow-x-auto border border-border rounded-borderRoundness bg-backgroundBox [scrollbar-gutter:stable] -mx-3 sm:mx-0 w-[calc(100%+1.5rem)] sm:w-full">
-        <table className="w-full h-full min-w-[600px] sm:min-w-[760px] table-fixed border-collapse text-sm">
-          <colgroup>
-            <col style={{ width: "36%" }} />
-            <col style={{ width: "10%" }} />
-            <col style={{ width: "17%" }} />
-            <col style={{ width: "13%" }} />
-            <col style={{ width: "13%" }} />
-            <col style={{ width: "11%" }} />
-          </colgroup>
-
-          <HeaderTabel urut={urut} ubahUrut={ubahUrut} t={t} />
-
-          <tbody>
-            {memuat && daftarPartai.length === 0
-              ? Array.from({ length: JUMLAH_BARIS_SKELETON }, (_, i) => (
-                  <BarisSkeleton key={`skeleton-${i}`} />
-                ))
-              : daftarPartai.length > 0
-                ? daftarPartai.map((game, i) => (
-                    <BarisPartai
-                      key={game.id || i}
-                      game={game}
-                      locale={locale}
-                      tanganiAnalisa={tanganiAnalisa}
-                      perspectiveUser={koleksi?.username || ""}
-                    />
-                  ))
-                : (
-                  <tr>
-                    <td colSpan={6} className="h-24 text-center align-middle">
-                      <div className="flex flex-col items-center justify-center gap-2">
-                        <Database width={32} height={32} className="fill-foregroundGrey/30 mb-1" />
-                        <p className="font-bold text-foreground">
-                          {t("analisa.basisData.kosongJudul")}
-                        </p>
-                        <p className="max-w-md text-xs leading-5 text-foregroundGrey">
-                          {cari || filterHasil || filterWaktu
-                            ? t("analisa.partai.tidakCocok")
-                            : t("analisa.basisData.kosongIsi")}
-                        </p>
-                        {onBukaAkun && !cari && !filterHasil && !filterWaktu ? (
-                          <button
-                            type="button"
-                            onClick={() => onBukaAkun()}
-                            className="mt-1 inline-flex items-center gap-1.5 rounded-borderRoundness bg-backgroundBoxBoxHighlighted px-3.5 py-1.5 text-xs font-bold text-foregroundBlackDark hover:bg-backgroundBoxBoxHighlightedHover cursor-pointer"
-                          >
-                            <span>{t("analisa.basisData.bukaAkun")}</span>
-                          </button>
-                        ) : null}
-                      </div>
-                    </td>
-                  </tr>
-                )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* ── Navigasi Paginasi ───────────────────────────────────── */}
-      {/* Nempel langsung di bawah kotak tabel (tanpa mt-auto) — jaraknya
-          cukup dari gap-3 kolom induk, tidak ada lompatan ke dasar panel. */}
-      <div className="shrink-0">
-        {totalHal > 1 ? (
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs">
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-              <span className="text-foregroundGrey">
-                {t("analisa.basisData.halaman", {
-                  aktif: aktifHal,
-                  total: totalHal,
-                })}{" "}
-                ({totalPartai} partai)
-              </span>
-            </div>
-<div className="flex flex-wrap items-center gap-1 sm:gap-2">
-              {daftarHalaman(aktifHal, totalHal).map((hlm) => (
-                <button
-                  key={hlm}
-                  type="button"
-                  onClick={() => setHal(hlm)}
-                  aria-current={aktifHal === hlm ? "page" : undefined}
-                  className={`rounded-borderRoundness px-2.5 py-1 text-xs transition-colors cursor-pointer ${
-                    aktifHal === hlm
-                      ? "border border-border bg-backgroundBoxBox font-bold text-foregroundHighlighted"
-                      : "border border-border bg-backgroundBoxBox text-foreground hover:bg-backgroundBoxBoxHover hover:text-foregroundHighlighted"
-                  }`}
-                >
-                  {hlm}
-                </button>
-              ))}
-              <button
-                type="button"
-                disabled={aktifHal <= 1}
-                onClick={() => setHal((h) => Math.max(1, h - 1))}
-                className="rounded-borderRoundness border border-border bg-backgroundBoxBox px-3 py-1 text-xs text-foreground transition-colors hover:bg-backgroundBoxBoxHover disabled:opacity-40 disabled:hover:bg-backgroundBoxBox cursor-pointer"
-              >
-                {t("analisa.basisData.sebelumnya")}
-              </button>
-              <button
-                type="button"
-                disabled={aktifHal >= totalHal}
-                onClick={() => setHal((h) => Math.min(totalHal, h + 1))}
-                className="rounded-borderRoundness border border-border bg-backgroundBoxBox px-3 py-1 text-xs text-foreground transition-colors hover:bg-backgroundBoxBoxHover disabled:opacity-40 disabled:hover:bg-backgroundBoxBox cursor-pointer"
-              >
-                {t("analisa.basisData.berikutnya")}
-              </button>
-            </div>
-          </div>
-        ) : null}
-      </div>
-        </>
-      ) : tampilan === "pemain" ? (
-        <div className="min-h-0 flex-1 overflow-y-auto">
-          {memuatPemain ? (
-            <div className="flex flex-col items-center justify-center gap-3 py-10 text-center">
-              <DualRingSpinner color={BIRU} />
-              <p className="text-sm text-foregroundGrey">{t("analisa.basisData.memuatData")}</p>
-            </div>
-          ) : daftarPemainTampil.length === 0 ? (
-            <div className="px-3 py-10 text-center text-sm text-foregroundGrey">
-              {cari ? t("analisa.partai.tidakCocok") : t("analisa.partai.tidakAda")}
-            </div>
-          ) : (
-            <div className="relative w-full min-h-0 overflow-y-auto overflow-x-auto border border-border rounded-borderRoundness bg-backgroundBox [scrollbar-gutter:stable] -mx-3 sm:mx-0 w-[calc(100%+1.5rem)] sm:w-full">
-              <table className="w-full min-w-[480px] sm:min-w-[560px] table-fixed border-collapse text-sm">
-                <colgroup>
-                  <col style={{ width: "10%" }} />
-                  <col style={{ width: "30%" }} />
-                  <col style={{ width: "15%" }} />
-                  <col style={{ width: "15%" }} />
-                  <col style={{ width: "15%" }} />
-                  <col style={{ width: "15%" }} />
-                </colgroup>
-                <thead className="sticky top-0 bg-backgroundBox border-b border-border z-10 select-none">
-                  <tr>
-                    <th className="py-2 pl-4 pr-2 text-left text-xs font-semibold uppercase tracking-wide text-foregroundGrey">ID</th>
-                    <th className="py-2 px-2 text-left text-xs font-semibold uppercase tracking-wide text-foregroundGrey">
-                      {t("analisa.basisData.pemain")}
-                    </th>
-                    <th className="py-2 px-2 text-center text-xs font-semibold uppercase tracking-wide text-foregroundGrey">
-                      {t("analisa.basisData.seri")}
-                    </th>
-                    <th className="py-2 px-2 text-center text-xs font-semibold uppercase tracking-wide text-foregroundGrey">
-                      {t("analisa.basisData.menang")}
-                    </th>
-                    <th className="py-2 px-2 text-center text-xs font-semibold uppercase tracking-wide text-foregroundGrey">
-                      {t("analisa.basisData.kalah")}
-                    </th>
-                    <th className="py-2 px-2 text-left text-xs font-semibold uppercase tracking-wide text-foregroundGrey">
-                      {t("analisa.basisData.tanggal")}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {daftarPemainTampil.map((e, i) => (
-                    <tr
-                      key={e.nama}
-                      className="border-b border-border/50 transition-colors hover:bg-backgroundBoxHover"
-                    >
-                      <td className="py-2 pl-4 pr-2 whitespace-nowrap text-xs tabular-nums text-foregroundGrey">
-                        {i + 1}
-                      </td>
-                      <td className="py-2 px-2 truncate text-[13px] font-medium text-foreground">
-                        {e.nama}
-                      </td>
-                      <td className="py-2 px-2 text-center whitespace-nowrap text-xs tabular-nums text-foregroundGrey">
-                        {e.seri}
-                      </td>
-                      <td className="py-2 px-2 text-center whitespace-nowrap text-xs tabular-nums text-winGreen">
-                        {e.menang}
-                      </td>
-                      <td className="py-2 px-2 text-center whitespace-nowrap text-xs tabular-nums text-lossRed">
-                        {e.kalah}
-                      </td>
-                      <td className="py-2 px-2 whitespace-nowrap text-xs text-foregroundGrey">
-                        {formatTanggal(e.terakhir, locale) || "—"}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      ) : (
-        <div className="min-h-0 flex-1 overflow-y-auto">
-          {memuatEvent ? (
-            <div className="flex flex-col items-center justify-center gap-3 py-10 text-center">
-              <DualRingSpinner color={BIRU} />
-              <p className="text-sm text-foregroundGrey">{t("analisa.basisData.memuatData")}</p>
-            </div>
-          ) : daftarEventTampil.length === 0 ? (
-            <div className="px-3 py-10 text-center text-sm text-foregroundGrey">
-              {cari ? t("analisa.partai.tidakCocok") : t("analisa.partai.tidakAda")}
-            </div>
-          ) : (
-            <div className="relative w-full min-h-0 overflow-y-auto overflow-x-auto border border-border rounded-borderRoundness bg-backgroundBox [scrollbar-gutter:stable] -mx-3 sm:mx-0 w-[calc(100%+1.5rem)] sm:w-full">
-              <table className="w-full min-w-[400px] sm:min-w-[480px] table-fixed border-collapse text-sm">
-                <colgroup>
-                  <col style={{ width: "10%" }} />
-                  <col style={{ width: "45%" }} />
-                  <col style={{ width: "20%" }} />
-                  <col style={{ width: "25%" }} />
-                </colgroup>
-                <thead className="sticky top-0 bg-backgroundBox border-b border-border z-10 select-none">
-                  <tr>
-                    <th className="py-2 pl-4 pr-2 text-left text-xs font-semibold uppercase tracking-wide text-foregroundGrey">ID</th>
-                    <th className="py-2 px-2 text-left text-xs font-semibold uppercase tracking-wide text-foregroundGrey">
-                      Event
-                    </th>
-                    <th className="py-2 px-2 text-center text-xs font-semibold uppercase tracking-wide text-foregroundGrey">
-                      {t("analisa.basisData.dataGames")}
-                    </th>
-                    <th className="py-2 px-2 text-left text-xs font-semibold uppercase tracking-wide text-foregroundGrey">
-                      {t("analisa.basisData.terakhirMain")}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {daftarEventTampil.map((e, i) => (
-                    <tr
-                      key={e.nama}
-                      className="border-b border-border/50 transition-colors hover:bg-backgroundBoxHover"
-                    >
-                      <td className="py-2 pl-4 pr-2 whitespace-nowrap text-xs tabular-nums text-foregroundGrey">
-                        {i + 1}
-                      </td>
-                      <td className="py-2 px-2 truncate text-[13px] font-medium text-foreground">
-                        {e.nama}
-                      </td>
-                      <td className="py-2 px-2 text-center whitespace-nowrap text-xs tabular-nums text-foreground">
-                        {e.jumlah}
-                      </td>
-                      <td className="py-2 px-2 whitespace-nowrap text-xs text-foregroundGrey">
-                        {formatTanggal(e.terakhir, locale) || "—"}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      )}
-              </>
+              <PanelTabelData
+                tampilan={tampilan}
+                setTampilan={setTampilan}
+                cari={cari}
+                setCari={setCari}
+                daftarPartai={daftarPartai}
+                memuat={memuat}
+                locale={locale}
+                koleksi={koleksi}
+                tanganiAnalisa={tanganiAnalisa}
+                urut={urut}
+                ubahUrut={ubahUrut}
+                onBukaAkun={onBukaAkun}
+                filterHasil={filterHasil}
+                filterWaktu={filterWaktu}
+                totalHal={totalHal}
+                aktifHal={aktifHal}
+                setHal={setHal}
+                totalPartai={totalPartai}
+                daftarPemainTampil={daftarPemainTampil}
+                memuatPemain={memuatPemain}
+                daftarEventTampil={daftarEventTampil}
+                memuatEvent={memuatEvent}
+              />
             )}
 </div>
       </div>
       </div>
 
-      <AlertDialog open={dialogEksporKosong} onOpenChange={setDialogEksporKosong}>
-        <AlertDialogContent container={wadahDialog} className="bg-[#1e1d1c] border-[#5d5d5d] text-[#dedede] shadow-2xl">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">
-              Tidak ada partai untuk diekspor
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-[#939291]">
-              Tarik data terlebih dahulu di layar Akun untuk mendapatkan partai
-              yang ingin diekspor.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogAction className="bg-[#81b64c] hover:bg-[#8bc550] text-black font-bold">Mengerti</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* ── Konfirmasi hapus partai ── */}
-      <AlertDialog
-        open={dialogHapusPartai}
-        onOpenChange={(o) => {
-          setDialogHapusPartai(o);
-          if (!o) setTargetHapusPartai(null);
-        }}
-      >
-        <AlertDialogContent container={wadahDialog} className="bg-[#1e1d1c] border-[#5d5d5d] text-[#dedede] shadow-2xl">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">
-              {t("analisa.basisData.hapusPartai")}
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-[#939291]">
-              {t("analisa.basisData.konfirmasiHapusPartai")}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="bg-[#2a2a2a] border-[#5d5d5d] text-[#dedede] hover:bg-[#3a3a3a] hover:text-white">Batal</AlertDialogCancel>
-            <AlertDialogAction onClick={tanganiHapusPartai} className="bg-[#81b64c] hover:bg-[#8bc550] text-black font-bold">
-              Hapus
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* ── Konfirmasi hapus koleksi ── */}
-      <AlertDialog
-        open={Boolean(dialogHapusKoleksi)}
-        onOpenChange={(o) => {
-          if (!o) setDialogHapusKoleksi(null);
-        }}
-      >
-        <AlertDialogContent container={wadahDialog} className="bg-[#1e1d1c] border-[#5d5d5d] text-[#dedede] shadow-2xl">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">
-              {t("analisa.basisData.hapusKoleksi")}
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-[#939291]">
-              {t("analisa.basisData.konfirmasiHapusKoleksi", {
-                koleksi: koleksiHapus?.label || dialogHapusKoleksi,
-                jumlah: koleksiHapus?.jumlahPartai || totalPartai,
-              })}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="bg-[#2a2a2a] border-[#5d5d5d] text-[#dedede] hover:bg-[#3a3a3a] hover:text-white">Batal</AlertDialogCancel>
-            <AlertDialogAction onClick={konfirmasiHapusKoleksi} className="bg-[#81b64c] hover:bg-[#8bc550] text-black font-bold">
-              Hapus
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* ── Konfirmasi kosongkan seluruh basis data ── */}
-      <AlertDialog open={dialogKosongkanSemua} onOpenChange={setDialogKosongkanSemua}>
-        <AlertDialogContent container={wadahDialog} className="bg-[#1e1d1c] border-[#5d5d5d] text-[#dedede] shadow-2xl">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">
-              {t("analisa.basisData.hapusSemua")}
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-[#939291]">
-              {t("analisa.basisData.konfirmasiHapusSemua")}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="bg-[#2a2a2a] border-[#5d5d5d] text-[#dedede] hover:bg-[#3a3a3a] hover:text-white">Batal</AlertDialogCancel>
-            <AlertDialogAction onClick={konfirmasiKosongkanSemua} className="bg-[#81b64c] hover:bg-[#8bc550] text-black font-bold">
-              Hapus Semua
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DialogDatabase
+        wadahDialog={wadahDialog}
+        dialogEksporKosong={dialogEksporKosong}
+        setDialogEksporKosong={setDialogEksporKosong}
+        dialogHapusPartai={dialogHapusPartai}
+        setDialogHapusPartai={setDialogHapusPartai}
+        setTargetHapusPartai={setTargetHapusPartai}
+        tanganiHapusPartai={tanganiHapusPartai}
+        dialogHapusKoleksi={dialogHapusKoleksi}
+        setDialogHapusKoleksi={setDialogHapusKoleksi}
+        koleksiHapus={koleksiHapus}
+        totalPartai={totalPartai}
+        konfirmasiHapusKoleksi={konfirmasiHapusKoleksi}
+        dialogKosongkanSemua={dialogKosongkanSemua}
+        setDialogKosongkanSemua={setDialogKosongkanSemua}
+        konfirmasiKosongkanSemua={konfirmasiKosongkanSemua}
+      />
     </PanelLayar>
   );
 }
