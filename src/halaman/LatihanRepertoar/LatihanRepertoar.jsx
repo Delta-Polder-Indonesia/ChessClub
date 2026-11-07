@@ -24,7 +24,7 @@ import {
 import { FEN_AWAL } from "../PapanInteraktif/bersama/konstanta.js";
 import { PENGATURAN_AWAL, usePengaturanPapan } from "../PapanInteraktif/bersama/gunakanPengaturanPapan.js";
 import { usePengaturanBersama } from "../PapanInteraktif/bersama/PengaturanKonteks.jsx";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useTandaBantu } from "../../lib/tandaBantu.js";
 import PapanStatis from "../../components/PapanStatis.jsx";
 import {
@@ -43,6 +43,7 @@ const POLA_PETAK = /^[a-h][1-8]$/;
 
 export default function LatihanRepertoar({ pengaturan = null }) {
   const { t } = useI18n();
+  const navigasi = useNavigate();
   // Terima pengaturan dari tata letak /papan-interaktif/* (konteks bersama);
   // tanpa itu buat state lokal agar komponen tetap berdiri sendiri.
   const pengaturanLokal = usePengaturanPapan();
@@ -379,6 +380,23 @@ export default function LatihanRepertoar({ pengaturan = null }) {
     else setPesan("");
   }
 
+  /*
+   * Tombol kembali di kepala halaman katalog. Dari sub-layar (tambah jalur /
+   * halaman pembukaan) ia kembali ke katalog; dari katalog ia keluar dari mode
+   * ini ke halaman sebelumnya (mundur riwayat) atau ke papan buku bila halaman
+   * dibuka langsung tanpa riwayat.
+   */
+  function kembaliKeInduk() {
+    if (tampilan !== "koleksi") {
+      setTampilan("koleksi");
+      setKartuAktif(null);
+      setJalurAktif(null);
+      return;
+    }
+    if ((window.history.state?.idx ?? 0) > 0) navigasi(-1);
+    else navigasi("/papan-interaktif");
+  }
+
   const jumlahJatuhTempo = kartu.filter((item) => Number(item.dueAt) <= sekarang).length;
 
   if (tampilan === "latihan") {
@@ -523,10 +541,22 @@ export default function LatihanRepertoar({ pengaturan = null }) {
 
   return (
     <div className="flex h-full min-h-0 flex-col overflow-y-auto p-4">
-      <header className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-[#312e2b] pb-4">
-        <div>
-          <h1 className="text-xl font-bold text-white">{t("papan.repertoarJudul")}</h1>
-          <p className="mt-1 max-w-2xl text-sm text-gray-400">{t("papan.repertoarDeskripsi")}</p>
+      <header className="flex shrink-0 flex-wrap items-start justify-between gap-3 border-b border-[#312e2b] pb-4">
+        {/* Tombol kembali satu baris dengan judul; deskripsi menjorok sejajar judul. */}
+        <div className="flex min-w-0 items-start gap-1.5">
+          <button
+            type="button"
+            onClick={kembaliKeInduk}
+            title={t("papan.repertoarKembali")}
+            aria-label={t("papan.repertoarKembali")}
+            className="-mt-1 shrink-0 rounded-md p-1.5 text-gray-400 transition hover:bg-[#312e2b] hover:text-white"
+          >
+            <Back />
+          </button>
+          <div className="min-w-0">
+            <h1 className="text-xl font-bold text-white">{t("papan.repertoarJudul")}</h1>
+            <p className="mt-1 max-w-2xl text-sm text-gray-400">{t("papan.repertoarDeskripsi")}</p>
+          </div>
         </div>
         <div className="flex flex-wrap gap-2">
           <Link

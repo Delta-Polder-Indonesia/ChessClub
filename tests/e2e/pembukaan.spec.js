@@ -327,9 +327,25 @@ test("repertoar: papan pratinjau muncul setelah jalur dipilih", async ({ page })
   // (peramban CI memakai locale en-US).
   await page.addInitScript(() => localStorage.setItem("kci-bahasa", "id"));
   await page.goto("/papan-interaktif/latihan-repertoar");
-  await expect(page.getByRole("heading", { name: papanId.repertoarJudul })).toBeVisible({
-    timeout: 30_000,
-  });
+  const judul = page.getByRole("heading", { name: papanId.repertoarJudul });
+  await expect(judul).toBeVisible({ timeout: 30_000 });
+
+  // Tombol kembali duduk sebaris dengan judul: pusat vertikalnya sejajar judul,
+  // di kiri judul, dan deskripsi tepat di bawah judul (bukan di bawah tombol).
+  const kepala = page.locator("header").first();
+  const tombolKembali = kepala.getByRole("button", { name: papanId.repertoarKembali });
+  await expect(tombolKembali).toBeVisible();
+  const kotakTombol = await tombolKembali.boundingBox();
+  const kotakJudul = await judul.boundingBox();
+  const kotakDeskripsi = await page
+    .getByText(papanId.repertoarDeskripsi, { exact: false })
+    .first()
+    .boundingBox();
+  const tengahTombol = kotakTombol.y + kotakTombol.height / 2;
+  const tengahJudul = kotakJudul.y + kotakJudul.height / 2;
+  expect(Math.abs(tengahTombol - tengahJudul)).toBeLessThan(6);
+  expect(kotakTombol.x + kotakTombol.width).toBeLessThanOrEqual(kotakJudul.x + 1);
+  expect(Math.abs(kotakDeskripsi.x - kotakJudul.x)).toBeLessThan(2);
 
   await page.getByRole("button", { name: papanId.repertoarTambahJalur }).first().click();
 
