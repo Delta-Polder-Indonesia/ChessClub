@@ -14,7 +14,7 @@
  *    lawan membalas otomatis, dan ada tombol petunjuk — inilah alasan orang
  *    tinggal lebih lama setelah membaca hero.
  *
- * 3. DIBATASI 5 SOAL PER HARI. Setelah soal kelima selesai, muncul dialog
+ * 3. DIBATASI 5 SOAL PER HARI (dengan kartu kemajuan bergaya "Keep it up!"). Setelah soal kelima selesai, muncul dialog
  *    ajakan bergabung ke Blunder Skuad. Hitungannya disimpan per tanggal di
  *    localStorage supaya memuat ulang halaman tidak menambah jatah. Pemain
  *    yang ingin lanjut tanpa bergabung tetap bisa membuka halaman penuh.
@@ -357,6 +357,21 @@ export default function TekaTekiHarianLanding() {
 
   const nomorSoal = Math.min(indeks + 1, daftar.length);
   const jatahTerpakai = Math.min(progres.selesai, BATAS_HARIAN);
+  const sisaJatah = Math.max(0, BATAS_HARIAN - jatahTerpakai);
+  /*
+   * Teks kartu kemajuan mengikuti keadaan pemain, bukan satu kalimat statis:
+   * belum mulai, sedang berjalan, lalu selesai. Polanya meniru kartu progres
+   * "Keep it up!" di worldchess.com — satu judul penyemangat, satu kalimat
+   * sisa jatah, lalu segmen + dua angka kecil.
+   */
+  const judulKartu = jatahHabis
+    ? t("landing.harianKartuJudulSelesai")
+    : jatahTerpakai === 0
+      ? t("landing.harianKartuJudulMulai")
+      : t("landing.harianKartuJudulLanjut");
+  const deskKartu = jatahHabis
+    ? t("landing.harianKartuDeskSelesai")
+    : t("landing.harianKartuDeskSisa", { n: sisaJatah });
   const teksStatus = pesan
     ? t(pesan.kunci)
     : t(
@@ -380,14 +395,32 @@ export default function TekaTekiHarianLanding() {
             </h2>
             <p className={LEAD_SEKSI}>{t("landing.harianDesk")}</p>
 
-            {/* Jatah harian — satu-satunya batas, berlaku juga antar-halaman */}
-            <div className="flex flex-col gap-y-2">
-              <p className="font-mono text-[12px] uppercase tracking-wider text-grey-600">
-                {t("landing.harianKemajuan", {
-                  n: jatahTerpakai,
-                  total: BATAS_HARIAN,
-                })}
+            {/*
+             * Kartu kemajuan harian — satu-satunya batas, berlaku juga
+             * antar-halaman. Isinya sengaja tidak menampilkan angka yang tidak
+             * kita punya (mis. rating teka-teki): hanya judul keadaan, sisa
+             * jatah, lima segmen, lalu nomor soal + sisa jatah.
+             */}
+            <div
+              data-kartu-harian
+              className="flex flex-col gap-y-4 rounded border border-grey-200 bg-paper p-5"
+            >
+              <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                <p className="font-serif text-lg font-semibold text-grey-800">
+                  {judulKartu}
+                </p>
+                <p className="font-mono text-[12px] font-semibold uppercase tracking-wider text-grey-600">
+                  {t("landing.harianKemajuan", {
+                    n: jatahTerpakai,
+                    total: BATAS_HARIAN,
+                  })}
+                </p>
+              </div>
+
+              <p className="font-serif text-sm leading-relaxed text-grey-600">
+                {deskKartu}
               </p>
+
               <div
                 role="progressbar"
                 aria-valuemin={0}
@@ -401,14 +434,39 @@ export default function TekaTekiHarianLanding() {
                   n: nomorSoal,
                   total: daftar.length,
                 })}
-                className="h-1 w-full max-w-[280px] overflow-hidden rounded bg-grey-200"
+                className="flex items-center gap-1.5"
               >
-                <span
-                  className="block h-full bg-primary transition-[width] duration-300"
-                  style={{
-                    width: `${(jatahTerpakai / BATAS_HARIAN) * 100}%`,
-                  }}
-                />
+                {Array.from({ length: BATAS_HARIAN }, (_, urutan) => (
+                  <span
+                    key={urutan}
+                    aria-hidden="true"
+                    className={`h-2 flex-1 rounded-sm transition-colors ${
+                      urutan < jatahTerpakai ? "bg-primary" : "bg-grey-200"
+                    }`}
+                  />
+                ))}
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 border-t border-grey-200 pt-3">
+                <div className="flex flex-col gap-y-0.5">
+                  <p className="font-mono text-[12px] uppercase tracking-wider text-grey-600">
+                    {t("landing.harianKartuLabelSoal")}
+                  </p>
+                  <p className="font-serif text-base font-semibold text-grey-800">
+                    {t("landing.harianKartuNilaiSoal", {
+                      n: nomorSoal,
+                      total: daftar.length,
+                    })}
+                  </p>
+                </div>
+                <div className="flex flex-col gap-y-0.5">
+                  <p className="font-mono text-[12px] uppercase tracking-wider text-grey-600">
+                    {t("landing.harianKartuLabelSisa")}
+                  </p>
+                  <p className="font-serif text-base font-semibold text-grey-800">
+                    {t("landing.harianKartuNilaiSisa", { n: sisaJatah })}
+                  </p>
+                </div>
               </div>
             </div>
 

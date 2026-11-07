@@ -154,7 +154,12 @@ Batas harian:
 - setelah soal kelima selesai, muncul **dialog Radix** mengajak bergabung ke
   **Blunder Skuad**; aksinya menuju `/pendaftaran-anggota`;
 - bila jatah habis, panel papan diganti keterangan jatah habis + tombol gabung,
-  sehingga memuat ulang halaman tidak menambah jatah.
+  sehingga memuat ulang halaman tidak menambah jatah;
+- jatah harian ditampilkan sebagai **kartu kemajuan** (`data-kartu-harian`, pola
+  "Keep it up!" ala worldchess.com): judul keadaan (belum mulai / ayo lanjut /
+  jatah selesai), satu kalimat sisa jatah, lima segmen ber-`role="progressbar"`,
+  lalu dua angka kecil (nomor soal dan sisa jatah). Kartu ini **tidak**
+  menampilkan rating atau angka lain yang datanya memang tidak ada di arsip.
 
 Salinan Indonesia dan Inggris keduanya wajib ada (`npm run uji:i18n`).
 

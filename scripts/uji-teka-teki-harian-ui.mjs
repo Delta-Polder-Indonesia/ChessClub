@@ -818,6 +818,44 @@ async function selesaikanSoalWidget(catatan) {
   );
   uji("penomoran \"Soal 1 dari 5\"", teksHalaman().includes(teksNomorSoal(1)));
   uji("jatah harian 0/5 ditampilkan", teksHalaman().includes(teksKemajuan(0)));
+
+  /*
+   * Kartu kemajuan harian (pola "Keep it up!"): satu judul keadaan, satu
+   * kalimat sisa jatah, lima segmen, dan dua angka kecil. Diperiksa dari DOM
+   * supaya struktur kartunya tidak hilang diam-diam saat tampilan diubah.
+   */
+  const kartuHarian = dok.querySelector("[data-kartu-harian]");
+  uji("kartu kemajuan harian tampil", Boolean(kartuHarian));
+  uji(
+    "kartu memakai judul keadaan belum mulai",
+    (kartuHarian?.textContent || "").includes(kamusLanding.harianKartuJudulMulai)
+  );
+  uji(
+    "kartu menyebut sisa jatah dalam kalimat",
+    (kartuHarian?.textContent || "").includes(
+      kamusLanding.harianKartuDeskSisa.replace("{n}", "5")
+    )
+  );
+  const bilahHarian = kartuHarian?.querySelector("[role='progressbar']");
+  uji("kartu punya bilah kemajuan berlabel", Boolean(bilahHarian));
+  uji(
+    "bilah kemajuan terdiri dari lima segmen",
+    bilahHarian?.children.length === 5,
+    String(bilahHarian?.children.length)
+  );
+  uji(
+    "bilah menandai nol segmen terisi di awal",
+    bilahHarian?.querySelectorAll(".bg-primary").length === 0
+  );
+  uji(
+    "angka kecil kartu: soal 1 / 5 dan sisa 5 soal",
+    (kartuHarian?.textContent || "").includes(
+      kamusLanding.harianKartuNilaiSoal.replace("{n}", "1").replace("{total}", "5")
+    ) &&
+      (kartuHarian?.textContent || "").includes(
+        kamusLanding.harianKartuNilaiSisa.replace("{n}", "5")
+      )
+  );
   const tautan = [...dok.querySelectorAll("a")].map((a) => a.getAttribute("href"));
   uji("ada tautan ke halaman teka-teki harian", tautan.includes("/teka-teki-harian"));
   uji(
@@ -877,6 +915,16 @@ async function selesaikanSoalWidget(catatan) {
     await tungguSampai(() => papanSamaData(paketKelima.fen), 5000)
   );
   uji("jatah 4/5 ditampilkan", teksHalaman().includes(teksKemajuan(4)));
+  {
+    const bilah = dok.querySelector("[data-kartu-harian] [role='progressbar']");
+    uji("empat segmen terisi setelah empat soal", bilah?.querySelectorAll(".bg-primary").length === 4);
+    uji(
+      "judul kartu berubah menjadi ajakan lanjut",
+      (dok.querySelector("[data-kartu-harian]")?.textContent || "").includes(
+        kamusLanding.harianKartuJudulLanjut
+      )
+    );
+  }
   uji("dialog ajakan belum muncul", !teksHalaman().includes(teksDialog()));
 
   await selesaikanSoalWidget(daftarWidget[4]);
@@ -924,7 +972,10 @@ async function selesaikanSoalWidget(catatan) {
   uji("tidak ada papan yang bisa dimainkan", dok.querySelectorAll("[data-petak]").length === 0);
   uji(
     "jatah terpakai dilaporkan 5/5",
-    teksHalaman().includes(teksKemajuan(5))
+    teksHalaman().includes(teksKemajuan(5)) &&
+      (dok.querySelector("[data-kartu-harian]")?.textContent || "").includes(
+        kamusLanding.harianKartuJudulSelesai
+      )
   );
   rootF.unmount();
   akarF.remove();
