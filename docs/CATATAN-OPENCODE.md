@@ -58,7 +58,7 @@ npx eslint src scripts tests
 npm run build
 
 # E2E (butuh Chromium Playwright: npx playwright install chromium)
-npx playwright test tests/e2e/turing-test.spec.js tests/e2e/hand-brain.spec.js tests/e2e/wawasan-rating.spec.js --project=desktop-chromium
+npx playwright test tests/e2e/turing-test.spec.js tests/e2e/hand-brain.spec.js tests/e2e/landing-program.spec.js tests/e2e/wawasan-rating.spec.js --project=desktop-chromium
 
 # Gerbang rilis lengkap (termasuk npm audit, butuh internet)
 npm run uji:rilis:v1

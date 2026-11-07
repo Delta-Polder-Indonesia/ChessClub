@@ -130,7 +130,10 @@ export default function TataLetakModePapan({ judul, tautan = null, pengaturan = 
             </p>
           </div>
 
-          <div className="flex flex-col gap-1 px-5 py-2">
+          {/* Navigasi samping mode ini. Diberi nama mode supaya pembaca layar
+              dan uji tata letak (`nav[aria-label]`) bisa membedakannya dari
+              sidebar Workspace, yang labelnya "Mode papan". */}
+          <nav aria-label={judul} className="flex flex-col gap-1 px-5 py-2">
             {bisaPengaturan && (
               <button
                 type="button"
@@ -149,7 +152,7 @@ export default function TataLetakModePapan({ judul, tautan = null, pengaturan = 
                 {tautan.label}
               </Link>
             )}
-          </div>
+          </nav>
         </div>
 
         <div className="border-t border-[#312e2b] px-4 py-3">
