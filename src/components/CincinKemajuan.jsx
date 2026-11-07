@@ -1,77 +1,83 @@
 /**
- * Cincin kemajuan kecil untuk blok status di halaman konten.
+ * Cincin kemajuan untuk blok status di halaman konten.
  *
- * Dipakai widget "Teka-teki Hari Ini" di Landing dengan pola kartu progres
- * worldchess.com ("Rating Estimated / 1 of 3"): satu cincin tipis, angka besar
- * di tengah, dan satu catatan kecil di bawahnya.
+ * Bentuknya mengikuti cincin "Rating / Estimated / 1 of 3" di worldchess.com:
+ * satu lingkaran tipis, satu busur gelap sepanjang `nilai / maks`, dan teks di
+ * tengahnya. Dipakai panel progres "Teka-teki Hari Ini" di Landing.
  *
  * Catatan penting:
- * - Angka di dalam cincin adalah TEKS sungguhan, bukan bagian SVG, sehingga
- *   pembaca layar dan uji teks tetap membacanya. SVG-nya `aria-hidden`.
+ * - Semua teks adalah HTML di atas SVG (bukan `<text>` di dalam SVG), supaya
+ *   ukurannya mengikuti skala tipografi situs dan tidak pernah sekecil 12 px.
+ *   SVG-nya `aria-hidden`; satu-satunya keterangan untuk pembaca layar adalah
+ *   `aria-label` terjemahan yang dikirim pemanggil.
  * - Komponen ini tidak menetapkan `role="progressbar"`; pemanggil yang
- *   menaruhnya di track/segmen, karena cincin ini hanya penguat visual.
- * - Tanpa gradient dan tanpa gambar: satu lingkaran latar + satu busur yang
- *   panjangnya mengikuti `nilai / maks`.
+ *   menaruhnya di track/segmen, karena cincin di sini hanya penguat visual.
+ * - Tanpa gradient dan tanpa gambar: satu lingkaran latar + satu busur.
  */
 export default function CincinKemajuan({
   nilai = 0,
   maks = 1,
   label,
+  subLabel,
   nilaiTeks,
   catatan,
-  ukuran = 136,
+  ukuran = 200,
+  ariaLabel,
   className = "",
 }) {
   const total = Math.max(1, Number(maks) || 1);
   const terpakai = Math.min(total, Math.max(0, Number(nilai) || 0));
-  const jariJari = 50;
+  const jariJari = 93.6;
   const keliling = 2 * Math.PI * jariJari;
   const panjangBusur = (terpakai / total) * keliling;
 
   return (
     <div
       data-cincin-kemajuan
+      role="img"
+      aria-label={ariaLabel}
       className={`relative inline-flex shrink-0 items-center justify-center ${className}`}
       style={{ width: ukuran, height: ukuran }}
     >
-      <svg
-        aria-hidden="true"
-        viewBox="0 0 120 120"
-        className="h-full w-full -rotate-90"
-        fill="none"
-      >
+      <svg aria-hidden="true" viewBox="0 0 200 200" fill="none" className="h-full w-full">
         <circle
-          cx="60"
-          cy="60"
+          cx="100"
+          cy="100"
           r={jariJari}
           stroke="currentColor"
-          strokeWidth="4"
-          className="text-grey-200"
+          strokeWidth="1"
+          className="text-grey-300"
         />
         <circle
-          cx="60"
-          cy="60"
+          cx="100"
+          cy="100"
           r={jariJari}
           stroke="currentColor"
-          strokeWidth="4"
+          strokeWidth="3"
           strokeLinecap="round"
           strokeDasharray={`${panjangBusur} ${Math.max(0, keliling - panjangBusur)}`}
-          className="text-primary transition-[stroke-dasharray] duration-500"
+          transform="rotate(-90 100 100)"
+          className="text-grey-800 transition-[stroke-dasharray] duration-500"
           data-busur-cincin={terpakai}
         />
       </svg>
 
-      <div className="absolute inset-0 flex flex-col items-center justify-center gap-y-0.5 px-3 text-center">
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-y-1 px-6 text-center">
         {label && (
-          <p className="font-mono text-[12px] uppercase tracking-wider text-grey-600">
-            {label}
+          <p className="font-sans text-sm font-semibold text-grey-800">{label}</p>
+        )}
+        {subLabel && (
+          <p className="font-sans text-sm text-grey-600">{subLabel}</p>
+        )}
+        {nilaiTeks && (
+          <p className="pt-1 font-serif text-3xl font-semibold leading-none text-grey-800">
+            {nilaiTeks}
           </p>
         )}
-        <p className="font-serif text-2xl font-semibold leading-none text-grey-800">
-          {nilaiTeks}
-        </p>
         {catatan && (
-          <p className="font-sans text-xs leading-tight text-grey-600">{catatan}</p>
+          <p className="max-w-44 pt-1 font-sans text-sm leading-snug text-grey-600">
+            {catatan}
+          </p>
         )}
       </div>
     </div>

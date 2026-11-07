@@ -1,58 +1,61 @@
 /**
- * "Teka-teki Hari Ini" — pemikat yang BISA DIMAINKAN di halaman Landing.
- *
- * Tiga aturan produk yang disengaja:
- *
- * 1. SUMBER DATA = ARSIP LOKAL. Widget membaca
- *    `data/teka-teki-harian/terbaru.json` (snapshot statis buatan
- *    `scripts/ambil-teka-teki-harian.mjs`), BUKAN API Chess.com. Halaman depan
- *    jadi tetap cepat dan tetap hidup walau pihak ketiga sedang gangguan.
- *    Halaman penuh `/teka-teki-harian` justru memakai API supaya selalu
- *    menampilkan soal terbaru; keduanya sengaja berbeda peran.
- *
- * 2. BISA DIMAINKAN, bukan gambar mati. Pengunjung langsung mencoba langkah,
- *    lawan membalas otomatis, dan ada tombol petunjuk — inilah alasan orang
- *    tinggal lebih lama setelah membaca hero.
- *
- * 3. DIBATASI 5 SOAL PER HARI (dengan kartu kemajuan bergaya "Keep it up!"). Setelah soal kelima selesai, muncul dialog
- *    ajakan bergabung ke Blunder Skuad. Hitungannya disimpan per tanggal di
- *    localStorage supaya memuat ulang halaman tidak menambah jatah. Pemain
- *    yang ingin lanjut tanpa bergabung tetap bisa membuka halaman penuh.
- *
- * Komponen ini dimuat lazy dari `Landing.jsx`: papan interaktif (`PapanTekaTeki`
- * + chunk bidak ±126 KB) tidak diperlukan untuk elemen LCP halaman depan.
- *
- * Tipografi mengikuti `./gayaTeks.jsx` seperti seksi Landing lain; papannya
- * sendiri tetap milik domain catur (DESIGN.md §13).
- */
+ * "Teka-teki Hari Ini" — pemikat yang BISA DIMAINKAN di halaman Landing.
+ *
+ * Tiga aturan produk yang disengaja:
+ *
+ * 1. SUMBER DATA = ARSIP LOKAL. Widget membaca
+ *    `data/teka-teki-harian/terbaru.json` (snapshot statis buatan
+ *    `scripts/ambil-teka-teki-harian.mjs`), BUKAN API Chess.com. Halaman depan
+ *    jadi tetap cepat dan tetap hidup walau pihak ketiga sedang gangguan.
+ *    Halaman penuh `/teka-teki-harian` justru memakai API supaya selalu
+ *    menampilkan soal terbaru; keduanya sengaja berbeda peran.
+ *
+ * 2. BISA DIMAINKAN, bukan gambar mati. Pengunjung langsung mencoba langkah,
+ *    lawan membalas otomatis, dan ada tombol petunjuk — inilah alasan orang
+ *    tinggal lebih lama setelah membaca hero.
+ *
+ * 3. DIBATASI 5 SOAL PER HARI. Kolom kiri menampilkan progres bergaya
+ *    worldchess.com (judul penyemangat, cincin "0 dari 5", track jatah),
+ *    semuanya lewat kamus i18n. Setelah soal kelima selesai, muncul dialog
+ *    ajakan bergabung ke Blunder Skuad. Hitungannya disimpan per tanggal di
+ *    localStorage supaya memuat ulang halaman tidak menambah jatah. Pemain
+ *    yang ingin lanjut tanpa bergabung tetap bisa membuka halaman penuh.
+ *
+ * Komponen ini dimuat lazy dari `Landing.jsx`: papan interaktif (`PapanTekaTeki`
+ * + chunk bidak ±126 KB) tidak diperlukan untuk elemen LCP halaman depan.
+ *
+ * Tipografi mengikuti `./gayaTeks.jsx` seperti seksi Landing lain; papannya
+ * sendiri tetap milik domain catur (DESIGN.md §13).
+ */
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Chess } from "chess.js";
 import { useI18n } from "../../lib/i18n.jsx";
 import { Tombol } from "../../components/Tombol.jsx";
 import { ArrowRightIcon } from "../../components/icons.jsx";
+import CincinKemajuan from "../../components/CincinKemajuan.jsx";
 import PapanTekaTeki from "../TekaTeki/PapanTekaTeki.jsx";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from "../../components/ui/alert-dialog.jsx";
 import {
-  apakahLangkahLegal,
-  apakahLangkahSesuai,
-  butuhPromosi,
-  parseLangkah,
-  terapkan,
+  apakahLangkahLegal,
+  apakahLangkahSesuai,
+  butuhPromosi,
+  parseLangkah,
+  terapkan,
 } from "../../lib/tekaTeki.js";
 import {
-  ambilSoalTerbaru,
-  tanggalHariIni,
-  warnaGiliran,
+  ambilSoalTerbaru,
+  tanggalHariIni,
+  warnaGiliran,
 } from "../../lib/tekaTekiHarian.js";
 
 const RUTE_HARIAN = "/teka-teki-harian";
@@ -70,320 +73,331 @@ const JEDA_SALAH = 700;
 const KUNCI_PROGRES = "kci-harian-landing";
 
 const PILIHAN_PROMOSI = [
-  ["q", "tekaTekiHarian.promosiMenteri"],
-  ["r", "tekaTekiHarian.promosiBenteng"],
-  ["b", "tekaTekiHarian.promosiGajah"],
-  ["n", "tekaTekiHarian.promosiKuda"],
+  ["q", "tekaTekiHarian.promosiMenteri"],
+  ["r", "tekaTekiHarian.promosiBenteng"],
+  ["b", "tekaTekiHarian.promosiGajah"],
+  ["n", "tekaTekiHarian.promosiKuda"],
 ];
 
 /**
- * Progres hari ini dari localStorage — selalu berbentuk objek yang aman,
- * walau penyimpanan kosong, rusak, atau bertanggal kemarin.
- */
+ * Progres hari ini dari localStorage — selalu berbentuk objek yang aman,
+ * walau penyimpanan kosong, rusak, atau bertanggal kemarin.
+ */
 function bacaProgres(hariIni) {
-  try {
-    const mentah = JSON.parse(localStorage.getItem(KUNCI_PROGRES) || "{}");
-    if (!mentah || typeof mentah !== "object" || Array.isArray(mentah)) {
-      return { tanggal: hariIni, selesai: 0 };
-    }
-    if (mentah.tanggal !== hariIni) return { tanggal: hariIni, selesai: 0 };
-    const selesai = Number(mentah.selesai);
-    return {
-      tanggal: hariIni,
-      selesai: Number.isFinite(selesai)
-        ? Math.max(0, Math.min(BATAS_HARIAN, Math.floor(selesai)))
-        : 0,
-    };
-  } catch {
-    return { tanggal: hariIni, selesai: 0 };
-  }
+  try {
+    const mentah = JSON.parse(localStorage.getItem(KUNCI_PROGRES) || "{}");
+    if (!mentah || typeof mentah !== "object" || Array.isArray(mentah)) {
+      return { tanggal: hariIni, selesai: 0 };
+    }
+    if (mentah.tanggal !== hariIni) return { tanggal: hariIni, selesai: 0 };
+    const selesai = Number(mentah.selesai);
+    return {
+      tanggal: hariIni,
+      selesai: Number.isFinite(selesai)
+        ? Math.max(0, Math.min(BATAS_HARIAN, Math.floor(selesai)))
+        : 0,
+    };
+  } catch {
+    return { tanggal: hariIni, selesai: 0 };
+  }
 }
 
 export default function TekaTekiHarianLanding() {
-  const { t } = useI18n();
-  const navigasi = useNavigate();
-  const hariIni = tanggalHariIni();
+  const { t } = useI18n();
+  const navigasi = useNavigate();
+  const hariIni = tanggalHariIni();
 
-  /** `null` = memuat; `[]` = tidak ada snapshot (seksi disembunyikan). */
-  const [daftar, setDaftar] = useState(null);
-  const [progres, setProgres] = useState(() => bacaProgres(hariIni));
-  const [dialogGabung, setDialogGabung] = useState(false);
+  /** `null` = memuat; `[]` = tidak ada snapshot (seksi disembunyikan). */
+  const [daftar, setDaftar] = useState(null);
+  const [progres, setProgres] = useState(() => bacaProgres(hariIni));
+  const [dialogGabung, setDialogGabung] = useState(false);
 
-  // Keadaan pemutar.
-  const [indeks, setIndeks] = useState(() => bacaProgres(hariIni).selesai);
-  const [posisi, setPosisi] = useState(null);
-  const [sisa, setSisa] = useState([]);
-  const [terpilih, setTerpilih] = useState(null);
-  const [sasaran, setSasaran] = useState([]);
-  const [petunjuk, setPetunjuk] = useState(null);
-  const [kesalahan, setKesalahan] = useState(null);
-  const [langkahAkhir, setLangkahAkhir] = useState(null);
-  const [promosi, setPromosi] = useState(null);
-  /** `{ jenis: "benar" | "salah" | "selesai", kunci }` atau `null`. */
-  const [pesan, setPesan] = useState(null);
-  const [selesaiSoal, setSelesaiSoal] = useState(false);
-  const [menungguLawan, setMenungguLawan] = useState(false);
+  // Keadaan pemutar.
+  const [indeks, setIndeks] = useState(() => bacaProgres(hariIni).selesai);
+  const [posisi, setPosisi] = useState(null);
+  const [sisa, setSisa] = useState([]);
+  const [terpilih, setTerpilih] = useState(null);
+  const [sasaran, setSasaran] = useState([]);
+  const [petunjuk, setPetunjuk] = useState(null);
+  const [kesalahan, setKesalahan] = useState(null);
+  const [langkahAkhir, setLangkahAkhir] = useState(null);
+  const [promosi, setPromosi] = useState(null);
+  /** `{ jenis: "benar" | "salah" | "selesai", kunci }` atau `null`. */
+  const [pesan, setPesan] = useState(null);
+  const [selesaiSoal, setSelesaiSoal] = useState(false);
+  const [menungguLawan, setMenungguLawan] = useState(false);
 
-  const jamLawan = useRef(null);
-  const jamSalah = useRef(null);
-  const jamBerikut = useRef(null);
-  const jamDialog = useRef(null);
+  const jamLawan = useRef(null);
+  const jamSalah = useRef(null);
+  const jamBerikut = useRef(null);
+  const jamDialog = useRef(null);
 
-  /* -------------------------------------------------------------- data */
+  /* -------------------------------------------------------------- data */
 
-  useEffect(() => {
-    let hidup = true;
-    ambilSoalTerbaru()
-      .then((semua) => {
-        if (!hidup) return;
-        // `ambilSoalTerbaru` mengembalikan urutan terbaru-dulu.
-        const lima = semua.slice(0, BATAS_HARIAN);
-        setDaftar(lima);
-        // Progres yang sudah tercatat menunjuk soal ke berapa; jangan pernah
-        // melewati batas daftar.
-        setIndeks((i) => Math.min(i, Math.max(0, lima.length - 1)));
-      })
-      .catch(() => {
-        if (hidup) setDaftar([]);
-      });
-    return () => {
-      hidup = false;
-    };
-  }, []);
+  useEffect(() => {
+    let hidup = true;
+    ambilSoalTerbaru()
+      .then((semua) => {
+        if (!hidup) return;
+        // `ambilSoalTerbaru` mengembalikan urutan terbaru-dulu.
+        const lima = semua.slice(0, BATAS_HARIAN);
+        setDaftar(lima);
+        // Progres yang sudah tercatat menunjuk soal ke berapa; jangan pernah
+        // melewati batas daftar.
+        setIndeks((i) => Math.min(i, Math.max(0, lima.length - 1)));
+      })
+      .catch(() => {
+        if (hidup) setDaftar([]);
+      });
+    return () => {
+      hidup = false;
+    };
+  }, []);
 
-  useEffect(
-    () => () => {
-      window.clearTimeout(jamLawan.current);
-      window.clearTimeout(jamSalah.current);
-      window.clearTimeout(jamBerikut.current);
-      window.clearTimeout(jamDialog.current);
-    },
-    []
-  );
+  useEffect(
+    () => () => {
+      window.clearTimeout(jamLawan.current);
+      window.clearTimeout(jamSalah.current);
+      window.clearTimeout(jamBerikut.current);
+      window.clearTimeout(jamDialog.current);
+    },
+    []
+  );
 
-  const soal = daftar?.[indeks] || null;
-  const jatahHabis = progres.selesai >= BATAS_HARIAN;
-  const orientasi = soal ? warnaGiliran(soal.fen) : "w";
+  const soal = daftar?.[indeks] || null;
+  const jatahHabis = progres.selesai >= BATAS_HARIAN;
+  const orientasi = soal ? warnaGiliran(soal.fen) : "w";
 
-  /** Pasang satu soal dari keadaan bersih. */
-  const pasangSoal = useCallback((data) => {
-    window.clearTimeout(jamLawan.current);
-    window.clearTimeout(jamSalah.current);
-    window.clearTimeout(jamBerikut.current);
-    setTerpilih(null);
-    setSasaran([]);
-    setPetunjuk(null);
-    setKesalahan(null);
-    setLangkahAkhir(null);
-    setPromosi(null);
-    setPesan(null);
-    setSelesaiSoal(false);
-    setMenungguLawan(false);
-    setPosisi(data ? data.fen : null);
-    setSisa(data ? data.langkah.slice() : []);
-  }, []);
+  /** Pasang satu soal dari keadaan bersih. */
+  const pasangSoal = useCallback((data) => {
+    window.clearTimeout(jamLawan.current);
+    window.clearTimeout(jamSalah.current);
+    window.clearTimeout(jamBerikut.current);
+    setTerpilih(null);
+    setSasaran([]);
+    setPetunjuk(null);
+    setKesalahan(null);
+    setLangkahAkhir(null);
+    setPromosi(null);
+    setPesan(null);
+    setSelesaiSoal(false);
+    setMenungguLawan(false);
+    setPosisi(data ? data.fen : null);
+    setSisa(data ? data.langkah.slice() : []);
+  }, []);
 
-  useEffect(() => {
-    pasangSoal(soal);
-  }, [soal, pasangSoal]);
+  useEffect(() => {
+    pasangSoal(soal);
+  }, [soal, pasangSoal]);
 
-  const simpanProgres = useCallback(
-    (jumlah) => {
-      try {
-        localStorage.setItem(
-          KUNCI_PROGRES,
-          JSON.stringify({ tanggal: hariIni, selesai: jumlah })
-        );
-      } catch {
-        /* mode privat / kuota penuh — jatah tetap berlaku di sesi ini */
-      }
-    },
-    [hariIni]
-  );
+  const simpanProgres = useCallback(
+    (jumlah) => {
+      try {
+        localStorage.setItem(
+          KUNCI_PROGRES,
+          JSON.stringify({ tanggal: hariIni, selesai: jumlah })
+        );
+      } catch {
+        /* mode privat / kuota penuh — jatah tetap berlaku di sesi ini */
+      }
+    },
+    [hariIni]
+  );
 
-  /* ------------------------------------------------------------ pemutar */
+  /* ------------------------------------------------------------ pemutar */
 
-  /** Soal tuntas: catat jatah, lalu dialog gabung atau soal berikutnya. */
-  const tuntaskan = useCallback(() => {
-    setSelesaiSoal(true);
-    setMenungguLawan(false);
-    setPetunjuk(null);
-    setPesan({ jenis: "selesai", kunci: "landing.harianSelesai" });
+  /** Soal tuntas: catat jatah, lalu dialog gabung atau soal berikutnya. */
+  const tuntaskan = useCallback(() => {
+    setSelesaiSoal(true);
+    setMenungguLawan(false);
+    setPetunjuk(null);
+    setPesan({ jenis: "selesai", kunci: "landing.harianSelesai" });
 
-    // Efek samping (localStorage + timer) sengaja DI LUAR updater state:
-    // React boleh memanggil updater lebih dari sekali (StrictMode), dan timer
-    // ganda akan melompati satu soal.
-    const jumlah = Math.min(BATAS_HARIAN, progres.selesai + 1);
-    setProgres({ tanggal: hariIni, selesai: jumlah });
-    simpanProgres(jumlah);
+    // Efek samping (localStorage + timer) sengaja DI LUAR updater state:
+    // React boleh memanggil updater lebih dari sekali (StrictMode), dan timer
+    // ganda akan melompati satu soal.
+    const jumlah = Math.min(BATAS_HARIAN, progres.selesai + 1);
+    setProgres({ tanggal: hariIni, selesai: jumlah });
+    simpanProgres(jumlah);
 
-    if (jumlah >= BATAS_HARIAN) {
-      // Beri jeda supaya pesan "tepat" sempat terbaca sebelum dialog.
-      jamDialog.current = window.setTimeout(() => setDialogGabung(true), JEDA_BERIKUT);
-    } else {
-      jamBerikut.current = window.setTimeout(
-        () => setIndeks((i) => i + 1),
-        JEDA_BERIKUT
-      );
-    }
-  }, [hariIni, progres.selesai, simpanProgres]);
+    if (jumlah >= BATAS_HARIAN) {
+      // Beri jeda supaya pesan "tepat" sempat terbaca sebelum dialog.
+      jamDialog.current = window.setTimeout(() => setDialogGabung(true), JEDA_BERIKUT);
+    } else {
+      jamBerikut.current = window.setTimeout(
+        () => setIndeks((i) => i + 1),
+        JEDA_BERIKUT
+      );
+    }
+  }, [hariIni, progres.selesai, simpanProgres]);
 
-  /** Lawan membalas otomatis; bila itu langkah terakhir, soal tuntas. */
-  const mainkanLawan = useCallback(
-    (daftarSisa, posisiKini) => {
-      if (!daftarSisa.length) return;
-      setMenungguLawan(true);
-      const { from, to, promo } = parseLangkah(daftarSisa[0]);
+  /** Lawan membalas otomatis; bila itu langkah terakhir, soal tuntas. */
+  const mainkanLawan = useCallback(
+    (daftarSisa, posisiKini) => {
+      if (!daftarSisa.length) return;
+      setMenungguLawan(true);
+      const { from, to, promo } = parseLangkah(daftarSisa[0]);
 
-      jamLawan.current = window.setTimeout(() => {
-        try {
-          const game = terapkan(posisiKini, { from, to, promo });
-          const baru = daftarSisa.slice(1);
-          setPosisi(game.fen());
-          setSisa(baru);
-          setLangkahAkhir({ from, to });
-          setTerpilih(null);
-          setSasaran([]);
-          setMenungguLawan(false);
-          if (!baru.length) tuntaskan();
-        } catch {
-          // Data snapshot rusak: jangan biarkan papan terkunci selamanya.
-          setMenungguLawan(false);
-          setPesan({ jenis: "salah", kunci: "landing.harianSalah" });
-        }
-      }, JEDA_LAWAN);
-    },
-    [tuntaskan]
-  );
+      jamLawan.current = window.setTimeout(() => {
+        try {
+          const game = terapkan(posisiKini, { from, to, promo });
+          const baru = daftarSisa.slice(1);
+          setPosisi(game.fen());
+          setSisa(baru);
+          setLangkahAkhir({ from, to });
+          setTerpilih(null);
+          setSasaran([]);
+          setMenungguLawan(false);
+          if (!baru.length) tuntaskan();
+        } catch {
+          // Data snapshot rusak: jangan biarkan papan terkunci selamanya.
+          setMenungguLawan(false);
+          setPesan({ jenis: "salah", kunci: "landing.harianSalah" });
+        }
+      }, JEDA_LAWAN);
+    },
+    [tuntaskan]
+  );
 
-  function pilihPetak(petak) {
-    if (!posisi || selesaiSoal || menungguLawan) return;
-    const game = new Chess(posisi);
-    const bidak = game.get(petak);
-    if (bidak && bidak.color === game.turn()) {
-      setPesan(null);
-      setTerpilih(petak);
-      setSasaran(game.moves({ square: petak, verbose: true }).map((m) => m.to));
-    } else {
-      setTerpilih(null);
-      setSasaran([]);
-    }
-  }
+  function pilihPetak(petak) {
+    if (!posisi || selesaiSoal || menungguLawan) return;
+    const game = new Chess(posisi);
+    const bidak = game.get(petak);
+    if (bidak && bidak.color === game.turn()) {
+      setPesan(null);
+      setTerpilih(petak);
+      setSasaran(game.moves({ square: petak, verbose: true }).map((m) => m.to));
+    } else {
+      setTerpilih(null);
+      setSasaran([]);
+    }
+  }
 
-  function klikPetak(petak) {
-    if (!posisi || selesaiSoal || menungguLawan) return;
-    if (terpilih && sasaran.includes(petak)) {
-      cobaLangkah(terpilih, petak);
-      return;
-    }
-    if (terpilih === petak) {
-      setTerpilih(null);
-      setSasaran([]);
-      return;
-    }
-    pilihPetak(petak);
-  }
+  function klikPetak(petak) {
+    if (!posisi || selesaiSoal || menungguLawan) return;
+    if (terpilih && sasaran.includes(petak)) {
+      cobaLangkah(terpilih, petak);
+      return;
+    }
+    if (terpilih === petak) {
+      setTerpilih(null);
+      setSasaran([]);
+      return;
+    }
+    pilihPetak(petak);
+  }
 
-  function cobaLangkah(from, to, promo) {
-    if (!posisi || selesaiSoal || menungguLawan || !sisa.length) return;
+  function cobaLangkah(from, to, promo) {
+    if (!posisi || selesaiSoal || menungguLawan || !sisa.length) return;
 
-    const diharapkan = parseLangkah(sisa[0]);
-    const legal = apakahLangkahLegal(posisi, from, to);
-    const mintaPromosi = butuhPromosi(posisi, from, to);
+    const diharapkan = parseLangkah(sisa[0]);
+    const legal = apakahLangkahLegal(posisi, from, to);
+    const mintaPromosi = butuhPromosi(posisi, from, to);
 
-    // Pion menuju baris terakhir: tanyakan bidak promosi dulu, jangan menilai
-    // langkah yang belum lengkap.
-    if (mintaPromosi.butuh && legal && !promo) {
-      setPromosi({ from, to, warna: mintaPromosi.warna });
-      setTerpilih(null);
-      setSasaran([]);
-      return;
-    }
+    // Pion menuju baris terakhir: tanyakan bidak promosi dulu, jangan menilai
+    // langkah yang belum lengkap.
+    if (mintaPromosi.butuh && legal && !promo) {
+      setPromosi({ from, to, warna: mintaPromosi.warna });
+      setTerpilih(null);
+      setSasaran([]);
+      return;
+    }
 
-    let berikutnya = null;
-    if (apakahLangkahSesuai(from, to, promo, diharapkan)) {
-      try {
-        berikutnya = terapkan(posisi, {
-          from,
-          to,
-          promo: diharapkan.promo || promo,
-        });
-      } catch {
-        berikutnya = null;
-      }
-    }
+    let berikutnya = null;
+    if (apakahLangkahSesuai(from, to, promo, diharapkan)) {
+      try {
+        berikutnya = terapkan(posisi, {
+          from,
+          to,
+          promo: diharapkan.promo || promo,
+        });
+      } catch {
+        berikutnya = null;
+      }
+    }
 
-    if (!berikutnya) {
-      window.clearTimeout(jamSalah.current);
-      setPesan({
-        jenis: "salah",
-        kunci: legal ? "landing.harianSalah" : "tekaTekiHarian.bukanLangkahLegal",
-      });
-      setKesalahan({ from, to });
-      setTerpilih(null);
-      setSasaran([]);
-      jamSalah.current = window.setTimeout(() => setKesalahan(null), JEDA_SALAH);
-      return;
-    }
+    if (!berikutnya) {
+      window.clearTimeout(jamSalah.current);
+      setPesan({
+        jenis: "salah",
+        kunci: legal ? "landing.harianSalah" : "tekaTekiHarian.bukanLangkahLegal",
+      });
+      setKesalahan({ from, to });
+      setTerpilih(null);
+      setSasaran([]);
+      jamSalah.current = window.setTimeout(() => setKesalahan(null), JEDA_SALAH);
+      return;
+    }
 
-    const sisaBaru = sisa.slice(1);
-    setPosisi(berikutnya.fen());
-    setSisa(sisaBaru);
-    setLangkahAkhir({ from, to });
-    setTerpilih(null);
-    setSasaran([]);
-    setKesalahan(null);
-    setPetunjuk(null);
+    const sisaBaru = sisa.slice(1);
+    setPosisi(berikutnya.fen());
+    setSisa(sisaBaru);
+    setLangkahAkhir({ from, to });
+    setTerpilih(null);
+    setSasaran([]);
+    setKesalahan(null);
+    setPetunjuk(null);
 
-    if (!sisaBaru.length) {
-      tuntaskan();
-      return;
-    }
-    setPesan({ jenis: "benar", kunci: "landing.harianBenar" });
-    mainkanLawan(sisaBaru, berikutnya.fen());
-  }
+    if (!sisaBaru.length) {
+      tuntaskan();
+      return;
+    }
+    setPesan({ jenis: "benar", kunci: "landing.harianBenar" });
+    mainkanLawan(sisaBaru, berikutnya.fen());
+  }
 
-  function tampilkanPetunjuk() {
-    if (!sisa.length || selesaiSoal) return;
-    const { from, to } = parseLangkah(sisa[0]);
-    setPetunjuk({ from, to });
-  }
+  function tampilkanPetunjuk() {
+    if (!sisa.length || selesaiSoal) return;
+    const { from, to } = parseLangkah(sisa[0]);
+    setPetunjuk({ from, to });
+  }
 
-  /* ------------------------------------------------------------- render */
+  /* ------------------------------------------------------------- render */
 
-  // Snapshot belum ada / rusak → jangan tampilkan seksi kosong.
-  if (!daftar || daftar.length === 0) return null;
+  // Snapshot belum ada / rusak → jangan tampilkan seksi kosong.
+  if (!daftar || daftar.length === 0) return null;
 
-  const nomorSoal = Math.min(indeks + 1, daftar.length);
-  const jatahTerpakai = Math.min(progres.selesai, BATAS_HARIAN);
-  const sisaJatah = Math.max(0, BATAS_HARIAN - jatahTerpakai);
-  const deskKartu = jatahHabis
-    ? t("landing.harianKartuDeskSelesai")
-    : t("landing.harianKartuDeskSisa", { n: sisaJatah });
-  /*
-   * Teks kartu kemajuan mengikuti keadaan pemain, bukan satu kalimat statis:
-   * belum mulai, sedang berjalan, lalu selesai. Polanya meniru kartu progres
-   * "Keep it up!" di worldchess.com — satu judul penyemangat, satu kalimat
-   * sisa jatah, lalu segmen + dua angka kecil.
-   */
-  const teksStatus = pesan
-    ? t(pesan.kunci)
-    : t(
-        orientasi === "w"
-          ? "landing.harianGiliranPutih"
-          : "landing.harianGiliranHitam"
-      );
+  const nomorSoal = Math.min(indeks + 1, daftar.length);
+  const jatahTerpakai = Math.min(progres.selesai, BATAS_HARIAN);
+  const sisaJatah = Math.max(0, BATAS_HARIAN - jatahTerpakai);
+  const deskKartu = jatahHabis
+    ? t("landing.harianKartuDeskSelesai")
+    : t("landing.harianKartuDeskSisa", { n: sisaJatah });
+  const judulKartu = jatahHabis
+    ? t("landing.harianKartuJudulSelesai")
+    : jatahTerpakai === 0
+      ? t("landing.harianKartuJudulMulai")
+      : t("landing.harianKartuJudulLanjut");
+  /*
+   * Teks kartu kemajuan mengikuti keadaan pemain, bukan satu kalimat statis:
+   * belum mulai, sedang berjalan, lalu selesai. Polanya meniru kartu progres
+   * "Keep it up!" di worldchess.com — satu judul penyemangat, satu kalimat
+   * sisa jatah, lalu segmen + dua angka kecil.
+   */
+  const teksStatus = pesan
+    ? t(pesan.kunci)
+    : t(
+        orientasi === "w"
+          ? "landing.harianGiliranPutih"
+          : "landing.harianGiliranHitam"
+      );
 
-  return (
-    <section
-      aria-labelledby="teka-teki-harian-judul"
-      className="w-full pl-6 md:pl-8 pr-6 md:pr-8 pb-12 xl:pb-16 pt-12 xl:pt-16 overflow-hidden"
-    >
-      <div className="relative mx-auto w-full max-w-[1440px]">
+  return (
+    <section
+      aria-labelledby="teka-teki-harian-judul"
+      className="w-full pl-6 md:pl-8 pr-6 md:pr-8 pb-12 xl:pb-16 pt-12 xl:pt-16 overflow-hidden"
+    >
+      <div className="relative mx-auto w-full max-w-[1440px]">
         <div className="grid items-center gap-x-6 gap-y-10 xl:grid-cols-[minmax(260px,0.95fr)_minmax(360px,1.3fr)_minmax(230px,0.85fr)] xl:gap-x-8">
-          {/* Kiri: susunan mengikuti HomeWelcomeMessage, HomeRatingProgress, dan GameTowerProgress. */}
+          {/*
+           * Kiri: padanan HomeWelcomeMessage + HomeRatingProgress +
+           * GameTowerProgress di acuan. Judul dan kalimatnya mengikuti keadaan
+           * jatah (belum mulai / sedang jalan / selesai), cincin menampilkan
+           * nomor soal, dan track di bawahnya menampilkan jatah terpakai.
+           */}
           <div
             data-component="HomeLayoutDesktopLeft"
+            data-kartu-harian
             className="flex min-w-0 flex-col justify-center gap-y-6 xl:min-h-[440px]"
           >
             <header
@@ -391,91 +405,41 @@ export default function TekaTekiHarianLanding() {
               className="flex flex-col gap-y-2"
             >
               <h2 className="font-serif text-2xl font-semibold leading-tight text-grey-800">
-                Lanjutkan kerja baikmu!
+                {judulKartu}
               </h2>
-              <p className="max-w-[34rem] font-serif text-base leading-relaxed text-grey-600">
-                Mainkan beberapa kali lagi untuk melihat kemampuanmu.
+              <p className="max-w-lg font-serif text-base leading-relaxed text-grey-600">
+                {deskKartu}
               </p>
             </header>
 
             <section
-              aria-label="Progres teka-teki harian"
+              aria-label={t("landing.harianProgresAria")}
               data-component="HomeRatingProgress"
-              className="flex min-w-0 items-center gap-4 py-2 sm:gap-5"
+              className="flex min-w-0 justify-center xl:justify-start"
             >
-              <div className="relative mx-auto h-[200px] w-[200px] shrink-0">
-                <svg
-                  aria-label={`Peringkat Perkiraan. Teka-teki harian: ${jatahTerpakai} dari ${BATAS_HARIAN}. Mainkan 5 game untuk memperkirakan.`}
-                  role="img"
-                  viewBox="0 0 200 200"
-                  className="h-full w-full"
-                  fill="none"
-                >
-                  <circle
-                    r="93.6"
-                    cx="100"
-                    cy="100"
-                    fill="none"
-                    stroke="#000000"
-                    strokeWidth="0.8"
-                    shapeRendering="geometricPrecision"
-                  />
-                  <g textAnchor="middle">
-                    <text
-                      x="100"
-                      y="65"
-                      fill="currentColor"
-                      className="font-sans text-[13px] font-semibold text-grey-800"
-                    >
-                      Peringkat
-                    </text>
-                    <text
-                      x="100"
-                      y="82"
-                      fill="currentColor"
-                      className="font-sans text-[12px] text-grey-600"
-                    >
-                      Perkiraan
-                    </text>
-                    <text
-                      x="100"
-                      y="105"
-                      fill="currentColor"
-                      className="font-sans text-[12px] text-grey-600"
-                    >
-                      Teka-teki harian
-                    </text>
-                    <text
-                      x="100"
-                      y="135"
-                      fill="currentColor"
-                      className="font-serif text-[24px] font-semibold text-grey-800"
-                    >
-                      {jatahTerpakai} dari {BATAS_HARIAN}
-                    </text>
-                    <text
-                      x="100"
-                      y="155"
-                      fill="currentColor"
-                      className="font-sans text-[12px] text-grey-600"
-                    >
-                      Mainkan 5 game untuk
-                    </text>
-                    <text
-                      x="100"
-                      y="170"
-                      fill="currentColor"
-                      className="font-sans text-[12px] text-grey-600"
-                    >
-                      memperkirakan
-                    </text>
-                  </g>
-                </svg>
-              </div>
+              <CincinKemajuan
+                nilai={jatahTerpakai}
+                maks={BATAS_HARIAN}
+                label={t("landing.harianRingLabel")}
+                subLabel={t("landing.harianRingSub")}
+                nilaiTeks={t("landing.harianRingNilai", {
+                  n: jatahTerpakai,
+                  total: BATAS_HARIAN,
+                })}
+                catatan={
+                  jatahHabis
+                    ? t("landing.harianRingCatatanTuntas")
+                    : t("landing.harianRingCatatan", { n: sisaJatah })
+                }
+                ariaLabel={t("landing.harianRingAria", {
+                  n: jatahTerpakai,
+                  total: BATAS_HARIAN,
+                })}
+              />
             </section>
 
             <section
-              aria-label="Jatah teka-teki harian"
+              aria-label={t("landing.harianTrackAria")}
               data-component="GameTowerProgress"
               className="flex min-w-0 flex-col gap-y-4 border-t border-grey-200 pt-4"
             >
@@ -483,29 +447,32 @@ export default function TekaTekiHarianLanding() {
                 <div className="flex min-w-0 items-center gap-3">
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center border border-grey-200 text-grey-800">
                     <svg aria-hidden="true" viewBox="0 0 16 16" className="h-4 w-4" fill="none">
-                      <path d="M0.75 6.1 8 0.75l7.25 5.35v9.15H0.75V6.1Z" stroke="currentColor" strokeWidth="1.1" />
+                      <path
+                        d="M0.75 6.1 8 0.75l7.25 5.35v9.15H0.75V6.1Z"
+                        stroke="currentColor"
+                        strokeWidth="1.1"
+                      />
                     </svg>
                   </div>
                   <div className="flex min-w-0 flex-col gap-y-0.5">
                     <h3 className="font-sans text-base font-semibold text-grey-800">
-                      Jatah harian
+                      {t("landing.harianKartuLabelJatah")}
                     </h3>
                     <p className="font-sans text-sm text-grey-600">
-                      Teka-teki
+                      {t("landing.harianKartuLabelSoal")}
                     </p>
                   </div>
                 </div>
-                <div className="flex shrink-0 items-baseline gap-1 font-serif text-xl font-semibold text-grey-800">
-                  <span>{jatahTerpakai}</span>
-                  <span className="font-sans text-sm font-normal text-grey-600">
+                <p className="flex shrink-0 items-baseline gap-1 font-serif text-2xl font-semibold text-grey-800">
+                  {jatahTerpakai}
+                  <span className="font-sans text-base font-normal text-grey-600">
                     / {BATAS_HARIAN}
                   </span>
-                </div>
+                </p>
               </div>
 
               <div
                 role="progressbar"
-                aria-label="Progres jatah teka-teki harian"
                 aria-valuemin={0}
                 aria-valuemax={BATAS_HARIAN}
                 aria-valuenow={jatahTerpakai}
@@ -513,6 +480,7 @@ export default function TekaTekiHarianLanding() {
                   n: jatahTerpakai,
                   total: BATAS_HARIAN,
                 })}
+                aria-label={t("landing.harianTrackAria")}
                 className="relative h-1.5 w-full bg-grey-200"
               >
                 <div
@@ -525,14 +493,14 @@ export default function TekaTekiHarianLanding() {
                   style={{ left: `${(jatahTerpakai / BATAS_HARIAN) * 100}%` }}
                 />
               </div>
-              <div className="flex items-center justify-between gap-3 font-sans text-xs text-grey-600">
-                <span>{t("landing.harianKartuLabelJatah")}</span>
+              <div className="flex items-center justify-between gap-3 font-sans text-sm text-grey-600">
                 <span>
-                  {t("landing.harianKemajuan", {
-                    n: jatahTerpakai,
-                    total: BATAS_HARIAN,
+                  {t("landing.harianNomorSoal", {
+                    n: nomorSoal,
+                    total: daftar.length,
                   })}
                 </span>
+                <span>{t("landing.harianTrackSisa", { n: sisaJatah })}</span>
               </div>
             </section>
 
@@ -604,7 +572,7 @@ export default function TekaTekiHarianLanding() {
                   {/* Pemilih promosi tetap berada di atas papan demo. */}
                   {promosi && (
                     <div className="absolute inset-0 z-50 flex flex-col items-center justify-center gap-3 rounded bg-black/55 p-3">
-                      <p className="font-sans text-xs font-bold uppercase tracking-wider text-white">
+                      <p className="font-sans text-sm font-bold uppercase tracking-wider text-white">
                         {t("tekaTekiHarian.promosiJudul")}
                       </p>
                       <div className="flex flex-wrap justify-center gap-2">
@@ -617,7 +585,7 @@ export default function TekaTekiHarianLanding() {
                               setPromosi(null);
                               cobaLangkah(from, to, kode);
                             }}
-                            className="rounded bg-white px-2.5 py-1.5 font-sans text-xs font-semibold text-grey-800 transition-colors hover:bg-grey-100"
+                            className="rounded bg-white px-3 py-2 font-sans text-sm font-semibold text-grey-800 transition-colors hover:bg-grey-100"
                           >
                             {t(kunci)}
                           </button>
@@ -626,7 +594,7 @@ export default function TekaTekiHarianLanding() {
                       <button
                         type="button"
                         onClick={() => setPromosi(null)}
-                        className="font-sans text-xs font-semibold text-white/80 underline underline-offset-2"
+                        className="font-sans text-sm font-semibold text-white/80 underline underline-offset-2"
                       >
                         {t("tekaTekiHarian.promosiBatal")}
                       </button>
@@ -644,14 +612,17 @@ export default function TekaTekiHarianLanding() {
 
           {/* Kanan: konteks promosi dan kontrol demo, bukan panel permainan penuh. */}
           <aside
-            aria-label="Informasi dan kontrol demo teka-teki harian"
+            aria-label={t("landing.harianKontrolAria")}
             className="flex min-w-0 flex-col justify-center gap-y-7 lg:min-h-[440px]"
           >
             <header className="flex flex-col gap-y-3">
               <p className="font-sans text-sm font-semibold text-primary">
                 {t("landing.harianLabel")}
               </p>
-              <h3 className="font-serif text-2xl font-semibold leading-tight text-grey-800">
+              <h3
+                id="teka-teki-harian-judul"
+                className="font-serif text-2xl font-semibold leading-tight text-grey-800"
+              >
                 {t("landing.harianJudul")}
               </h3>
               <p className="font-serif text-base leading-relaxed text-grey-600">
@@ -690,7 +661,7 @@ export default function TekaTekiHarianLanding() {
                     {t("landing.harianUlangi")}
                   </button>
                 </div>
-                <p className="mt-4 font-mono text-xs uppercase tracking-wider text-grey-600">
+                <p className="mt-4 font-mono text-sm uppercase tracking-wider text-grey-600">
                   {t("landing.harianNomorSoal", { n: nomorSoal, total: daftar.length })}
                   {" · "}
                   {t("landing.harianEdisi", { tanggal: soal.tanggal })}
@@ -701,31 +672,31 @@ export default function TekaTekiHarianLanding() {
         </div>
       </div>
 
-            {/* Dialog ajakan bergabung setelah 5 soal. Radix dipakai supaya fokus
-          terkunci dan Escape berperilaku sama dengan dialog lain di situs. */}
-      <AlertDialog open={dialogGabung} onOpenChange={setDialogGabung}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {t("landing.harianDialogJudul", { total: BATAS_HARIAN })}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {t("landing.harianDialogDesk", { total: BATAS_HARIAN })}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{t("landing.harianDialogNanti")}</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                setDialogGabung(false);
-                navigasi(RUTE_GABUNG);
-              }}
-            >
-              {t("landing.harianGabung")}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </section>
-  );
+      {/* Dialog ajakan bergabung setelah 5 soal. Radix dipakai supaya fokus
+      terkunci dan Escape berperilaku sama dengan dialog lain di situs. */}
+      <AlertDialog open={dialogGabung} onOpenChange={setDialogGabung}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t("landing.harianDialogJudul", { total: BATAS_HARIAN })}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("landing.harianDialogDesk", { total: BATAS_HARIAN })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("landing.harianDialogNanti")}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setDialogGabung(false);
+                navigasi(RUTE_GABUNG);
+              }}
+            >
+              {t("landing.harianGabung")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </section>
+  );
 }

@@ -155,17 +155,23 @@ Batas harian:
   **Blunder Skuad**; aksinya menuju `/pendaftaran-anggota`;
 - bila jatah habis, panel papan diganti keterangan jatah habis + tombol gabung,
   sehingga memuat ulang halaman tidak menambah jatah;
-- jatah harian ditampilkan sebagai **kartu kemajuan** (`data-kartu-harian`, pola
-  "Keep it up!" ala worldchess.com): judul keadaan (belum mulai / ayo lanjut /
-  jatah selesai), satu kalimat sisa jatah, **cincin `Soal 1 / 5`**
-  (`src/components/CincinKemajuan.jsx`, `data-cincin-kemajuan`), lalu **track
-  "Tower"** berisi lima segmen `role="progressbar"` dengan titik di kedua ujung
-  dan baris `Jatah hari ini · 0/5`.
-- cincin hanya penguat visual: SVG-nya `aria-hidden`, sedangkan label, angka
-  soal, dan catatan sisa jatah adalah teks sungguhan (terbaca pembaca layar dan
-  uji). Busurnya mengikuti jatah yang sudah dimainkan, jadi ikut penuh di 5/5.
-- kartu ini **tidak** menampilkan rating atau angka lain yang datanya memang
-  tidak ada di arsip (arsip hanya menyimpan `tanggal`, `fen`, `langkah`).
+- seksi disusun **tiga kolom** mengikuti tata letak worldchess.com: kiri
+  progres (`data-kartu-harian`), tengah papan demo, kanan informasi + kontrol.
+- kolom kiri berisi judul keadaan (belum mulai / ayo lanjut / jatah selesai),
+  satu kalimat sisa jatah, **cincin** (`src/components/CincinKemajuan.jsx`,
+  `data-cincin-kemajuan`, label `Jatah harian` / `Teka-teki` / `0 dari 5`),
+  lalu **track "Tower"** (`role="progressbar"`, garis 1,5 px + penanda kotak,
+  angka besar `0 / 5`, dan baris nomor soal + sisa jatah), lalu tombol utama.
+- cincin hanya penguat visual: SVG-nya `aria-hidden`, sedangkan seluruh teks di
+  dalamnya HTML sungguhan 14–30 px (terbaca pembaca layar dan uji); satu-satunya
+  keterangan untuk pembaca layar adalah `aria-label` dari
+  `landing.harianRingAria`. Busurnya mengikuti jatah yang sudah dimainkan.
+- tidak ada teks di bawah 14 px di kolom progres dan kontrol (sebelumnya ada
+  label 12 px di dalam SVG dan baris `text-xs`); angka jatah memakai `text-2xl`,
+  judul kolom `text-2xl`, badan teks `text-base`.
+- panel ini **tidak** menampilkan rating atau angka lain yang datanya memang
+  tidak ada di arsip (arsip hanya menyimpan `tanggal`, `fen`, `langkah`), jadi
+  cincinnya berlabel jatah harian, bukan "Rating / Estimated".
 
 Salinan Indonesia dan Inggris keduanya wajib ada (`npm run uji:i18n`).
 

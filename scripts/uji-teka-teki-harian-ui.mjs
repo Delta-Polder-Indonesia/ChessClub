@@ -762,6 +762,22 @@ const teksNomorSoal = (n, total = 5) =>
   kamusLanding.harianNomorSoal.replace("{n}", String(n)).replace("{total}", String(total));
 const teksKemajuan = (n, total = 5) =>
   kamusLanding.harianKemajuan.replace("{n}", String(n)).replace("{total}", String(total));
+
+/*
+ * Sejak panel progres dirapikan, kalimat "0/5 soal dimainkan hari ini" tidak
+ * lagi jadi paragraf terpisah: angkanya tampil sebagai teks besar "0 / 5" di
+ * samping track, sedangkan kalimat lengkapnya jadi `aria-valuetext`. Jadi
+ * pemeriksaan jatah membaca aria track, bukan teks halaman.
+ */
+const jatahTrack = () => dok.querySelector("[data-kartu-harian] [role='progressbar']");
+function jatahDilaporkan(n, total = 5) {
+  const track = jatahTrack();
+  return (
+    track?.getAttribute("aria-valuenow") === String(n) &&
+    track?.getAttribute("aria-valuetext") === teksKemajuan(n, total)
+  );
+}
+const isianTrack = () => jatahTrack()?.querySelector(".bg-primary")?.style.width || "";
 const teksTerkunci = (total = 5) =>
   kamusLanding.harianTerkunciJudul.replace("{total}", String(total));
 const teksDialog = (total = 5) =>
@@ -817,7 +833,7 @@ async function selesaikanSoalWidget(catatan) {
     teksHalaman().includes(daftarWidget[0].tanggal)
   );
   uji("penomoran \"Soal 1 dari 5\"", teksHalaman().includes(teksNomorSoal(1)));
-  uji("jatah harian 0/5 ditampilkan", teksHalaman().includes(teksKemajuan(0)));
+  uji("jatah harian 0/5 dilaporkan track", jatahDilaporkan(0));
 
   /*
    * Kartu kemajuan harian (pola "Keep it up!"): satu judul keadaan, satu
@@ -837,24 +853,24 @@ async function selesaikanSoalWidget(catatan) {
     )
   );
   const bilahHarian = kartuHarian?.querySelector("[role='progressbar']");
-  uji("kartu punya bilah kemajuan berlabel", Boolean(bilahHarian));
+  uji("kartu punya track kemajuan berlabel", Boolean(bilahHarian));
   uji(
-    "bilah kemajuan terdiri dari lima segmen",
-    bilahHarian?.children.length === 5,
-    String(bilahHarian?.children.length)
+    "track ditandai nol di awal",
+    bilahHarian?.getAttribute("aria-valuenow") === "0" && isianTrack() === "0%",
+    isianTrack()
   );
   uji(
-    "bilah menandai nol segmen terisi di awal",
-    bilahHarian?.querySelectorAll(".bg-primary").length === 0
-  );
-  uji(
-    "angka kecil kartu: soal 1 / 5 dan sisa 5 soal",
+    "track menyebut nomor soal dan sisa jatah",
     (kartuHarian?.textContent || "").includes(
-      kamusLanding.harianKartuNilaiSoal.replace("{n}", "1").replace("{total}", "5")
+      kamusLanding.harianTrackSisa.replace("{n}", "5")
     ) &&
       (kartuHarian?.textContent || "").includes(
-        kamusLanding.harianKartuNilaiSisa.replace("{n}", "5")
+        kamusLanding.harianNomorSoal.replace("{n}", "1").replace("{total}", "5")
       )
+  );
+  uji(
+    "angka besar jatah 0 / 5 tampil di samping track",
+    /0\s*\/\s*5/.test(kartuHarian?.textContent || "")
   );
 
   /*
@@ -869,11 +885,24 @@ async function selesaikanSoalWidget(catatan) {
     cincin?.querySelector("svg")?.getAttribute("aria-hidden") === "true"
   );
   uji(
-    "cincin menampilkan label dan nomor soal sebagai teks",
-    (cincin?.textContent || "").includes(kamusLanding.harianKartuLabelSoal) &&
+    "cincin menampilkan label, sublabel, dan catatan sebagai teks",
+    (cincin?.textContent || "").includes(kamusLanding.harianRingLabel) &&
+      (cincin?.textContent || "").includes(kamusLanding.harianRingSub) &&
       (cincin?.textContent || "").includes(
-        kamusLanding.harianKartuNilaiSoal.replace("{n}", "1").replace("{total}", "5")
+        kamusLanding.harianRingCatatan.replace("{n}", "5")
       )
+  );
+  uji(
+    "cincin menampilkan angka nol dari lima",
+    (cincin?.textContent || "").includes(
+      kamusLanding.harianRingNilai.replace("{n}", "0").replace("{total}", "5")
+    )
+  );
+  uji(
+    "cincin punya label aksesibel terjemahan",
+    cincin?.getAttribute("aria-label") ===
+      kamusLanding.harianRingAria.replace("{n}", "0").replace("{total}", "5"),
+    cincin?.getAttribute("aria-label")
   );
   const busurAwal = cincin?.querySelector("[data-busur-cincin]");
   uji("busur cincin menandai nol jatah terpakai", busurAwal?.getAttribute("data-busur-cincin") === "0");
@@ -940,10 +969,10 @@ async function selesaikanSoalWidget(catatan) {
     "papan soal kelima dipasang",
     await tungguSampai(() => papanSamaData(paketKelima.fen), 5000)
   );
-  uji("jatah 4/5 ditampilkan", teksHalaman().includes(teksKemajuan(4)));
+  uji("jatah 4/5 dilaporkan track", jatahDilaporkan(4));
+  uji("isian track 80% setelah empat soal", isianTrack() === "80%", isianTrack());
   {
-    const bilah = dok.querySelector("[data-kartu-harian] [role='progressbar']");
-    uji("empat segmen terisi setelah empat soal", bilah?.querySelectorAll(".bg-primary").length === 4);
+    uji("isian track 80% setelah empat soal", isianTrack() === "80%", isianTrack());
     const busur = dok.querySelector("[data-kartu-harian] [data-busur-cincin]");
     uji(
       "busur cincin ikut terisi setelah empat soal",
@@ -951,9 +980,9 @@ async function selesaikanSoalWidget(catatan) {
         !(busur?.getAttribute("stroke-dasharray") || "").startsWith("0 ")
     );
     uji(
-      "cincin menampilkan soal 5 / 5 dan sisa 1 soal",
+      "cincin menampilkan empat dari lima soal",
       (dok.querySelector("[data-cincin-kemajuan]")?.textContent || "").includes(
-        kamusLanding.harianKartuNilaiSoal.replace("{n}", "5").replace("{total}", "5")
+        kamusLanding.harianRingNilai.replace("{n}", "4").replace("{total}", "5")
       )
     );
     uji(
@@ -1010,7 +1039,7 @@ async function selesaikanSoalWidget(catatan) {
   uji("tidak ada papan yang bisa dimainkan", dok.querySelectorAll("[data-petak]").length === 0);
   uji(
     "jatah terpakai dilaporkan 5/5",
-    teksHalaman().includes(teksKemajuan(5)) &&
+    jatahDilaporkan(5) &&
       (dok.querySelector("[data-kartu-harian]")?.textContent || "").includes(
         kamusLanding.harianKartuJudulSelesai
       )
