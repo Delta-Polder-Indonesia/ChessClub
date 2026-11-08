@@ -232,30 +232,26 @@ function GrafikRadarRating({ pemain }) {
   };
 
   return (
-    <div className="w-full border border-grey-200 bg-paper rounded-lg">
-      <div className="p-4 pb-0">
-        <ChartContainer config={config} className="mx-auto aspect-square max-h-[240px]">
-          <RadarChart accessibilityLayer data={data}>
-            <defs>
-              <linearGradient id="radar-fill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="var(--chart-1)" stopOpacity={0.5} />
-                <stop offset="100%" stopColor="var(--chart-1)" stopOpacity={0.08} />
-              </linearGradient>
-            </defs>
-            <ChartTooltip content={<ChartTooltipContent />} />
-            <PolarAngleAxis dataKey="skill" tick={{ fontSize: 12 }} />
-            <PolarGrid strokeDasharray="3 3" />
-            <Radar
-              dataKey="score"
-              fill="url(#radar-fill)"
-              stroke="var(--chart-1)"
-              strokeWidth={2}
-              dot={{ r: 4, fill: "var(--chart-1)", strokeWidth: 0 }}
-            />
-          </RadarChart>
-        </ChartContainer>
-      </div>
-    </div>
+    <ChartContainer config={config} className="mx-auto aspect-square max-h-[240px]">
+      <RadarChart accessibilityLayer data={data}>
+        <defs>
+          <linearGradient id="radar-fill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="var(--chart-1)" stopOpacity={0.5} />
+            <stop offset="100%" stopColor="var(--chart-1)" stopOpacity={0.08} />
+          </linearGradient>
+        </defs>
+        <ChartTooltip content={<ChartTooltipContent />} />
+        <PolarAngleAxis dataKey="skill" tick={{ fontSize: 12 }} />
+        <PolarGrid strokeDasharray="3 3" />
+        <Radar
+          dataKey="score"
+          fill="url(#radar-fill)"
+          stroke="var(--chart-1)"
+          strokeWidth={2}
+          dot={{ r: 4, fill: "var(--chart-1)", strokeWidth: 0 }}
+        />
+      </RadarChart>
+    </ChartContainer>
   );
 }
 
