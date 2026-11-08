@@ -82,7 +82,7 @@ export default function Testimoni() {
   const kartuKunci = ["landing.testimoniKutip1", "landing.testimoniKutip2"];
 
   return (
-    <section className="w-full px-6 md:px-8 xl:px-0 pt-0 pb-12 md:pb-16 overflow-hidden min-h-[400px]">
+    <section className="w-full px-6 md:px-8 xl:px-0 py-16 overflow-hidden min-h-[400px]">
       <div className="mx-auto max-w-[1080px] xl:max-w-7xl">
         <div className={KEPALA_SEKSI}>
           <h2 className={JUDUL_SEKSI}>{t("landing.testimoniJudul")}</h2>

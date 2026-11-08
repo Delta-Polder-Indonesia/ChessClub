@@ -147,7 +147,7 @@ export function KartuAlatLatihan() {
   const { t } = useI18n();
 
   return (
-    <section className="w-full px-6 md:px-8 xl:px-0 pb-12 md:pb-16 overflow-hidden">
+    <section className="w-full py-16 px-6 md:px-8 xl:px-0 overflow-hidden">
       <div className="mx-auto max-w-[1080px] xl:max-w-7xl flex flex-col gap-8">
         <h2 className={JUDUL_SEKSI}>{t("landing.alatLatihanJudul")}</h2>
 

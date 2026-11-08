@@ -111,7 +111,7 @@ export default function MaestroEdision() {
   const { t } = useI18n();
 
   return (
-    <section className="w-full px-6 pb-12 md:px-8 md:pb-16 xl:px-0">
+    <section className="w-full py-16 px-6 md:px-8 xl:px-0">
       <div className="mx-auto flex max-w-[1080px] flex-col items-center gap-8 xl:max-w-7xl">
         <header className="px-4 text-center">
           <h2 className={JUDUL_SEKSI}>{t("landing.arahJudul")}</h2>

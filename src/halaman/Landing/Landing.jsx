@@ -88,7 +88,7 @@ function LandingHero({ t }) {
   }, [index, SLIDES]);
 
   return (
-    <section className="w-full relative bg-transparent pb-20 overflow-hidden">
+    <section className="w-full relative bg-transparent py-16 overflow-hidden">
       <div className="w-full relative h-full min-h-[650px] overflow-hidden">
         {SLIDES.map((slide, i) => (
           <div
@@ -446,7 +446,7 @@ function CardCarousel({ index, setIndex, t }) {
 function BagianGambarKartu({ t }) {
   const [index, setIndex] = useState(4);
   return (
-    <section className="w-full relative py-12 md:py-14 overflow-hidden">
+    <section className="w-full relative py-16 overflow-hidden">
       <div className="w-full max-w-[1500px] mx-auto px-[clamp(22px,4vw,56px)] relative flex flex-col md:flex-row md:items-center gap-8 md:gap-12">
         <CardGambar index={index} t={t} />
         <div className="w-full flex flex-col">
@@ -573,7 +573,7 @@ function HarapanTerimaKasih({ t }) {
   const [pratinjau, setPratinjau] = useState(false);
   const tutupPratinjau = useCallback(() => setPratinjau(false), []);
   return (
-    <section className="w-full relative bg-transparent pl-6 pr-6 pb-12 xl:pb-16 pt-12 xl:pt-16">
+    <section className="w-full relative bg-transparent py-16 pl-6 pr-6 md:pl-8 md:pr-8">
       <div className="relative w-full mx-auto grid grid-cols-1 lg:grid-cols-[0.678fr_1.02fr] gap-x-4 md:gap-x-8 lg:gap-x-10 gap-y-4 lg:max-w-[960px] xl:max-w-[1280px]">
         {/* Kolom foto */}
         <div className="w-full relative bg-transparent">
@@ -642,7 +642,7 @@ function HarapanTerimaKasih({ t }) {
 /** Ajakan bergabung — penutup halaman. */
 function AjakanBergabung({ t }) {
   return (
-    <section className="w-full px-6 md:px-8 xl:px-0 py-12 md:py-16 text-center overflow-hidden">
+    <section className="w-full px-6 md:px-8 xl:px-0 py-16 text-center overflow-hidden">
       <div className="mx-auto max-w-4xl flex flex-col items-center">
         <div className="flex flex-col items-center gap-[14px] text-center">
           <h2 className={JUDUL_SEKSI}>
@@ -686,7 +686,7 @@ export default function Landing() {
           `--color-paper` (#f8f8f8) dari `body`. Akibatnya di sini pernah
           muncul garis sambungan karena putih murni #fff bersebelahan
           dengan paper #f8f8f8. */}
-      <section className="w-full pl-6 md:pl-8 pr-6 md:pr-8 pb-12 xl:pb-16 pt-12 xl:pt-16 overflow-hidden">
+      <section className="w-full pl-6 md:pl-8 pr-6 md:pr-8 py-16 overflow-hidden">
         <div className="relative w-full mx-auto lg:max-w-[960px] xl:max-w-[1280px] flex flex-col gap-y-4 md:gap-y-6 lg:gap-y-2">
           <div className="w-full grid lg:grid-cols-[82%_18%] gap-x-10 gap-y-6 items-start">
             <div className="grid lg:grid-cols-[1fr_1fr] gap-x-10 gap-y-4 md:gap-y-6 items-start">
