@@ -74,7 +74,7 @@ export default function ProgramKami() {
     >
       <div className="font-serif">
       {/* ═══ Sekilas Program — judul di atas, narasi di bawahnya ═══ */}
-      <section className="w-full border-t border-grey-200 bg-paper">
+      <section className="w-full bg-paper">
         <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
           <div className="flex flex-col gap-y-8">
             <h2 className="font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-grey-800">
@@ -89,14 +89,14 @@ export default function ProgramKami() {
       </section>
 
       {/* ═══ Program Unggulan — sorotan lebar + daftar definisi sekunder ═══ */}
-      <section className="w-full border-t border-grey-200 bg-paper">
+      <section className="w-full bg-paper">
         <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
           <h2 className="font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-grey-800">
             {t("program.programJudul")}
           </h2>
 
           {/* Program sorotan — foto + narasi, memberi hierarki yang jelas. */}
-          <article className="mt-10 grid items-center gap-8 border-t border-grey-200 pt-10 md:mt-12 md:grid-cols-2 md:gap-12">
+          <article className="mt-10 grid items-center gap-8 md:mt-12 md:grid-cols-2 md:gap-12">
             <figure className="order-2 m-0 border border-grey-200 bg-white p-1.5 md:order-1">
               <img
                 src={gambar("/images/landing-sorotan-program.webp")}
@@ -120,7 +120,7 @@ export default function ProgramKami() {
           </article>
 
           {/* Program sekunder — daftar definisi dua kolom (tanpa kartu/nomor). */}
-          <dl className="mt-12 grid gap-x-12 gap-y-9 border-t border-grey-200 pt-10 sm:grid-cols-2 md:mt-14">
+          <dl className="mt-12 grid gap-x-12 gap-y-9 sm:grid-cols-2 md:mt-14">
             {sekunder.map((item) => (
               <div key={item.kunci} className="flex flex-col gap-y-2">
                 <dt className="font-serif text-base font-semibold leading-snug text-balance text-grey-800">
