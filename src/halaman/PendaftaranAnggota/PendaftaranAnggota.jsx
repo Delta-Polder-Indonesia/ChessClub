@@ -370,26 +370,26 @@ export default function PendaftaranAnggota() {
         validasiLokal={validasiLokal}
       >
         <footer className="z-10 w-full max-w-4xl pb-2">
-          <div className="flex flex-col items-center gap-3 border-t border-gray-200 pt-5 text-center sm:flex-row sm:justify-between sm:text-left">
-            <p className="order-2 text-[11px] leading-relaxed text-gray-600 sm:order-1">
+          <div className="flex flex-col items-center gap-3 border-t border-grey-200 pt-5 text-center sm:flex-row sm:justify-between sm:text-left">
+            <p className="order-2 text-xs leading-relaxed text-grey-600 sm:order-1">
               {t("pendaftaran.hakCipta", { tahun: new Date().getFullYear() })}
             </p>
-            <nav className="order-1 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[11px] font-medium text-gray-600 sm:order-2">
+            <nav className="order-1 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs font-medium text-grey-600 sm:order-2">
               <a
                 href={URL_KLUB}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-[#0B2F9F] hover:underline"
+                className="hover:text-primary hover:underline"
               >
                 {t("pendaftaran.tautanKlub")}
               </a>
-              <Link to="/bantuan" className="hover:text-[#0B2F9F] hover:underline">
+              <Link to="/bantuan" className="hover:text-primary hover:underline">
                 {t("bantuan.judul")}
               </Link>
-              <Link to="/privasi" className="hover:text-[#0B2F9F] hover:underline">
+              <Link to="/privasi" className="hover:text-primary hover:underline">
                 {t("privasi.judul")}
               </Link>
-              <Link to="/ketentuan" className="hover:text-[#0B2F9F] hover:underline">
+              <Link to="/ketentuan" className="hover:text-primary hover:underline">
                 {t("ketentuan.judul")}
               </Link>
             </nav>
