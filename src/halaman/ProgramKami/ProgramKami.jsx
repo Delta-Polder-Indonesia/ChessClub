@@ -80,7 +80,7 @@ export default function ProgramKami() {
             <h2 className="font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-grey-800">
               {t("program.artikel")}
             </h2>
-            <div className="flex flex-col gap-y-5 text-base leading-relaxed text-pretty text-grey-600">
+            <div className="flex flex-col gap-y-5 text-base leading-relaxed text-pretty text-grey-800">
               <p className="m-0">{t("program.p1")}</p>
               <p className="m-0">{t("program.p2")}</p>
             </div>
@@ -113,7 +113,7 @@ export default function ProgramKami() {
               <h3 className="font-serif text-2xl font-light leading-[1.04] tracking-normal text-balance text-grey-800">
                 {t("program.kartu.kelas.judul")}
               </h3>
-              <p className="mt-3 text-base leading-relaxed text-pretty text-grey-600">
+              <p className="mt-3 text-base leading-relaxed text-pretty text-grey-800">
                 {t("program.kartu.kelas.deskripsi")}
               </p>
             </div>
@@ -126,7 +126,7 @@ export default function ProgramKami() {
                 <dt className="font-serif text-base font-semibold leading-snug text-balance text-grey-800">
                   {t(`program.kartu.${item.kunci}.judul`)}
                 </dt>
-                <dd className="m-0 text-sm leading-relaxed text-pretty text-grey-600">
+                <dd className="m-0 text-sm leading-relaxed text-pretty text-grey-800">
                   {t(`program.kartu.${item.kunci}.deskripsi`)}
                 </dd>
                 {item.to && (
@@ -147,7 +147,7 @@ export default function ProgramKami() {
             <h2 className="font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-grey-800">
               {t("program.h1")}
             </h2>
-            <p className="mt-4 text-base leading-relaxed text-pretty text-grey-600">
+            <p className="mt-4 text-base leading-relaxed text-pretty text-grey-800">
               {t("program.p3a")}{" "}
               <Link
                 to="/program-kami/ebook-panduan"
