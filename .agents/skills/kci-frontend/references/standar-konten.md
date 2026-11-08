@@ -128,6 +128,12 @@ Jangan memakai satu `gap` untuk seluruh halaman. Kedekatan menunjukkan hubungan 
 - Gunakan `<table>` untuk data tabular, bukan div-grid tiruan.
 - Gunakan `<button>` untuk aksi dan `<a>/<Link>` untuk navigasi.
 
+### Larangan komponen Card di halaman Landing
+
+**Dilarang mengimpor dan memakai `Card`, `CardHeader`, `CardTitle`, `CardDescription`, `CardContent`, atau `CardFooter` dari `components/ui/card.jsx` di dalam `src/halaman/Landing/` atau konten landing publik lainnya.**
+
+Landing adalah "halaman konten publik" per `DESIGN.md` §13 dan harus menggunakan `HalamanIsi`, `AksiKonten`, dan `TabelKonten` — bukan komponen `Card` yang milik domain workspace/pengurus. Jika perlu kelompok visual, gunakan `section` dengan border `1px` (`border border-grey-200`) dan padding standar, bukan `Card`.
+
 Jangan menambahkan wrapper, card, label, atau ikon jika tidak menyampaikan hubungan atau tindakan baru.
 
 ## 7. Pemeriksaan sebelum selesai
