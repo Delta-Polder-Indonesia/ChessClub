@@ -4,7 +4,6 @@ import { BreadcrumbJsonLd } from "../../components/JsonLd.jsx";
 import Hero from "../../components/Hero.jsx";
 import { Search } from "lucide-react";
 import { AksiKonten } from "../../components/konten/AksiKonten.jsx";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "../../components/ui/chart.jsx";
 import {
   BadanTabelKonten,
   BarisTabelKonten,
@@ -26,6 +25,7 @@ import {
 import { useKartuPemain } from "../../lib/pemainCatur.js";
 import GrafikMiniRating from "../Analisa/komponen/GrafikMiniRating.jsx";
 import { muatRiwayatRating } from "./riwayatRapid.js";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "../../components/ui/chart.jsx";
 import { PolarAngleAxis, PolarGrid, Radar, RadarChart } from "recharts";
 import "./karir.css";
 
@@ -324,7 +324,7 @@ export default function Karir() {
 
       <main className="mx-auto w-full max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-10">
         <section aria-label={t("beranda.peringkatKlubPemainTeratas")} className="mt-8 text-grey-800">
-          <div className="grid gap-x-5 gap-y-6 min-[980px]:grid-cols-[auto_minmax(0,1fr)_minmax(260px,320px)] min-[980px]:items-start">
+          <div className="grid gap-x-5 gap-y-10 min-[980px]:grid-cols-[auto_minmax(0,1fr)] min-[980px]:items-start">
             <div className="min-w-0">
               <p className="mb-2 font-sans text-sm font-light leading-4 text-grey-600">{t("beranda.peringkatKlubPemainTeratas")}</p>
               <div className="flex min-w-0 items-end gap-4">
@@ -340,20 +340,18 @@ export default function Karir() {
               </div>
               {pemainTeratas && <p className="mt-2 truncate text-base font-light leading-6">{namaTampil(pemainTeratas)}</p>}
             </div>
-            <div className="border border-grey-200 rounded-lg p-4 sm:p-6">
-              <div className="flex flex-col sm:flex-row gap-6 sm:gap-8 sm:items-center sm:justify-between">
-                <div className="flex flex-col gap-1">
-                  <p className="text-sm font-light text-grey-600">{t("beranda.peringkatKlubRekorSepanjangMasa")}</p>
-                  <p className="angka-fakta-peringkat mt-1 font-sans font-light tabular-nums">{rekorSepanjangMasa ?? "—"}</p>
-                </div>
-                <div className="flex flex-col gap-1">
-                  <p className="text-sm font-light text-grey-600">{t("beranda.peringkatKlubJumlahAnggota")}</p>
-                  <p className="angka-fakta-peringkat mt-1 font-sans font-light tabular-nums">{anggota.length.toLocaleString(locale === "en" ? "en-US" : "id-ID")}</p>
-                </div>
-                <div className="flex flex-col gap-1">
-                  <p className="text-sm font-light text-grey-600">{t("beranda.peringkatKlubPunyaRating", { kontrol: namaKontrol(kontrol) })}</p>
-                  <p className="angka-fakta-peringkat mt-1 font-sans font-light tabular-nums">{jumlahBerperingkat.toLocaleString(locale === "en" ? "en-US" : "id-ID")}</p>
-                </div>
+            <div className="flex min-w-0 flex-wrap items-start gap-x-10 gap-y-5 min-[980px]:justify-end">
+              <div className="min-w-0">
+                <p className="font-sans text-sm font-light leading-4 text-grey-600">{t("beranda.peringkatKlubRekorSepanjangMasa")}</p>
+                <p className="angka-fakta-peringkat mt-1 font-sans font-light tabular-nums">{rekorSepanjangMasa ?? "—"}</p>
+              </div>
+              <div className="min-w-0">
+                <p className="font-sans text-sm font-light leading-4 text-grey-600">{t("beranda.peringkatKlubJumlahAnggota")}</p>
+                <p className="angka-fakta-peringkat mt-1 font-sans font-light tabular-nums">{anggota.length.toLocaleString(locale === "en" ? "en-US" : "id-ID")}</p>
+              </div>
+              <div className="min-w-0">
+                <p className="font-sans text-sm font-light leading-4 text-grey-600">{t("beranda.peringkatKlubPunyaRating", { kontrol: namaKontrol(kontrol) })}</p>
+                <p className="angka-fakta-peringkat mt-1 font-sans font-light tabular-nums">{jumlahBerperingkat.toLocaleString(locale === "en" ? "en-US" : "id-ID")}</p>
               </div>
             </div>
           </div>
@@ -365,7 +363,7 @@ export default function Karir() {
           </div>
         )}
 
-        <div className="mb-0 mt-8 flex flex-wrap items-end justify-between gap-4">
+        <div className="mb-0 mt-10 flex flex-wrap items-end justify-between gap-4">
           <div className="min-w-0">
             <h2 className="font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] text-balance text-grey-800">{judul}</h2>
           </div>
