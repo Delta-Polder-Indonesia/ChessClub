@@ -62,7 +62,7 @@ export default function CincinKemajuan({
         />
       </svg>
 
-      <div className="absolute inset-0 flex translate-x-[2px] flex-col items-center justify-center gap-y-1 px-4 text-center">
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-y-1 px-4 text-center overflow-hidden">
         {label && (
           <p className="font-sans text-base font-light text-grey-800">{label}</p>
         )}
@@ -70,12 +70,12 @@ export default function CincinKemajuan({
           <p className="font-sans text-base font-light text-grey-600">{subLabel}</p>
         )}
         {nilaiTeks && (
-          <p className="whitespace-nowrap pt-1 font-serif text-[48px] font-light leading-[0.8] text-grey-800">
+          <p className="pt-1 font-serif text-3xl font-light leading-none text-grey-800">
             {nilaiTeks}
           </p>
         )}
         {catatan && (
-          <p className="max-w-32 pt-1 font-sans text-xs font-light leading-[14px] text-grey-600">
+          <p className="max-w-32 pt-1 font-sans text-sm font-light leading-snug text-grey-600">
             {catatan}
           </p>
         )}

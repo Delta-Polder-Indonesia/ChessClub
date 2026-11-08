@@ -112,25 +112,31 @@ export default function TekaTekiHarianLanding() {
   const [progres, setProgres] = useState(() => bacaProgres(hariIni));
   const [dialogGabung, setDialogGabung] = useState(false);
 
-  // Keadaan pemutar.
-  const [indeks, setIndeks] = useState(() => bacaProgres(hariIni).selesai);
-  const [posisi, setPosisi] = useState(null);
-  const [sisa, setSisa] = useState([]);
-  const [terpilih, setTerpilih] = useState(null);
-  const [sasaran, setSasaran] = useState([]);
-  const [petunjuk, setPetunjuk] = useState(null);
-  const [kesalahan, setKesalahan] = useState(null);
-  const [langkahAkhir, setLangkahAkhir] = useState(null);
-  const [promosi, setPromosi] = useState(null);
-  /** `{ jenis: "benar" | "salah" | "selesai", kunci }` atau `null`. */
-  const [pesan, setPesan] = useState(null);
-  const [selesaiSoal, setSelesaiSoal] = useState(false);
-  const [menungguLawan, setMenungguLawan] = useState(false);
+  // Keadaan permainan per soal — diperbarui secara atomik saat beralih soal,
+  // sehingga FEN dan identitas soal baru selalu tampil bersamaan.
+  const [game, setGame] = useState(() => ({
+    indeks: bacaProgres(hariIni).selesai,
+    fen: null,
+    langkah: [],
+    posisi: null,
+    sisa: [],
+    terpilih: null,
+    sasaran: [],
+    petunjuk: null,
+    kesalahan: null,
+    langkahAkhir: null,
+    promosi: null,
+    pesan: null,
+    selesaiSoal: false,
+    menungguLawan: false,
+  }));
 
   const jamLawan = useRef(null);
   const jamSalah = useRef(null);
   const jamBerikut = useRef(null);
   const jamDialog = useRef(null);
+  /** Mencegah `tuntaskan()` dieksekusi lebih dari sekali untuk satu soal. */
+  const selesaiRef = useRef(false);
 
   /* -------------------------------------------------------------- data */
 
@@ -142,9 +148,6 @@ export default function TekaTekiHarianLanding() {
         // `ambilSoalTerbaru` mengembalikan urutan terbaru-dulu.
         const lima = semua.slice(0, BATAS_HARIAN);
         setDaftar(lima);
-        // Progres yang sudah tercatat menunjuk soal ke berapa; jangan pernah
-        // melewati batas daftar.
-        setIndeks((i) => Math.min(i, Math.max(0, lima.length - 1)));
       })
       .catch(() => {
         if (hidup) setDaftar([]);
@@ -164,31 +167,61 @@ export default function TekaTekiHarianLanding() {
     []
   );
 
-  const soal = daftar?.[indeks] || null;
-  const jatahHabis = progres.selesai >= BATAS_HARIAN;
+  const soal = daftar?.[game.indeks] || null;
+  const batasEfektif = Math.min(BATAS_HARIAN, daftar?.length ?? 0);
+  const jatahHabis = batasEfektif > 0 && progres.selesai >= batasEfektif;
   const orientasi = soal ? warnaGiliran(soal.fen) : "w";
 
-  /** Pasang satu soal dari keadaan bersih. */
-  const pasangSoal = useCallback((data) => {
+  /** Bersihkan semua timer aktif. */
+  const clearSemuaTimer = useCallback(() => {
     window.clearTimeout(jamLawan.current);
     window.clearTimeout(jamSalah.current);
     window.clearTimeout(jamBerikut.current);
-    setTerpilih(null);
-    setSasaran([]);
-    setPetunjuk(null);
-    setKesalahan(null);
-    setLangkahAkhir(null);
-    setPromosi(null);
-    setPesan(null);
-    setSelesaiSoal(false);
-    setMenungguLawan(false);
-    setPosisi(data ? data.fen : null);
-    setSisa(data ? data.langkah.slice() : []);
+    window.clearTimeout(jamDialog.current);
+    jamLawan.current = null;
+    jamSalah.current = null;
+    jamBerikut.current = null;
+    jamDialog.current = null;
   }, []);
 
+  /** Pasang satu soal dari keadaan bersih — transisi state atomik. */
+  const pasangSoalBaru = useCallback(
+    (data) => {
+      clearSemuaTimer();
+      selesaiRef.current = false;
+      setGame((prev) => ({
+        ...prev,
+        indeks: data.indeks,
+        fen: data.fen,
+        langkah: data.langkah,
+        posisi: data.fen,
+        sisa: data.langkah.slice(),
+        terpilih: null,
+        sasaran: [],
+        petunjuk: null,
+        kesalahan: null,
+        langkahAkhir: null,
+        promosi: null,
+        pesan: null,
+        selesaiSoal: false,
+        menungguLawan: false,
+      }));
+    },
+    [clearSemuaTimer]
+  );
+
+  // Inisialisasi state permainan saat data soal termuat — indeks melanjutkan
+  // dari progres harian yang tersimpan, tidak pernah melewati batas daftar.
   useEffect(() => {
-    pasangSoal(soal);
-  }, [soal, pasangSoal]);
+    if (!daftar || daftar.length === 0) return;
+    const indeksAwal = Math.min(progres.selesai, daftar.length - 1);
+    const data = daftar[indeksAwal];
+    pasangSoalBaru({
+      indeks: indeksAwal,
+      fen: data.fen,
+      langkah: data.langkah,
+    });
+  }, [daftar, progres.selesai, pasangSoalBaru]);
 
   const simpanProgres = useCallback(
     (jumlah) => {
@@ -208,105 +241,152 @@ export default function TekaTekiHarianLanding() {
 
   /** Soal tuntas: catat jatah, lalu dialog gabung atau soal berikutnya. */
   const tuntaskan = useCallback(() => {
-    setSelesaiSoal(true);
-    setMenungguLawan(false);
-    setPetunjuk(null);
-    setPesan({ jenis: "selesai", kunci: "landing.harianSelesai" });
+    // Guards: soal sudah ditandai selesai — cegah eksekusi ganda (double
+    // click, StrictMode, atau race condition timer).
+    if (selesaiRef.current || game.selesaiSoal) return;
+    selesaiRef.current = true;
 
-    // Efek samping (localStorage + timer) sengaja DI LUAR updater state:
-    // React boleh memanggil updater lebih dari sekali (StrictMode), dan timer
-    // ganda akan melompati satu soal.
+    clearSemuaTimer(); // termasuk jamLawan — jangan biarkan balasan lawan
+    // yang masih pending memicu tuntaskan() lagi.
+
+    setGame((prev) => ({
+      ...prev,
+      selesaiSoal: true,
+      menungguLawan: false,
+      petunjuk: null,
+      pesan: { jenis: "selesai", kunci: "landing.harianSelesai" },
+    }));
+
     const jumlah = Math.min(BATAS_HARIAN, progres.selesai + 1);
     setProgres({ tanggal: hariIni, selesai: jumlah });
     simpanProgres(jumlah);
 
-    if (jumlah >= BATAS_HARIAN) {
-      // Beri jeda supaya pesan "tepat" sempat terbaca sebelum dialog.
-      jamDialog.current = window.setTimeout(() => setDialogGabung(true), JEDA_BERIKUT);
+    if (jumlah >= batasEfektif && jumlah >= BATAS_HARIAN) {
+      // Dialog kuota penuh muncul segera setelah soal terakhir selesai,
+      // memberi waktu pesan "selesai" terbaca sebelum dialog dialirkan.
+      setDialogGabung(true);
+    } else if (jumlah >= batasEfektif) {
+      // batasEfektif < BATAS_HARIAN: semua soal tersedia sudah selesai,
+      // tapi kuota penuh belum tercapai — tidak ada dialog gabung.
     } else {
-      jamBerikut.current = window.setTimeout(
-        () => setIndeks((i) => i + 1),
-        JEDA_BERIKUT
-      );
+      jamBerikut.current = window.setTimeout(() => {
+        const berikutnya = game.indeks + 1;
+        if (berikutnya < daftar.length) {
+          pasangSoalBaru({
+            indeks: berikutnya,
+            fen: daftar[berikutnya].fen,
+            langkah: daftar[berikutnya].langkah,
+          });
+        }
+      }, JEDA_BERIKUT);
     }
-  }, [hariIni, progres.selesai, simpanProgres]);
+  }, [
+    game.selesaiSoal,
+    game.indeks,
+    progres.selesai,
+    batasEfektif,
+    daftar,
+    pasangSoalBaru,
+    clearSemuaTimer,
+    simpanProgres,
+    hariIni,
+  ]);
 
   /** Lawan membalas otomatis; bila itu langkah terakhir, soal tuntas. */
   const mainkanLawan = useCallback(
     (daftarSisa, posisiKini) => {
-      if (!daftarSisa.length) return;
-      setMenungguLawan(true);
+      if (!daftarSisa.length || game.selesaiSoal) return;
+      // Bersihkan timer lawan yang mungkin masih aktif dari langkah sebelumnya.
+      window.clearTimeout(jamLawan.current);
+      jamLawan.current = null;
+      setGame((prev) => ({ ...prev, menungguLawan: true }));
       const { from, to, promo } = parseLangkah(daftarSisa[0]);
 
       jamLawan.current = window.setTimeout(() => {
         try {
-          const game = terapkan(posisiKini, { from, to, promo });
+          const hasil = terapkan(posisiKini, { from, to, promo });
           const baru = daftarSisa.slice(1);
-          setPosisi(game.fen());
-          setSisa(baru);
-          setLangkahAkhir({ from, to });
-          setTerpilih(null);
-          setSasaran([]);
-          setMenungguLawan(false);
+          setGame((prev) => ({
+            ...prev,
+            posisi: hasil.fen(),
+            sisa: baru,
+            langkahAkhir: { from, to },
+            terpilih: null,
+            sasaran: [],
+            menungguLawan: false,
+          }));
           if (!baru.length) tuntaskan();
         } catch {
           // Data snapshot rusak: jangan biarkan papan terkunci selamanya.
-          setMenungguLawan(false);
-          setPesan({ jenis: "salah", kunci: "landing.harianSalah" });
+          setGame((prev) => ({
+            ...prev,
+            menungguLawan: false,
+            pesan: { jenis: "salah", kunci: "landing.harianSalah" },
+          }));
         }
       }, JEDA_LAWAN);
     },
-    [tuntaskan]
+    [tuntaskan, game.selesaiSoal]
   );
 
   function pilihPetak(petak) {
-    if (!posisi || selesaiSoal || menungguLawan) return;
-    const game = new Chess(posisi);
-    const bidak = game.get(petak);
-    if (bidak && bidak.color === game.turn()) {
-      setPesan(null);
-      setTerpilih(petak);
-      setSasaran(game.moves({ square: petak, verbose: true }).map((m) => m.to));
+    if (!game.posisi || game.selesaiSoal || game.menungguLawan) return;
+    const catur = new Chess(game.posisi);
+    const bidak = catur.get(petak);
+    if (bidak && bidak.color === catur.turn()) {
+      setGame((prev) => ({
+        ...prev,
+        pesan: null,
+        terpilih: petak,
+        sasaran: catur.moves({ square: petak, verbose: true }).map((m) => m.to),
+      }));
     } else {
-      setTerpilih(null);
-      setSasaran([]);
+      setGame((prev) => ({ ...prev, terpilih: null, sasaran: [] }));
     }
   }
 
   function klikPetak(petak) {
-    if (!posisi || selesaiSoal || menungguLawan) return;
-    if (terpilih && sasaran.includes(petak)) {
-      cobaLangkah(terpilih, petak);
+    if (!game.posisi || game.selesaiSoal || game.menungguLawan) return;
+    if (game.terpilih && game.sasaran.includes(petak)) {
+      cobaLangkah(game.terpilih, petak);
       return;
     }
-    if (terpilih === petak) {
-      setTerpilih(null);
-      setSasaran([]);
+    if (game.terpilih === petak) {
+      setGame((prev) => ({ ...prev, terpilih: null, sasaran: [] }));
       return;
     }
     pilihPetak(petak);
   }
 
   function cobaLangkah(from, to, promo) {
-    if (!posisi || selesaiSoal || menungguLawan || !sisa.length) return;
+    if (
+      !game.posisi ||
+      game.selesaiSoal ||
+      game.menungguLawan ||
+      !game.sisa.length
+    )
+      return;
 
-    const diharapkan = parseLangkah(sisa[0]);
-    const legal = apakahLangkahLegal(posisi, from, to);
-    const mintaPromosi = butuhPromosi(posisi, from, to);
+    const diharapkan = parseLangkah(game.sisa[0]);
+    const legal = apakahLangkahLegal(game.posisi, from, to);
+    const mintaPromosi = butuhPromosi(game.posisi, from, to);
 
     // Pion menuju baris terakhir: tanyakan bidak promosi dulu, jangan menilai
     // langkah yang belum lengkap.
     if (mintaPromosi.butuh && legal && !promo) {
-      setPromosi({ from, to, warna: mintaPromosi.warna });
-      setTerpilih(null);
-      setSasaran([]);
+      setGame((prev) => ({
+        ...prev,
+        promosi: { from, to, warna: mintaPromosi.warna },
+        terpilih: null,
+        sasaran: [],
+      }));
       return;
     }
 
     let berikutnya = null;
     if (apakahLangkahSesuai(from, to, promo, diharapkan)) {
       try {
-        berikutnya = terapkan(posisi, {
+        berikutnya = terapkan(game.posisi, {
           from,
           to,
           promo: diharapkan.promo || promo,
@@ -318,46 +398,116 @@ export default function TekaTekiHarianLanding() {
 
     if (!berikutnya) {
       window.clearTimeout(jamSalah.current);
-      setPesan({
-        jenis: "salah",
-        kunci: legal ? "landing.harianSalah" : "tekaTekiHarian.bukanLangkahLegal",
-      });
-      setKesalahan({ from, to });
-      setTerpilih(null);
-      setSasaran([]);
-      jamSalah.current = window.setTimeout(() => setKesalahan(null), JEDA_SALAH);
+      setGame((prev) => ({
+        ...prev,
+        pesan: {
+          jenis: "salah",
+          kunci: legal
+            ? "landing.harianSalah"
+            : "tekaTekiHarian.bukanLangkahLegal",
+        },
+        kesalahan: { from, to },
+        terpilih: null,
+        sasaran: [],
+      }));
+      jamSalah.current = window.setTimeout(() => {
+        setGame((prev) => ({ ...prev, kesalahan: null }));
+      }, JEDA_SALAH);
       return;
     }
 
-    const sisaBaru = sisa.slice(1);
-    setPosisi(berikutnya.fen());
-    setSisa(sisaBaru);
-    setLangkahAkhir({ from, to });
-    setTerpilih(null);
-    setSasaran([]);
-    setKesalahan(null);
-    setPetunjuk(null);
+    const sisaBaru = game.sisa.slice(1);
+    setGame((prev) => ({
+      ...prev,
+      posisi: berikutnya.fen(),
+      sisa: sisaBaru,
+      langkahAkhir: { from, to },
+      terpilih: null,
+      sasaran: [],
+      kesalahan: null,
+      petunjuk: null,
+    }));
 
     if (!sisaBaru.length) {
       tuntaskan();
       return;
     }
-    setPesan({ jenis: "benar", kunci: "landing.harianBenar" });
+    setGame((prev) => ({
+      ...prev,
+      pesan: { jenis: "benar", kunci: "landing.harianBenar" },
+    }));
     mainkanLawan(sisaBaru, berikutnya.fen());
   }
 
   function tampilkanPetunjuk() {
-    if (!sisa.length || selesaiSoal) return;
-    const { from, to } = parseLangkah(sisa[0]);
-    setPetunjuk({ from, to });
+    if (!game.sisa.length || game.selesaiSoal) return;
+    const { from, to } = parseLangkah(game.sisa[0]);
+    setGame((prev) => ({ ...prev, petunjuk: { from, to } }));
   }
 
   /* ------------------------------------------------------------- render */
 
-  // Snapshot belum ada / rusak → jangan tampilkan seksi kosong.
-  if (!daftar || daftar.length === 0) return null;
+  // Snapshot belum ada (masih memuat) → tampilkan kerangka dengan ukuran
+  // yang sama seperti konten akhir, supaya tidak terjadi pergeseran tata
+  // letak (CLS) saat seksi tiba-tiba muncul setelah data siap.
+  if (!daftar) {
+    return (
+      <section
+        aria-labelledby="teka-teki-harian-judul"
+        className="w-full pl-6 md:pl-8 pr-6 md:pr-8 pb-12 xl:pb-16 pt-12 xl:pt-16 overflow-hidden"
+      >
+        <div className="relative mx-auto w-full max-w-7xl">
+          <div className="grid items-center gap-x-6 gap-y-10 xl:grid-cols-12 xl:gap-x-8">
+            <div className="xl:col-span-3 xl:min-h-[440px] flex flex-col justify-center gap-y-6">
+              <div className="h-8 w-3/4 bg-grey-200 rounded animate-pulse" />
+              <div className="h-6 w-1/2 bg-grey-200 rounded animate-pulse" />
+              <div className="h-40 w-40 rounded-full bg-grey-200 mx-auto animate-pulse" />
+              <div className="h-12 w-full bg-grey-200 rounded animate-pulse" />
+              <div className="h-4 w-3/4 bg-grey-200 rounded animate-pulse" />
+            </div>
+            <div className="xl:col-span-6 flex justify-center">
+              <div className="aspect-square w-full max-w-xl rounded-lg border border-grey-200 bg-grey-50 animate-pulse" />
+            </div>
+            <div className="xl:col-span-3 xl:min-h-[440px] flex flex-col justify-center gap-y-7">
+              <div className="h-6 w-1/3 bg-grey-200 rounded animate-pulse" />
+              <div className="h-8 w-2/3 bg-grey-200 rounded animate-pulse" />
+              <div className="h-6 w-full bg-grey-200 rounded animate-pulse" />
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+  if (daftar.length === 0) {
+    return (
+      <section
+        aria-labelledby="teka-teki-harian-judul"
+        className="w-full pl-6 md:pl-8 pr-6 md:pr-8 pb-12 xl:pb-16 pt-12 xl:pt-16 overflow-hidden"
+      >
+        <div className="relative mx-auto w-full max-w-7xl">
+          <div className="grid items-center gap-x-6 gap-y-10 xl:grid-cols-12 xl:gap-x-8">
+            <div className="xl:col-span-3 xl:min-h-[440px] flex flex-col justify-center gap-y-6">
+              <div className="h-8 w-3/4 bg-grey-200 rounded animate-pulse" />
+              <div className="h-6 w-1/2 bg-grey-200 rounded animate-pulse" />
+              <div className="h-40 w-40 rounded-full bg-grey-200 mx-auto animate-pulse" />
+              <div className="h-12 w-full bg-grey-200 rounded animate-pulse" />
+              <div className="h-4 w-3/4 bg-grey-200 rounded animate-pulse" />
+            </div>
+            <div className="xl:col-span-6 flex justify-center">
+              <div className="aspect-square w-full max-w-xl rounded-lg border border-grey-200 bg-grey-50 animate-pulse" />
+            </div>
+            <div className="xl:col-span-3 xl:min-h-[440px] flex flex-col justify-center gap-y-7">
+              <div className="h-6 w-1/3 bg-grey-200 rounded animate-pulse" />
+              <div className="h-8 w-2/3 bg-grey-200 rounded animate-pulse" />
+              <div className="h-6 w-full bg-grey-200 rounded animate-pulse" />
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
-  const nomorSoal = Math.min(indeks + 1, daftar.length);
+  const nomorSoal = Math.min(game.indeks + 1, daftar.length);
   const jatahTerpakai = Math.min(progres.selesai, BATAS_HARIAN);
   const sisaJatah = Math.max(0, BATAS_HARIAN - jatahTerpakai);
   const deskKartu = jatahHabis
@@ -374,8 +524,8 @@ export default function TekaTekiHarianLanding() {
    * "Keep it up!" di worldchess.com — satu judul penyemangat, satu kalimat
    * sisa jatah, lalu segmen + dua angka kecil.
    */
-  const teksStatus = pesan
-    ? t(pesan.kunci)
+  const teksStatus = game.pesan
+    ? t(game.pesan.kunci)
     : t(
         orientasi === "w"
           ? "landing.harianGiliranPutih"
@@ -387,7 +537,7 @@ export default function TekaTekiHarianLanding() {
       aria-labelledby="teka-teki-harian-judul"
       className="w-full pl-6 md:pl-8 pr-6 md:pr-8 pb-12 xl:pb-16 pt-12 xl:pt-16 overflow-hidden"
     >
-      <div className="relative mx-auto w-full max-w-[1440px]">
+        <div className="relative mx-auto w-full max-w-7xl">
         <div className="grid items-center gap-x-6 gap-y-10 xl:grid-cols-12 xl:gap-x-8">
           {/*
            * Kiri: padanan HomeWelcomeMessage + HomeRatingProgress +
@@ -530,7 +680,7 @@ export default function TekaTekiHarianLanding() {
           {/* Tengah: papan demo menjadi fokus visual utama. */}
           <div className="flex w-full min-w-0 justify-center xl:col-span-6">
             {jatahHabis ? (
-              <div className="flex w-full max-w-[34rem] flex-col gap-3 border border-grey-200 bg-paper p-5 sm:p-6">
+              <div className="flex w-full max-w-xl flex-col gap-3 border border-grey-200 bg-paper p-5 sm:p-6">
                 <p className="font-sans text-base font-bold text-grey-800">
                   {t("landing.harianTerkunciJudul", { total: BATAS_HARIAN })}
                 </p>
@@ -551,26 +701,31 @@ export default function TekaTekiHarianLanding() {
                 </div>
               </div>
             ) : soal ? (
-              <div className="w-full max-w-[34rem]">
+              <div className="w-full max-w-xl">
                 <div className="relative">
                   <PapanTekaTeki
-                    fen={posisi || soal.fen}
+                    fen={game.posisi || soal.fen}
                     orientasi={orientasi}
-                    terpilih={terpilih}
-                    sasaran={sasaran}
-                    petunjuk={petunjuk}
-                    kesalahan={kesalahan}
-                    langkahAkhir={langkahAkhir}
-                    panahMesin={petunjuk ? { ...petunjuk, warna: "bawaan" } : null}
-                    terkunci={selesaiSoal || menungguLawan || !!promosi || !sisa.length}
-                    membeku={menungguLawan}
+                    terpilih={game.terpilih}
+                    sasaran={game.sasaran}
+                    petunjuk={game.petunjuk}
+                    kesalahan={game.kesalahan}
+                    langkahAkhir={game.langkahAkhir}
+                    panahMesin={game.petunjuk ? { ...game.petunjuk, warna: "bawaan" } : null}
+                    terkunci={
+                      game.selesaiSoal ||
+                      game.menungguLawan ||
+                      !!game.promosi ||
+                      !game.sisa.length
+                    }
+                    membeku={game.menungguLawan}
                     onKlik={klikPetak}
                     onPilih={pilihPetak}
                     onJatuh={cobaLangkah}
                   />
 
                   {/* Pemilih promosi tetap berada di atas papan demo. */}
-                  {promosi && (
+                  {game.promosi && (
                     <div className="absolute inset-0 z-50 flex flex-col items-center justify-center gap-3 rounded bg-black/55 p-3">
                       <p className="font-sans text-sm font-bold uppercase tracking-wider text-white">
                         {t("tekaTekiHarian.promosiJudul")}
@@ -581,8 +736,8 @@ export default function TekaTekiHarianLanding() {
                             key={kode}
                             type="button"
                             onClick={() => {
-                              const { from, to } = promosi;
-                              setPromosi(null);
+                              const { from, to } = game.promosi;
+                              setGame((prev) => ({ ...prev, promosi: null }));
                               cobaLangkah(from, to, kode);
                             }}
                             className="rounded bg-white px-3 py-2 font-sans text-sm font-semibold text-grey-800 transition-colors hover:bg-grey-100"
@@ -593,7 +748,7 @@ export default function TekaTekiHarianLanding() {
                       </div>
                       <button
                         type="button"
-                        onClick={() => setPromosi(null)}
+                        onClick={() => setGame((prev) => ({ ...prev, promosi: null }))}
                         className="font-sans text-sm font-semibold text-white/80 underline underline-offset-2"
                       >
                         {t("tekaTekiHarian.promosiBatal")}
@@ -635,9 +790,9 @@ export default function TekaTekiHarianLanding() {
                 <p
                   aria-live="polite"
                   className={`font-sans text-sm font-semibold ${
-                    selesaiSoal
+                    game.selesaiSoal
                       ? "text-primary"
-                      : pesan?.jenis === "salah"
+                      : game.pesan?.jenis === "salah"
                         ? "text-accent-600"
                         : "text-grey-600"
                   }`}
@@ -648,14 +803,20 @@ export default function TekaTekiHarianLanding() {
                   <button
                     type="button"
                     onClick={tampilkanPetunjuk}
-                    disabled={selesaiSoal || menungguLawan}
+                    disabled={game.selesaiSoal || game.menungguLawan}
                     className="rounded border border-grey-200 px-3 py-2 text-sm font-semibold text-grey-700 transition-colors hover:border-primary hover:text-primary disabled:opacity-40"
                   >
                     {t("landing.harianPetunjuk")}
                   </button>
                   <button
                     type="button"
-                    onClick={() => pasangSoal(soal)}
+                    onClick={() =>
+                      pasangSoalBaru({
+                        indeks: game.indeks,
+                        fen: soal.fen,
+                        langkah: soal.langkah,
+                      })
+                    }
                     className="rounded border border-grey-200 px-3 py-2 text-sm font-semibold text-grey-700 transition-colors hover:border-primary hover:text-primary"
                   >
                     {t("landing.harianUlangi")}

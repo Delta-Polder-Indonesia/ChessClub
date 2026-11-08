@@ -19,14 +19,14 @@ function WordmarkKomunitas({ gelap = false }) {
     <span className="flex flex-col leading-none">
       <span
         className={`font-extrabold tracking-wide text-base md:text-lg ${
-          gelap ? "text-slate-900" : "text-gray-900"
+          gelap ? "text-slate-900" : "text-grey-800"
         }`}
       >
         KOMUNITAS CATUR
       </span>
       <span
-        className={`font-semibold tracking-[0.25em] text-[10px] md:text-xs mt-1 ${
-          gelap ? "text-slate-500" : "text-gray-600"
+        className={`font-semibold tracking-wide text-xs mt-1 ${
+          gelap ? "text-slate-500" : "text-grey-600"
         }`}
       >
         {t("pendaftaran.brandLine2")}
@@ -38,7 +38,7 @@ function WordmarkKomunitas({ gelap = false }) {
 function MarkKomunitas({ kecil = false }) {
   const px = kecil ? 44 : 56;
   return (
-    <div className="select-none mb-6">
+    <div className="mb-6">
       <div className="flex items-center gap-3">
         <img
           src="/favicon-64.png"
@@ -50,7 +50,7 @@ function MarkKomunitas({ kecil = false }) {
         />
         <WordmarkKomunitas />
       </div>
-      <div className="mt-2 text-2xl md:text-3xl font-bold tracking-tight text-gray-900 leading-tight">
+      <div className="mt-2 text-2xl md:text-3xl font-bold tracking-tight text-grey-800 leading-tight">
         Blunder <span className="text-[#15803d]">Skuad</span>
       </div>
     </div>
@@ -306,9 +306,9 @@ export default function TampilanPendaftaran({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900 font-sans flex flex-col justify-between items-center p-4 sm:p-6 lg:p-10 select-none relative">
+    <div className="min-h-screen bg-paper text-grey-800 font-sans flex flex-col justify-between items-center p-4 sm:p-6 lg:p-10 relative">
       {toastKey && (
-        <div className="fixed top-5 right-5 z-50 bg-grey-800 text-white text-sm px-4 py-3 rounded-lg border border-grey-600 shadow-xl flex items-center gap-3 animate-fade-in">
+        <div className="fixed top-5 right-5 z-50 bg-grey-800 text-white text-sm px-4 py-3 rounded-lg border border-grey-600 flex items-center gap-3 animate-fade-in">
           <Info className="h-4 w-4 text-blue-400 flex-shrink-0" aria-hidden="true" />
           <span>{t(toastKey)}</span>
         </div>
@@ -316,17 +316,17 @@ export default function TampilanPendaftaran({
 
       {/* Main Container */}
       <main className="w-full max-w-4xl my-auto z-10">
-        <div className="bg-white rounded-3xl p-6 sm:p-10 lg:p-12 shadow-md border border-gray-200 min-h-[440px] flex flex-col justify-between transition-all duration-300">
+        <div className="bg-white rounded-xl p-6 sm:p-10 lg:p-12 border border-grey-200 flex flex-col justify-between transition-all duration-300">
           {step === "akun" && (
             <form onSubmit={handleUsernameSubmit} className="w-full h-full flex flex-col justify-between">
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
                 {/* Kolom Kiri: Header & Branding */}
                 <div className="lg:col-span-6 flex flex-col space-y-3">
                   <MarkKomunitas />
-                  <h1 className="text-2xl sm:text-3xl font-normal text-gray-900 tracking-tight leading-tight">
+                  <h1 className="text-2xl sm:text-3xl font-normal text-grey-800 tracking-tight leading-tight">
                     {t("pendaftaran.judul")}
                   </h1>
-                  <p className="text-sm text-gray-600 leading-relaxed">
+                  <p className="text-sm text-grey-600 leading-relaxed">
                     {t("pendaftaran.subjudulAkun")}
                   </p>
                 </div>
@@ -344,17 +344,17 @@ export default function TampilanPendaftaran({
                         setUsername(e.target.value);
                         if (usernameError) setUsernameError("");
                       }}
-                      className="peer w-full h-14 px-4 rounded-lg border border-gray-300 bg-transparent text-sm sm:text-base text-gray-900 placeholder-transparent focus:outline-none focus:border-gray-500 focus:ring-1 focus:ring-gray-500 transition-all"
+                      className="peer w-full h-14 px-4 rounded-lg border border-grey-300 bg-transparent text-sm sm:text-base text-grey-800 placeholder-transparent focus:outline-none focus:border-grey-500 focus:ring-1 focus:ring-grey-500 transition-all"
                       placeholder={t("pendaftaran.phUsername")}
                     />
                     {/* Gaya label memotong garis persis seperti Google */}
-                    <label htmlFor="usernameInput" className="pointer-events-none absolute left-3 top-0 -translate-y-1/2 bg-white px-1 text-xs text-gray-600 transition-all peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:text-sm sm:peer-placeholder-shown:text-base peer-focus:top-0 peer-focus:-translate-y-1/2 peer-focus:text-xs peer-focus:text-gray-700">
+                    <label htmlFor="usernameInput" className="pointer-events-none absolute left-3 top-0 -translate-y-1/2 bg-white px-1 text-xs text-grey-600 transition-all peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:text-sm sm:peer-placeholder-shown:text-base peer-focus:top-0 peer-focus:-translate-y-1/2 peer-focus:text-xs peer-focus:text-grey-700">
                       {t("pendaftaran.labelUsernameAkun")}
                     </label>
                   </div>
 
                   {usernameError && (
-                    <div role="alert" className="text-xs text-red-600 flex items-center gap-1.5 -mt-2">
+                    <div role="alert" className="text-xs text-grey-800 flex items-center gap-1.5 -mt-2">
                       <Info className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
                       <span>{usernameError}</span>
                     </div>
@@ -363,7 +363,7 @@ export default function TampilanPendaftaran({
                   {/* Hasil verifikasi yang gagal sebelumnya (OAuth rusak/kedaluwarsa)
                       tetap terlihat di langkah pertama, tidak hilang saat kembali. */}
                   {!usernameError && status === "gagal" && pesan && (
-                    <div role="alert" className="flex items-start gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs leading-relaxed text-red-700 -mt-2">
+                    <div role="alert" className="flex items-start gap-1.5 rounded-lg border border-grey-200 bg-grey-50 px-3 py-2 text-xs leading-relaxed text-grey-800 -mt-2">
                       <TriangleAlert className="mt-0.5 h-3.5 w-3.5 flex-none" aria-hidden="true" />
                       <span>{pesan}</span>
                     </div>
@@ -371,14 +371,14 @@ export default function TampilanPendaftaran({
 
                   {/* Status pencarian profil */}
                   {!usernameError && memuatProfil && !kartuPemain && (
-                    <p className="flex items-center gap-2 text-xs text-gray-600 -mt-2">
+                    <p className="flex items-center gap-2 text-xs text-grey-600 -mt-2">
                       <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
                       {t("pendaftaran.mencariProfil")}
                     </p>
                   )}
 
                   {!usernameError && !memuatProfil && !kartuPemain && galatProfil && (
-                    <p className="flex items-start gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-800 -mt-2">
+                    <p className="flex items-start gap-1.5 rounded-lg border border-grey-200 bg-grey-50 px-3 py-2 text-xs leading-relaxed text-grey-800 -mt-2">
                       <TriangleAlert className="mt-0.5 h-3.5 w-3.5 flex-none" aria-hidden="true" />
                       <span>
                         {galatProfil}{" "}{t("pendaftaran.profilGagalLanjut")}
@@ -388,8 +388,8 @@ export default function TampilanPendaftaran({
 
                   {/* Pratinjau profil publik Chess.com */}
                   {!usernameError && kartuPemain && (
-                    <div className="flex items-center gap-3 rounded-2xl border border-gray-200 bg-gray-50/80 px-3 py-2.5 -mt-1">
-                      <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-white ring-1 ring-gray-200">
+                    <div className="flex items-center gap-3 rounded-xl border border-grey-200 bg-grey-50/80 px-3 py-2.5 -mt-1">
+                      <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-white ring-1 ring-grey-200">
                         {kartuPemain.avatar ? (
                           <img
                             className="h-full w-full object-cover"
@@ -401,11 +401,11 @@ export default function TampilanPendaftaran({
                             referrerPolicy="no-referrer"
                           />
                         ) : (
-                          <CircleUser className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                          <CircleUser className="h-5 w-5 text-grey-400" aria-hidden="true" />
                         )}
                       </span>
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-medium text-gray-900">
+                        <span className="block truncate text-sm font-medium text-grey-800">
                           {kartuPemain.nama}
                           {kartuPemain.gelar && (
                             <span className="ml-1 text-xs font-bold text-[#15803d]">
@@ -413,7 +413,7 @@ export default function TampilanPendaftaran({
                             </span>
                           )}
                         </span>
-                        <span className="block truncate text-xs text-gray-600">
+                        <span className="block truncate text-xs text-grey-600">
                           {kartuPemain.username}
                           {benderaNegara(kartuPemain.negara) && (
                             <span className="ml-1">{benderaNegara(kartuPemain.negara)}</span>
@@ -425,7 +425,7 @@ export default function TampilanPendaftaran({
                         href={kartuPemain.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex flex-none items-center gap-1 text-xs font-medium text-blue-600 hover:underline"
+                        className="flex flex-none items-center gap-1 text-xs font-medium text-primary hover:underline"
                       >
                         {t("pendaftaran.profil")}
                         <ExternalLink className="h-3 w-3" aria-hidden="true" />
@@ -433,12 +433,12 @@ export default function TampilanPendaftaran({
                     </div>
                   )}
 
-                  <p className="text-xs text-gray-600 leading-normal">
+                  <p className="text-xs text-grey-600 leading-normal">
                     {t("pendaftaran.catatanRoster")}{" "}
                     <button
                       type="button"
                       onClick={() => window.open(URL_KLUB, "_blank", "noopener,noreferrer")}
-                      className="text-blue-600 hover:underline font-medium inline-block mt-1"
+                      className="text-primary hover:underline font-medium inline-block mt-1"
                     >
                       {t("pendaftaran.bukaKlub")}
                     </button>
@@ -460,15 +460,15 @@ export default function TampilanPendaftaran({
                 {/* Kolom Kiri: Informasi Verifikasi */}
                 <div className="lg:col-span-6 flex flex-col space-y-4">
                   <MarkKomunitas kecil />
-                  <h1 className="text-2xl sm:text-3xl font-normal text-gray-900 tracking-tight leading-tight">
+                  <h1 className="text-2xl sm:text-3xl font-normal text-grey-800 tracking-tight leading-tight">
                     {t("pendaftaran.verifJudul")}
                   </h1>
-                  <p className="text-sm text-gray-600 leading-relaxed">
+                  <p className="text-sm text-grey-600 leading-relaxed">
                     {t("pendaftaran.verifDeskripsi")}
                   </p>
 
                   {/* Badge User — avatar + nama dari Chess.com, tanpa pembungkus */}
-                  <div className="inline-flex items-center gap-2.5 text-sm sm:text-base text-gray-800">
+                  <div className="inline-flex items-center gap-2.5 text-sm sm:text-base text-grey-800">
                     <span className="grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full">
                       {kartuPemain?.avatar ? (
                         <img
@@ -481,29 +481,29 @@ export default function TampilanPendaftaran({
                           referrerPolicy="no-referrer"
                         />
                       ) : (
-                        <CircleUser className="h-5 w-5 text-gray-600" aria-hidden="true" />
+                        <CircleUser className="h-5 w-5 text-grey-600" aria-hidden="true" />
                       )}
                     </span>
-                    <span className="font-medium truncate max-w-[200px]">
+                    <span className="font-medium truncate">
                       {kartuPemain?.name || username}
                     </span>
                     <button
                       type="button"
                       onClick={() => setStep("akun")}
-                      className="ml-1 text-xs text-blue-600 hover:underline font-semibold"
+                      className="ml-1 text-xs text-primary hover:underline font-semibold"
                     >
                       {t("pendaftaran.ubah")}
                     </button>
                   </div>
 
-                  <p className="text-xs leading-relaxed text-gray-600">
+                  <p className="text-xs leading-relaxed text-grey-600">
                     {t("pendaftaran.verifTanpaSandi")}
                   </p>
                 </div>
 
                 {/* Kolom Kanan: Instruksi Kode & Tombol Aksi */}
                 <div className="lg:col-span-6 flex flex-col space-y-5 pt-2 lg:pt-0">
-                  <h2 className="text-sm font-semibold text-gray-900">
+                  <h2 className="text-sm font-semibold text-grey-800">
                     {t("pendaftaran.verifLewatKode")}
                   </h2>
                   <VerifikasiAkun
@@ -529,12 +529,12 @@ export default function TampilanPendaftaran({
                   {/* Mode `opsional`/`off`: verifikasi boleh dilewati, tetapi
                       tanpa tiket pendaftaran TIDAK akan berstatus terverifikasi. */}
                   {!verifikasi && !cara?.wajib && (
-                    <p className="flex flex-wrap items-center justify-between gap-2 text-[11px] leading-relaxed text-gray-600">
+                    <p className="flex flex-wrap items-center justify-between gap-2 text-xs leading-relaxed text-grey-600">
                       <span>{t("pendaftaran.verifOpsionalCatatan")}</span>
                       <button
                         type="button"
                         onClick={() => setStep("data-diri")}
-                        className="font-semibold text-blue-600 hover:underline"
+                        className="font-semibold text-primary hover:underline"
                       >
                         {t("pendaftaran.lewatiVerifikasi")}
                       </button>
@@ -553,18 +553,18 @@ export default function TampilanPendaftaran({
                 size={72}
                 successText={t("pendaftaran.verifBerhasil")}
               />
-              <h2 className="text-2xl sm:text-3xl font-normal text-gray-900 tracking-tight">
+              <h2 className="text-2xl sm:text-3xl font-normal text-grey-800 tracking-tight">
                 {t("pendaftaran.verifBerhasil")}
               </h2>
-              <p className="text-gray-600 max-w-md text-sm sm:text-base leading-relaxed">
+              <p className="text-grey-600 max-w-md text-sm sm:text-base leading-relaxed">
                 {akunSiapAwal}
-                <span className="text-[#0B2F9F] font-semibold">
+                <span className="text-primary font-semibold">
                   {username}
                 </span>
                 {akunSiapAkhir}
               </p>
               {verifikasi.berlakuDetik ? (
-                <p className="text-[11px] text-gray-600">
+                <p className="text-xs text-grey-600">
                   {t("pendaftaran.verifTiketBerlaku", {
                     menit: Math.max(1, Math.round(verifikasi.berlakuDetik / 60)),
                   })}
@@ -596,10 +596,10 @@ export default function TampilanPendaftaran({
                 size={72}
                 idleText={t("pendaftaran.verifStatusMenunggu")}
               />
-              <h2 className="text-2xl sm:text-3xl font-normal text-gray-900 tracking-tight">
+              <h2 className="text-2xl sm:text-3xl font-normal text-grey-800 tracking-tight">
                 {t("pendaftaran.pengajuanDiterima")}
               </h2>
-              <p className="text-gray-600 max-w-md text-sm sm:text-base leading-relaxed">
+              <p className="text-grey-600 max-w-md text-sm sm:text-base leading-relaxed">
                 {t("pendaftaran.pengajuanPenjelasan", { username })}
               </p>
               <div className="flex w-full items-center justify-end gap-3 pt-2">
@@ -631,10 +631,10 @@ export default function TampilanPendaftaran({
                 {/* Kolom Kiri: Informasi Data Diri */}
                 <div className="lg:col-span-6 flex flex-col space-y-4">
                   <MarkKomunitas kecil />
-                  <h1 className="text-2xl sm:text-3xl font-normal text-gray-900 tracking-tight leading-tight">
+                  <h1 className="text-2xl sm:text-3xl font-normal text-grey-800 tracking-tight leading-tight">
                     {t("pendaftaran.judulDataDiri")}
                   </h1>
-                  <p className="text-sm text-gray-600 leading-relaxed">
+                  <p className="text-sm text-grey-600 leading-relaxed">
                     {t("pendaftaran.deskDataDiri")}
                   </p>
 
@@ -644,12 +644,12 @@ export default function TampilanPendaftaran({
                         key={l.kunci}
                         className={`w-2.5 h-2.5 rounded-full transition ${
                           i <= diriStep
-                            ? "bg-[#0B2F9F]"
-                            : "bg-gray-200"
+                            ? "bg-primary"
+                            : "bg-grey-200"
                         }`}
                       ></span>
                     ))}
-                    <span className="ml-1 text-xs text-gray-600">
+                    <span className="ml-1 text-xs text-grey-600">
                       {t("pendaftaran.langkahDari", { n: diriStep + 1, total: LANGKAH_DATADIRI.length })}
                     </span>
                   </div>
@@ -657,10 +657,10 @@ export default function TampilanPendaftaran({
 
                 {/* Kolom Kanan: Satu Isian Aktif */}
                 <div className="lg:col-span-6 flex flex-col space-y-5 pt-2 lg:pt-0">
-                  <h2 className="text-xl font-normal text-gray-900 tracking-tight">
+                  <h2 className="text-xl font-normal text-grey-800 tracking-tight">
                     {LANGKAH_DATADIRI[diriStep].judul}
                   </h2>
-                  <p className="-mt-3 text-xs text-gray-600 leading-normal">
+                  <p className="-mt-3 text-xs text-grey-600 leading-normal">
                     {LANGKAH_DATADIRI[diriStep].deskripsi}
                   </p>
 
@@ -678,17 +678,17 @@ export default function TampilanPendaftaran({
                         if (diriError) setDiriError("");
                       }}
                       max={LANGKAH_DATADIRI[diriStep].tipe === "date" ? HARI_INI : undefined}
-                      className="peer w-full h-14 px-4 rounded-lg border border-gray-300 bg-transparent text-sm sm:text-base text-gray-900 placeholder-transparent focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-all"
+                      className="peer w-full h-14 px-4 rounded-lg border border-grey-300 bg-transparent text-sm sm:text-base text-grey-800 placeholder-transparent focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-all"
                       placeholder={LANGKAH_DATADIRI[diriStep].placeholder}
                     />
                     {/* Gaya label memotong garis */}
-                    <label htmlFor={`pendaftaran-${LANGKAH_DATADIRI[diriStep].kunci}`} className="pointer-events-none absolute left-3 top-0 -translate-y-1/2 bg-white px-1 text-xs text-gray-600 transition-all peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:text-sm sm:peer-placeholder-shown:text-base peer-focus:top-0 peer-focus:-translate-y-1/2 peer-focus:text-xs peer-focus:text-blue-600">
+                    <label htmlFor={`pendaftaran-${LANGKAH_DATADIRI[diriStep].kunci}`} className="pointer-events-none absolute left-3 top-0 -translate-y-1/2 bg-white px-1 text-xs text-grey-600 transition-all peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:text-sm sm:peer-placeholder-shown:text-base peer-focus:top-0 peer-focus:-translate-y-1/2 peer-focus:text-xs peer-focus:text-primary">
                       {LANGKAH_DATADIRI[diriStep].label} *
                     </label>
                   </div>
 
                   {diriError && (
-                    <div className="text-xs text-red-600 flex items-center gap-1.5 -mt-2">
+                    <div className="text-xs text-grey-800 flex items-center gap-1.5 -mt-2">
                       <Info className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
                       <span>{diriError}</span>
                     </div>
@@ -728,10 +728,10 @@ export default function TampilanPendaftaran({
                 {/* Kolom Kiri: Informasi Kontak */}
                 <div className="lg:col-span-6 flex flex-col space-y-4">
                   <MarkKomunitas kecil />
-                  <h1 className="text-2xl sm:text-3xl font-normal text-gray-900 tracking-tight leading-tight">
+                  <h1 className="text-2xl sm:text-3xl font-normal text-grey-800 tracking-tight leading-tight">
                     {t("pendaftaran.judulKontak")}
                   </h1>
-                  <p className="text-sm text-gray-600 leading-relaxed">
+                  <p className="text-sm text-grey-600 leading-relaxed">
                     {t("pendaftaran.deskKontak")}
                   </p>
 
@@ -740,11 +740,11 @@ export default function TampilanPendaftaran({
                       <span
                         key={l.kunci}
                         className={`w-2.5 h-2.5 rounded-full transition ${
-                          i <= kontakStep ? "bg-[#0B2F9F]" : "bg-gray-200"
+                          i <= kontakStep ? "bg-primary" : "bg-grey-200"
                         }`}
                       ></span>
                     ))}
-                    <span className="ml-1 text-xs text-gray-600">
+                    <span className="ml-1 text-xs text-grey-600">
                       {t("pendaftaran.langkahDari", { n: kontakStep + 1, total: LANGKAH_KONTAK.length })}
                     </span>
                   </div>
@@ -752,10 +752,10 @@ export default function TampilanPendaftaran({
 
                 {/* Kolom Kanan: Satu Isian Aktif */}
                 <div className="lg:col-span-6 flex flex-col space-y-5 pt-2 lg:pt-0">
-                  <h2 className="text-xl font-normal text-gray-900 tracking-tight">
+                  <h2 className="text-xl font-normal text-grey-800 tracking-tight">
                     {LANGKAH_KONTAK[kontakStep].judul}
                   </h2>
-                  <p className="-mt-3 text-xs text-gray-600 leading-normal">
+                  <p className="-mt-3 text-xs text-grey-600 leading-normal">
                     {LANGKAH_KONTAK[kontakStep].deskripsi}{" "}
                     {LANGKAH_KONTAK[kontakStep].opsional && t("pendaftaran.opsional")}
                   </p>
@@ -773,18 +773,18 @@ export default function TampilanPendaftaran({
                         }));
                         if (kontakError) setKontakError("");
                       }}
-                      className="peer w-full h-14 px-4 rounded-lg border border-gray-300 bg-transparent text-sm sm:text-base text-gray-900 placeholder-transparent focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-all"
+                      className="peer w-full h-14 px-4 rounded-lg border border-grey-300 bg-transparent text-sm sm:text-base text-grey-800 placeholder-transparent focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-all"
                       placeholder={LANGKAH_KONTAK[kontakStep].placeholder}
                     />
                     {/* Gaya label memotong garis */}
-                    <label htmlFor={`pendaftaran-${LANGKAH_KONTAK[kontakStep].kunci}`} className="pointer-events-none absolute left-3 top-0 -translate-y-1/2 bg-white px-1 text-xs text-gray-600 transition-all peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:text-sm sm:peer-placeholder-shown:text-base peer-focus:top-0 peer-focus:-translate-y-1/2 peer-focus:text-xs peer-focus:text-blue-600">
+                    <label htmlFor={`pendaftaran-${LANGKAH_KONTAK[kontakStep].kunci}`} className="pointer-events-none absolute left-3 top-0 -translate-y-1/2 bg-white px-1 text-xs text-grey-600 transition-all peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:text-sm sm:peer-placeholder-shown:text-base peer-focus:top-0 peer-focus:-translate-y-1/2 peer-focus:text-xs peer-focus:text-primary">
                       {LANGKAH_KONTAK[kontakStep].label}{" "}
                       {LANGKAH_KONTAK[kontakStep].opsional ? t("pendaftaran.opsional") : "*"}
                     </label>
                   </div>
 
                   {kontakError && (
-                    <div className="text-xs text-red-600 flex items-center gap-1.5 -mt-2">
+                    <div className="text-xs text-grey-800 flex items-center gap-1.5 -mt-2">
                       <Info
                         className="h-3.5 w-3.5 flex-shrink-0"
                         aria-hidden="true"
@@ -833,19 +833,19 @@ export default function TampilanPendaftaran({
                 errorText={t("pendaftaran.pendaftaranGagal")}
               />
               {finalStatus !== "loading" && finalStatus !== "success" && (
-                <label className="flex max-w-md items-start gap-3 text-left text-sm leading-6 text-gray-800 cursor-pointer">
+                <label className="flex max-w-md items-start gap-3 text-left text-sm leading-6 text-grey-800 cursor-pointer">
                   <input
                     type="checkbox"
                     name="setuju"
                     checked={form.setuju}
                     onChange={(e) => onUbah("setuju", e.target.checked)}
-                    className={`mt-1 h-4 w-4 shrink-0 ${form.setuju ? "accent-emerald-600" : "accent-[#0B2F9F]"}`}
+                    className={`mt-1 h-4 w-4 shrink-0 ${form.setuju ? "accent-primary" : "accent-primary"}`}
                   />
                   <span>{teksSetuju}</span>
                 </label>
               )}
               {finalStatus === "idle" && (
-                <p className="text-sm text-gray-600 leading-relaxed max-w-md">
+                <p className="text-sm text-grey-600 leading-relaxed max-w-md">
                   {t("pendaftaran.finalIdle")}
                 </p>
               )}
@@ -853,16 +853,16 @@ export default function TampilanPendaftaran({
               {/* Status verifikasi sesuai catatan server — bukan apa yang
                   tadi diklik di layar ini. */}
               {finalStatus !== "loading" && finalStatus !== "success" && (
-                <div className="flex w-full max-w-md flex-wrap items-center justify-between gap-2 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-left">
-                  <span className="text-[11px] font-medium text-gray-700">
+                <div className="flex w-full max-w-md flex-wrap items-center justify-between gap-2 rounded-xl border border-grey-200 bg-grey-50 px-3 py-2 text-left">
+                  <span className="text-xs font-medium text-grey-700">
                     {t("pendaftaran.verifStatusLabel")}:{" "}
                     <span
                       className={
                         verifikasi?.tiket
-                          ? "text-emerald-700 font-semibold"
+                          ? "text-primary font-semibold"
                           : statusVerifikasi === "pengajuan"
-                            ? "text-amber-700 font-semibold"
-                            : "text-gray-600 font-semibold"
+                            ? "text-grey-800 font-semibold"
+                            : "text-grey-600 font-semibold"
                       }
                     >
                       {statusVerifikasiTeks}
@@ -876,7 +876,7 @@ export default function TampilanPendaftaran({
                         onUlangiVerifikasi?.();
                         setStep("password");
                       }}
-                      className="text-[11px] font-semibold text-blue-600 hover:underline"
+                      className="text-xs font-semibold text-primary hover:underline"
                     >
                       {t("pendaftaran.ulangiVerifikasi")}
                     </button>
@@ -885,22 +885,22 @@ export default function TampilanPendaftaran({
               )}
               {finalStatus === "success" && (
                 <>
-                  <p className="text-sm text-gray-600 leading-relaxed max-w-md">
+                  <p className="text-sm text-grey-600 leading-relaxed max-w-md">
                     {finalSuksesAwal}
-                    <span className="font-semibold text-gray-900">
+                    <span className="font-semibold text-grey-800">
                       {username}
                     </span>
                     {finalSuksesAkhir}
                   </p>
                   {finalPesan && (
-                    <span className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-4 py-1.5 text-xs font-semibold text-emerald-800">
+                    <span className="inline-flex items-center gap-2 rounded-full bg-grey-50 px-4 py-1.5 text-xs font-semibold text-grey-800">
                       {finalPesan}
                     </span>
                   )}
                 </>
               )}
               {finalStatus === "error" && (
-                <p className="text-sm text-red-600 leading-relaxed max-w-md">
+                <p className="text-sm text-grey-800 leading-relaxed max-w-md">
                   {finalPesan || t("pendaftaran.finalGagal")}
                 </p>
               )}
