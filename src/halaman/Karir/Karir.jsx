@@ -4,7 +4,7 @@ import { BreadcrumbJsonLd } from "../../components/JsonLd.jsx";
 import Hero from "../../components/Hero.jsx";
 import { Search } from "lucide-react";
 import { AksiKonten } from "../../components/konten/AksiKonten.jsx";
-import { Card, CardContent } from "../../components/ui/card.jsx";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "../../components/ui/chart.jsx";
 import {
   BadanTabelKonten,
   BarisTabelKonten,
@@ -26,7 +26,6 @@ import {
 import { useKartuPemain } from "../../lib/pemainCatur.js";
 import GrafikMiniRating from "../Analisa/komponen/GrafikMiniRating.jsx";
 import { muatRiwayatRating } from "./riwayatRapid.js";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "../../components/ui/chart.jsx";
 import { PolarAngleAxis, PolarGrid, Radar, RadarChart } from "recharts";
 import "./karir.css";
 
@@ -233,8 +232,8 @@ function GrafikRadarRating({ pemain }) {
   };
 
   return (
-    <Card className="w-full">
-      <CardContent className="pb-0">
+    <div className="w-full border border-grey-200 bg-paper rounded-lg">
+      <div className="p-4 pb-0">
         <ChartContainer config={config} className="mx-auto aspect-square max-h-[240px]">
           <RadarChart accessibilityLayer data={data}>
             <defs>
@@ -255,8 +254,8 @@ function GrafikRadarRating({ pemain }) {
             />
           </RadarChart>
         </ChartContainer>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 
