@@ -232,7 +232,7 @@ function GrafikRadarRating({ pemain }) {
   };
 
   return (
-    <ChartContainer config={config} className="mx-auto aspect-square max-h-[240px]">
+    <ChartContainer config={config} className="mx-auto aspect-square max-h-60">
       <RadarChart accessibilityLayer data={data}>
         <defs>
           <linearGradient id="radar-fill" x1="0" y1="0" x2="0" y2="1">
@@ -340,26 +340,30 @@ export default function Karir() {
               </div>
               {pemainTeratas && <p className="mt-2 truncate text-base font-light leading-6">{namaTampil(pemainTeratas)}</p>}
             </div>
-            <div className="flex min-w-0 flex-wrap items-start gap-x-10 gap-y-5 min-[980px]:justify-end">
-              <div className="min-w-0">
-                <p className="font-sans text-sm font-light leading-4 text-grey-600">{t("beranda.peringkatKlubRekorSepanjangMasa")}</p>
-                <p className="angka-fakta-peringkat mt-1 font-sans font-light tabular-nums">{rekorSepanjangMasa ?? "—"}</p>
-              </div>
-              <div className="min-w-0">
-                <p className="font-sans text-sm font-light leading-4 text-grey-600">{t("beranda.peringkatKlubJumlahAnggota")}</p>
-                <p className="angka-fakta-peringkat mt-1 font-sans font-light tabular-nums">{anggota.length.toLocaleString(locale === "en" ? "en-US" : "id-ID")}</p>
-              </div>
-              <div className="min-w-0">
-                <p className="font-sans text-sm font-light leading-4 text-grey-600">{t("beranda.peringkatKlubPunyaRating", { kontrol: namaKontrol(kontrol) })}</p>
-                <p className="angka-fakta-peringkat mt-1 font-sans font-light tabular-nums">{jumlahBerperingkat.toLocaleString(locale === "en" ? "en-US" : "id-ID")}</p>
+            <div className="border border-grey-200 rounded-lg p-4 sm:p-6">
+              <div className="grid gap-x-6 sm:grid-cols-3 sm:items-center">
+                <div className="flex flex-col gap-1">
+                  <p className="text-sm font-light text-grey-600">{t("beranda.peringkatKlubRekorSepanjangMasa")}</p>
+                  <p className="angka-fakta-peringkat mt-1 font-sans font-light tabular-nums">{rekorSepanjangMasa ?? "—"}</p>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <p className="text-sm font-light text-grey-600">{t("beranda.peringkatKlubJumlahAnggota")}</p>
+                  <p className="angka-fakta-peringkat mt-1 font-sans font-light tabular-nums">{anggota.length.toLocaleString(locale === "en" ? "en-US" : "id-ID")}</p>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <p className="text-sm font-light text-grey-600">{t("beranda.peringkatKlubPunyaRating", { kontrol: namaKontrol(kontrol) })}</p>
+                  <p className="angka-fakta-peringkat mt-1 font-sans font-light tabular-nums">{jumlahBerperingkat.toLocaleString(locale === "en" ? "en-US" : "id-ID")}</p>
+                </div>
               </div>
             </div>
           </div>
         </section>
 
         {pemainTeratas && (
-          <div className="mt-8">
-            <GrafikRadarRating pemain={pemainTeratas} />
+          <div className="mt-8 flex justify-center">
+            <div className="w-full max-w-md">
+              <GrafikRadarRating pemain={pemainTeratas} />
+            </div>
           </div>
         )}
 
