@@ -14,7 +14,9 @@
  *    lawan membalas otomatis, dan ada tombol petunjuk — inilah alasan orang
  *    tinggal lebih lama setelah membaca hero.
  *
- * 3. DIBATASI 5 SOAL PER HARI. Setelah soal kelima selesai, muncul dialog
+ * 3. DIBATASI 5 SOAL PER HARI. Kolom kiri menampilkan progres bergaya
+ *    worldchess.com (judul penyemangat, cincin "0 dari 5", track jatah),
+ *    semuanya lewat kamus i18n. Setelah soal kelima selesai, muncul dialog
  *    ajakan bergabung ke Blunder Skuad. Hitungannya disimpan per tanggal di
  *    localStorage supaya memuat ulang halaman tidak menambah jatah. Pemain
  *    yang ingin lanjut tanpa bergabung tetap bisa membuka halaman penuh.
@@ -31,6 +33,7 @@ import { Chess } from "chess.js";
 import { useI18n } from "../../lib/i18n.jsx";
 import { Tombol } from "../../components/Tombol.jsx";
 import { ArrowRightIcon } from "../../components/icons.jsx";
+import CincinKemajuan from "../../components/CincinKemajuan.jsx";
 import PapanTekaTeki from "../TekaTeki/PapanTekaTeki.jsx";
 import {
   AlertDialog,
@@ -54,7 +57,6 @@ import {
   tanggalHariIni,
   warnaGiliran,
 } from "../../lib/tekaTekiHarian.js";
-import { JUDUL_SEKSI, LEAD_SEKSI, LABEL_SEKSI } from "./gayaTeks.jsx";
 
 const RUTE_HARIAN = "/teka-teki-harian";
 const RUTE_GABUNG = "/pendaftaran-anggota";
@@ -357,6 +359,21 @@ export default function TekaTekiHarianLanding() {
 
   const nomorSoal = Math.min(indeks + 1, daftar.length);
   const jatahTerpakai = Math.min(progres.selesai, BATAS_HARIAN);
+  const sisaJatah = Math.max(0, BATAS_HARIAN - jatahTerpakai);
+  const deskKartu = jatahHabis
+    ? t("landing.harianKartuDeskSelesai")
+    : t("landing.harianKartuDeskSisa", { n: sisaJatah });
+  const judulKartu = jatahHabis
+    ? t("landing.harianKartuJudulSelesai")
+    : jatahTerpakai === 0
+      ? t("landing.harianKartuJudulMulai")
+      : t("landing.harianKartuJudulLanjut");
+  /*
+   * Teks kartu kemajuan mengikuti keadaan pemain, bukan satu kalimat statis:
+   * belum mulai, sedang berjalan, lalu selesai. Polanya meniru kartu progres
+   * "Keep it up!" di worldchess.com — satu judul penyemangat, satu kalimat
+   * sisa jatah, lalu segmen + dua angka kecil.
+   */
   const teksStatus = pesan
     ? t(pesan.kunci)
     : t(
@@ -370,24 +387,89 @@ export default function TekaTekiHarianLanding() {
       aria-labelledby="teka-teki-harian-judul"
       className="w-full pl-6 md:pl-8 pr-6 md:pr-8 pb-12 xl:pb-16 pt-12 xl:pt-16 overflow-hidden"
     >
-      <div className="relative w-full mx-auto lg:max-w-[960px] xl:max-w-[1280px]">
-        <div className="grid gap-y-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,440px)] lg:gap-x-12 lg:items-start">
-          {/* Kiri: teks + jatah harian + ajakan */}
-          <div className="flex flex-col gap-y-5">
-            <p className={LABEL_SEKSI}>{t("landing.harianLabel")}</p>
-            <h2 id="teka-teki-harian-judul" className={JUDUL_SEKSI}>
-              {t("landing.harianJudul")}
-            </h2>
-            <p className={LEAD_SEKSI}>{t("landing.harianDesk")}</p>
+      <div className="relative mx-auto w-full max-w-[1440px]">
+        <div className="grid items-center gap-x-6 gap-y-10 xl:grid-cols-12 xl:gap-x-8">
+          {/*
+           * Kiri: padanan HomeWelcomeMessage + HomeRatingProgress +
+           * GameTowerProgress di acuan. Judul dan kalimatnya mengikuti keadaan
+           * jatah (belum mulai / sedang jalan / selesai), cincin menampilkan
+           * nomor soal, dan track di bawahnya menampilkan jatah terpakai.
+           */}
+          <div
+            data-component="HomeLayoutDesktopLeft"
+            data-kartu-harian
+            className="flex min-w-0 flex-col justify-center gap-y-6 xl:col-span-3 xl:min-h-[440px]"
+          >
+            <header
+              data-component="HomeWelcomeMessage"
+              className="flex flex-col gap-y-2 text-center xl:text-left"
+            >
+              <h2 className="font-serif text-3xl font-semibold leading-tight text-grey-800">
+                {judulKartu}
+              </h2>
+              <p className="max-w-lg font-serif text-base leading-relaxed text-grey-600">
+                {deskKartu}
+              </p>
+            </header>
 
-            {/* Jatah harian — satu-satunya batas, berlaku juga antar-halaman */}
-            <div className="flex flex-col gap-y-2">
-              <p className="font-mono text-[12px] uppercase tracking-wider text-grey-600">
-                {t("landing.harianKemajuan", {
+            <section
+              aria-label={t("landing.harianProgresAria")}
+              data-component="HomeRatingProgress"
+              className="flex min-w-0 justify-center xl:justify-start"
+            >
+              <CincinKemajuan
+                ukuran={160}
+                nilai={jatahTerpakai}
+                maks={BATAS_HARIAN}
+                label={t("landing.harianRingLabel")}
+                subLabel={t("landing.harianRingSub")}
+                nilaiTeks={t("landing.harianRingNilai", {
                   n: jatahTerpakai,
                   total: BATAS_HARIAN,
                 })}
-              </p>
+                catatan={
+                  jatahHabis
+                    ? t("landing.harianRingCatatanTuntas")
+                    : t("landing.harianRingCatatan", { n: sisaJatah })
+                }
+                ariaLabel={t("landing.harianRingAria", {
+                  n: jatahTerpakai,
+                  total: BATAS_HARIAN,
+                })}
+              />
+            </section>
+
+            <section
+              aria-label={t("landing.harianTrackAria")}
+              data-component="GameTowerProgress"
+              className="flex min-w-0 flex-col gap-y-3 border-t border-grey-200 pt-4"
+            >
+              <div className="flex items-end justify-between gap-4">
+                <div className="flex min-w-0 flex-col gap-y-1">
+                  <h3 className="font-sans text-sm font-semibold text-primary">
+                    {t("landing.harianKartuLabelJatah")}
+                  </h3>
+                  <p className="flex items-baseline gap-1 font-serif text-2xl font-semibold text-grey-800">
+                    {jatahTerpakai}
+                    <span className="font-sans text-base font-normal text-grey-600">
+                      /{BATAS_HARIAN}
+                    </span>
+                  </p>
+                </div>
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 16 16"
+                  fill="currentColor"
+                  className="size-5 shrink-0 text-grey-600"
+                >
+                  <rect x="3.5" y="1.5" width="2.2" height="2.6" />
+                  <rect x="6.9" y="1.5" width="2.2" height="2.6" />
+                  <rect x="10.3" y="1.5" width="2.2" height="2.6" />
+                  <path d="M4.6 4.9h6.8v4.3H4.6z" />
+                  <path d="M3.4 10h9.2v3.4H3.4z" />
+                </svg>
+              </div>
+
               <div
                 role="progressbar"
                 aria-valuemin={0}
@@ -397,22 +479,31 @@ export default function TekaTekiHarianLanding() {
                   n: jatahTerpakai,
                   total: BATAS_HARIAN,
                 })}
-                aria-label={t("landing.harianNomorSoal", {
-                  n: nomorSoal,
-                  total: daftar.length,
-                })}
-                className="h-1 w-full max-w-[280px] overflow-hidden rounded bg-grey-200"
+                aria-label={t("landing.harianTrackAria")}
+                className="relative h-1.5 w-full bg-grey-200"
               >
+                <div
+                  className="absolute inset-y-0 left-0 bg-primary transition-[width] duration-300"
+                  style={{ width: `${(jatahTerpakai / BATAS_HARIAN) * 100}%` }}
+                />
                 <span
-                  className="block h-full bg-primary transition-[width] duration-300"
-                  style={{
-                    width: `${(jatahTerpakai / BATAS_HARIAN) * 100}%`,
-                  }}
+                  aria-hidden="true"
+                  className="absolute top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 bg-primary"
+                  style={{ left: `${(jatahTerpakai / BATAS_HARIAN) * 100}%` }}
                 />
               </div>
-            </div>
+              <div className="flex items-center justify-between gap-3 font-sans text-sm text-grey-600">
+                <span>
+                  {t("landing.harianNomorSoal", {
+                    n: nomorSoal,
+                    total: daftar.length,
+                  })}
+                </span>
+                <span>{t("landing.harianTrackSisa", { n: sisaJatah })}</span>
+              </div>
+            </section>
 
-            <div className="flex flex-wrap items-center gap-x-6 gap-y-3 font-sans">
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-3 font-sans">
               <Tombol
                 to={RUTE_HARIAN}
                 variant="garis"
@@ -435,17 +526,17 @@ export default function TekaTekiHarianLanding() {
             </div>
           </div>
 
-          {/* Kanan: pemutar mini / keadaan jatah habis */}
-          <div className="w-full max-w-[440px]">
+          {/* Tengah: papan demo menjadi fokus visual utama. */}
+          <div className="flex w-full min-w-0 justify-center xl:col-span-6">
             {jatahHabis ? (
-              <div className="flex flex-col gap-3 rounded border border-grey-200 bg-paper p-5">
-                <p className="font-sans text-sm font-bold text-grey-800">
+              <div className="flex w-full max-w-[34rem] flex-col gap-3 border border-grey-200 bg-paper p-5 sm:p-6">
+                <p className="font-sans text-base font-bold text-grey-800">
                   {t("landing.harianTerkunciJudul", { total: BATAS_HARIAN })}
                 </p>
-                <p className="font-serif text-sm leading-relaxed text-grey-600">
+                <p className="font-serif text-base leading-relaxed text-grey-600">
                   {t("landing.harianTerkunciDesk")}
                 </p>
-                <div className="flex flex-wrap gap-3">
+                <div className="flex flex-wrap gap-3 pt-1">
                   <button
                     type="button"
                     onClick={() => setDialogGabung(true)}
@@ -459,7 +550,7 @@ export default function TekaTekiHarianLanding() {
                 </div>
               </div>
             ) : soal ? (
-              <>
+              <div className="w-full max-w-[34rem]">
                 <div className="relative">
                   <PapanTekaTeki
                     fen={posisi || soal.fen}
@@ -477,10 +568,10 @@ export default function TekaTekiHarianLanding() {
                     onJatuh={cobaLangkah}
                   />
 
-                  {/* Pemilih bidak promosi — hanya muncul saat memang perlu. */}
+                  {/* Pemilih promosi tetap berada di atas papan demo. */}
                   {promosi && (
                     <div className="absolute inset-0 z-50 flex flex-col items-center justify-center gap-3 rounded bg-black/55 p-3">
-                      <p className="font-sans text-xs font-bold uppercase tracking-wider text-white">
+                      <p className="font-sans text-sm font-bold uppercase tracking-wider text-white">
                         {t("tekaTekiHarian.promosiJudul")}
                       </p>
                       <div className="flex flex-wrap justify-center gap-2">
@@ -493,7 +584,7 @@ export default function TekaTekiHarianLanding() {
                               setPromosi(null);
                               cobaLangkah(from, to, kode);
                             }}
-                            className="rounded bg-white px-2.5 py-1.5 font-sans text-xs font-semibold text-grey-800 transition-colors hover:bg-grey-100"
+                            className="rounded bg-white px-3 py-2 font-sans text-sm font-semibold text-grey-800 transition-colors hover:bg-grey-100"
                           >
                             {t(kunci)}
                           </button>
@@ -502,65 +593,86 @@ export default function TekaTekiHarianLanding() {
                       <button
                         type="button"
                         onClick={() => setPromosi(null)}
-                        className="font-sans text-xs font-semibold text-white/80 underline underline-offset-2"
+                        className="font-sans text-sm font-semibold text-white/80 underline underline-offset-2"
                       >
                         {t("tekaTekiHarian.promosiBatal")}
                       </button>
                     </div>
                   )}
                 </div>
+              </div>
+            ) : (
+              <div
+                aria-hidden="true"
+                className="aspect-square w-full max-w-[34rem] animate-pulse border border-grey-200 bg-grey-50"
+              />
+            )}
+          </div>
 
-                {/* Status + kontrol ringkas */}
-                <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-                  <p
-                    aria-live="polite"
-                    className={`font-sans text-sm font-semibold ${
-                      selesaiSoal
-                        ? "text-primary"
-                        : pesan?.jenis === "salah"
-                          ? "text-accent-600"
-                          : "text-grey-600"
-                    }`}
+          {/* Kanan: konteks promosi dan kontrol demo, bukan panel permainan penuh. */}
+          <aside
+            aria-label={t("landing.harianKontrolAria")}
+            className="flex min-w-0 flex-col justify-center gap-y-7 xl:col-span-3 xl:min-h-[440px]"
+          >
+            <header className="flex flex-col gap-y-3">
+              <p className="font-sans text-sm font-semibold text-primary">
+                {t("landing.harianLabel")}
+              </p>
+              <h3
+                id="teka-teki-harian-judul"
+                className="font-serif text-2xl font-semibold leading-tight text-grey-800"
+              >
+                {t("landing.harianJudul")}
+              </h3>
+              <p className="font-serif text-base leading-relaxed text-grey-600">
+                {t("landing.harianDesk")}
+              </p>
+            </header>
+
+            {!jatahHabis && soal && (
+              <section className="border-t border-grey-200 pt-5">
+                <p
+                  aria-live="polite"
+                  className={`font-sans text-sm font-semibold ${
+                    selesaiSoal
+                      ? "text-primary"
+                      : pesan?.jenis === "salah"
+                        ? "text-accent-600"
+                        : "text-grey-600"
+                  }`}
+                >
+                  {teksStatus}
+                </p>
+                <div className="mt-4 flex flex-wrap items-center gap-2 font-sans">
+                  <button
+                    type="button"
+                    onClick={tampilkanPetunjuk}
+                    disabled={selesaiSoal || menungguLawan}
+                    className="rounded border border-grey-200 px-3 py-2 text-sm font-semibold text-grey-700 transition-colors hover:border-primary hover:text-primary disabled:opacity-40"
                   >
-                    {teksStatus}
-                  </p>
-                  <div className="flex items-center gap-2 font-sans">
-                    <button
-                      type="button"
-                      onClick={tampilkanPetunjuk}
-                      disabled={selesaiSoal || menungguLawan}
-                      className="rounded border border-grey-200 px-2.5 py-1 text-xs font-semibold text-grey-700 transition-colors hover:border-primary hover:text-primary disabled:opacity-40"
-                    >
-                      {t("landing.harianPetunjuk")}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => pasangSoal(soal)}
-                      className="rounded border border-grey-200 px-2.5 py-1 text-xs font-semibold text-grey-700 transition-colors hover:border-primary hover:text-primary"
-                    >
-                      {t("landing.harianUlangi")}
-                    </button>
-                  </div>
+                    {t("landing.harianPetunjuk")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => pasangSoal(soal)}
+                    className="rounded border border-grey-200 px-3 py-2 text-sm font-semibold text-grey-700 transition-colors hover:border-primary hover:text-primary"
+                  >
+                    {t("landing.harianUlangi")}
+                  </button>
                 </div>
-
-                <p className="mt-1 font-mono text-[12px] uppercase tracking-wider text-grey-600">
+                <p className="mt-4 font-mono text-sm uppercase tracking-wider text-grey-600">
                   {t("landing.harianNomorSoal", { n: nomorSoal, total: daftar.length })}
                   {" · "}
                   {t("landing.harianEdisi", { tanggal: soal.tanggal })}
                 </p>
-              </>
-            ) : (
-              <div
-                aria-hidden="true"
-                className="aspect-square w-full animate-pulse rounded border border-grey-200 bg-grey-50"
-              />
+              </section>
             )}
-          </div>
+          </aside>
         </div>
       </div>
 
       {/* Dialog ajakan bergabung setelah 5 soal. Radix dipakai supaya fokus
-          terkunci dan Escape berperilaku sama dengan dialog lain di situs. */}
+      terkunci dan Escape berperilaku sama dengan dialog lain di situs. */}
       <AlertDialog open={dialogGabung} onOpenChange={setDialogGabung}>
         <AlertDialogContent>
           <AlertDialogHeader>

@@ -438,5 +438,44 @@ test("repertoar: papan pratinjau muncul setelah jalur dipilih", async ({ page })
     expect(kotak.papan.lebar).toBeGreaterThanOrEqual(kotak.lebarLayar - 80);
   }
 
+  // Mode Tantangan berdiri di samping latihan: papan + dasbor sendiri
+  // (`data-dasbor-tantangan`), tanpa panel jadwal tinjauan, dan bisa dimulai
+  // dari kartu katalog walau belum ada kartu jatuh tempo.
+  await page.locator("[data-dasbor-latihan] button[aria-label]").click();
+  const kartuKatalog = page.locator("[data-kartu-repertoar]").first();
+  await expect(kartuKatalog).toBeVisible();
+  await kartuKatalog.getByRole("button", { name: papanId.repertoarTantangan }).click();
+
+  const dasborTantangan = page.locator("[data-dasbor-tantangan]");
+  await expect(dasborTantangan).toBeVisible();
+  await expect(dasborTantangan.locator("h1")).toHaveText(papanId.repertoarTantanganJudul);
+  await expect(dasborTantangan.getByRole("timer")).toBeVisible();
+  await expect(page.locator("[data-papan-tantangan] [data-petak]")).toHaveCount(64);
+  await expect(page.locator("[data-dasbor-latihan]")).toHaveCount(0);
+  await expect(dasborTantangan).toContainText(papanId.repertoarTantanganDeskripsi.split("{detik}")[0].trim());
+
+  // Pohon cabang repertoar: awalan langkah dibagi antar jalur tersimpan.
+  await page.locator("[data-dasbor-tantangan] button[aria-label]").click();
+  const pohon = page.locator("[data-pohon-cabang]");
+  await expect(pohon).toBeVisible();
+  await pohon.locator("summary").click();
+  await expect(pohon.locator("[role='treeitem']").first()).toBeVisible();
+
+  // Latihan massal: satu sesi untuk semua posisi jatuh tempo.
+  const tombolMassal = page.getByRole("button", { name: /Latih \d+ jatuh tempo/ });
+  await expect(tombolMassal).toBeEnabled();
+  await tombolMassal.click();
+  await expect(page.locator("[data-dasbor-latihan]")).toBeVisible();
+  await expect(page.locator("[data-latihan-massal]")).toBeVisible();
+
+  // Statistik: angka dari kartu tersimpan, tanpa rute baru.
+  await page.locator("[data-dasbor-latihan] button[aria-label]").click();
+  await page.getByRole("button", { name: papanId.repertoarStatistik, exact: true }).click();
+  const statistik = page.locator("[data-statistik-repertoar]");
+  await expect(statistik).toBeVisible();
+  await expect(statistik.locator("h1")).toHaveText(papanId.repertoarStatistikJudul);
+  await expect(statistik).toContainText(papanId.repertoarStatJalur);
+  await expect(statistik).toContainText(papanId.repertoarStatPerPembukaan);
+
   expect(galat).toEqual([]);
 });

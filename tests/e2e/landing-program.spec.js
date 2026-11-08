@@ -35,6 +35,21 @@ for (const { jalur, alat } of [
     // Tautan ke alatnya — tombol ajakan di badan halaman, bukan menu.
     await expect(page.locator(`a[href="${alat}"]`).first()).toBeVisible();
 
+    /*
+     * Halaman Latihan Repertoar menjelaskan tiga cara berlatih (berjadwal,
+     * tantangan, massal) dan statistik. Teks ini satu-satunya penjelasan
+     * publik untuk mode-mode tersebut, jadi dijaga dari kunci i18n yang hilang.
+     */
+    if (jalur === "/program-kami/latihan-repertoar") {
+      await page.addInitScript(() => localStorage.setItem("kci-bahasa", "id"));
+      await page.reload({ waitUntil: "domcontentloaded" });
+      await expect(page.getByRole("heading", { name: "Tiga Cara Berlatih" })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Mode tantangan" })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Latihan massal" })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Pohon cabang dan statistik" })).toBeVisible();
+      await expect(page.getByText(/30 detik per langkah/)).toBeVisible();
+    }
+
     expect(galat, galat.join("\n")).toEqual([]);
   });
 }
