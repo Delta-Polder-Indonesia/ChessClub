@@ -245,7 +245,7 @@ function GrafikRadarRating({ pemain }) {
         <CardDescription>{t("beranda.peringkatKlubGrafikRadarDeskripsi")}</CardDescription>
       </CardHeader>
       <CardContent className="pb-0">
-        <ChartContainer config={config} className="mx-auto aspect-square max-h-[220px]">
+        <ChartContainer config={config} className="mx-auto aspect-square max-h-[240px]">
           <RadarChart accessibilityLayer data={data}>
             <defs>
               <linearGradient id="radar-fill" x1="0" y1="0" x2="0" y2="1">
@@ -339,7 +339,7 @@ export default function Karir() {
 
       <main className="mx-auto w-full max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-10">
         <section aria-label={t("beranda.peringkatKlubPemainTeratas")} className="mt-8 text-grey-800">
-          <div className="grid gap-x-5 gap-y-4 min-[980px]:grid-cols-[auto_minmax(0,1fr)_minmax(240px,300px)] min-[980px]:items-start">
+          <div className="grid gap-x-5 gap-y-6 min-[980px]:grid-cols-[auto_minmax(0,1fr)_minmax(260px,320px)] min-[980px]:items-start">
             <div className="min-w-0">
               <p className="mb-2 font-sans text-sm font-light leading-4 text-grey-600">{t("beranda.peringkatKlubPemainTeratas")}</p>
               <div className="flex min-w-0 items-end gap-4">
@@ -377,7 +377,7 @@ export default function Karir() {
           </div>
         </section>
 
-        <div className="mb-0 mt-6 flex flex-wrap items-end justify-between gap-4">
+        <div className="mb-0 mt-8 flex flex-wrap items-end justify-between gap-4">
           <div className="min-w-0">
             <h2 className="font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] text-balance text-grey-800">{judul}</h2>
           </div>
