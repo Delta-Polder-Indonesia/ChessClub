@@ -5,6 +5,13 @@ import Hero from "../../components/Hero.jsx";
 import { Search } from "lucide-react";
 import { AksiKonten } from "../../components/konten/AksiKonten.jsx";
 import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../../components/ui/card.jsx";
+import {
   BadanTabelKonten,
   BarisTabelKonten,
   KepalaTabelKonten,
@@ -25,6 +32,8 @@ import {
 import { useKartuPemain } from "../../lib/pemainCatur.js";
 import GrafikMiniRating from "../Analisa/komponen/GrafikMiniRating.jsx";
 import { muatRiwayatRating } from "./riwayatRapid.js";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "../../components/ui/chart.jsx";
+import { PolarAngleAxis, PolarGrid, Radar, RadarChart } from "recharts";
 import "./karir.css";
 
 const URL_KLUB = "https://www.chess.com/club/blunder-skuad";
@@ -208,6 +217,59 @@ function GrafikRating({ username, jenis, nama, locale, t }) {
   );
 }
 
+/**
+ * Grafik radar rating pemain teratas di berbagai kontrol waktu
+ * (Rapid, Blitz, Bullet, Daily) — mirip papan statistik chess.com.
+ * Hanya menampilkan kontrol yang memiliki rating valid.
+ */
+function GrafikRadarRating({ pemain }) {
+  const { t } = useI18n();
+  const namaKontrol = (id) => id === "utama" ? t("beranda.peringkatKlubUtama") : id;
+  const data = URUTAN_KONTROL
+    .map((id) => {
+      const rating = ratingKontrol(pemain, id);
+      return rating !== null ? { skill: namaKontrol(id), score: rating } : null;
+    })
+    .filter(Boolean);
+
+  if (data.length === 0) return null;
+
+  const config = {
+    score: { label: t("beranda.peringkatKlubRatingTeratas"), color: "var(--chart-1)" },
+  };
+
+  return (
+    <Card className="w-full">
+      <CardHeader className="items-center pb-0">
+        <CardTitle>{t("beranda.peringkatKlubGrafikRadarJudul")}</CardTitle>
+        <CardDescription>{t("beranda.peringkatKlubGrafikRadarDeskripsi")}</CardDescription>
+      </CardHeader>
+      <CardContent className="pb-0">
+        <ChartContainer config={config} className="mx-auto aspect-square max-h-[220px]">
+          <RadarChart accessibilityLayer data={data}>
+            <defs>
+              <linearGradient id="radar-fill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="var(--chart-1)" stopOpacity={0.5} />
+                <stop offset="100%" stopColor="var(--chart-1)" stopOpacity={0.08} />
+              </linearGradient>
+            </defs>
+            <ChartTooltip content={<ChartTooltipContent />} />
+            <PolarAngleAxis dataKey="skill" tick={{ fontSize: 12 }} />
+            <PolarGrid strokeDasharray="3 3" />
+            <Radar
+              dataKey="score"
+              fill="url(#radar-fill)"
+              stroke="var(--chart-1)"
+              strokeWidth={2}
+              dot={{ r: 4, fill: "var(--chart-1)", strokeWidth: 0 }}
+            />
+          </RadarChart>
+        </ChartContainer>
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function Karir() {
   const { anggota, status, menyegarkan, rosterDiperbaruiPada, muatUlang } = useAnggota();
   const { t, bahasa: locale } = useI18n();
@@ -277,7 +339,7 @@ export default function Karir() {
 
       <main className="mx-auto w-full max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-10">
         <section aria-label={t("beranda.peringkatKlubPemainTeratas")} className="mt-8 text-grey-800">
-          <div className="grid gap-x-5 gap-y-10 min-[980px]:grid-cols-[auto_minmax(0,1fr)] min-[980px]:items-start">
+          <div className="grid gap-x-5 gap-y-4 min-[980px]:grid-cols-[auto_minmax(0,1fr)_minmax(240px,300px)] min-[980px]:items-start">
             <div className="min-w-0">
               <p className="mb-2 font-sans text-sm font-light leading-4 text-grey-600">{t("beranda.peringkatKlubPemainTeratas")}</p>
               <div className="flex min-w-0 items-end gap-4">
@@ -307,10 +369,15 @@ export default function Karir() {
                 <p className="angka-fakta-peringkat mt-1 font-sans font-light tabular-nums">{jumlahBerperingkat.toLocaleString(locale === "en" ? "en-US" : "id-ID")}</p>
               </div>
             </div>
+            {pemainTeratas && (
+              <div className="min-w-0">
+                <GrafikRadarRating pemain={pemainTeratas} />
+              </div>
+            )}
           </div>
         </section>
 
-        <div className="mb-0 mt-10 flex flex-wrap items-end justify-between gap-4">
+        <div className="mb-0 mt-6 flex flex-wrap items-end justify-between gap-4">
           <div className="min-w-0">
             <h2 className="font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] text-balance text-grey-800">{judul}</h2>
           </div>
