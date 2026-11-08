@@ -4,13 +4,7 @@ import { BreadcrumbJsonLd } from "../../components/JsonLd.jsx";
 import Hero from "../../components/Hero.jsx";
 import { Search } from "lucide-react";
 import { AksiKonten } from "../../components/konten/AksiKonten.jsx";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "../../components/ui/card.jsx";
+import { Card, CardContent } from "../../components/ui/card.jsx";
 import {
   BadanTabelKonten,
   BarisTabelKonten,
@@ -240,10 +234,6 @@ function GrafikRadarRating({ pemain }) {
 
   return (
     <Card className="w-full">
-      <CardHeader className="items-center pb-0">
-        <CardTitle>{t("beranda.peringkatKlubGrafikRadarJudul")}</CardTitle>
-        <CardDescription>{t("beranda.peringkatKlubGrafikRadarDeskripsi")}</CardDescription>
-      </CardHeader>
       <CardContent className="pb-0">
         <ChartContainer config={config} className="mx-auto aspect-square max-h-[240px]">
           <RadarChart accessibilityLayer data={data}>
@@ -369,13 +359,16 @@ export default function Karir() {
                 <p className="angka-fakta-peringkat mt-1 font-sans font-light tabular-nums">{jumlahBerperingkat.toLocaleString(locale === "en" ? "en-US" : "id-ID")}</p>
               </div>
             </div>
-            {pemainTeratas && (
-              <div className="min-w-0">
-                <GrafikRadarRating pemain={pemainTeratas} />
-              </div>
-            )}
           </div>
         </section>
+
+        {pemainTeratas && (
+          <div className="mt-6 flex justify-center min-[980px]:justify-end">
+            <div className="w-full max-w-xs">
+              <GrafikRadarRating pemain={pemainTeratas} />
+            </div>
+          </div>
+        )}
 
         <div className="mb-0 mt-8 flex flex-wrap items-end justify-between gap-4">
           <div className="min-w-0">

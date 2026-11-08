@@ -77,8 +77,6 @@ export const beranda = {
     peringkatKlubDiperbarui: "Roster diperbarui {tanggal}",
     peringkatKlubCatatanRating: "Pemain diurutkan berdasarkan rating pada kontrol terpilih. Utama memakai rating utama yang tersedia; W/D/L mengikuti kontrol terpilih, dan menjadi gabungan semua kontrol saat Utama dipilih. Grafik memakai hingga 20 partai ber-rating dalam tiga bulan sampai partai terakhir pada kontrol tersebut. Pada Utama, grafik mengikuti kontrol utama tiap pemain. Titik menunjukkan urutan partai dan skala mengikuti rating pemain. Grafik dan roster dapat berbeda karena diperbarui terpisah. Tanda — berarti riwayat tidak cukup atau gagal dimuat.",
     peringkatKlubCatatanNegara: "Bendera dan kode negara mengikuti pilihan profil Chess.com; umur belum tersedia.",
-    peringkatKlubGrafikRadarJudul: "Profil Rating Pemain Teratas",
-    peringkatKlubGrafikRadarDeskripsi: "Perbandingan rating di berbagai kontrol waktu (chess.com).",
   }
 
 export const sticky = {
