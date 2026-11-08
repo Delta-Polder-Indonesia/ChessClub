@@ -155,13 +155,16 @@ Batas harian:
   **Blunder Skuad**; aksinya menuju `/pendaftaran-anggota`;
 - bila jatah habis, panel papan diganti keterangan jatah habis + tombol gabung,
   sehingga memuat ulang halaman tidak menambah jatah;
-- seksi disusun **tiga kolom** mengikuti tata letak worldchess.com: kiri
-  progres (`data-kartu-harian`), tengah papan demo, kanan informasi + kontrol.
-- kolom kiri berisi judul keadaan (belum mulai / ayo lanjut / jatah selesai),
-  satu kalimat sisa jatah, **cincin** (`src/components/CincinKemajuan.jsx`,
-  `data-cincin-kemajuan`, label `Jatah harian` / `Teka-teki` / `0 dari 5`),
-  lalu **track "Tower"** (`role="progressbar"`, garis 1,5 px + penanda kotak,
-  angka besar `0 / 5`, dan baris nomor soal + sisa jatah), lalu tombol utama.
+- seksi disusun **tiga kolom** dengan proporsi 3/6/3 pada `xl` (kiri progres
+  `data-kartu-harian`, tengah papan demo, kanan informasi + kontrol) — struktur
+  acuan worldchess.com dipakai sebagai pembanding proporsi, bukan disalin.
+- kolom kiri berisi judul keadaan 30 px (belum mulai / ayo lanjut / jatah
+  selesai), satu kalimat sisa jatah, **cincin 160 px**
+  (`src/components/CincinKemajuan.jsx`, `data-cincin-kemajuan`, label
+  `Jatah harian` / `Teka-teki` / `0 dari 5` / `Selesaikan N soal lagi`), lalu
+  **track "Tower"** (label beraksen + angka besar `0 / 5` + ikon benteng,
+  `role="progressbar"` dengan garis 1,5 px dan penanda kotak, lalu baris nomor
+  soal + sisa jatah), lalu tombol utama.
 - cincin hanya penguat visual: SVG-nya `aria-hidden`, sedangkan seluruh teks di
   dalamnya HTML sungguhan 14–30 px (terbaca pembaca layar dan uji); satu-satunya
   keterangan untuk pembaca layar adalah `aria-label` dari

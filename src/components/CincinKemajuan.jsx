@@ -21,7 +21,7 @@ export default function CincinKemajuan({
   subLabel,
   nilaiTeks,
   catatan,
-  ukuran = 200,
+  ukuran = 160,
   ariaLabel,
   className = "",
 }) {
@@ -62,7 +62,7 @@ export default function CincinKemajuan({
         />
       </svg>
 
-      <div className="absolute inset-0 flex flex-col items-center justify-center gap-y-1 px-6 text-center">
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-y-1 px-4 text-center">
         {label && (
           <p className="font-sans text-sm font-semibold text-grey-800">{label}</p>
         )}
@@ -75,7 +75,7 @@ export default function CincinKemajuan({
           </p>
         )}
         {catatan && (
-          <p className="max-w-44 pt-1 font-sans text-sm leading-snug text-grey-600">
+          <p className="max-w-32 pt-1 font-sans text-sm leading-snug text-grey-600">
             {catatan}
           </p>
         )}

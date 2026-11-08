@@ -388,7 +388,7 @@ export default function TekaTekiHarianLanding() {
       className="w-full pl-6 md:pl-8 pr-6 md:pr-8 pb-12 xl:pb-16 pt-12 xl:pt-16 overflow-hidden"
     >
       <div className="relative mx-auto w-full max-w-[1440px]">
-        <div className="grid items-center gap-x-6 gap-y-10 xl:grid-cols-[minmax(260px,0.95fr)_minmax(360px,1.3fr)_minmax(230px,0.85fr)] xl:gap-x-8">
+        <div className="grid items-center gap-x-6 gap-y-10 xl:grid-cols-12 xl:gap-x-8">
           {/*
            * Kiri: padanan HomeWelcomeMessage + HomeRatingProgress +
            * GameTowerProgress di acuan. Judul dan kalimatnya mengikuti keadaan
@@ -398,13 +398,13 @@ export default function TekaTekiHarianLanding() {
           <div
             data-component="HomeLayoutDesktopLeft"
             data-kartu-harian
-            className="flex min-w-0 flex-col justify-center gap-y-6 xl:min-h-[440px]"
+            className="flex min-w-0 flex-col justify-center gap-y-6 xl:col-span-3 xl:min-h-[440px]"
           >
             <header
               data-component="HomeWelcomeMessage"
-              className="flex flex-col gap-y-2"
+              className="flex flex-col gap-y-2 text-center xl:text-left"
             >
-              <h2 className="font-serif text-2xl font-semibold leading-tight text-grey-800">
+              <h2 className="font-serif text-3xl font-semibold leading-tight text-grey-800">
                 {judulKartu}
               </h2>
               <p className="max-w-lg font-serif text-base leading-relaxed text-grey-600">
@@ -418,6 +418,7 @@ export default function TekaTekiHarianLanding() {
               className="flex min-w-0 justify-center xl:justify-start"
             >
               <CincinKemajuan
+                ukuran={160}
                 nilai={jatahTerpakai}
                 maks={BATAS_HARIAN}
                 label={t("landing.harianRingLabel")}
@@ -441,34 +442,32 @@ export default function TekaTekiHarianLanding() {
             <section
               aria-label={t("landing.harianTrackAria")}
               data-component="GameTowerProgress"
-              className="flex min-w-0 flex-col gap-y-4 border-t border-grey-200 pt-4"
+              className="flex min-w-0 flex-col gap-y-3 border-t border-grey-200 pt-4"
             >
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex min-w-0 items-center gap-3">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center border border-grey-200 text-grey-800">
-                    <svg aria-hidden="true" viewBox="0 0 16 16" className="h-4 w-4" fill="none">
-                      <path
-                        d="M0.75 6.1 8 0.75l7.25 5.35v9.15H0.75V6.1Z"
-                        stroke="currentColor"
-                        strokeWidth="1.1"
-                      />
-                    </svg>
-                  </div>
-                  <div className="flex min-w-0 flex-col gap-y-0.5">
-                    <h3 className="font-sans text-base font-semibold text-grey-800">
-                      {t("landing.harianKartuLabelJatah")}
-                    </h3>
-                    <p className="font-sans text-sm text-grey-600">
-                      {t("landing.harianKartuLabelSoal")}
-                    </p>
-                  </div>
+              <div className="flex items-end justify-between gap-4">
+                <div className="flex min-w-0 flex-col gap-y-1">
+                  <h3 className="font-sans text-sm font-semibold text-primary">
+                    {t("landing.harianKartuLabelJatah")}
+                  </h3>
+                  <p className="flex items-baseline gap-1 font-serif text-2xl font-semibold text-grey-800">
+                    {jatahTerpakai}
+                    <span className="font-sans text-base font-normal text-grey-600">
+                      /{BATAS_HARIAN}
+                    </span>
+                  </p>
                 </div>
-                <p className="flex shrink-0 items-baseline gap-1 font-serif text-2xl font-semibold text-grey-800">
-                  {jatahTerpakai}
-                  <span className="font-sans text-base font-normal text-grey-600">
-                    / {BATAS_HARIAN}
-                  </span>
-                </p>
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 16 16"
+                  fill="currentColor"
+                  className="size-5 shrink-0 text-grey-600"
+                >
+                  <rect x="3.5" y="1.5" width="2.2" height="2.6" />
+                  <rect x="6.9" y="1.5" width="2.2" height="2.6" />
+                  <rect x="10.3" y="1.5" width="2.2" height="2.6" />
+                  <path d="M4.6 4.9h6.8v4.3H4.6z" />
+                  <path d="M3.4 10h9.2v3.4H3.4z" />
+                </svg>
               </div>
 
               <div
@@ -528,7 +527,7 @@ export default function TekaTekiHarianLanding() {
           </div>
 
           {/* Tengah: papan demo menjadi fokus visual utama. */}
-          <div className="flex w-full min-w-0 justify-center">
+          <div className="flex w-full min-w-0 justify-center xl:col-span-6">
             {jatahHabis ? (
               <div className="flex w-full max-w-[34rem] flex-col gap-3 border border-grey-200 bg-paper p-5 sm:p-6">
                 <p className="font-sans text-base font-bold text-grey-800">
@@ -613,7 +612,7 @@ export default function TekaTekiHarianLanding() {
           {/* Kanan: konteks promosi dan kontrol demo, bukan panel permainan penuh. */}
           <aside
             aria-label={t("landing.harianKontrolAria")}
-            className="flex min-w-0 flex-col justify-center gap-y-7 lg:min-h-[440px]"
+            className="flex min-w-0 flex-col justify-center gap-y-7 xl:col-span-3 xl:min-h-[440px]"
           >
             <header className="flex flex-col gap-y-3">
               <p className="font-sans text-sm font-semibold text-primary">
