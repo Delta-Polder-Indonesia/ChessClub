@@ -77,6 +77,8 @@ export const beranda = {
     peringkatKlubDiperbarui: "Roster updated {tanggal}",
     peringkatKlubCatatanRating: "Players are ranked by the selected time-control rating. Primary uses the main rating available; W/D/L follows the selected control and combines all controls when Primary is selected. The chart uses up to 20 rated games from the three months ending with the last game in that time control. On Primary, each chart follows the player's main control. Points follow game order and the scale adjusts to each player's rating. Chart and roster values may differ because they are updated separately. A dash means there is insufficient history or loading failed.",
     peringkatKlubCatatanNegara: "Flags and country codes follow each Chess.com profile's selection; ages are not available.",
+    peringkatKlubGrafikRadarJudul: "Top Player Rating Profile",
+    peringkatKlubGrafikRadarDeskripsi: "Rating comparison across time controls (chess.com).",
   }
 
 export const sticky = {
