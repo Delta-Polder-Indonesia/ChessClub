@@ -402,7 +402,7 @@ export default function TekaTekiHarianLanding() {
           >
             <header
               data-component="HomeWelcomeMessage"
-              className="flex flex-col gap-y-2 text-center xl:text-left"
+              className="flex flex-col items-center gap-y-2 text-center"
             >
               <h2 className="font-serif text-3xl font-semibold leading-tight text-grey-800">
                 {judulKartu}
@@ -418,7 +418,7 @@ export default function TekaTekiHarianLanding() {
               className="flex min-w-0 justify-center xl:justify-start"
             >
               <CincinKemajuan
-                ukuran={160}
+                ukuran={200}
                 nilai={jatahTerpakai}
                 maks={BATAS_HARIAN}
                 label={t("landing.harianRingLabel")}
@@ -436,6 +436,7 @@ export default function TekaTekiHarianLanding() {
                   n: jatahTerpakai,
                   total: BATAS_HARIAN,
                 })}
+                className="xl:translate-x-[60px]"
               />
             </section>
 

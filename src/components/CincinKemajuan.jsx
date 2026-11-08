@@ -45,7 +45,7 @@ export default function CincinKemajuan({
           cy="100"
           r={jariJari}
           stroke="currentColor"
-          strokeWidth="1"
+          strokeWidth="0.9"
           className="text-grey-300"
         />
         <circle
@@ -53,7 +53,7 @@ export default function CincinKemajuan({
           cy="100"
           r={jariJari}
           stroke="currentColor"
-          strokeWidth="3"
+          strokeWidth="0.9"
           strokeLinecap="round"
           strokeDasharray={`${panjangBusur} ${Math.max(0, keliling - panjangBusur)}`}
           transform="rotate(-90 100 100)"
@@ -62,20 +62,20 @@ export default function CincinKemajuan({
         />
       </svg>
 
-      <div className="absolute inset-0 flex flex-col items-center justify-center gap-y-1 px-4 text-center">
+      <div className="absolute inset-0 flex translate-x-[2px] flex-col items-center justify-center gap-y-1 px-4 text-center">
         {label && (
-          <p className="font-sans text-sm font-semibold text-grey-800">{label}</p>
+          <p className="font-sans text-base font-light text-grey-800">{label}</p>
         )}
         {subLabel && (
-          <p className="font-sans text-sm text-grey-600">{subLabel}</p>
+          <p className="font-sans text-base font-light text-grey-600">{subLabel}</p>
         )}
         {nilaiTeks && (
-          <p className="pt-1 font-serif text-3xl font-semibold leading-none text-grey-800">
+          <p className="whitespace-nowrap pt-1 font-serif text-[48px] font-light leading-[0.8] text-grey-800">
             {nilaiTeks}
           </p>
         )}
         {catatan && (
-          <p className="max-w-32 pt-1 font-sans text-sm leading-snug text-grey-600">
+          <p className="max-w-32 pt-1 font-sans text-xs font-light leading-[14px] text-grey-600">
             {catatan}
           </p>
         )}

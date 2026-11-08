@@ -81,6 +81,8 @@ export const landing = {
     harapanNama: "Tim Pengurus Blunder Skuad",
     harapanJabatan: "Komunitas Catur Indonesia",
     harapanAltFoto: "Ilustrasi perwakilan pengurus Komunitas Catur Indonesia",
+    harapanBukaFoto: "Perbesar foto",
+    harapanTutupFoto: "Tutup foto",
     ajakanJudul:
       "Jika ingin rating catur Anda benar-benar naik, kurangi belajar dari video acak dan mulailah fokus pada",
     ajakanJudulAccent: "analisis mendalam.",

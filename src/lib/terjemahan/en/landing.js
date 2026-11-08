@@ -81,6 +81,8 @@ export const landing = {
     harapanNama: "The Blunder Skuad Committee",
     harapanJabatan: "Indonesia Chess Community",
     harapanAltFoto: "Illustration of a representative of Indonesia Chess Community",
+    harapanBukaFoto: "Enlarge photo",
+    harapanTutupFoto: "Close photo",
     ajakanJudul:
       "If you want your chess rating to truly climb, cut back on random videos and start focusing on",
     ajakanJudulAccent: "deep analysis.",

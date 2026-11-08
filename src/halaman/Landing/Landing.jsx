@@ -22,13 +22,13 @@
  * `.agents/skills/kci-frontend/references/standar-galeri.md` §2b. Skala ini
  * TIDAK berlaku untuk halaman lain dan TIDAK PERNAH untuk komponen catur.
  */
-import { Suspense, lazy, useEffect, useMemo, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Tombol } from "../../components/Tombol.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 import { gambar, pramuatGambar, sumberGambar, sumberHero } from "../../lib/asets.js";
 import { COVER, DAFTAR_EBOOK } from "../Beranda/ebook-data.js";
-import { ArrowRightIcon } from "../../components/icons.jsx";
+import { ArrowRightIcon, CloseIcon } from "../../components/icons.jsx";
 import MetaHalaman from "../../components/MetaHalaman.jsx";
 import { KartuAlatLatihan } from "./KartuAlatLatihan.jsx";
 
@@ -504,15 +504,74 @@ function BagianGambarKartu({ t }) {
   );
 }
 
+/** Pratinjau foto di dalam halaman — pengganti tautan ke berkas gambar mentah.
+ *  Fokus masuk ke tombol tutup, Tab berputar di dalam dialog, Escape dan klik
+ *  latar menutup, lalu fokus kembali ke tombol pemicu. */
+function PratinjauFoto({ terbuka, foto, alt, onTutup, t }) {
+  const tutupRef = useRef(null);
+
+  useEffect(() => {
+    if (!terbuka) return undefined;
+    const pemicu = document.activeElement;
+    const onKey = (e) => {
+      if (e.key === "Escape") onTutup();
+      else if (e.key === "Tab") {
+        e.preventDefault();
+        tutupRef.current?.focus();
+      }
+    };
+    const overflowSebelum = document.body.style.overflow;
+    document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    tutupRef.current?.focus();
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = overflowSebelum;
+      if (pemicu instanceof HTMLElement) pemicu.focus();
+    };
+  }, [terbuka, onTutup]);
+
+  if (!terbuka) return null;
+
+  return (
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-label={alt}
+      onClick={onTutup}
+    >
+      <button
+        type="button"
+        ref={tutupRef}
+        onClick={onTutup}
+        aria-label={t("landing.harapanTutupFoto")}
+        className="absolute right-4 top-4 flex size-11 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+      >
+        <CloseIcon className="size-6" />
+      </button>
+      <img
+        src={foto}
+        alt={alt}
+        decoding="async"
+        onClick={(e) => e.stopPropagation()}
+        className="max-h-[92dvh] w-auto max-w-[92vw] rounded-lg object-contain"
+      />
+    </div>
+  );
+}
+
 /** Harapan dan terima kasih — pola "pesan pimpinan" halaman korporat:
- *  foto di kiri (diklik untuk membuka ukuran penuh), artikel rata
+ *  foto di kiri (diklik untuk pratinjau besar di dalam halaman), artikel rata
  *  kiri-kanan di kanan, ditutup blok nama dan jabatan pengurus. */
 function HarapanTerimaKasih({ t }) {
   const foto = gambar("/images/harapan-terima-kasih.jpg");
-  // Kotak foto maximal 500px; tautan "buka ukuran penuh" tetap ke berkas asli.
+  // Kotak foto maximal 500px; pratinjau besar memakai berkas WebP penuh.
   const sumberFoto = sumberGambar("/images/harapan-terima-kasih.jpg", {
     sizes: "(min-width: 1024px) 42vw, 92vw",
   });
+  const [pratinjau, setPratinjau] = useState(false);
+  const tutupPratinjau = useCallback(() => setPratinjau(false), []);
   return (
     <section className="w-full relative bg-transparent pl-6 pr-6 pb-12 xl:pb-16 pt-12 xl:pt-16">
       <div className="relative w-full mx-auto grid grid-cols-1 lg:grid-cols-[0.678fr_1.02fr] gap-x-4 md:gap-x-8 lg:gap-x-10 gap-y-4 lg:max-w-[960px] xl:max-w-[1280px]">
@@ -520,7 +579,12 @@ function HarapanTerimaKasih({ t }) {
         <div className="w-full relative bg-transparent">
           <div className="relative w-full mx-auto grid place-items-center lg:min-h-[560px]">
             <div className="flex justify-center items-center w-full">
-              <a href={foto} target="_blank" rel="noopener noreferrer" className="block">
+              <button
+                type="button"
+                onClick={() => setPratinjau(true)}
+                aria-label={t("landing.harapanBukaFoto")}
+                className="block cursor-zoom-in rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+              >
                 <img
                   {...sumberFoto}
                   width="836"
@@ -532,7 +596,7 @@ function HarapanTerimaKasih({ t }) {
                   loading="lazy"
                   className="w-full max-w-[400px] h-auto rounded-lg object-cover object-center"
                 />
-              </a>
+              </button>
             </div>
           </div>
         </div>
@@ -563,6 +627,14 @@ function HarapanTerimaKasih({ t }) {
           </div>
         </div>
       </div>
+
+      <PratinjauFoto
+        terbuka={pratinjau}
+        foto={foto}
+        alt={t("landing.harapanAltFoto")}
+        onTutup={tutupPratinjau}
+        t={t}
+      />
     </section>
   );
 }
@@ -607,7 +679,6 @@ export default function Landing() {
       <Suspense fallback={null}>
         <TekaTekiHarianLanding />
       </Suspense>
-      <MaestroEdision />
       <Testimoni />
 
       {/* `bg-white` dihapus: seksi ini satu-satunya yang berlatar putih murni,
@@ -642,6 +713,8 @@ export default function Landing() {
       <KartuAlatLatihan />
 
       <HarapanTerimaKasih t={t} />
+
+      <MaestroEdision />
 
       <AjakanBergabung t={t} />
     </div>
