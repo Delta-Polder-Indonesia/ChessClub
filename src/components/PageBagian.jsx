@@ -18,6 +18,13 @@ export function HalamanIsi({
   heroImage,
   heroImageAlt,
   robots,
+  /**
+   * Jalur kanonik eksplisit. Dipakai halaman yang punya beberapa alamat
+   * untuk satu tampilan — mis. katalog e-book yang juga bisa dibuka dengan
+   * filter kategori: semua variasinya harus menunjuk alamat katalog.
+   * Bila kosong, pathname saat ini yang dipakai.
+   */
+  kanonik,
   next,
   submenu,
   children,
@@ -38,6 +45,7 @@ export function HalamanIsi({
         imageWidth={imageWidth}
         imageHeight={imageHeight}
         robots={robots}
+        path={kanonik}
       />
       <BreadcrumbJsonLd items={crumbs} />
       <Hero

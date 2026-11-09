@@ -37,7 +37,7 @@ const { createRoot } = await import("react-dom/client");
 const { HelmetProvider } = await import("react-helmet-async");
 const { I18nProvider } = await import("../src/lib/I18nProvider.jsx");
 const { BreadcrumbJsonLd } = await import("../src/components/JsonLd.jsx");
-const { urlAbsolut } = await import("../src/lib/urlSitus.js");
+const { asalSitus, urlAbsolut } = await import("../src/lib/urlSitus.js");
 
 const act = React.act ?? (await import("react-dom/test-utils")).act;
 
@@ -58,13 +58,27 @@ const ABSOLUT = /^https?:\/\/.+/i;
 
 /* ---------------------------------- helper urlAbsolut */
 
+/*
+ * `asalSitus()` sengaja TIDAK mengikuti host yang sedang melayani halaman:
+ * satu build dihidangkan di banyak host *.vercel.app, dan kanonik yang
+ * mengikuti host membuat Google melaporkan "Duplikat, tanpa ada versi
+ * kanonis pilihan pengguna". Karena itu URL absolut di sini memakai origin
+ * produksi, bukan origin jsdom (http://localhost).
+ */
+const ASAL = asalSitus();
+
 hasil(
-  "urlAbsolut('/') memakai origin jsdom dengan garis miring",
-  urlAbsolut("/") === "http://localhost/"
+  "asalSitus() tidak mengikuti host yang sedang melayani halaman",
+  ASAL !== window.location.origin && /^https:\/\//.test(ASAL),
+  `asalSitus: ${ASAL}, host jsdom: ${window.location.origin}`
+);
+hasil(
+  "urlAbsolut('/') memakai origin produksi dengan garis miring",
+  urlAbsolut("/") === `${ASAL}/`
 );
 hasil(
   "urlAbsolut('/media-dan-informasi') menjadi URL absolut",
-  urlAbsolut("/media-dan-informasi") === "http://localhost/media-dan-informasi"
+  urlAbsolut("/media-dan-informasi") === `${ASAL}/media-dan-informasi`
 );
 hasil(
   "urlAbsolut membiarkan URL absolut apa adanya",
@@ -145,11 +159,11 @@ if (data) {
   );
   hasil(
     "item beranda menunjuk ke akar situs",
-    elemen?.[0]?.item === "http://localhost/"
+    elemen?.[0]?.item === `${ASAL}/`
   );
   hasil(
     "item induk memakai path lengkap yang benar",
-    elemen?.[1]?.item === "http://localhost/media-dan-informasi"
+    elemen?.[1]?.item === `${ASAL}/media-dan-informasi`
   );
 }
 

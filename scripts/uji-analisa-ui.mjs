@@ -337,7 +337,17 @@ await build({
   plugins: [pluginGlobAset()],
   define: {
     "process.env.NODE_ENV": '"development"',
-    "import.meta.env": JSON.stringify({ BASE_URL: "/", MODE: "test", DEV: true, PROD: false }),
+    // `VITE_SITE_URL` wajib ada: `asalSitus()` tidak lagi jatuh ke
+    // `window.location.origin`, melainkan ke origin produksi. Tanpa nilai
+    // ini, kanonik/JSON-LD di uji akan menunjuk domain produksi yang nyata
+    // dan pernyataan di bawah (uji.test) menjadi tidak berlaku.
+    "import.meta.env": JSON.stringify({
+      BASE_URL: "/",
+      MODE: "test",
+      DEV: true,
+      PROD: false,
+      VITE_SITE_URL: "https://uji.test",
+    }),
   },
   logLevel: "error",
 });

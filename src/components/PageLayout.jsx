@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import Header from "./Header.jsx";
 import Footer from "./Footer.jsx";
+import Kanonik from "./Kanonik.jsx";
 import KarakterAnomali from "./KarakterAnomali.jsx";
 import { BersihkanBootHero, PlaceholderHalaman } from "./Loading.jsx";
 
@@ -56,6 +57,13 @@ export default function PageLayout() {
     <>
       {tanpaKerangka ? null : <Header />}
       <main className="page min-h-screen">
+        {/* Kanonikal bawaan: supaya tidak ada satu pun halaman publik tanpa
+            <link rel="canonical">, termasuk rute yang tidak memanggil
+            MetaHalaman (Kuis, Rush, mode Papan Interaktif, Hubungi Kami).
+            Sengaja diletakkan SEBELUM <Outlet />: efek saudara yang lebih
+            awal berjalan lebih dulu, sehingga halaman yang memasang
+            kanonikalnya sendiri selalu menimpa nilai bawaan ini. */}
+        <Kanonik />
         <Suspense fallback={<PlaceholderHalaman />}>
           {/* BersihkanBootHero dipasang di dalam Suspense agar gambar boot
               di index.html baru dibuang SETELAH konten halaman pertama
