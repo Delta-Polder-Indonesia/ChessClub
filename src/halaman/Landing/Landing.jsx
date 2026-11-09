@@ -88,7 +88,15 @@ function LandingHero({ t }) {
   }, [index, SLIDES]);
 
   return (
-    <section className="w-full relative bg-transparent py-16 overflow-hidden">
+    /* TANPA padding atas: header publik `fixed` dan `bg-transparent` selama
+       40px guliran pertama, jadi foto hero harus mulai tepat di y=0 — sama
+       seperti `components/Hero.jsx` di halaman lain. Dulu seksi ini `py-16`,
+       sehingga 64px teratas halaman memperlihatkan kanvas `body` (putih) di
+       belakang header: tautan top-bar putih tak terbaca dan logo terpotong
+       dua warna. Padding bawah tetap `pb-16` untuk jarak ke seksi berikut.
+       Tinggi 650px juga harus sama dengan `#boot-hero` di index.html dan
+       `PlaceholderHalaman`, supaya tidak ada lompatan saat React mount. */
+    <section className="w-full relative bg-transparent pb-16 overflow-hidden">
       <div className="w-full relative h-full min-h-[650px] overflow-hidden">
         {SLIDES.map((slide, i) => (
           <div
