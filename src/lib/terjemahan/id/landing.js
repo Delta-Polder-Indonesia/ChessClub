@@ -20,8 +20,8 @@ export const landing = {
   harianKartuDeskSisa: "Selesaikan {n} soal lagi hari ini untuk menuntaskan jatah.",
   harianKartuDeskSelesai: "Semua soal hari ini sudah dimainkan. Jatah baru dibuka besok.",
   harianKartuLabelJatah: "Jatah hari ini",
-  harianRingLabel: "Jatah harian",
-  harianRingSub: "Teka-teki",
+  harianRingLabel: "teka-teki",
+  harianRingSub: "harian",
   harianRingNilai: "{n} dari {total}",
   harianRingCatatan: "Selesaikan {n} soal lagi",
   harianRingCatatanTuntas: "Jatah hari ini tuntas",
@@ -89,7 +89,7 @@ export const landing = {
     ajakanDeskripsi:
       "Lengkapi data diri Anda dan mulailah mengikuti turnamen rutin, kelas pembinaan, serta sesi latihan papan interaktif bersama Komunitas Catur Indonesia.",
     ajakanTombol: "Daftar Sekarang",
-    alatLatihanJudul: "Alat latihan harian",
+    alatLatihanJudul: "Semua yang Anda perlukan untuk memahami sebuah posisi",
     alatTekaTekiJudul: "Teka-teki Catur",
     alatTekaTekiDesk:
       "5.486 soal skakmat satu sampai tiga langkah dari basis data puzzle Lichess, tiap soal berlabel rating, tema, dan pemain asalnya.",
@@ -142,20 +142,20 @@ export const landing = {
     tigaJalanAnalisaDesk:
       "Mainkan ulang partai, telusuri variasi, dan bandingkan dengan analisis mesin untuk memahami langkah kritis Anda.",
     tigaJalanAnalisaCta: "Buka Report Analisa",
-    testimoniJudul: "Apa kata para pecatur komunitas",
+    testimoniJudul: "Bagaimana Tanggapan Komunitas Pecatur?",
     testimoniLeadAria: "Kutipan unggulan dari anggota",
     testimoniLeadKutip:
-      "Sejak rutin mengikuti turnamen bulanan, jam terbang bertanding saya naik pesat; setiap partai adalah pelajaran baru yang langsung bisa saya praktekan di papan interaktif.",
+      "Dulu tuh sering bingung gimana caranya naikin kualitas permainan secara efektif. Tapi sejak mutusin buat rutin gabung di turnamen bulanan, jam terbang bertanding saya langsung melesat. Setiap lawan dan setiap partai punya tantangannya masing-masing, dan itu jadi guru terbaik buat saya. Hebatnya, setiap evaluasi dan pelajaran baru yang saya dapat di lapangan bisa langsung divisualisasikan dan dipraktikkan malam itu juga di papan interaktif. Progresnya nyata dan bikin makin ketagihan buat terus belajar.",
     testimoniLeadNama: "Bima R.",
     testimoniLeadPeran: "Pemain menengah, peringkat 1650",
     testimoniKutip1Aria: "Kutipan dari Mayang",
     testimoniKutip1Kutip:
-      "Modul permainan akhir di e-book gratis itu sangat berharga; dulu saya selalu kehilangan posisi menang sebelum memahami teknik dasar raja dan pion.",
+      "Modul endgame di e-book gratisnya berharga banget. Dulu sebelum paham teknik dasar raja dan pion, saya sering banget blunder dan lepas posisi menang. Sekarang jadi jauh lebih paham cara eksekusinya.",
     testimoniKutip1Nama: "Mayang T.",
     testimoniKutip1Peran: "Pemain pemula, peringkat 1420",
     testimoniKutip2Aria: "Kutipan dari Salim",
     testimoniKutip2Kutip:
-      "Buku pembukaan interaktif memberi struktur latihan yang jelas; saya mulai hafal rencana lawan dan berani keluar dari pembukaan tanpa cemas.",
+      "Jujur, buku pembukaan interaktif ini ngebantu banget ngasih arah latihan yang jelas. Efeknya berasa pas tanding, saya jadi mulai hafal pola dan rencana lawan, makanya sekarang berani keluar dari pembukaan tanpa cemas lagi.",
     testimoniKutip2Nama: "Salim C.",
     testimoniKutip2Peran: "Anggota komunitas, peringkat 1890",
     arahJudul: "Pengurus blunder skuad",

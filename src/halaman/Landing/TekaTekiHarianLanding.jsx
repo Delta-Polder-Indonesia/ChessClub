@@ -466,7 +466,7 @@ export default function TekaTekiHarianLanding() {
               <div className="h-4 w-3/4 bg-grey-200 rounded animate-pulse" />
             </div>
             <div className="xl:col-span-6 flex justify-center">
-              <div className="aspect-square w-full max-w-xl rounded-lg border border-grey-200 bg-grey-50 animate-pulse" />
+              <div className="aspect-square w-full max-w-lg rounded-lg border border-grey-200 bg-grey-50 animate-pulse" />
             </div>
             <div className="xl:col-span-3 xl:min-h-[440px] flex flex-col justify-center gap-y-7">
               <div className="h-6 w-1/3 bg-grey-200 rounded animate-pulse" />
@@ -494,7 +494,7 @@ export default function TekaTekiHarianLanding() {
               <div className="h-4 w-3/4 bg-grey-200 rounded animate-pulse" />
             </div>
             <div className="xl:col-span-6 flex justify-center">
-              <div className="aspect-square w-full max-w-xl rounded-lg border border-grey-200 bg-grey-50 animate-pulse" />
+              <div className="aspect-square w-full max-w-lg rounded-lg border border-grey-200 bg-grey-50 animate-pulse" />
             </div>
             <div className="xl:col-span-3 xl:min-h-[440px] flex flex-col justify-center gap-y-7">
               <div className="h-6 w-1/3 bg-grey-200 rounded animate-pulse" />
@@ -593,7 +593,7 @@ export default function TekaTekiHarianLanding() {
             <section
               aria-label={t("landing.harianTrackAria")}
               data-component="GameTowerProgress"
-              className="flex min-w-0 flex-col gap-y-3 border-t border-grey-200 pt-4"
+              className="relative z-10 -mt-14 flex min-w-0 flex-col gap-y-3 border-t border-grey-200 bg-paper pt-4"
             >
               <div className="flex items-end justify-between gap-4">
                 <div className="flex min-w-0 flex-col gap-y-1">
@@ -680,7 +680,7 @@ export default function TekaTekiHarianLanding() {
           {/* Tengah: papan demo menjadi fokus visual utama. */}
           <div className="flex w-full min-w-0 justify-center xl:col-span-6">
             {jatahHabis ? (
-              <div className="flex w-full max-w-xl flex-col gap-3 border border-grey-200 bg-paper p-5 sm:p-6">
+              <div className="flex w-full max-w-lg flex-col gap-3 border border-grey-200 bg-paper p-5 sm:p-6">
                 <p className="font-sans text-base font-bold text-grey-800">
                   {t("landing.harianTerkunciJudul", { total: BATAS_HARIAN })}
                 </p>
@@ -701,7 +701,7 @@ export default function TekaTekiHarianLanding() {
                 </div>
               </div>
             ) : soal ? (
-              <div className="w-full max-w-xl">
+              <div className="w-full max-w-lg">
                 <div className="relative">
                   <PapanTekaTeki
                     fen={game.posisi || soal.fen}
@@ -760,7 +760,7 @@ export default function TekaTekiHarianLanding() {
             ) : (
               <div
                 aria-hidden="true"
-                className="aspect-square w-full max-w-[34rem] animate-pulse border border-grey-200 bg-grey-50"
+                className="aspect-square w-full max-w-lg animate-pulse border border-grey-200 bg-grey-50"
               />
             )}
           </div>
