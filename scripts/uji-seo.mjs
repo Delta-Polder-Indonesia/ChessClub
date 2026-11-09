@@ -34,6 +34,7 @@ import {
   MODUL_RUTE,
   modulePreloadRute,
 } from "../plugins/performa.js";
+import { asalSitus, urlKanonik } from "../src/lib/urlSitus.js";
 
 const SEMUA_RUTE_BANGUN = ["/", ...RUTE_PUBLIK];
 const GALAT = [];
@@ -351,6 +352,40 @@ if (isiVerifikasi !== "google-site-verification: google800ae0ab9c9d6db7.html") {
 }
 if (!/<meta name="robots" content="index, follow" \/>/.test(html)) {
   gagal("index.html: beranda tidak mengizinkan indeks (`meta robots` = index, follow).");
+}
+
+/* ------------------------- 4b. utilitas kanonik (runtime) ---------------- */
+
+/*
+ * Kontrak yang menjaga laporan Search Console "Duplikat, tanpa ada versi
+ * kanonis pilihan pengguna" tidak kembali:
+ *   - kanonik SELALU memakai origin produksi, bukan host yang sedang
+ *     melayani (satu build dihidangkan di banyak host *.vercel.app);
+ *   - path dinormalisasi, jadi `/x/`, `/x`, dan `/x?utm=…` menjadi satu URL;
+ *   - hasilnya absolut, seperti yang diwajibkan Google untuk canonical.
+ */
+const ASAL = "https://chess-club-weld.vercel.app";
+const KASUS_KANONIK = [
+  ["/", `${ASAL}/`],
+  ["/program-kami", `${ASAL}/program-kami`],
+  ["/program-kami/ebook-panduan/", `${ASAL}/program-kami/ebook-panduan`],
+  ["/program-kami/ebook-panduan/index.html", `${ASAL}/program-kami/ebook-panduan`],
+  ["/program-kami/ebook-panduan/?buku=abc", `${ASAL}/program-kami/ebook-panduan`],
+  ["/teka-teki/problem/2500#papan", `${ASAL}/teka-teki/problem/2500`],
+  ["program-kami", `${ASAL}/program-kami`],
+  ["", `${ASAL}/`], // path kosong jatuh ke akar, bukan ke pathname host
+];
+for (const [masukan, harapan] of KASUS_KANONIK) {
+  const hasil = urlKanonik(masukan);
+  if (hasil !== harapan) {
+    gagal(`urlKanonik("${masukan}") = "${hasil}", seharusnya "${harapan}".`);
+  }
+}
+if (asalSitus() !== ASAL) {
+  gagal(`asalSitus() = "${asalSitus()}", seharusnya "${ASAL}" (bukan host yang sedang melayani).`);
+}
+if (/localhost|127\.0\.0\.1|vercel\.app\/[a-z0-9]+-[a-f0-9]+-/.test(asalSitus())) {
+  gagal(`asalSitus() mengembalikan host non-produksi: "${asalSitus()}".`);
 }
 
 /* ---------------------------- 5. katalog agen AI (.well-known) ------------ */

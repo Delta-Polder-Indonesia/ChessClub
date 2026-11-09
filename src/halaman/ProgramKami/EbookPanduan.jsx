@@ -287,6 +287,22 @@ export default function EbookPanduan() {
     return DAFTAR_EBOOK.filter((b) => b.kategori === kategoriAktif);
   }, [kategoriAktif]);
 
+  /*
+   * Kanonik halaman e-book. Katalognya punya tiga alamat:
+   *   /program-kami/ebook-panduan            → katalog utama
+   *   /program-kami/ebook-panduan/<id>       → detail satu buku
+   *   /program-kami/ebook-panduan/kategori/<slug> → katalog tersaring
+   * Tampilan tersaring bukan halaman tersendiri (isinya himpunan bagian dari
+   * katalog), jadi kanonikalnya diarahkan ke katalog utama; bila dibiarkan
+   * menunjuk dirinya sendiri, Google mencatat satu duplikat per kategori.
+   * Detail satu buku mengkanonikalkan dirinya sendiri.
+   */
+  const kanonik = kategoriPath
+    ? "/program-kami/ebook-panduan"
+    : bukuIdPath
+      ? `/program-kami/ebook-panduan/${encodeURIComponent(bukuIdPath)}`
+      : "/program-kami/ebook-panduan";
+
   // Kunci body scroll saat modal terbuka. Esc menutup lapisan paling atas
   // lebih dulu: popup unduh, baru pembaca PDF.
   useEffect(() => {
@@ -354,6 +370,7 @@ export default function EbookPanduan() {
       parent={t("nav.programKami")}
       parentPath="/program-kami"
       description={t("ebookPanduan.deskripsi")}
+      kanonik={kanonik}
     >
       <section
         id="ebook-panduan"
