@@ -1,6 +1,7 @@
 /* Port dari Brilliant-Chess (MIT, © 2025 Delo) — jangan sunting massal tanpa cek README. */
 import Profile from "../svg/profile.jsx";
 import CapturedPieces from "./capturedPieces.jsx";
+import LencanaGelar from "../LencanaGelar.jsx";
 import { maxVertical } from "../../konstanta.js";
 import { useEffect, useState } from "react";
 const BENDERA = import.meta.glob("/src/halaman/Analisa/komponen/flags/*.svg", {
@@ -57,7 +58,11 @@ function Name(props) {
             </div>
             <div className="flex flex-col justify-between h-7 vertical:h-11">
                 <span className="h-fit vertical:pb-[1px] vertical:pt-[2px] select-text text-nowrap">
-                  {title ? <em className="mr-1 not-italic font-bold text-foregroundGrey">{title}</em> : null}
+                  {/* Gelar FIDE (GM, IM, FM, WGM, …) memakai lencana SVG yang
+                      sama dengan kartu profil Wawasan; tingginya mengikuti
+                      ukuran huruf baris nama (em), jadi proporsional di mode
+                      sempit maupun vertikal. `null` bila pemain tak bergelar. */}
+                  <LencanaGelar gelar={title} className="mr-1 h-[1.1em] w-auto shrink-0 align-[-0.2em]" />
                   {name}
                    {srcBendera ? (
                      <img
