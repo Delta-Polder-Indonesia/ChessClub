@@ -11,9 +11,9 @@ Isinya: peta berkas → lapisan arsitektur → state → 5 alur utama yang diura
 langkah demi langkah → kontrak mesin/penilaian → penyimpanan → hal-hal yang
 tidak boleh diubah → temuan & risiko.
 
-> Status pengujian saat dokumen ini ditulis (semuanya hijau):
-> `uji-analisa.mjs` **30/30**, `uji-analisa-ui.mjs` **54/54**,
-> `uji-basisdata.mjs` **34/34**, `uji-i18n.mjs` **1463 kunci ID = 1463 kunci EN**.
+> Status pengujian saat dokumen ini ditulis (2026-11-10, semuanya hijau):
+> `uji-analisa.mjs` **34/34**, `uji-analisa-ui.mjs` **179/179**,
+> `uji-basisdata.mjs` **34/34**, `uji-i18n.mjs` **3526 kunci ID = 3526 kunci EN, 1798 terpakai**.
 
 ---
 
@@ -508,10 +508,10 @@ merobohkan seluruh halaman, bukan sekadar fitur simpan-pilihan.
 
 | Skrip | Perintah | Isi |
 |---|---|---|
-| `scripts/uji-analisa.mjs` | `npm run uji:analisa` | 30 pemeriksaan: kotak, metadata PGN, jam, `parsePosition/parseMove/parsePGN`, klasifikasi, **ketahanan `EngineCatur`** (worker mati / digantikan / `tamat()` / coba lagi) |
-| `scripts/uji-analisa-ui.mjs` | `npm run uji:analisa-ui` | 59 pemeriksaan jsdom + esbuild + engine UCI palsu: mount halaman, impor PGN → analisis, tab Ringkasan/Langkah, tombol Bermain & Baru, FEN, pemilih Chess.com/Lichess, layar Akun/Database/Impor, bolak-balik layar tidak menganalisis ulang, basisData |
+| `scripts/uji-analisa.mjs` | `npm run uji:analisa` | 34 pemeriksaan: kotak, metadata PGN, jam, `parsePosition/parseMove/parsePGN`, klasifikasi, **ketahanan `EngineCatur`** (worker mati / digantikan / `tamat()` / coba lagi) |
+| `scripts/uji-analisa-ui.mjs` | `npm run uji:analisa-ui` | 179 pemeriksaan jsdom + esbuild + engine UCI palsu: mount halaman, impor PGN → analisis, tab Ringkasan/Langkah, tombol Bermain & Baru, FEN, pemilih Chess.com/Lichess, layar Akun/Database/Impor, bolak-balik layar tidak menganalisis ulang, basisData |
 | `scripts/uji-basisdata.mjs` | `npm run uji:basisdata` | 34 pemeriksaan IndexedDB (`fake-indexeddb`): paginasi, **tidak memakai `getAll`**, `sertakanPgn`, filter, statistik, satu koneksi, pengaman unduhan |
-| `scripts/uji-i18n.mjs` | `npm run uji:i18n` | 1463 kunci ID = 1463 kunci EN; 689 kunci terpakai ada semua |
+| `scripts/uji-i18n.mjs` | `npm run uji:i18n` | 3526 kunci ID = 3526 kunci EN; 1798 kunci terpakai ada semua |
 | `scripts/generasi-buku-analisa.mjs` | manual | bangun `public/data/buku-analisa.json` (1,3 MB) dari `public/data/buku-pembukaan.json` |
 
 > `jsdom` + `esbuild` ada di `devDependencies`. Dulu tidak ada, sehingga

@@ -1,10 +1,10 @@
 /* Port dari Brilliant-Chess (MIT, © 2025 Delo) — jangan sunting massal tanpa cek README. */
-import { useEffect, useLayoutEffect, useState, useRef, useContext } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState, useRef, useContext } from "react";
 import Board from "./board.jsx";
 import Clock from "./clock.jsx";
 import Name from "./name.jsx";
 import Evaluation from "./evaluation.jsx";
-import { AnalyzeContext, TAMPILAN_ANALISA } from "../../konteks/analyzeKonteks.js";
+import { AnalyzeContext } from "../../konteks/analyzeKonteks.js";
 import { ratingTampilan } from "../../mesin/evaluasi.js";
 import { WHITE } from "chess.js";
 import { pushPageWarning } from "../errors/pushPageError.js";
@@ -18,6 +18,7 @@ import GameButtons from "../menu/analysis/gameButtons.jsx";
 import { getMoves, getArrows, getCustomResult, formatPlayerLabel } from "./getMoves.js";
 import { useMuatPartai } from "./useMuatPartai.js";
 import { useAnalisisPapan } from "./useAnalisisPapan.js";
+import { buatHandleKeyDown } from "./keyboardPapan.js";
 
 function Game({ wadah }) {
   const [boardSize, setBoardSize] = useState(750);
@@ -155,7 +156,7 @@ function Game({ wadah }) {
     }
     return () => clearInterval(intervalRef.current);
   }, [playing, gameController]);
-  function cleanCurrentArrows() {
+  const cleanCurrentArrows = useCallback(() => {
     if (customLine.moveNumber < 0) {
       setArrows((prev) => {
         return { ...prev, [moveNumber]: [] };
@@ -163,8 +164,8 @@ function Game({ wadah }) {
     } else {
       setCustomLine((prev) => ({ ...prev, arrows: { ...prev.arrows, [prev.moveNumber]: [] } }));
     }
-  }
-  function pushArrow(currentArrow) {
+  }, [customLine.moveNumber, moveNumber, setArrows, setCustomLine]);
+  const pushArrow = useCallback((currentArrow) => {
     if (customLine.moveNumber < 0) {
       const repeatedIndex = arrows[moveNumber].findIndex((arrow) => JSON.stringify(arrow) === JSON.stringify(currentArrow));
       const isRepeated = repeatedIndex !== -1;
@@ -188,84 +189,16 @@ function Game({ wadah }) {
       }
       setCustomLine((prev) => ({ ...prev, arrows: { ...prev.arrows, [customLine.moveNumber]: newArrows } }));
     }
-  }
+  }, [arrows, customLine.arrows, customLine.moveNumber, moveNumber, setArrows, setCustomLine]);
+  const arrowsMemo = useMemo(() => getArrows(arrows, moveNumber, customLine), [arrows, moveNumber, customLine]);
   useEffect(() => {
-    let lastPressed = 0;
-    function handleKeyDown(e) {
-      /*
-       * Pintasan pemutar partai hanya berlaku saat papan yang tampil.
-       * Papan tidak pernah dilepas saat layar berganti (lihat areaKerja.jsx)
-       * — jadi tanpa penjaga ini, mengetik di layar Basis Data atau menekan
-       * panah untuk menggulir tabel partai akan menggerakkan papan di
-       * baliknya. `tampilanRef`, bukan `tampilan`: efek ini dipasang
-       * sekali, sehingga pembacaan langsung akan selamanya berisi nilai
-       * render pertama.
-       */
-      if (tampilanRef.current !== TAMPILAN_ANALISA.BERMAIN) return;
-      // Kalau belum ada partai termuat, biarkan peramban menggulirkan
-      // halaman seperti biasa.
-      if (pageStateRef.current === "default") return;
-      const element = e.target;
-      const focusableInputTypes = ["text", "number", "password", "email", "search", "tel", "url"];
-      if (element.tagName === "INPUT" && focusableInputTypes.includes(element.getAttribute("type") ?? "")) return;
-      if (element.tagName === "TEXTAREA") return;
-      const now = (/* @__PURE__ */ new Date()).getTime();
-      const minPressInterval = 25;
-      switch (e.key) {
-        case "ArrowLeft":
-          e.preventDefault();
-          if (dragRef.current.is) return;
-          if (now - lastPressed < minPressInterval) return;
-          if (analyzingMoveRef.current) return;
-          gameController.back();
-          lastPressed = (/* @__PURE__ */ new Date()).getTime();
-          break;
-        case "ArrowRight":
-          e.preventDefault();
-          if (dragRef.current.is) return;
-          if (now - lastPressed < minPressInterval) return;
-          if (analyzingMoveRef.current) return;
-          gameController.forward();
-          lastPressed = (/* @__PURE__ */ new Date()).getTime();
-          break;
-        case "ArrowUp":
-          e.preventDefault();
-          if (dragRef.current.is) return;
-          if (now - lastPressed < minPressInterval) return;
-          if (analyzingMoveRef.current) return;
-          gameController.first();
-          lastPressed = (/* @__PURE__ */ new Date()).getTime();
-          break;
-        case "ArrowDown":
-          e.preventDefault();
-          if (dragRef.current.is) return;
-          if (now - lastPressed < minPressInterval) return;
-          if (analyzingMoveRef.current) return;
-          gameController.last();
-          lastPressed = (/* @__PURE__ */ new Date()).getTime();
-          break;
-        case " ":
-          e.preventDefault();
-          if (dragRef.current.is) return;
-          if (now - lastPressed < minPressInterval) return;
-          if (analyzingMoveRef.current) return;
-          gameController.togglePlay();
-          lastPressed = (/* @__PURE__ */ new Date()).getTime();
-          break;
-        case "Tab": {
-          e.preventDefault();
-          if (now - lastPressed < minPressInterval) return;
-          const tab2 = tabRef.current;
-          // pageStateRef, bukan pageState: efek ini hanya dipasang sekali
-          // sehingga `pageState` di sini selamanya bernilai render pertama.
-          if (pageStateRef.current === "analyze") {
-            if (tab2 === "summary") setTab("moves");
-            else if (tab2 === "moves") setTab("summary");
-          }
-          break;
-        }
-      }
-    }
+    const handleKeyDown = buatHandleKeyDown({
+      tampilanRef,
+      pageStateRef,
+      dragRef,
+      analyzingMoveRef,
+      gameController,
+    });
     document.addEventListener("keydown", handleKeyDown);
     // Dulu dilepas dari `window` padahal dipasang di `document`, sehingga
     // pendengar menumpuk setiap kali halaman dibuka ulang dan tombol panah
@@ -449,7 +382,7 @@ function Game({ wadah }) {
     pratinjau={memuatPartaiPapan}
     setPlaying={setPlaying}
     cleanArrows={cleanCurrentArrows}
-    arrows={getArrows(arrows, moveNumber, customLine)}
+    arrows={arrowsMemo}
     sacrifice={move2?.sacrifice}
     forward={forward}
     // Langkah paksa memakai sorotan papan bawaan (netral) seperti warisan.

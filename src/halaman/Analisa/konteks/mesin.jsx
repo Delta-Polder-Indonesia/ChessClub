@@ -28,6 +28,7 @@ export function MesinProvider({ children }) {
   const [status, setStatus] = useState("mati"); // mati | memuat | siap | gagal
   const [galat, setGalat] = useState("");
   const mesinRef = useRef(null);
+  const generasiRef = useRef(0);
   /*
    * Opsi UCI per engine (Hash MB & Threads). Ref dipakai supaya `buat` yang
    * selalu dibuat ulang memakai nilai terkini tanpa dependensi berubah.
@@ -42,6 +43,9 @@ export function MesinProvider({ children }) {
   }, []);
 
   const buat = useCallback((id) => {
+    // Naikkan generasi supaya Siapkan yang masih menunggu startup lama
+    // tidak menimpa status engine baru dengan "gagal".
+    generasiRef.current += 1;
     mesinRef.current?.hancurkan();
     mesinRef.current = new EngineAnalisis({ idEngine: id, hash: opsiRef.current.hash, threads: opsiRef.current.threads });
     return mesinRef.current;
@@ -51,13 +55,17 @@ export function MesinProvider({ children }) {
   const Siapkan = useCallback(async () => {
     const mesin = mesinRef.current ?? buat(idEngine);
     mesinRef.current = mesin;
+    const generasiAwal = generasiRef.current;
     setStatus((s) => (s === "siap" ? s : "memuat"));
     try {
       await mesin.siapkan();
+      // Jika engine sudah diganti selama menunggu, jangan timpa status baru.
+      if (mesinRef.current !== mesin || generasiRef.current !== generasiAwal) return mesin;
       setStatus("siap");
       setGalat("");
       return mesin;
     } catch (e) {
+      if (mesinRef.current !== mesin || generasiRef.current !== generasiAwal) throw e;
       setStatus("gagal");
       setGalat(e?.message ?? String(e));
       throw e;

@@ -133,8 +133,13 @@ export class EngineCatur {
       }
       this.worker = worker;
       this.penyelesaiSiap = { selesai, gagal };
-      worker.onmessage = (e) => this.terima(String(e.data));
+      const workerSaatIni = worker;
+      worker.onmessage = (e) => {
+        if (this.worker !== workerSaatIni) return;
+        this.terima(String(e.data));
+      };
       worker.onerror = (galat) => {
+        if (this.worker !== workerSaatIni) return;
         // Worker mati: bukan hanya pemuatan yang gagal — pencarian yang
         // sedang menunggu juga tidak akan pernah menerima "bestmove".
         // Keduanya harus dibereskan, kalau tidak halaman menggantung di
@@ -196,12 +201,10 @@ export class EngineCatur {
 
   terima(baris) {
     if (baris === "readyok") {
-      if (!this.siap) {
+      if (!this.siap && this.penyelesaiSiap) {
         this.siap = true;
-        if (this.penyelesaiSiap) {
-          this.penyelesaiSiap.selesai();
-          this.penyelesaiSiap = null;
-        }
+        this.penyelesaiSiap.selesai();
+        this.penyelesaiSiap = null;
       }
       return;
     }
@@ -362,6 +365,15 @@ export class EngineCatur {
   /** Buang worker sepenuhnya (dipakai saat komponen dilepas). */
   tamat() {
     this.setop();
+    // Pastikan Promise startup tidak menggantung: tolak penunggu `readyok`
+    // secara deterministik sebelum worker dibuang. Tanpa ini, `mulai()`
+    // yang masih menunggu `readyok` akan menggantung selamanya ketika
+    // `gantiEngine()` dipanggil sebelum startup selesai.
+    const pendingSiap = this.penyelesaiSiap;
+    if (pendingSiap) {
+      this.penyelesaiSiap = null;
+      pendingSiap.gagal(new Error("engine dihentikan"));
+    }
     // Lepaskan penunggu SEBELUM worker dibuang, kalau tidak `cari()` yang
     // sedang berjalan tidak akan pernah beresolusi.
     this.gagalkanPencarian(new Error("engine dihentikan"));

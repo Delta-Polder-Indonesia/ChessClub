@@ -1947,7 +1947,7 @@ const papanTampil = (wadah) =>
   );
   uji(
     "baris nama di atas papan: tinggi lencana mengikuti ukuran huruf baris (em) dan tanpa gelar tidak ada lencana",
-    /class="mr-1 h-\[1\.1em\] w-auto shrink-0 align-\[-0\.2em\]"/.test(barisNama)
+    /class="mr-1 inline-block h-\[1\.1em\] w-auto shrink-0 align-\[-0\.2em\]"/.test(barisNama)
       && !/lencana-gelar/.test(barisKosong)
       && /Tanpa Gelar/.test(barisKosong)
   );

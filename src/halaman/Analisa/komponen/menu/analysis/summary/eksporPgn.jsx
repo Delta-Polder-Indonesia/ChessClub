@@ -13,8 +13,9 @@
  * yang dicari oleh scripts/uji-hasil.mjs, karena suite tersebut mencari baris
  * Ringkasan berdasarkan teks label dan urutan DOM.
  */
-import { useContext, useMemo, useState } from "react";
-import { AnalyzeContext } from "../../../../konteks/analyzeKonteks.js";
+import { useMemo, useState } from "react";
+import { useBoard } from "../../../../konteks/boardKonteks.js";
+import { useImport } from "../../../../konteks/importKonteks.js";
 import { useI18n } from "../../../../../../lib/i18n.jsx";
 import Download from "../../../svg/download.jsx";
 import { NAG_LABEL, unduhPgnBeranotasi } from "../../../../mesin/pgnAnotasi.js";
@@ -23,10 +24,9 @@ import { langkahTerpaksa } from "../../../../mesin/evaluasi.js";
 function EksporPgn(props) {
   const { moves } = props;
   const { t } = useI18n();
-  const analyzeContext = useContext(AnalyzeContext);
-  const [data] = analyzeContext.data;
-  const [players] = analyzeContext.players;
-  const [result] = analyzeContext.result;
+  const [data] = useImport().data;
+  const [players] = useBoard().players;
+  const [result] = useBoard().result;
   /* Setelah unduhan: tombol menampilkan konfirmasi singkat, bukan senyap. */
   const [terakhir, setTerakhir] = useState(null);
 
