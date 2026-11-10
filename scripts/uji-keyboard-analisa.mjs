@@ -26,14 +26,23 @@ function isElemenInteraktif(el) {
   if (el.isContentEditable) return true;
   if (el.closest) {
     if (el.closest('[contenteditable="true"], [contenteditable=""]')) return true;
-    if (el.closest('button, input, textarea, select, a[href], [contenteditable]')) return true;
+    if (el.closest('button, input, textarea, select, a[href], [contenteditable], [role="button"]')) return true;
     if (el.closest('[role="dialog"], dialog, [aria-modal="true"]')) return true;
   }
   return false;
 }
 function isDialogAktif(doc) {
   const d = doc || globalThis.document;
-  return !!d.querySelector('dialog[open], [role="dialog"], [aria-modal="true"]');
+  const kandidat = d.querySelectorAll('dialog[open], [role="dialog"], [aria-modal="true"]');
+  for (const el of kandidat) {
+    if (el.hidden) continue;
+    if (el.getAttribute("aria-hidden") === "true") continue;
+    if (el.style.display === "none" || el.style.visibility === "hidden") continue;
+    if (el.closest("[hidden]")) continue;
+    try { const s = (typeof window !== "undefined" && window.getComputedStyle) ? window.getComputedStyle(el) : null; if (s && (s.display === "none" || s.visibility === "hidden")) continue; } catch (_e) { void _e; }
+    return true;
+  }
+  return false;
 }
 
 console.log("Keyboard — aksesibilitas & pintasan");
@@ -80,10 +89,25 @@ await uji("Pintasan tidak berjalan ketika fokus pada elemen interaktif", () => {
   }
 });
 
+await uji("Pintasan diblokir pada role=button", () => {
+  const dom = setupDOM(); const doc = dom.window.document;
+  const rb = doc.createElement("div"); rb.setAttribute("role", "button"); rb.tabIndex = 0; doc.body.appendChild(rb);
+  assert.equal(isElemenInteraktif(rb), true, "role=button harus diblokir");
+});
+
 await uji("Pintasan tidak aktif ketika dialog/modal mengambil alih", () => {
   const dom = setupDOM();
   const doc = dom.window.document;
   assert.equal(isDialogAktif(doc), true);
+});
+
+await uji("Dialog tersembunyi tidak memblokir shortcut", () => {
+  const dom = setupDOM(); const doc = dom.window.document;
+  doc.querySelector("dialog")?.remove();
+  const hidden = doc.createElement("div"); hidden.setAttribute("role", "dialog"); hidden.style.display = "none"; hidden.textContent = "hidden"; doc.body.appendChild(hidden);
+  assert.equal(isDialogAktif(doc), false, "hidden dialog tidak boleh dianggap aktif");
+  const visible = doc.createElement("div"); visible.setAttribute("role", "dialog"); visible.textContent = "visible"; doc.body.appendChild(visible);
+  assert.equal(isDialogAktif(doc), true, "visible dialog harus aktif");
 });
 
 await uji("Arrow keys tetap berfungsi pada area papan (bukan interaktif)", () => {

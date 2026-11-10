@@ -199,14 +199,25 @@ function Game({ wadah }) {
       if (el.isContentEditable) return true;
       if (el.closest) {
         if (el.closest('[contenteditable="true"], [contenteditable=""]')) return true;
-        if (el.closest('button, input, textarea, select, a[href], [contenteditable]')) return true;
+        if (el.closest('button, input, textarea, select, a[href], [contenteditable], [role="button"]')) return true;
         if (el.closest('[role="dialog"], dialog, [aria-modal="true"]')) return true;
       }
       return false;
     }
     function isDialogAktif() {
-      // Dialog/modal yang mengambil alih interaksi harus memblokir pintasan global
-      return !!document.querySelector('dialog[open], [role="dialog"], [aria-modal="true"]');
+      const kandidat = document.querySelectorAll('dialog[open], [role="dialog"], [aria-modal="true"]');
+      for (const el of kandidat) {
+        if (el.hidden) continue;
+        if (el.getAttribute("aria-hidden") === "true") continue;
+        if (el.style.display === "none" || el.style.visibility === "hidden") continue;
+        if (el.closest("[hidden]")) continue;
+        try {
+          const style = window.getComputedStyle?.(el);
+          if (style && (style.display === "none" || style.visibility === "hidden")) continue;
+        } catch (_e) { /* getComputedStyle tidak tersedia di env tanpa window */ }
+        return true;
+      }
+      return false;
     }
     function handleKeyDown(e) {
       /*
