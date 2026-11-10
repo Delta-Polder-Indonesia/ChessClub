@@ -4,7 +4,7 @@ import Board from "./board.jsx";
 import Clock from "./clock.jsx";
 import Name from "./name.jsx";
 import Evaluation from "./evaluation.jsx";
-import { AnalyzeContext, TAMPILAN_ANALISA } from "../../konteks/analyzeKonteks.js";
+import { AnalyzeContext } from "../../konteks/analyzeKonteks.js";
 import { ratingTampilan } from "../../mesin/evaluasi.js";
 import { WHITE } from "chess.js";
 import { pushPageWarning } from "../errors/pushPageError.js";
@@ -18,6 +18,7 @@ import GameButtons from "../menu/analysis/gameButtons.jsx";
 import { getMoves, getArrows, getCustomResult, formatPlayerLabel } from "./getMoves.js";
 import { useMuatPartai } from "./useMuatPartai.js";
 import { useAnalisisPapan } from "./useAnalisisPapan.js";
+import { buatHandleKeyDown } from "./keyboardPapan.js";
 
 function Game({ wadah }) {
   const [boardSize, setBoardSize] = useState(750);
@@ -191,103 +192,13 @@ function Game({ wadah }) {
   }, [arrows, customLine.arrows, customLine.moveNumber, moveNumber, setArrows, setCustomLine]);
   const arrowsMemo = useMemo(() => getArrows(arrows, moveNumber, customLine), [arrows, moveNumber, customLine]);
   useEffect(() => {
-    let lastPressed = 0;
-    function isElemenInteraktif(el) {
-      if (!el) return false;
-      const tag = el.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || tag === "BUTTON") return true;
-      if (el.isContentEditable) return true;
-      if (el.closest) {
-        if (el.closest('[contenteditable="true"], [contenteditable=""]')) return true;
-        if (el.closest('button, input, textarea, select, a[href], [contenteditable], [role="button"]')) return true;
-        if (el.closest('[role="dialog"], dialog, [aria-modal="true"]')) return true;
-      }
-      return false;
-    }
-    function isDialogAktif() {
-      const kandidat = document.querySelectorAll('dialog[open], [role="dialog"], [aria-modal="true"]');
-      for (const el of kandidat) {
-        if (el.hidden) continue;
-        if (el.getAttribute("aria-hidden") === "true") continue;
-        if (el.style.display === "none" || el.style.visibility === "hidden") continue;
-        if (el.closest("[hidden]")) continue;
-        try {
-          const style = window.getComputedStyle?.(el);
-          if (style && (style.display === "none" || style.visibility === "hidden")) continue;
-        } catch (_e) { /* getComputedStyle tidak tersedia di env tanpa window */ }
-        return true;
-      }
-      return false;
-    }
-    function handleKeyDown(e) {
-      /*
-       * Pintasan pemutar partai hanya berlaku saat papan yang tampil.
-       * Papan tidak pernah dilepas saat layar berganti (lihat areaKerja.jsx)
-       * — jadi tanpa penjaga ini, mengetik di layar Basis Data atau menekan
-       * panah untuk menggulir tabel partai akan menggerakkan papan di
-       * baliknya. `tampilanRef`, bukan `tampilan`: efek ini dipasang
-       * sekali, sehingga pembacaan langsung akan selamanya berisi nilai
-       * render pertama.
-       */
-      if (tampilanRef.current !== TAMPILAN_ANALISA.BERMAIN) return;
-      // Kalau belum ada partai termuat, biarkan peramban menggulirkan
-      // halaman seperti biasa.
-      if (pageStateRef.current === "default") return;
-      // Pintasan tidak boleh mengambil alih navigasi keyboard standar
-      // dan interaksi kontrol. Tab dibiarkan untuk perpindahan fokus
-      // browser; Space/Enter pada tombol harus mengaktifkan tombol itu,
-      // bukan memutar partai.
-      if (isDialogAktif()) return;
-      const element = e.target;
-      if (isElemenInteraktif(element)) return;
-      const now = (/* @__PURE__ */ new Date()).getTime();
-      const minPressInterval = 25;
-      switch (e.key) {
-        case "ArrowLeft":
-          e.preventDefault();
-          if (dragRef.current.is) return;
-          if (now - lastPressed < minPressInterval) return;
-          if (analyzingMoveRef.current) return;
-          gameController.back();
-          lastPressed = (/* @__PURE__ */ new Date()).getTime();
-          break;
-        case "ArrowRight":
-          e.preventDefault();
-          if (dragRef.current.is) return;
-          if (now - lastPressed < minPressInterval) return;
-          if (analyzingMoveRef.current) return;
-          gameController.forward();
-          lastPressed = (/* @__PURE__ */ new Date()).getTime();
-          break;
-        case "ArrowUp":
-          e.preventDefault();
-          if (dragRef.current.is) return;
-          if (now - lastPressed < minPressInterval) return;
-          if (analyzingMoveRef.current) return;
-          gameController.first();
-          lastPressed = (/* @__PURE__ */ new Date()).getTime();
-          break;
-        case "ArrowDown":
-          e.preventDefault();
-          if (dragRef.current.is) return;
-          if (now - lastPressed < minPressInterval) return;
-          if (analyzingMoveRef.current) return;
-          gameController.last();
-          lastPressed = (/* @__PURE__ */ new Date()).getTime();
-          break;
-        case " ":
-        case "Spacebar":
-          e.preventDefault();
-          if (dragRef.current.is) return;
-          if (now - lastPressed < minPressInterval) return;
-          if (analyzingMoveRef.current) return;
-          gameController.togglePlay();
-          lastPressed = (/* @__PURE__ */ new Date()).getTime();
-          break;
-        default:
-          break;
-      }
-    }
+    const handleKeyDown = buatHandleKeyDown({
+      tampilanRef,
+      pageStateRef,
+      dragRef,
+      analyzingMoveRef,
+      gameController,
+    });
     document.addEventListener("keydown", handleKeyDown);
     // Dulu dilepas dari `window` padahal dipasang di `document`, sehingga
     // pendengar menumpuk setiap kali halaman dibuka ulang dan tombol panah
