@@ -62,7 +62,7 @@ function Name(props) {
                       sama dengan kartu profil Wawasan; tingginya mengikuti
                       ukuran huruf baris nama (em), jadi proporsional di mode
                       sempit maupun vertikal. `null` bila pemain tak bergelar. */}
-                  <LencanaGelar gelar={title} className="mr-1 h-[1.1em] w-auto shrink-0 align-[-0.2em]" />
+                  <LencanaGelar gelar={title} className="mr-1 inline-block h-[1.1em] w-auto shrink-0 align-[-0.2em]" />
                   {name}
                    {srcBendera ? (
                      <img
