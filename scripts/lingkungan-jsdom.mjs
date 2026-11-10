@@ -45,6 +45,10 @@ pasang("CustomEvent", dom.window.CustomEvent);
 // saat memasang node proyeksi — tanpa global ini render melempar
 // ReferenceError di lingkungan uji.
 pasang("SVGElement", dom.window.SVGElement);
+// Radix Tabs (panel Akun) memanggil requestAnimationFrame sebagai global,
+// bukan lewat window. pretendToBeVisual menyediakannya di dom.window.
+pasang("requestAnimationFrame", dom.window.requestAnimationFrame.bind(dom.window));
+pasang("cancelAnimationFrame", dom.window.cancelAnimationFrame.bind(dom.window));
 // jsdom tidak mengimplementasikan Element.prototype.scrollTo (digunakan
 // daftar langkah Moves untuk meluncur ke langkah aktif). Polyfill no-op.
 dom.window.Element.prototype.scrollTo = function scrollTo() {};

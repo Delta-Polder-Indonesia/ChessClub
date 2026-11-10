@@ -6,6 +6,7 @@
  * tombol "Muat partai" di panel ini ditekan.
  */
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../components/ui/tabs.jsx";
 import { useI18n } from "../../../lib/i18n.jsx";
 import { bacaTeks, tulis } from "../penyimpanan.js";
 import { muatPartaiChessCom, muatPartaiLichess } from "./muatPartaiAkun.js";
@@ -40,7 +41,6 @@ export default function PanelTarikPartai({ akun, onSelesai }) {
   const [preset, setPreset] = useState("30hari");
   const [dari, setDari] = useState(awalPreset.dari);
   const [sampai, setSampai] = useState(awalPreset.sampai);
-  const [bukaFilter, setBukaFilter] = useState(false);
   const [waktu, setWaktu] = useState([]);
   const [warna, setWarna] = useState("");
   const [status, setStatus] = useState("semua");
@@ -203,24 +203,6 @@ export default function PanelTarikPartai({ akun, onSelesai }) {
     });
   }
 
-  const maksAngka = Math.min(BATAS_MAKS, Math.max(1, Number(maks) || MAKS_BAWAAN));
-  const ringkas = [
-    waktu.length
-      ? waktu.map((k) => t(`analisa.akun.tarik.waktu_${k}`)).join(", ")
-      : t("analisa.akun.tarik.semuaWaktu"),
-    warna === "putih"
-      ? t("analisa.akun.tarik.hanyaPutih")
-      : warna === "hitam"
-        ? t("analisa.akun.tarik.hanyaHitam")
-        : t("analisa.akun.tarik.keduaWarna"),
-    status === "rated"
-      ? t("analisa.akun.tarik.hanyaRated")
-      : status === "unrated"
-        ? t("analisa.akun.tarik.hanyaUnrated")
-        : t("analisa.akun.tarik.ratedDanUnrated"),
-    t("analisa.akun.tarik.hinggaPartai", { n: maksAngka }),
-  ].join("; ");
-
   const tersimpanCocok =
     tersimpan &&
     akunAktif &&
@@ -229,51 +211,39 @@ export default function PanelTarikPartai({ akun, onSelesai }) {
 
   return (
     <div className="flex h-full min-h-0 w-full flex-col gap-4 overflow-y-auto p-3 sm:p-4">
-      <div>
-        <h2 className="text-base font-extrabold text-foreground">{t("analisa.akun.tarik.judul")}</h2>
-        <p className="mt-1 text-xs leading-5 text-foregroundGrey">{t("analisa.akun.tarik.isi")}</p>
-      </div>
-
-      <div className="flex items-center justify-between gap-2 rounded-borderRoundness border border-border bg-backgroundBoxBox px-3 py-2">
-        <span className="min-w-0 truncate text-sm font-bold text-foreground">
+      <div className="flex items-center justify-center gap-2 border-b border-border pb-3">
+        <h2 className="min-w-0 truncate text-center text-[32px] font-extrabold leading-tight text-foreground">
           {akunAktif ? akunAktif.username : t("analisa.akun.tarik.pilihAkun")}
-        </span>
-        {akunAktif ? (
-          <span className="shrink-0 text-[11px] uppercase tracking-wide text-foregroundGrey">
-            {t(`analisa.format.${akunAktif.platform}`)}
-          </span>
-        ) : null}
+        </h2>
       </div>
 
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-wide text-foregroundGrey">
-          {t("analisa.akun.tarik.rentang")}
-        </p>
-        <PemilihRentang
-          preset={preset}
-          dari={dari}
-          sampai={sampai}
-          onPilih={ubahRentang}
-        />
-        <p className="text-[11px] text-foregroundGrey">{t("analisa.akun.tarik.utc")}</p>
-      </div>
+      <Tabs defaultValue="rentang" className="w-full">
+        <TabsList className="w-full border border-border bg-backgroundBox text-foregroundGrey">
+          <TabsTrigger
+            value="rentang"
+            className="text-xs text-foregroundGrey transition-colors hover:text-foregroundHighlighted data-[state=active]:bg-backgroundBoxBoxHighlighted data-[state=active]:text-foregroundBlackDark data-[state=active]:shadow-none"
+          >
+            {t("analisa.akun.tarik.rentang")}
+          </TabsTrigger>
+          <TabsTrigger
+            value="filter"
+            className="text-xs text-foregroundGrey transition-colors hover:text-foregroundHighlighted data-[state=active]:bg-backgroundBoxBoxHighlighted data-[state=active]:text-foregroundBlackDark data-[state=active]:shadow-none"
+          >
+            {t("analisa.akun.tarik.filter")}
+          </TabsTrigger>
+        </TabsList>
 
-      <p className="text-[11px] leading-4 text-foregroundGrey">{ringkas}.</p>
+        <TabsContent value="rentang" forceMount className="mt-0 data-[state=inactive]:hidden">
+          <PemilihRentang
+            preset={preset}
+            dari={dari}
+            sampai={sampai}
+            onPilih={ubahRentang}
+          />
+        </TabsContent>
 
-      <div className="rounded-borderRoundness border border-border bg-backgroundBoxBox">
-        <button
-          type="button"
-          onClick={() => setBukaFilter((x) => !x)}
-          aria-expanded={bukaFilter}
-          className="flex w-full cursor-pointer items-center justify-between gap-2 px-3 py-2 text-xs font-bold text-foreground transition-colors hover:bg-backgroundBoxBoxHover"
-        >
-          <span>{t("analisa.akun.tarik.filter")}</span>
-          <span aria-hidden="true" className="text-foregroundGrey">
-            {bukaFilter ? "−" : "+"}
-          </span>
-        </button>
-        {bukaFilter ? (
-          <div className="flex flex-col gap-3 border-t border-border px-3 py-3">
+        <TabsContent value="filter" forceMount className="data-[state=inactive]:hidden">
+          <div className="flex flex-col gap-3 rounded-borderRoundness border border-border bg-backgroundBoxBox px-3 py-3">
             <label className="flex flex-col gap-1">
               <span className="text-[10px] font-bold uppercase tracking-wide text-foregroundGrey">
                 {t("analisa.akun.tarik.maksPartai")}
@@ -366,8 +336,8 @@ export default function PanelTarikPartai({ akun, onSelesai }) {
               </div>
             </div>
           </div>
-        ) : null}
-      </div>
+        </TabsContent>
+      </Tabs>
 
       <div className="flex flex-col gap-2">
         <button
