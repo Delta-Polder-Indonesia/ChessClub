@@ -25,10 +25,14 @@ register(new URL("./loader-jsx.mjs", import.meta.url));
 
 // react-helmet-async v3 menjadwalkan pembaruan <head> lewat
 // requestAnimationFrame GLOBAL (bukan window.requestAnimationFrame milik
-// jsdom), jadi sediakan polyfill rAF berbasis setTimeout bila belum ada.
+// jsdom). `lingkungan-jsdom.mjs` menyediakan rAF yang berjalan pada antrean
+// tugas makro — satu frame = satu tugas makro — sehingga satu `setTimeout(0)`
+// di bawah ini sudah cukup dan hasilnya tidak bergantung pada kecepatan mesin.
+// Baris ini hanya jaring pengaman bila berkas ini kelak dijalankan tanpa
+// lingkungan itu.
 if (typeof globalThis.requestAnimationFrame === "undefined") {
   globalThis.requestAnimationFrame = (cb) =>
-    setTimeout(() => cb(Date.now()), 0);
+    setTimeout(() => cb(performance.now()), 0);
   globalThis.cancelAnimationFrame = (id) => clearTimeout(id);
 }
 
@@ -109,11 +113,14 @@ await act(async () => {
 });
 
 // Helmet v3 menulis ke <head> di dalam requestAnimationFrame, jadi suntikan
-// <script> baru ada setelah macrotask pertama. Beri waktu satu siklus timer
-// sebelum membaca DOM: tanpa jeda ini query berjalan terlalu awal dan
-// menemukan 0 skrip (terukur: 0 segera setelah act(), 1 setelah setTimeout 0).
+// <script> baru ada setelah tugas makro pertama. Satu `setTimeout(0)` cukup
+// karena rAF di lingkungan uji juga berjalan di antrean tugas makro (lihat
+// catatan di scripts/lingkungan-jsdom.mjs). Jeda ini sengaja dibuat sesingkat
+// mungkin: kalau rAF-nya kelak kembali berbasis jam (satu frame ≈ 16 ms),
+// pembacaan di bawah akan menemukan 0 skrip dan uji ini gagal — bukan sekali
+// sekali gagal di CI, melainkan langsung gagal.
 await act(async () => {
-  await new Promise((selesai) => setTimeout(selesai, 10));
+  await new Promise((selesai) => setTimeout(selesai, 0));
 });
 
 // Helmet v3 + react-helmet-async menaruh skrip di <head> (atribut data-rh).
