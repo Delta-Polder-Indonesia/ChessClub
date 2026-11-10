@@ -200,7 +200,6 @@ export class EngineCatur {
   }
 
   terima(baris) {
-    if (!this.worker) return;
     if (baris === "readyok") {
       if (!this.siap && this.penyelesaiSiap) {
         this.siap = true;
