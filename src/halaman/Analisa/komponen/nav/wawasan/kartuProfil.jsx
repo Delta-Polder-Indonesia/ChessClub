@@ -6,6 +6,7 @@
  */
 import { useEffect, useRef, useState } from "react";
 import { segarkanKartuPemain, useKartuPemain } from "../../../../../lib/pemainCatur.js";
+import LencanaGelar from "../../LencanaGelar.jsx";
 import Refresh from "../../svg/refresh.jsx";
 import { KELAS_RATING } from "./opsiWawasan.js";
 
@@ -91,11 +92,10 @@ function KartuProfilWawasan({ username, platform, t, locale }) {
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <div className="flex flex-wrap items-center gap-2">
             <span className="truncate text-lg font-bold text-foreground">{nama}</span>
-            {kartu?.title ? (
-              <span className="rounded-borderRoundness border border-border bg-backgroundBoxBox px-1.5 py-0.5 font-mono text-[0.65rem] font-bold text-backgroundBoxBoxHighlighted">
-                {kartu.title}
-              </span>
-            ) : null}
+            {/* Gelar FIDE (GM, IM, FM, WGM, …) ditampilkan sebagai lencana SVG
+                — bukan teks ber-border — supaya bentuknya konsisten di semua
+                peramban. `null` bila pemain tidak bergelar. */}
+            <LencanaGelar gelar={kartu?.title} />
           </div>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-foregroundGrey">
             <span className="truncate font-mono">@{username}</span>

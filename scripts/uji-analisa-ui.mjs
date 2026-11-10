@@ -57,6 +57,7 @@ import { BoardContext } from "./src/halaman/Analisa/konteks/boardKonteks.js";
 import { ImportContext } from "./src/halaman/Analisa/konteks/importKonteks.js";
 import { MesinProvider } from "./src/halaman/Analisa/konteks/mesin.jsx";
 import Game from "./src/halaman/Analisa/komponen/game/game.jsx";
+import Name from "./src/halaman/Analisa/komponen/game/name.jsx";
 import { formatPlayerLabel } from "./src/halaman/Analisa/komponen/game/getMoves.js";
 import SelectChessComGame from "./src/halaman/Analisa/komponen/menu/analyze/selectChessCom.jsx";
 import SelectLichessOrgGame from "./src/halaman/Analisa/komponen/menu/analyze/selectLichessOrg.jsx";
@@ -65,7 +66,18 @@ import RatingSVG from "./src/halaman/Analisa/komponen/svg/rating.jsx";
 import LoadingBar from "./src/halaman/Analisa/komponen/menu/loading/loadingBar.jsx";
 import { persenProgres } from "./src/halaman/Analisa/komponen/menu/loading/persenProgres.js";
 import LayarWawasan from "./src/halaman/Analisa/komponen/nav/layarWawasan.jsx";
+import KartuProfilWawasan from "./src/halaman/Analisa/komponen/nav/wawasan/kartuProfil.jsx";
+import LencanaGelar from "./src/halaman/Analisa/komponen/LencanaGelar.jsx";
 import { BATAS_IMPOR, ambilPgn, susunPgnDariTcn, uraikanTautanPartai, validasiFen, validasiPgn } from "./src/halaman/Analisa/komponen/nav/validasiImpor.js";
+import PemilihRentang from "./src/halaman/Analisa/akun/PemilihRentang.jsx";
+import {
+  bagianTanggal,
+  geserBulan,
+  PRESET_RENTANG,
+  rentangPreset,
+  susunGridBulan,
+  tambahHari,
+} from "./src/halaman/Analisa/akun/rentangTanggal.js";
 import { renderToStaticMarkup } from "react-dom/server";
 
 export { basisData, persenProgres, BATAS_IMPOR, ambilPgn, susunPgnDariTcn, uraikanTautanPartai, validasiFen, validasiPgn };
@@ -88,6 +100,53 @@ export function markupBar(progress, transitionTime = 100) {
  */
 export function markupIkon(rating, size = 18) {
   return renderToStaticMarkup(<RatingSVG rating={rating} size={size} />);
+}
+
+/**
+ * Markup lencana gelar FIDE (tanpa DOM). Dipakai mengunci bentuk SVG-nya:
+ * kotak #A62424 dengan huruf putih, dan gelar tiga huruf (WGM, WIM, WFM)
+ * diperkecil supaya tidak meluber keluar kotak.
+ */
+export function markupLencanaGelar(gelar) {
+  return renderToStaticMarkup(<LencanaGelar gelar={gelar} />);
+}
+
+/**
+ * Markup baris nama pemain di atas papan (tanpa DOM). Gelar di sini juga
+ * memakai lencana SVG — uji ini mengunci fakta itu.
+ */
+export function markupBarisNama(gelar, namaPemain) {
+  return renderToStaticMarkup(<Name title={gelar} white>{namaPemain}</Name>);
+}
+
+export { PRESET_RENTANG, bagianTanggal, geserBulan, rentangPreset, susunGridBulan, tambahHari };
+
+/**
+ * Pemilih rentang tanggal panel Akun dalam keadaan terpasang. Nilai yang
+ * dipilih ditulis ke <output> agar uji bisa membacanya seperti pengguna
+ * membaca ringkasannya.
+ */
+export function mountPemilihRentang(el, awal = "30hari") {
+  function PemilihUji({ presetAwal }) {
+    const [nilai, setNilai] = React.useState(() => ({
+      preset: presetAwal,
+      ...rentangPreset(presetAwal),
+    }));
+    return (
+      <I18nProvider>
+        <PemilihRentang
+          preset={nilai.preset}
+          dari={nilai.dari}
+          sampai={nilai.sampai}
+          onPilih={(baru) => setNilai((lama) => ({ ...lama, ...baru }))}
+        />
+        <output data-uji="nilai-rentang">{JSON.stringify(nilai)}</output>
+      </I18nProvider>
+    );
+  }
+  const root = createRoot(el);
+  root.render(<PemilihUji presetAwal={awal} />);
+  return root;
 }
 
 /**
@@ -274,6 +333,24 @@ function WawasanDenganAkun({ platform, username, gameMoves }) {
       <LayarWawasan />
     </AnalyzeContext.Provider>
   );
+}
+
+/**
+ * Kartu profil Wawasan saja (tanpa papan). Dipakai menguji lencana gelar
+ * pada tempat ia benar-benar dipakai — bukan sekadar markup komponennya.
+ */
+export function mountKartuProfil(el, platform, username, locale = "id") {
+  const root = createRoot(el);
+  root.render(
+    <HelmetProvider>
+      <MemoryRouter initialEntries={["/program-kami/analisa/papan"]}>
+        <I18nProvider>
+          <KartuProfilWawasan username={username} platform={platform} t={(k) => k} locale={locale} />
+        </I18nProvider>
+      </MemoryRouter>
+    </HelmetProvider>,
+  );
+  return root;
 }
 
 export function mountWawasan(el, platform, username, gameMoves, bahasa = "id") {
@@ -1740,6 +1817,337 @@ const papanTampil = (wadah) =>
   wadah.remove();
 }
 
+
+/* ------------------------- lencana gelar FIDE (kartu profil Wawasan) ------ */
+
+/*
+ * Lencana diuji dua kali: di sini pada kartu profil sungguhan (gelar datang
+ * dari API chess.com), lalu di bawah pada markup komponennya sendiri untuk
+ * mengunci bentuk SVG-nya.
+ */
+{
+  const fetchSebelum = globalThis.fetch;
+  const fetchPemain = async (alamat) => {
+    const u = String(alamat);
+    const berjudul = u.includes("berjudul");
+    if (!u.includes("api.chess.com")) return fetchSebelum(alamat);
+    return {
+      ok: true,
+      status: 200,
+      headers: { get: () => null },
+      text: () => Promise.resolve(""),
+      json: () => (u.includes("/stats")
+        ? Promise.resolve({})
+        : Promise.resolve({
+            name: berjudul ? "Masruri Rahman" : "Tanpa Gelar",
+            title: berjudul ? "IM" : null,
+            country: "https://api.chess.com/country/ID",
+            joined: 1500000000,
+          })),
+    };
+  };
+  dom.window.fetch = fetchPemain;
+  globalThis.fetch = fetchPemain;
+
+  const wadahBerjudul = domSiap.createElement("div");
+  domSiap.body.appendChild(wadahBerjudul);
+  const akarBerjudul = modul.mountKartuProfil(wadahBerjudul, "chessCom", "berjudul");
+  await tungguSampai(() => !!wadahBerjudul.querySelector('[data-uji="lencana-gelar"]'), 4000);
+
+  const lencana = wadahBerjudul.querySelector('[data-uji="lencana-gelar"]');
+  uji(
+    "kartu profil Wawasan: gelar dari API (IM) dirender sebagai lencana SVG, bukan teks berbingkai",
+    lencana?.tagName?.toLowerCase() === "svg"
+      && lencana.getAttribute("data-gelar") === "IM"
+      && lencana.getAttribute("aria-label") === "IM"
+      && /Masruri Rahman/.test(wadahBerjudul.textContent ?? "")
+      && lencana.querySelector("rect")?.getAttribute("fill") === "#A62424",
+    `markup: ${wadahBerjudul.innerHTML.slice(0, 200)}`
+  );
+  uji(
+    "kartu profil Wawasan: teks lencana lama (span berbingkai) sudah tidak ada",
+    !/<span[^>]*border[^>]*>\s*IM\s*<\/span>/.test(wadahBerjudul.innerHTML)
+  );
+  akarBerjudul.unmount();
+
+  const wadahTanpa = domSiap.createElement("div");
+  domSiap.body.appendChild(wadahTanpa);
+  const akarTanpa = modul.mountKartuProfil(wadahTanpa, "chessCom", "tanagelar");
+  await tungguSampai(() => /Tanpa Gelar/.test(wadahTanpa.textContent ?? ""), 4000);
+  uji(
+    "kartu profil Wawasan: pemain tanpa gelar tidak punya lencana apa pun",
+    wadahTanpa.querySelector('[data-uji="lencana-gelar"]') === null
+  );
+  akarTanpa.unmount();
+
+  dom.window.fetch = fetchSebelum;
+  globalThis.fetch = fetchSebelum;
+}
+
+{
+  const gm = modul.markupLencanaGelar("GM");
+  const im = modul.markupLencanaGelar("im");
+  const wgm = modul.markupLencanaGelar("WGM");
+  const afm = modul.markupLencanaGelar("AFM");
+
+  uji(
+    "lencana gelar: SVG kotak #A62424 dengan huruf putih tebal",
+    /<svg[^>]*viewBox="0 0 400 250"/.test(gm)
+      && /<rect[^>]*rx="50"[^>]*fill="#A62424"/.test(gm)
+      && /fill="#FFFFFF"/.test(gm)
+      && /font-weight="bold"/.test(gm),
+    `markup: ${gm.slice(0, 120)}`
+  );
+
+  /*
+   * Huruf digeser turun 0.37em, bukan ditengahkan lewat
+   * `dominant-baseline="middle"`: itu menengahkan kotak em sehingga huruf
+   * duduk ~5% tinggi lencana terlalu tinggi (terukur dari piksel tinta).
+   */
+  uji(
+    "lencana gelar: huruf digeser 0.37em agar tinta tepat di tengah kotak",
+    /dy="0.37em"/.test(gm)
+      && /y="125"/.test(gm)
+      && !/dominant-baseline/.test(gm)
+  );
+
+  uji(
+    "lencana gelar: hurufnya adalah gelar itu sendiri, kapital, dan jadi nama aksesibel",
+    />GM</.test(gm)
+      && /aria-label="GM"/.test(gm)
+      && /aria-label="IM"/.test(im)
+      && />IM</.test(im)
+  );
+
+  uji(
+    "lencana gelar: huruf diperkecil menurut panjang gelar (GM 140, WGM 112, cadangan 4 huruf 92)",
+    /font-size="140"/.test(gm)
+      && /font-size="112"/.test(wgm)
+      && /font-size="112"/.test(afm)
+      && /font-size="92"/.test(modul.markupLencanaGelar("ABCD"))
+      && />WGM</.test(wgm)
+  );
+
+  uji(
+    "lencana gelar: tanpa gelar tidak merender apa pun",
+    modul.markupLencanaGelar("") === "" && modul.markupLencanaGelar(null) === ""
+  );
+
+  const barisNama = modul.markupBarisNama("IM", "Masruri Rahman");
+  const barisKosong = modul.markupBarisNama(null, "Tanpa Gelar");
+  uji(
+    "baris nama di atas papan: gelar juga berupa lencana SVG, bukan <em> teks",
+    /<svg[^>]*data-uji="lencana-gelar"[^>]*data-gelar="IM"/.test(barisNama)
+      && !/<em[^>]*>IM<\/em>/.test(barisNama)
+      && /Masruri Rahman/.test(barisNama),
+    `markup: ${barisNama.slice(0, 160)}`
+  );
+  uji(
+    "baris nama di atas papan: tinggi lencana mengikuti ukuran huruf baris (em) dan tanpa gelar tidak ada lencana",
+    /class="mr-1 h-\[1\.1em\] w-auto shrink-0 align-\[-0\.2em\]"/.test(barisNama)
+      && !/lencana-gelar/.test(barisKosong)
+      && /Tanpa Gelar/.test(barisKosong)
+  );
+}
+
+/* --------------------- pemilih rentang tanggal (panel Akun) -------------- */
+
+/* Hitungan murni dulu: preset dan grid bulan, semuanya di UTC. */
+{
+  const r = (preset, hariIni) => JSON.stringify(modul.rentangPreset(preset, hariIni));
+  uji(
+    "rentang preset: semua preset dihitung inklusif di UTC",
+    r("hariIni", "2026-11-08") === JSON.stringify({ dari: "2026-11-08", sampai: "2026-11-08" })
+      && r("kemarin", "2026-11-08") === JSON.stringify({ dari: "2026-11-07", sampai: "2026-11-07" })
+      && r("7hari", "2026-11-08") === JSON.stringify({ dari: "2026-11-02", sampai: "2026-11-08" })
+      && r("30hari", "2026-11-08") === JSON.stringify({ dari: "2026-10-10", sampai: "2026-11-08" })
+      && r("bulanIni", "2026-11-08") === JSON.stringify({ dari: "2026-11-01", sampai: "2026-11-08" })
+      && r("bulanLalu", "2026-11-08") === JSON.stringify({ dari: "2026-10-01", sampai: "2026-10-31" })
+      && r("tahunIni", "2026-11-08") === JSON.stringify({ dari: "2026-01-01", sampai: "2026-11-08" })
+      && r("tahunLalu", "2026-11-08") === JSON.stringify({ dari: "2025-01-01", sampai: "2025-12-31" })
+      && r("semua") === JSON.stringify({ dari: "", sampai: "" }),
+  );
+
+  uji(
+    "rentang preset: bulan lalu di Januari mundur ke Desember tahun sebelumnya",
+    r("bulanLalu", "2026-01-15") === JSON.stringify({ dari: "2025-12-01", sampai: "2025-12-31" })
+      && r("tahunLalu", "2026-01-15") === JSON.stringify({ dari: "2025-01-01", sampai: "2025-12-31" })
+      && r("bulanIni", "2026-01-01") === JSON.stringify({ dari: "2026-01-01", sampai: "2026-01-01" }),
+  );
+
+  const gridId = modul.susunGridBulan(2026, 10, 1); // November 2026, minggu mulai Senin
+  const gridEn = modul.susunGridBulan(2026, 10, 0); // minggu mulai Minggu
+  uji(
+    "grid bulan: 42 sel, awal minggu mengikuti bahasa, hari luar ditandai",
+    gridId.length === 42
+      && gridId[0].kunci === "2026-10-26"
+      && gridId[0].luar === true
+      && gridId[6].kunci === "2026-11-01"
+      && gridId[6].luar === false
+      && gridId[41].kunci === "2026-12-06"
+      && gridEn[0].kunci === "2026-11-01",
+  );
+
+  uji(
+    "geser bulan: mundur dari Januari ke Desember tahun lalu, maju dari Desember ke Januari",
+    JSON.stringify(modul.geserBulan(2026, 0, -1)) === JSON.stringify({ tahun: 2025, bulan: 11 })
+      && JSON.stringify(modul.geserBulan(2026, 11, 1)) === JSON.stringify({ tahun: 2027, bulan: 0 })
+      && modul.tambahHari("2026-03-01", -1) === "2026-02-28"
+      && modul.tambahHari("2024-02-28", 1) === "2024-02-29",
+  );
+}
+
+/* Terpasang di jsdom: preset, kalender, pin ujung rentang, dan keyboard. */
+{
+  const HARI_INI = new Date().toISOString().slice(0, 10);
+  const kemarin = modul.tambahHari(HARI_INI, -1);
+
+  const wadah = domSiap.createElement("div");
+  domSiap.body.appendChild(wadah);
+  const akar = modul.mountPemilihRentang(wadah, "30hari");
+  await tungguSampai(() => !!wadah.querySelector('[data-uji="pemilih-rentang"]'), 4000);
+
+  const tombolPreset = [...wadah.querySelectorAll('[data-uji^="preset-"]')];
+  uji(
+    "pemilih rentang: sembilan preset berlabel Indonesia dan preset aktif ditandai",
+    tombolPreset.length === modul.PRESET_RENTANG.length
+      && tombolPreset[0].textContent.trim() === "Hari ini"
+      && tombolPreset[2].textContent.trim() === "7 hari terakhir"
+      && tombolPreset[8].textContent.trim() === "Semua arsip"
+      && wadah.querySelector('[data-uji="preset-30hari"]')?.getAttribute("aria-pressed") === "true"
+      && wadah.querySelector('[data-uji="preset-hariIni"]')?.getAttribute("aria-pressed") === "false",
+    `preset: ${tombolPreset.map((b) => b.textContent.trim()).join(" | ")}`
+  );
+
+  uji(
+    "pemilih rentang: hari setelah hari ini tak bisa dipilih, hari ini bisa",
+    [...wadah.querySelectorAll("button[data-tanggal]")]
+      .filter((b) => b.dataset.tanggal > HARI_INI)
+      .every((b) => b.disabled)
+      && wadah.querySelector(`button[data-tanggal="${HARI_INI}"]`)?.disabled === false,
+  );
+
+  wadah.querySelector('[data-uji="preset-kemarin"]').click();
+  await tunggu(0);
+  const nilaiKemarin = JSON.parse(wadah.querySelector('[data-uji="nilai-rentang"]').textContent);
+  uji(
+    "pemilih rentang: preset Kemarin mengisi kedua ujung rentang",
+    nilaiKemarin.preset === "kemarin" && nilaiKemarin.dari === kemarin && nilaiKemarin.sampai === kemarin,
+  );
+  uji(
+    "pemilih rentang: rentang sehari ditandai sebagai ujung tunggal, tanpa pin",
+    wadah.querySelector(`[data-tanggal="${kemarin}"]`)?.getAttribute("data-posisi") === "tunggal"
+      && !/after:w-3/.test(wadah.querySelector(`[data-tanggal="${kemarin}"]`)?.className ?? ""),
+  );
+
+  /* Mundur sebulan: seluruh bulan itu sudah lewat, jadi aman dipakai uji. */
+  wadah.querySelector('[data-uji="bulan-mundur"]').click();
+  await tunggu(0);
+  const mundur = new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth() - 1, 1));
+  const th = mundur.getUTCFullYear();
+  const bl = String(mundur.getUTCMonth() + 1).padStart(2, "0");
+  const kunciHariKe = (hari) => `${th}-${bl}-${String(hari).padStart(2, "0")}`;
+
+  uji(
+    "pemilih rentang: tombol bulan mengganti bulan yang ditampilkan",
+    new Intl.DateTimeFormat("id-ID", { month: "long", year: "numeric", timeZone: "UTC" })
+      .format(mundur) === wadah.querySelector('[data-uji="nama-bulan"]')?.textContent?.trim(),
+    `judul: ${wadah.querySelector('[data-uji="nama-bulan"]')?.textContent}`,
+  );
+
+  wadah.querySelector(`button[data-tanggal="${kunciHariKe(5)}"]`).click();
+  await tunggu(0);
+  wadah.querySelector(`button[data-tanggal="${kunciHariKe(7)}"]`).click();
+  await tunggu(0);
+  const nilaiRentang = JSON.parse(wadah.querySelector('[data-uji="nilai-rentang"]').textContent);
+  const selAwal = wadah.querySelector(`[data-tanggal="${kunciHariKe(5)}"]`);
+  const selTengah = wadah.querySelector(`[data-tanggal="${kunciHariKe(6)}"]`);
+  const selAkhir = wadah.querySelector(`[data-tanggal="${kunciHariKe(7)}"]`);
+
+  uji(
+    "pemilih rentang: dua klik pada kalender membentuk rentang kustom",
+    nilaiRentang.preset === "kustom"
+      && nilaiRentang.dari === kunciHariKe(5)
+      && nilaiRentang.sampai === kunciHariKe(7),
+  );
+  uji(
+    "pemilih rentang: ujung rentang ditandai pin (awal ke kanan, akhir ke kiri) dan hari di antaranya ikut diarsir",
+    selAwal?.getAttribute("data-posisi") === "awal"
+      && selTengah?.getAttribute("data-posisi") === "tengah"
+      && selAkhir?.getAttribute("data-posisi") === "akhir"
+      && /after:right-0/.test(selAwal?.className ?? "")
+      && /after:w-3/.test(selAwal?.className ?? "")
+      && /after:left-0/.test(selAkhir?.className ?? "")
+      && /bg-backgroundBoxBoxHighlighted\/25/.test(selTengah?.className ?? ""),
+    `awal: ${selAwal?.className} | akhir: ${selAkhir?.className}`,
+  );
+
+  /* Klik lagi setelah rentang lengkap → rentang baru, bukan diperpanjang. */
+  wadah.querySelector(`button[data-tanggal="${kunciHariKe(9)}"]`).click();
+  await tunggu(0);
+  const nilaiBaru = JSON.parse(wadah.querySelector('[data-uji="nilai-rentang"]').textContent);
+  uji(
+    "pemilih rentang: klik berikutnya memulai rentang baru, bukan memperpanjang",
+    nilaiBaru.dari === kunciHariKe(9) && nilaiBaru.sampai === "",
+  );
+
+  const tombolHari = wadah.querySelector(`button[data-tanggal="${kunciHariKe(15)}"]`);
+  tombolHari.focus();
+  tombolHari.dispatchEvent(new dom.window.KeyboardEvent("keydown", { key: "ArrowLeft", bubbles: true }));
+  await tunggu(0);
+  uji(
+    "pemilih rentang: panah kiri memindahkan fokus ke hari sebelumnya",
+    domSiap.activeElement?.dataset?.tanggal === kunciHariKe(14),
+    `fokus: ${domSiap.activeElement?.dataset?.tanggal}`,
+  );
+  domSiap.activeElement?.dispatchEvent(
+    new dom.window.KeyboardEvent("keydown", { key: "Enter", bubbles: true }),
+  );
+  await tunggu(0);
+  const nilaiKeyboard = JSON.parse(wadah.querySelector('[data-uji="nilai-rentang"]').textContent);
+  uji(
+    "pemilih rentang: Enter pada hari yang difokus melengkapi rentang yang sudah punya awal",
+    nilaiKeyboard.dari === kunciHariKe(9) && nilaiKeyboard.sampai === kunciHariKe(14),
+    JSON.stringify(nilaiKeyboard),
+  );
+
+  wadah.querySelector('[data-uji="preset-semua"]').click();
+  await tunggu(0);
+  const nilaiSemua = JSON.parse(wadah.querySelector('[data-uji="nilai-rentang"]').textContent);
+  uji(
+    "pemilih rentang: Semua arsip mengosongkan rentang dan tak menyisakan tanda ujung",
+    nilaiSemua.preset === "semua"
+      && nilaiSemua.dari === ""
+      && nilaiSemua.sampai === ""
+      && wadah.querySelectorAll('[data-posisi]:not([data-posisi=""])').length === 0
+      && /Semua arsip/.test(wadah.querySelector('[data-uji="ringkasan-rentang"]')?.textContent ?? ""),
+  );
+
+  akar.unmount();
+  wadah.remove();
+
+  /* Label dan awal minggu mengikuti bahasa. */
+  localStorage.setItem("kci-bahasa", "en");
+  const wadahEn = domSiap.createElement("div");
+  domSiap.body.appendChild(wadahEn);
+  const akarEn = modul.mountPemilihRentang(wadahEn, "7hari");
+  await tungguSampai(
+    () => /Last 7 days/.test(wadahEn.textContent ?? ""),
+    4000,
+  );
+  const judulHari = [...wadahEn.querySelectorAll('[role="columnheader"]')].map((k) => k.textContent.trim());
+  uji(
+    "pemilih rentang: bahasa Inggris memakai label Inggris dan minggu mulai Minggu",
+    wadahEn.querySelector('[data-uji="preset-7hari"]')?.textContent?.trim() === "Last 7 days"
+      && wadahEn.querySelector('[data-uji="preset-semua"]')?.textContent?.trim() === "All available"
+      && judulHari.length === 7
+      && judulHari[0] === "Sun",
+    `judul: ${judulHari.join(",")}`,
+  );
+  akarEn.unmount();
+  wadahEn.remove();
+  localStorage.setItem("kci-bahasa", "id");
+}
 
 uji("tidak ada galat render", fatal.length === 0);
 if (fatal.length) console.log(fatal.slice(0, 3).map((p) => `    ! ${p.split("\n")[0]}`).join("\n"));
