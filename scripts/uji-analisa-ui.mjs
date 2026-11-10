@@ -543,6 +543,9 @@ function siapkanGlobal(window) {
   globalThis.Worker = WorkerPalsu;
   globalThis.requestAnimationFrame = window.requestAnimationFrame;
   globalThis.cancelAnimationFrame = window.cancelAnimationFrame;
+  // Radix Presence (dipakai Tabs di panel Akun) memanggil getComputedStyle
+  // sebagai global saat memasang ref, bukan lewat window.
+  globalThis.getComputedStyle = window.getComputedStyle.bind(window);
   for (const nama of ["HTMLElement", "HTMLInputElement", "HTMLTextAreaElement", "Element", "Node", "Event", "MouseEvent", "KeyboardEvent", "CustomEvent"]) {
     if (window[nama]) globalThis[nama] = window[nama];
   }
@@ -2084,7 +2087,7 @@ const papanTampil = (wadah) =>
 
   /* Klik lagi setelah rentang lengkap → rentang baru, bukan diperpanjang. */
   wadah.querySelector(`button[data-tanggal="${kunciHariKe(9)}"]`).click();
-  await tunggu(0);
+  await tungguSampai(() => domSiap.activeElement?.dataset?.tanggal === kunciHariKe(9), 2000);
   const nilaiBaru = JSON.parse(wadah.querySelector('[data-uji="nilai-rentang"]').textContent);
   uji(
     "pemilih rentang: klik berikutnya memulai rentang baru, bukan memperpanjang",
@@ -2094,7 +2097,7 @@ const papanTampil = (wadah) =>
   const tombolHari = wadah.querySelector(`button[data-tanggal="${kunciHariKe(15)}"]`);
   tombolHari.focus();
   tombolHari.dispatchEvent(new dom.window.KeyboardEvent("keydown", { key: "ArrowLeft", bubbles: true }));
-  await tunggu(0);
+  await tungguSampai(() => domSiap.activeElement?.dataset?.tanggal === kunciHariKe(14), 2000);
   uji(
     "pemilih rentang: panah kiri memindahkan fokus ke hari sebelumnya",
     domSiap.activeElement?.dataset?.tanggal === kunciHariKe(14),
