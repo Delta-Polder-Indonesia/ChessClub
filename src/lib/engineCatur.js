@@ -133,8 +133,13 @@ export class EngineCatur {
       }
       this.worker = worker;
       this.penyelesaiSiap = { selesai, gagal };
-      worker.onmessage = (e) => this.terima(String(e.data));
+      const workerSaatIni = worker;
+      worker.onmessage = (e) => {
+        if (this.worker !== workerSaatIni) return;
+        this.terima(String(e.data));
+      };
       worker.onerror = (galat) => {
+        if (this.worker !== workerSaatIni) return;
         // Worker mati: bukan hanya pemuatan yang gagal — pencarian yang
         // sedang menunggu juga tidak akan pernah menerima "bestmove".
         // Keduanya harus dibereskan, kalau tidak halaman menggantung di
@@ -195,6 +200,7 @@ export class EngineCatur {
   }
 
   terima(baris) {
+    if (!this.worker) return;
     if (baris === "readyok") {
       if (!this.siap && this.penyelesaiSiap) {
         this.siap = true;
