@@ -9,39 +9,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useI18n } from "../../../lib/i18n.jsx";
 import { bacaTeks, tulis } from "../penyimpanan.js";
 import { muatPartaiChessCom, muatPartaiLichess } from "./muatPartaiAkun.js";
+import PemilihRentang from "./PemilihRentang.jsx";
+import { PRESET_RENTANG, rentangPreset } from "./rentangTanggal.js";
 
 const KUNCI_TERSIMPAN = "tarik-terakhir";
 const MAKS_BAWAAN = 500;
 const BATAS_MAKS = 5000;
-const SEHARI = 86400000;
-const PRESET = ["30hari", "bulanIni", "semua", "kustom"];
 const KELAS_WAKTU = ["bullet", "blitz", "rapid", "classical", "daily"];
-
-function isoDariMs(ms) {
-  return new Date(ms).toISOString().slice(0, 10);
-}
-
-function awalHariIniUTC() {
-  const n = new Date();
-  return Date.UTC(n.getUTCFullYear(), n.getUTCMonth(), n.getUTCDate());
-}
-
-function rentangPreset(preset) {
-  const akhir = awalHariIniUTC();
-  if (preset === "30hari") {
-    return { dari: isoDariMs(akhir - 29 * SEHARI), sampai: isoDariMs(akhir) };
-  }
-  if (preset === "bulanIni") {
-    const d = new Date(akhir);
-    return {
-      dari: isoDariMs(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1)),
-      sampai: isoDariMs(akhir),
-    };
-  }
-  if (preset === "semua") return { dari: "", sampai: "" };
-  return null;
-}
-
 function tanggalSah(nilai) {
   const s = String(nilai || "").trim();
   return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : "";
@@ -56,23 +30,6 @@ function bacaTersimpan() {
   } catch {
     return null;
   }
-}
-
-function TombolPreset({ aktif, onClick, children }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={aktif}
-      className={`cursor-pointer rounded-borderRoundness border px-2.5 py-1.5 text-xs font-semibold transition-colors ${
-        aktif
-          ? "border-backgroundBoxBoxHighlighted bg-backgroundBoxBoxHighlighted text-foregroundBlackDark"
-          : "border-border bg-backgroundBoxBox text-foregroundGrey hover:border-borderHighlighted hover:text-foregroundHighlighted"
-      }`}
-    >
-      {children}
-    </button>
-  );
 }
 
 export default function PanelTarikPartai({ akun, onSelesai }) {
@@ -113,7 +70,7 @@ export default function PanelTarikPartai({ akun, onSelesai }) {
       const dariNilai = tanggalSah(opsi.dari);
       const sampaiNilai = tanggalSah(opsi.sampai);
 
-      if (opsi.preset === "kustom") {
+      if (opsi.preset !== "semua") {
         if (!dariNilai || !sampaiNilai) {
           setPesan({ jenis: "info", teks: t("analisa.akun.tarik.tanggalWajib") });
           return;
@@ -198,20 +155,14 @@ export default function PanelTarikPartai({ akun, onSelesai }) {
     [akunAktif, onSelesai, t],
   );
 
-  function pilihPreset(nilai) {
-    setPreset(nilai);
-    setPerluKonfirmasi(false);
-    setPesan(null);
-    const rentang = rentangPreset(nilai);
-    if (rentang) {
-      setDari(rentang.dari);
-      setSampai(rentang.sampai);
-    }
-  }
-
-  function ubahTanggal(nilai, setter) {
-    setter(nilai);
-    setPreset("kustom");
+  /* Satu pintu untuk setiap perubahan rentang, baik dari preset maupun dari
+   * kalender, supaya `preset`, `dari`, dan `sampai` tidak pernah berbeda
+   * langkah — ketiganya dibaca bersama oleh tombol muat. */
+  function ubahRentang(nilai) {
+    const nilaiPreset = PRESET_RENTANG.includes(nilai.preset) ? nilai.preset : "kustom";
+    setPreset(nilaiPreset);
+    setDari(tanggalSah(nilai.dari));
+    setSampai(tanggalSah(nilai.sampai));
     setPerluKonfirmasi(false);
     setPesan(null);
   }
@@ -222,7 +173,7 @@ export default function PanelTarikPartai({ akun, onSelesai }) {
 
   function pakaiTersimpan() {
     if (!tersimpan) return;
-    const nilaiPreset = PRESET.includes(tersimpan.preset) ? tersimpan.preset : "kustom";
+    const nilaiPreset = PRESET_RENTANG.includes(tersimpan.preset) ? tersimpan.preset : "kustom";
     const nilaiMaks = String(Math.min(BATAS_MAKS, Math.max(1, Number(tersimpan.maks) || MAKS_BAWAAN)));
     const nilaiWaktu = Array.isArray(tersimpan.waktu)
       ? tersimpan.waktu.filter((x) => KELAS_WAKTU.includes(x))
@@ -298,38 +249,13 @@ export default function PanelTarikPartai({ akun, onSelesai }) {
         <p className="text-xs font-semibold uppercase tracking-wide text-foregroundGrey">
           {t("analisa.akun.tarik.rentang")}
         </p>
-        <div className="mt-2 flex flex-wrap gap-1.5">
-          {PRESET.map((nilai) => (
-            <TombolPreset key={nilai} aktif={preset === nilai} onClick={() => pilihPreset(nilai)}>
-              {t(`analisa.akun.tarik.${nilai === "semua" ? "semuaArsip" : nilai}`)}
-            </TombolPreset>
-          ))}
-        </div>
-        <div className="mt-2 grid grid-cols-2 gap-2">
-          <label className="flex flex-col gap-1">
-            <span className="text-[10px] font-bold uppercase tracking-wide text-foregroundGrey">
-              {t("analisa.akun.tarik.dari")}
-            </span>
-            <input
-              type="date"
-              value={dari}
-              onChange={(e) => ubahTanggal(e.currentTarget.value, setDari)}
-              className="w-full rounded-borderRoundness border border-border bg-backgroundBoxBox px-2.5 py-1.5 text-xs text-foreground outline-none transition-colors hover:border-borderHighlighted focus:border-borderHighlighted [color-scheme:dark]"
-            />
-          </label>
-          <label className="flex flex-col gap-1">
-            <span className="text-[10px] font-bold uppercase tracking-wide text-foregroundGrey">
-              {t("analisa.akun.tarik.sampai")}
-            </span>
-            <input
-              type="date"
-              value={sampai}
-              onChange={(e) => ubahTanggal(e.currentTarget.value, setSampai)}
-              className="w-full rounded-borderRoundness border border-border bg-backgroundBoxBox px-2.5 py-1.5 text-xs text-foreground outline-none transition-colors hover:border-borderHighlighted focus:border-borderHighlighted [color-scheme:dark]"
-            />
-          </label>
-        </div>
-        <p className="mt-1 text-[11px] text-foregroundGrey">{t("analisa.akun.tarik.utc")}</p>
+        <PemilihRentang
+          preset={preset}
+          dari={dari}
+          sampai={sampai}
+          onPilih={ubahRentang}
+        />
+        <p className="text-[11px] text-foregroundGrey">{t("analisa.akun.tarik.utc")}</p>
       </div>
 
       <p className="text-[11px] leading-4 text-foregroundGrey">{ringkas}.</p>
