@@ -103,7 +103,12 @@ export class EngineAnalisis {
 
   /** Unduh worker + tunggu "readyok". Boleh dipanggil berulang. */
   siapkan() {
-    this.memuat ||= this.engine.mulai();
+    if (this.memuat) return this.memuat;
+    const p = this.engine.mulai().catch((galat) => {
+      if (this.memuat === p) this.memuat = null;
+      throw galat;
+    });
+    this.memuat = p;
     return this.memuat;
   }
 

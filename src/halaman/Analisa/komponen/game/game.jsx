@@ -1,5 +1,5 @@
 /* Port dari Brilliant-Chess (MIT, © 2025 Delo) — jangan sunting massal tanpa cek README. */
-import { useEffect, useLayoutEffect, useState, useRef, useContext } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState, useRef, useContext } from "react";
 import Board from "./board.jsx";
 import Clock from "./clock.jsx";
 import Name from "./name.jsx";
@@ -155,7 +155,7 @@ function Game({ wadah }) {
     }
     return () => clearInterval(intervalRef.current);
   }, [playing, gameController]);
-  function cleanCurrentArrows() {
+  const cleanCurrentArrows = useCallback(() => {
     if (customLine.moveNumber < 0) {
       setArrows((prev) => {
         return { ...prev, [moveNumber]: [] };
@@ -163,8 +163,8 @@ function Game({ wadah }) {
     } else {
       setCustomLine((prev) => ({ ...prev, arrows: { ...prev.arrows, [prev.moveNumber]: [] } }));
     }
-  }
-  function pushArrow(currentArrow) {
+  }, [customLine.moveNumber, moveNumber, setArrows, setCustomLine]);
+  const pushArrow = useCallback((currentArrow) => {
     if (customLine.moveNumber < 0) {
       const repeatedIndex = arrows[moveNumber].findIndex((arrow) => JSON.stringify(arrow) === JSON.stringify(currentArrow));
       const isRepeated = repeatedIndex !== -1;
@@ -188,9 +188,26 @@ function Game({ wadah }) {
       }
       setCustomLine((prev) => ({ ...prev, arrows: { ...prev.arrows, [customLine.moveNumber]: newArrows } }));
     }
-  }
+  }, [arrows, customLine.arrows, customLine.moveNumber, moveNumber, setArrows, setCustomLine]);
+  const arrowsMemo = useMemo(() => getArrows(arrows, moveNumber, customLine), [arrows, moveNumber, customLine]);
   useEffect(() => {
     let lastPressed = 0;
+    function isElemenInteraktif(el) {
+      if (!el) return false;
+      const tag = el.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || tag === "BUTTON") return true;
+      if (el.isContentEditable) return true;
+      if (el.closest) {
+        if (el.closest('[contenteditable="true"], [contenteditable=""]')) return true;
+        if (el.closest('button, input, textarea, select, a[href], [contenteditable]')) return true;
+        if (el.closest('[role="dialog"], dialog, [aria-modal="true"]')) return true;
+      }
+      return false;
+    }
+    function isDialogAktif() {
+      // Dialog/modal yang mengambil alih interaksi harus memblokir pintasan global
+      return !!document.querySelector('dialog[open], [role="dialog"], [aria-modal="true"]');
+    }
     function handleKeyDown(e) {
       /*
        * Pintasan pemutar partai hanya berlaku saat papan yang tampil.
@@ -205,10 +222,13 @@ function Game({ wadah }) {
       // Kalau belum ada partai termuat, biarkan peramban menggulirkan
       // halaman seperti biasa.
       if (pageStateRef.current === "default") return;
+      // Pintasan tidak boleh mengambil alih navigasi keyboard standar
+      // dan interaksi kontrol. Tab dibiarkan untuk perpindahan fokus
+      // browser; Space/Enter pada tombol harus mengaktifkan tombol itu,
+      // bukan memutar partai.
+      if (isDialogAktif()) return;
       const element = e.target;
-      const focusableInputTypes = ["text", "number", "password", "email", "search", "tel", "url"];
-      if (element.tagName === "INPUT" && focusableInputTypes.includes(element.getAttribute("type") ?? "")) return;
-      if (element.tagName === "TEXTAREA") return;
+      if (isElemenInteraktif(element)) return;
       const now = (/* @__PURE__ */ new Date()).getTime();
       const minPressInterval = 25;
       switch (e.key) {
@@ -245,6 +265,7 @@ function Game({ wadah }) {
           lastPressed = (/* @__PURE__ */ new Date()).getTime();
           break;
         case " ":
+        case "Spacebar":
           e.preventDefault();
           if (dragRef.current.is) return;
           if (now - lastPressed < minPressInterval) return;
@@ -252,18 +273,8 @@ function Game({ wadah }) {
           gameController.togglePlay();
           lastPressed = (/* @__PURE__ */ new Date()).getTime();
           break;
-        case "Tab": {
-          e.preventDefault();
-          if (now - lastPressed < minPressInterval) return;
-          const tab2 = tabRef.current;
-          // pageStateRef, bukan pageState: efek ini hanya dipasang sekali
-          // sehingga `pageState` di sini selamanya bernilai render pertama.
-          if (pageStateRef.current === "analyze") {
-            if (tab2 === "summary") setTab("moves");
-            else if (tab2 === "moves") setTab("summary");
-          }
+        default:
           break;
-        }
       }
     }
     document.addEventListener("keydown", handleKeyDown);
@@ -449,7 +460,7 @@ function Game({ wadah }) {
     pratinjau={memuatPartaiPapan}
     setPlaying={setPlaying}
     cleanArrows={cleanCurrentArrows}
-    arrows={getArrows(arrows, moveNumber, customLine)}
+    arrows={arrowsMemo}
     sacrifice={move2?.sacrifice}
     forward={forward}
     // Langkah paksa memakai sorotan papan bawaan (netral) seperti warisan.

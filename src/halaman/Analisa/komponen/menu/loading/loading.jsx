@@ -1,9 +1,9 @@
 /* Port dari Brilliant-Chess (MIT, © 2025 Delo) — jangan sunting massal tanpa cek README. */
-import { useContext, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Lens from "../../svg/lens.jsx";
 import LoadingBar from "./loadingBar.jsx";
 import DualRingSpinner from "../../loading/DualRingSpinner.jsx";
-import { AnalyzeContext } from "../../../konteks/analyzeKonteks.js";
+import { useImport } from "../../../konteks/importKonteks.js";
 import { useMesin } from "../../../konteks/mesinKonteks.js";
 import { useI18n } from "../../../../../lib/i18n.jsx";
 import { persenProgres } from "./persenProgres.js";
@@ -12,8 +12,7 @@ function Loading(props) {
   const { t } = useI18n();
   const { status } = useMesin();
   const [ellipsis, setEllipsis] = useState("");
-  const analyzeContext = useContext(AnalyzeContext);
-  const [progress] = analyzeContext.progress;
+  const [progress] = useImport().progress;
   const ellipsisRef = useRef(ellipsis);
   const { format, analyzeController } = props;
   useEffect(() => {

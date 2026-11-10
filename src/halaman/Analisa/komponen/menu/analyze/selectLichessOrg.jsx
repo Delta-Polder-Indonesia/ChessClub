@@ -1,7 +1,7 @@
 /* Port dari Brilliant-Chess (MIT, © 2025 Delo) — jangan sunting massal tanpa cek README. */
 import { useContext, useEffect, useRef, useState } from "react";
 import Arrow from "../../svg/arrow.jsx";
-import { AnalyzeContext } from "../../../konteks/analyzeKonteks.js";
+import { useImport } from "../../../konteks/importKonteks.js";
 import { pushPageError, pushPageWarning } from "../../errors/pushPageError.js";
 import { hitungPlyPgn } from "../../../../../lib/pgnRingan.js";
 import { GamesUI, Loading } from "./selectChessCom.jsx";
@@ -16,9 +16,8 @@ function Games(props) {
   const { url, username, depth, unSelect } = props;
   const [gamesInfo, setGamesInfo] = useState([]);
   const [loading, setLoading] = useState(true);
-  const analyzeContext = useContext(AnalyzeContext);
   const errorsContext = useContext(ErrorsContext);
-  const setData = analyzeContext.data[1];
+  const setData = useImport().data[1];
   const setErrors = errorsContext.errors[1];
   const callbacksRef = useRef({ t, unSelect });
   callbacksRef.current = { t, unSelect };

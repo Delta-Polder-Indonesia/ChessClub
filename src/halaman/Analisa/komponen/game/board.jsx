@@ -1,6 +1,6 @@
 /* Port dari Brilliant-Chess (MIT, © 2025 Delo) — jangan sunting massal tanpa cek README. */
 import { deformatSquare, formatSquare } from "../../mesin/engine.js";
-import { useContext, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { BISHOP, BLACK, Chess, KING, KNIGHT, PAWN, QUEEN, ROOK, WHITE } from "chess.js";
 import { buatSuara } from "../suaraPapan.js";
 import { ConfigContext } from "../../konteks/configKonteks.js";
@@ -822,4 +822,5 @@ function Board(props) {
   })()}
         </div>;
 }
-export { Arrow, Board as default };
+const BoardMemo = memo(Board);
+export { Arrow, BoardMemo as default };

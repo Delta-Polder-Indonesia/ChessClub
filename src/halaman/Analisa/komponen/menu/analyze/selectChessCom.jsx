@@ -12,7 +12,7 @@
  *    pemain yang dicari.
  */
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
-import { AnalyzeContext } from "../../../konteks/analyzeKonteks.js";
+import { useImport } from "../../../konteks/importKonteks.js";
 import { pushPageError } from "../../errors/pushPageError.js";
 import Files from "../../svg/files.jsx";
 import Database from "../../svg/database.jsx";
@@ -308,9 +308,8 @@ function SelectChessComGame(props) {
   const [progres, setProgres] = useState(null); // { selesai, total, bulan }
   const [coba, setCoba] = useState(0);
   const errorsContext = useContext(ErrorsContext);
-  const analyzeContext = useContext(AnalyzeContext);
   const setErrors = errorsContext.errors[1];
-  const setData = analyzeContext.data[1];
+  const setData = useImport().data[1];
   const sinyalRef = useRef(null);
 
   useEffect(() => {

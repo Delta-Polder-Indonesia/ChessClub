@@ -497,13 +497,13 @@ Di luar rangkaian itu:
 | Rangkaian | Pemeriksaan |
 | --- | --- |
 | `uji-analisa.mjs` | 34 |
-| `uji-analisa-ui.mjs` | 153 |
+| `uji-analisa-ui.mjs` | 179 |
 | `uji-basisdata.mjs` | 34 |
 | `uji-akun-database.mjs` | 16 |
 | `uji-tarik-api.mjs` | 7 |
 | `uji-wawasan-rating.mjs` | 10 |
 | `uji-integritas-suite.mjs` | 9 |
-| `uji-i18n.mjs` | 3517 kunci ID = 3517 EN, 1807 terpakai |
+| `uji-i18n.mjs` | 3526 kunci ID = 3526 EN, 1798 terpakai |
 
 ### Bundle & build
 
@@ -1270,11 +1270,11 @@ di ujung `uji:analisa-menyeluruh`). Angka emasnya diambil dari suite uji acuan
 - seam kunci: `catatAnalisis(hashPgn(pgn), …)` → `agregasiWawasan(partai, …,
   peta)` benar-benar mengisi kartu.
 
-Status verifikasi (diperbarui 2026-11-06 — angka lama sengaja tidak
+Status verifikasi (diperbarui 2026-11-10 — angka lama sengaja tidak
 dipertahankan): 51 lulus / 0 gagal; `uji:analisa-menyeluruh` (18 skrip,
-1133 pemeriksaan), `uji:analisa` (34), `uji:analisa-ui` (153), `uji:anticheat`
+1122 pemeriksaan), `uji:analisa` (34), `uji:analisa-ui` (179), `uji:anticheat`
 (417), `uji:tarik-api` (7), `uji:basisdata` (34), `uji:akun-database` (16),
-`uji:i18n` (3517 kunci ID = EN), `uji:integritas-suite` (9), dan `npm run
+`uji:i18n` (3526 kunci ID = EN), `uji:integritas-suite` (9), dan `npm run
 build` semuanya hijau. Jalur jaringan chess.com/lichess TIDAK diverifikasi
 live — sandbox agent hanya mengizinkan github/npm/pypi, jadi `accuracies`
 diverifikasi lewat bentuk respons yang didokumentasikan API keduanya.
@@ -1387,11 +1387,11 @@ dihitung dari pemindaian fase yang ditulis ulang dari kontraknya — bukan angka
 yang disalin dari keluaran komponen. Partai ujinya tidak berubah; akurasinya
 bergeser dari 74.0/92.0 ke nilai kurva.
 
-Status verifikasi (diperbarui 2026-11-06): `uji:akurasi` 50/0, `uji-hasil`
+Status verifikasi (diperbarui 2026-11-10): `uji:akurasi` 50/0, `uji-hasil`
 27/0, `uji-evaluasi` 90/0, `uji-anticheat` 417/0, `uji-wawasan-profil` 51/0,
-`uji-analisa-ui` 152/0, `uji-analisa` 34/0, `uji-wawasan-rating` 10/0,
+`uji-analisa-ui` 179/0, `uji-analisa` 34/0, `uji-wawasan-rating` 10/0,
 `uji-klasifikasi` 63/0, `uji-parser-pgn` 36/0, `uji-langkah-kritis` 54/0,
-`uji-i18n` (3517 kunci ID = EN), `uji-integritas-suite` 9/0, `npm run lint`
+`uji-i18n` (3526 kunci ID = EN), `uji-integritas-suite` 9/0, `npm run lint`
 bersih, `npm run build` OK.
 **Tampilan panel Ringkasan belum diverifikasi visual** — `localhost` tidak
 terjangkau dari sandbox agent, jadi semua klaim di atas berasal dari uji di atas
