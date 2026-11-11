@@ -2000,7 +2000,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
                     />
                     <TombolMundur
                       onClick={undo}
-                      disabled={!riwayat.length}
+                      disabled={modeEditPosisi || !riwayat.length}
                       t={t}
                     />
                     <TombolMaju
@@ -2010,7 +2010,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
                     />
                     <TombolKeAkhir
                       onClick={keAkhir}
-                      disabled={riwayat.length >= riwayatLengkap.length}
+                      disabled={modeEditPosisi || riwayat.length >= riwayatLengkap.length}
                       t={t}
                     />
                   </div>
@@ -2077,7 +2077,6 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
                     </button>
                   </div>
                 </div>
-                <div className="flex-1" aria-hidden="true" />
                 </div>
               </div>
             </div>
