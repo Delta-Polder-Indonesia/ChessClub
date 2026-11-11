@@ -29,4 +29,13 @@ assert.deepEqual(hitungTangkapanPuzzle(jalur("e4", "d5", "exd5")), {
   olehHitam: [],
 });
 
-console.log("OK — tangkapan teka-teki untuk kedua sisi, en passant, dan jalur tinjau.");
+// Material yang hilang sebelum posisi puzzle dimulai ditampilkan sebagai
+// perkiraan dari inventaris standar (FEN puzzle tidak memuat riwayat PGN).
+const posisiPuzzle = new Chess();
+posisiPuzzle.remove("a2");
+assert.deepEqual(hitungTangkapanPuzzle([posisiPuzzle.fen()]), {
+  olehPutih: [],
+  olehHitam: ["p"],
+});
+
+console.log("OK — tangkapan puzzle, en passant, jalur tinjau, dan material awal yang hilang.");
