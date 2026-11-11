@@ -11,6 +11,13 @@ import {
 import { useI18n } from "../../lib/i18n.jsx";
 import { ChessPiece } from "../../components/chess/ChessPiece.jsx";
 import PapanTekaTeki from "../TekaTeki/PapanTekaTeki.jsx";
+import EditorPosisi from "./EditorPosisi.jsx";
+import {
+  aturBidak,
+  fenDariPeta,
+  petaDariFen,
+  KUNCI_HAPUS_BIDAK,
+} from "./bersama/editorPosisi.js";
 import { useEngineCatur } from "../../lib/gunakanEngineCatur.js";
 import { nilaiDariSudutPelangkah } from "../../lib/bantuanSeret.js";
 import { useBantuanSeret } from "../../lib/gunakanBantuanSeret.js";
@@ -137,6 +144,10 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
   const [percobaan, setPercobaan] = useState(0);
 
   const [fen, setFen] = useState(FEN_AWAL);
+  const [modeEditPosisi, setModeEditPosisi] = useState(false);
+  const [bidakEditTerpilih, setBidakEditTerpilih] = useState(null);
+  const [galatEditPosisi, setGalatEditPosisi] = useState("");
+  const fenSebelumEditRef = useRef(null);
   // FEN posisi awal partai saat ini — sama dengan FEN_AWAL kecuali pengguna
   // memuat FEN kustom / PGN ber-header FEN lewat dialog Review. Semua replay
   // riwayat (undo, lompat ply, tangkapan, ikon langkah) berangkat dari sini,
@@ -195,6 +206,88 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
     setRiwayat(riwayatLogisRef.current);
     setRiwayatLengkap(riwayatLengkapLogisRef.current);
     setJalur(jalurLogisRef.current);
+  }
+
+  function ubahFENEdit(fenBaru) {
+    fenLogisRef.current = fenBaru;
+    setFen(fenBaru);
+    setSeleksi(SELEKSI_KOSONG);
+    setLangkahAkhir(null);
+    setGalatEditPosisi("");
+  }
+
+  function mulaiEditPosisi() {
+    fenSebelumEditRef.current = fenLogisRef.current;
+    setBidakEditTerpilih(null);
+    setGalatEditPosisi("");
+    setModeEditPosisi(true);
+    setSeleksi(SELEKSI_KOSONG);
+    setPromosi(null);
+    if (engineNyala) matikanEngine();
+  }
+
+  function klikPetakEdit(petak) {
+    if (!bidakEditTerpilih) return;
+    const simbol = bidakEditTerpilih === KUNCI_HAPUS_BIDAK ? null : bidakEditTerpilih;
+    ubahFENEdit(aturBidak(fenLogisRef.current, petak, simbol));
+  }
+
+  function pindahBidakEdit(dari, ke) {
+    const peta = petaDariFen(fenLogisRef.current);
+    const simbol = peta[dari];
+    if (!simbol) return;
+    delete peta[dari];
+    peta[ke] = simbol;
+    ubahFENEdit(fenDariPeta(peta, fenLogisRef.current.split(/\s+/)[1]));
+  }
+
+  function hapusBidakEdit(petak) {
+    ubahFENEdit(aturBidak(fenLogisRef.current, petak, null));
+  }
+
+  function ubahGiliranEdit(giliran) {
+    ubahFENEdit(
+      fenDariPeta(petaDariFen(fenLogisRef.current), giliran)
+    );
+  }
+
+  function terapkanEditPosisi() {
+    const posisi = fenLogisRef.current;
+    try {
+      const peta = petaDariFen(posisi);
+      const rajaPutih = Object.values(peta).filter((b) => b === "K").length;
+      const rajaHitam = Object.values(peta).filter((b) => b === "k").length;
+      if (rajaPutih !== 1 || rajaHitam !== 1) {
+        throw new Error(t("papan.posisiPerluRaja"));
+      }
+      const fenSah = new Chess(posisi).fen();
+      fenLogisRef.current = fenSah;
+      setFenAwal(fenSah);
+      terapkanPosisi({ fen: fenSah, riwayat: [], riwayatLengkap: [], jalur: [] });
+      setModeEditPosisi(false);
+      setBidakEditTerpilih(null);
+      setGalatEditPosisi("");
+      setLangkahAkhir(null);
+      setPilihan(-1);
+      setOrientasi("w");
+      hapusSemuaTanda();
+    } catch (galat) {
+      setGalatEditPosisi(
+        galat instanceof Error ? galat.message : t("papan.posisiTidakSah")
+      );
+    }
+  }
+
+  function batalkanEditPosisi() {
+    const asal = fenSebelumEditRef.current;
+    if (asal) {
+      fenLogisRef.current = asal;
+      setFen(asal);
+    }
+    setModeEditPosisi(false);
+    setBidakEditTerpilih(null);
+    setGalatEditPosisi("");
+    setSeleksi(SELEKSI_KOSONG);
   }
 
   const [kesalahan, setKesalahan] = useState(null);
@@ -343,7 +436,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
   // Bantuan langkah ala "assisted play": worker engine TERPISAH, hanya hidup
   // saat sakelarnya nyala dan seret sedang berjalan (lihat useBantuanSeret).
   const bantuanSeret = useBantuanSeret({
-    aktif: bantuanNyala,
+    aktif: bantuanNyala && !modeEditPosisi,
     fen,
     nilaiTerbaik: nilaiTerbaikSekarang,
   });
@@ -420,7 +513,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
   /* ------------------------------------------------ pembukaan saat ini */
   // Buku pembukaan hanya valid dari posisi awal standar — partai dari FEN
   // kustom langsung dianggap di luar buku (saran datang dari basis data awan).
-  const posisiKustom = fenAwal !== FEN_AWAL;
+  const posisiKustom = modeEditPosisi || fenAwal !== FEN_AWAL;
   const infoPembukaan = useMemo(() => {
     if (!pohon) return { nama: null, saran: [], cocok: false };
     if (posisiKustom) return { nama: null, saran: [], cocok: false };
@@ -1473,6 +1566,20 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
               (tab Buku/Penjelajah/Partai) menampilkan statusnya sendiri. */}
           <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-x-hidden overflow-y-auto lg:flex-row lg:items-stretch lg:gap-3 lg:overflow-hidden">
               <div className="mx-auto flex w-full max-w-[520px] shrink-0 flex-col justify-center overflow-y-auto lg:mx-0 lg:max-w-[min(520px,calc(100dvh-140px),calc(100vw-634px))]">
+                <EditorPosisi
+                  aktif={modeEditPosisi}
+                  terpilih={bidakEditTerpilih}
+                  onMulai={mulaiEditPosisi}
+                  onPilih={setBidakEditTerpilih}
+                  onGiliran={ubahGiliranEdit}
+                  giliran={fen.split(/\s+/)[1] === "b" ? "b" : "w"}
+                  onKosongkan={() => ubahFENEdit(fenDariPeta({}, fen.split(/\s+/)[1]))}
+                  onAwal={() => ubahFENEdit(FEN_AWAL)}
+                  onTerapkan={terapkanEditPosisi}
+                  onBatal={batalkanEditPosisi}
+                  setBidak={setBidak}
+                  galat={galatEditPosisi}
+                />
                 {/* ─── BARIS PEMAIN ATAS — mengikuti orientasi papan ─── */}
                 <BarisProfil {...barisAtas} setBidak={setBidak} className="mb-2" />
 
@@ -1490,9 +1597,11 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
                   <PapanTekaTeki
                     fen={fen}
                     orientasi={orientasi}
-                    terpilih={terpilih}
-                    sasaran={sasaran}
-                    sasaranTangkap={seleksi.tangkap}
+                    terpilih={modeEditPosisi ? null : terpilih}
+                    sasaran={modeEditPosisi ? [] : sasaran}
+                    sasaranTangkap={modeEditPosisi ? [] : seleksi.tangkap}
+                    modeEdit={modeEditPosisi}
+                    onHapusBidak={hapusBidakEdit}
                     kesalahan={kesalahan}
                     langkahAkhir={langkahAkhir}
                     tanda={tanda}
@@ -1506,11 +1615,11 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
                     membeku={false}
                     setBidak={setBidak}
                     tema={warnaPapan}
-                    onKlik={klikPetak}
-                    onMulaiSeret={mulaiSeret}
-                    onSelesaiSeret={selesaiSeret}
-                    onBatalSeret={batalkanSeret}
-                    onLewatiPetak={lewatiPetak}
+                    onKlik={modeEditPosisi ? klikPetakEdit : klikPetak}
+                    onMulaiSeret={modeEditPosisi ? undefined : mulaiSeret}
+                    onSelesaiSeret={modeEditPosisi ? pindahBidakEdit : selesaiSeret}
+                    onBatalSeret={modeEditPosisi ? undefined : batalkanSeret}
+                    onLewatiPetak={modeEditPosisi ? undefined : lewatiPetak}
                     onJatuh={cobaLangkah}
                     onTandaPetak={tandaPetak}
                     onTandaPanah={tandaPanah}
