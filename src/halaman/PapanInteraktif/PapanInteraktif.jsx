@@ -1987,13 +1987,15 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
                     </>
                   )}
                 </div>
+                </>
+                )}
 
                 {/* Panel Kontrol Bawah Navigasi — menyatu di dasar panel ala LayoutTekaTeki */}
                 <div className="mt-auto flex-shrink-0 space-y-3 rounded-b-lg border-t border-[#312e2b] bg-[#1e1c18] p-3">
                   <div className="flex items-center gap-1 rounded-lg border border-[#312e2b] bg-[#262421] p-1">
                     <TombolKeAwal
                       onClick={keAwal}
-                      disabled={!riwayat.length}
+                      disabled={modeEditPosisi || !riwayat.length}
                       t={t}
                     />
                     <TombolMundur
@@ -2003,7 +2005,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
                     />
                     <TombolMaju
                       onClick={redo}
-                      disabled={riwayat.length >= riwayatLengkap.length}
+                      disabled={modeEditPosisi || riwayat.length >= riwayatLengkap.length}
                       t={t}
                     />
                     <TombolKeAkhir
@@ -2017,7 +2019,8 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
                     <button
                       type="button"
                       onClick={reset}
-                      className="flex flex-col items-center gap-1 rounded border border-[#312e2b] bg-[#262421] p-2 transition hover:bg-[#312e2b]"
+                      disabled={modeEditPosisi}
+                      className="flex flex-col items-center gap-1 rounded border border-[#312e2b] bg-[#262421] p-2 transition hover:bg-[#312e2b] disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       <Plus className="h-4 w-4 text-gray-400" />
                       <span>{t("papan.baru")}</span>
@@ -2025,7 +2028,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
                     <button
                       type="button"
                       onClick={salinPgn}
-                      disabled={!riwayat.length && !posisiKustom}
+                      disabled={modeEditPosisi || (!riwayat.length && !posisiKustom)}
                       title={t("papan.daftarLangkahPgn")}
                       className="flex flex-col items-center gap-1 rounded border border-[#312e2b] bg-[#262421] p-2 transition hover:bg-[#312e2b] disabled:cursor-not-allowed disabled:opacity-40"
                     >
@@ -2035,8 +2038,9 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
                     <button
                       type="button"
                       onClick={() => setTampilPgn(true)}
+                      disabled={modeEditPosisi}
                       title={t("papan.inputPgnFen")}
-                      className="flex flex-col items-center gap-1 rounded border border-[#312e2b] bg-[#262421] p-2 transition hover:bg-[#312e2b]"
+                      className="flex flex-col items-center gap-1 rounded border border-[#312e2b] bg-[#262421] p-2 transition hover:bg-[#312e2b] disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       <RotateCw className="h-4 w-4 text-gray-400" />
                       <span>{t("papan.tinjau")}</span>
@@ -2044,8 +2048,9 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
                     <button
                       type="button"
                       onClick={bagikanPartai}
+                      disabled={modeEditPosisi}
                       title={t("papan.berbagi")}
-                      className="flex flex-col items-center gap-1 rounded border border-[#312e2b] bg-[#262421] p-2 transition hover:bg-[#312e2b]"
+                      className="flex flex-col items-center gap-1 rounded border border-[#312e2b] bg-[#262421] p-2 transition hover:bg-[#312e2b] disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       <Share2 className="h-4 w-4 text-gray-400" />
                       <span>
@@ -2072,8 +2077,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
                     </button>
                   </div>
                 </div>
-                  </>
-                )}
+                <div className="flex-1" aria-hidden="true" />
                 </div>
               </div>
             </div>
