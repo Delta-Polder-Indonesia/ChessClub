@@ -5,7 +5,6 @@ import {
   Plus,
   Pencil,
   RotateCw,
-  Share2,
   Volume2,
   VolumeX,
 } from "lucide-react";
@@ -305,8 +304,6 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
   const setBidak = pp.bidak;
 
   const [pgnTersalin, setPgnTersalin] = useState(false);
-  // Status tombol Bagikan: "idle" | "ok" | "gagal" (label tombol ikut berganti).
-  const [statusBerbagi, setStatusBerbagi] = useState("idle");
   const [pilihan, setPilihan] = useState(-1); // id pembukaan terpilih di dropdown
   // Popup pengaturan hanya untuk tanpa onBukaPengaturan (mis. halaman
   // Teka-Teki); di /papan-interaktif tombol gear membuka layar Pengaturan.
@@ -1193,29 +1190,6 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
     }
   }
 
-  /** Bagikan partai: Web Share API bila tersedia, kalau tidak salin PGN/FEN. */
-  async function bagikanPartai() {
-    const teks = susunPgnDenganFen(riwayat, fenAwal) || fen;
-    try {
-      if (navigator.share) {
-        await navigator.share({ title: t("papan.judul"), text: teks });
-      } else if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(teks);
-      } else {
-        setStatusBerbagi("gagal");
-        return;
-      }
-      setStatusBerbagi("ok");
-    } catch (e) {
-      // AbortError = pengguna menutup lembar berbagi — bukan kegagalan.
-      if (e?.name === "AbortError") return;
-      setStatusBerbagi("gagal");
-    } finally {
-      window.clearTimeout(timerSalin.current);
-      timerSalin.current = window.setTimeout(() => setStatusBerbagi("idle"), 2000);
-    }
-  }
-
   /** Navigasi keyboard antar-tab panel (panah/Home/End) — fokus ikut berpindah. */
   const tabRefs = useRef([]);
   function saatKunciTab(e) {
@@ -2025,7 +1999,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
                     />
                   </div>
 
-                  <div className="grid grid-cols-5 gap-2 text-xs font-semibold text-gray-300">
+                  <div className="grid grid-cols-4 gap-2 text-xs font-semibold text-gray-300">
                     <button
                       type="button"
                       onClick={reset}
@@ -2054,22 +2028,6 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
                     >
                       <RotateCw className="h-4 w-4 text-gray-400" />
                       <span>{t("papan.tinjau")}</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={bagikanPartai}
-                      disabled={modeEditPosisi}
-                      title={t("papan.berbagi")}
-                      className="flex flex-col items-center gap-1 rounded border border-[#312e2b] bg-[#262421] p-2 transition hover:bg-[#312e2b] disabled:cursor-not-allowed disabled:opacity-40"
-                    >
-                      <Share2 className="h-4 w-4 text-gray-400" />
-                      <span>
-                        {statusBerbagi === "ok"
-                          ? t("papan.tersalinSingkat")
-                          : statusBerbagi === "gagal"
-                            ? t("papan.berbagiGagal")
-                            : t("papan.berbagi")}
-                      </span>
                     </button>
                     <button
                       type="button"
