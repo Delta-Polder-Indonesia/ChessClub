@@ -338,6 +338,13 @@ judul("tata letak: baris profil terpisah dari papan (regresi PR #228)");
     areaPapan.split("min-h-10").length >= 3
   );
 
+  uji(
+    "label mate/taktik diganti dengan bidak tangkapan pada kedua profil",
+    !/tekaTeki\.(?:skakDalamN|taktikDalamN)/.test(areaPapan) &&
+      /CapturedPieces white pieces=\{tangkapanHitam\}/.test(areaPapan) &&
+      /CapturedPieces pieces=\{tangkapanPutih\}/.test(areaPapan)
+  );
+
   /*
    * Panel kanan "Main": ringkasan giliran (ikon bidak, label, Elo) dan catatan
    * pelatih harus berbagi tinggi panel dengan pembagian yang TETAP. Dulu wadah

@@ -486,6 +486,8 @@ export default function PapanTekaTeki({
   setBidak = "merida",
   tema = "hijau",
   animasi = true, // luncurkan bidak saat posisi berganti (matikan bila perlu)
+  modeEdit = false,
+  onHapusBidak,
   onKlik,
   onPilih,
   onJatuh,
@@ -927,7 +929,7 @@ export default function PapanTekaTeki({
     baruBatalRef.current = false;
     const bidak = peta[petakAwal];
     const warnaBidak = bidak ? (bidak === bidak.toUpperCase() ? "w" : "b") : null;
-    if (bidak && warnaBidak === giliran) {
+    if (bidak && (modeEdit || warnaBidak === giliran)) {
       mulaiSeret(e, petakAwal);
     }
   }
@@ -974,7 +976,24 @@ export default function PapanTekaTeki({
       setSeret(null);
       lewatiRef.current = null;
       onLewatiPetakRef.current?.(null);
-      const tujuan = pindah ? cariPetak(e.clientX, e.clientY) || dari : dari;
+      const petakTujuan = pindah ? cariPetak(e.clientX, e.clientY) : null;
+      if (modeEdit) {
+        if (!pindah) {
+          onKlik?.(dari);
+          return;
+        }
+        if (!petakTujuan) {
+          onHapusBidak?.(dari);
+          return;
+        }
+        if (petakTujuan !== dari) {
+          abaikanKlikRef.current = true;
+          lewatiGeserRef.current = { ke: petakTujuan, waktu: Date.now() };
+          onSelesaiSeret?.(dari, petakTujuan, false);
+        }
+        return;
+      }
+      const tujuan = petakTujuan || dari;
       const klikUlang = !pindah && tujuan === dari && terpilihSebelumnya;
       if (pindah && tujuan !== dari) {
         abaikanKlikRef.current = true;
@@ -1092,7 +1111,7 @@ export default function PapanTekaTeki({
               baris={baris}
               kolom={kolom}
               bidak={bidak}
-              bisaSeret={!!bidak && warnaBidak === giliran && !terkunci}
+              bisaSeret={!!bidak && (modeEdit || warnaBidak === giliran) && !terkunci}
               dipilih={terpilih === sq}
               jadiSasaran={sasaran.includes(sq)}
               jadiTangkap={sasaranTangkap.includes(sq)}

@@ -81,6 +81,8 @@ export const tekaTeki = {
     ratingSoal: "Rating Soal",
     skakDalamN: "Skak dalam {n} langkah",
     taktikDalamN: "Taktik {n} langkah",
+    bidakDimakanPutih: "Bidak yang dimakan pemain putih",
+    bidakDimakanHitam: "Bidak yang dimakan pemain hitam",
     kecepatanMesin: "Kecepatan mesin",
     tabAtribusi: "Hasil Karya Bintang Toba (2026)",
     mainkanSaran: "Mainkan saran ({san})",

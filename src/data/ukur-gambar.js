@@ -15,11 +15,6 @@
  * berkas aslinya sudah lebih ramping daripada hasil kompresi ulang.
  */
 export const UKUR = {
-  "/images/BlunderSkuad.webp": [
-    160,
-    160,
-    []
-  ],
   "/images/E-Books/cover-101-prinsip-dasar.webp": [
     1024,
     1536,

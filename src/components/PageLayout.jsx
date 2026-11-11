@@ -3,7 +3,6 @@ import { Outlet, useLocation } from "react-router-dom";
 import Header from "./Header.jsx";
 import Footer from "./Footer.jsx";
 import Kanonik from "./Kanonik.jsx";
-import KarakterAnomali from "./KarakterAnomali.jsx";
 import { BersihkanBootHero, PlaceholderHalaman } from "./Loading.jsx";
 
 /**
@@ -73,7 +72,6 @@ export default function PageLayout() {
         </Suspense>
       </main>
       {tanpaKerangka ? null : <Footer />}
-      <KarakterAnomali />
     </>
   );
 }
