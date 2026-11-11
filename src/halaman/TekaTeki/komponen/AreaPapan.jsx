@@ -36,20 +36,21 @@
 import { useI18n } from "../../../lib/i18n.jsx";
 import KerangkaPapan from "./KerangkaPapan.jsx";
 import KerangkaBilahEvaluasi from "./KerangkaBilahEvaluasi.jsx";
+import CapturedPieces from "../../Analisa/komponen/game/capturedPieces.jsx";
 
 export default function AreaPapan({
   papan = null,
   bilahEvaluasi = null,
   orientasi = "w",
   memuat = false,
-  jumlahLangkah = 1,
-  bukanSkakmat = false,
   teksTingkat = "",
   eloSoal = 1500,
   namaHitam = "",
   eloHitam = 0,
+  tangkapanHitam = [],
   namaPutih = "",
   eloPutih = 0,
+  tangkapanPutih = [],
 }) {
   const { t } = useI18n();
   return (
@@ -103,14 +104,12 @@ export default function AreaPapan({
                     <span className="shrink-0 text-xs font-medium text-gray-300">({eloHitam})</span>
                   )}
                 </div>
-                <div className="mt-0.5 flex flex-row items-center gap-1.5">
-                  <span className="min-w-0 truncate text-[11px] font-medium text-gray-400">
-                    {memuat
-                      ? "—"
-                      : bukanSkakmat
-                        ? t("tekaTeki.taktikDalamN", { n: jumlahLangkah })
-                        : t("tekaTeki.skakDalamN", { n: jumlahLangkah })}
-                  </span>
+                <div
+                  role="group"
+                  aria-label={t("tekaTeki.bidakDimakanHitam")}
+                  className="mt-0.5 flex min-h-[10px] flex-row items-center gap-1.5"
+                >
+                  <CapturedPieces white pieces={tangkapanHitam} />
                 </div>
               </div>
             </div>
@@ -220,6 +219,13 @@ export default function AreaPapan({
                   {eloPutih > 0 && (
                     <span className="shrink-0 text-xs font-medium text-gray-300">({eloPutih})</span>
                   )}
+                </div>
+                <div
+                  role="group"
+                  aria-label={t("tekaTeki.bidakDimakanPutih")}
+                  className="mt-0.5 flex min-h-[10px] flex-row items-center gap-1.5"
+                >
+                  <CapturedPieces pieces={tangkapanPutih} />
                 </div>
               </div>
             </div>

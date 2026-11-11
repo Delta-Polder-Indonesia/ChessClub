@@ -81,6 +81,8 @@ export const tekaTeki = {
     ratingSoal: "Puzzle rating",
     skakDalamN: "Mate in {n}",
     taktikDalamN: "{n}-move tactic",
+    bidakDimakanPutih: "Pieces captured by White",
+    bidakDimakanHitam: "Pieces captured by Black",
     kecepatanMesin: "Engine speed",
     tabAtribusi: "Work by Bintang Toba (2026)",
     mainkanSaran: "Play suggestion ({san})",

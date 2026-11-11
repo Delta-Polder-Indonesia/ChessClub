@@ -108,14 +108,14 @@ export default function TekaTekiShell({
             bilahEvaluasi={bilahEvaluasi}
             orientasi={tampilan.orientasi}
             memuat={memuat}
-            jumlahLangkah={tampilan.jumlahLangkah}
-            bukanSkakmat={tampilan.bukanSkakmat}
             teksTingkat={tampilan.teksTingkat}
             eloSoal={tampilan.eloSoal}
             namaHitam={tampilan.namaHitam}
             eloHitam={tampilan.eloHitam}
+            tangkapanHitam={tampilan.tangkapanHitam}
             namaPutih={tampilan.namaPutih}
             eloPutih={tampilan.eloPutih}
+            tangkapanPutih={tampilan.tangkapanPutih}
           />
         </div>
 
