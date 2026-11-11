@@ -1748,11 +1748,9 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
                     kontrol dasar tidak ikut naik-turun saat isi tab pendek/kosong */}
                 <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-lg border border-[#312e2b] bg-[#211f1c]">
                 {modeEditPosisi && (
-                  <div className="max-h-[42vh] shrink-0 overflow-y-auto border-b border-sky-900/60 bg-[#1d2730] p-3 lg:max-h-[48vh]">
+                  <div className="min-h-0 flex-1 overflow-y-auto border-b border-[#312e2b] bg-[#211f1c] p-4">
                     <EditorPosisi
-                      aktif={modeEditPosisi}
                       terpilih={bidakEditTerpilih}
-                      onMulai={mulaiEditPosisi}
                       onPilih={setBidakEditTerpilih}
                       onGiliran={ubahGiliranEdit}
                       giliran={fen.split(/\s+/)[1] === "b" ? "b" : "w"}
@@ -1765,6 +1763,8 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
                     />
                   </div>
                 )}
+                {!modeEditPosisi && (
+                  <>
                 {/* Header Tab Navigasi — pola panel kanan Chess.com (referensi prompt.md) */}
                 <div
                   role="tablist"
@@ -2063,7 +2063,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
                       title={t("papan.editPosisi")}
                       className={`flex flex-col items-center gap-1 rounded border p-2 transition ${
                         modeEditPosisi
-                          ? "border-sky-500 bg-sky-950 text-sky-100"
+                          ? "border-white bg-[#3a3835] text-white"
                           : "border-[#312e2b] bg-[#262421] text-gray-300 hover:bg-[#312e2b]"
                       }`}
                     >
@@ -2072,6 +2072,8 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
                     </button>
                   </div>
                 </div>
+                  </>
+                )}
                 </div>
               </div>
             </div>

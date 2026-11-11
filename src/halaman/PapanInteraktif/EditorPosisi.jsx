@@ -9,9 +9,7 @@ const BIDAK = [
 ];
 
 export default function EditorPosisi({
-  aktif,
   terpilih,
-  onMulai,
   onPilih,
   onGiliran,
   giliran,
@@ -24,66 +22,58 @@ export default function EditorPosisi({
 }) {
   const { t } = useI18n();
 
-  if (!aktif) {
-    return (
-      <button
-        type="button"
-        onClick={onMulai}
-        className="mb-2 inline-flex min-h-9 items-center gap-2 rounded-md border border-[#57534e] bg-[#302e2b] px-3 py-1.5 text-xs font-semibold text-gray-200 transition-colors hover:bg-[#3b3936] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
-      >
-        {t("papan.editPosisi")}
-      </button>
-    );
-  }
-
   return (
     <section
       aria-label={t("papan.editPosisi")}
-      className="mb-3 rounded-lg border border-sky-700/70 bg-[#1d2730] p-3 shadow-lg"
+      className="mx-auto w-full max-w-xl rounded-lg border border-[#3a3835] bg-[#262421] p-4 shadow-lg"
     >
-      <div className="mb-2 flex flex-wrap items-center gap-2">
+      <div className="mb-4 border-b border-[#3a3835] pb-3">
+        <h2 className="text-sm font-bold tracking-wide text-gray-100">
+          {t("papan.editPosisi")}
+        </h2>
+        <p className="mt-1 text-xs leading-relaxed text-gray-400">
+          {t("papan.petunjukEditPosisi")}
+        </p>
+      </div>
+      <div className="mb-4 flex flex-wrap items-center gap-2">
         <button
           type="button"
           onClick={onTerapkan}
-          className="rounded-md bg-emerald-700 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-600"
+          className="rounded-md bg-[#e7e5e4] px-3 py-2 text-xs font-semibold text-[#262421] transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400"
         >
           {t("papan.selesaiEditPosisi")}
         </button>
         <button
           type="button"
           onClick={onBatal}
-          className="rounded-md border border-gray-600 px-3 py-2 text-xs font-semibold text-gray-200 hover:bg-white/10"
+          className="rounded-md border border-[#57534e] px-3 py-2 text-xs font-semibold text-gray-200 transition hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500"
         >
           {t("papan.batalEditPosisi")}
         </button>
         <button
           type="button"
           onClick={onAwal}
-          className="rounded-md border border-gray-600 px-3 py-2 text-xs font-semibold text-gray-200 hover:bg-white/10"
+          className="rounded-md border border-[#57534e] px-3 py-2 text-xs font-semibold text-gray-200 transition hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500"
         >
           {t("papan.posisiAwal")}
         </button>
         <button
           type="button"
           onClick={onKosongkan}
-          className="rounded-md border border-gray-600 px-3 py-2 text-xs font-semibold text-gray-200 hover:bg-white/10"
+          className="rounded-md border border-[#57534e] px-3 py-2 text-xs font-semibold text-gray-200 transition hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500"
         >
           {t("papan.kosongkanPapan")}
         </button>
         <button
           type="button"
           onClick={() => onGiliran(giliran === "w" ? "b" : "w")}
-          className="rounded-md border border-gray-600 px-3 py-2 text-xs font-semibold text-gray-200 hover:bg-white/10"
+          className="rounded-md border border-[#57534e] px-3 py-2 text-xs font-semibold text-gray-200 transition hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500"
         >
           {t("papan.giliranEdit", {
             warna: t(giliran === "w" ? "papan.warnaPutih" : "papan.warnaHitam"),
           })}
         </button>
       </div>
-
-      <p className="mb-2 text-[11px] leading-relaxed text-gray-300">
-        {t("papan.petunjukEditPosisi")}
-      </p>
 
       <div className="flex flex-wrap items-center gap-1.5">
         {BIDAK.map((simbol) => {
@@ -101,7 +91,7 @@ export default function EditorPosisi({
               onClick={() => onPilih(dipilih ? null : simbol)}
               className={`flex size-10 items-center justify-center rounded-md border transition-colors ${
                 dipilih
-                  ? "border-sky-300 bg-sky-800 ring-2 ring-sky-400/50"
+                  ? "border-white bg-[#57534e] ring-2 ring-white/30"
                   : "border-gray-600 bg-[#302e2b] hover:bg-[#45423f]"
               }`}
             >
@@ -122,7 +112,7 @@ export default function EditorPosisi({
           }
           className={`min-h-10 rounded-md border px-3 text-xs font-semibold transition-colors ${
             terpilih === KUNCI_HAPUS_BIDAK
-              ? "border-rose-300 bg-rose-900 ring-2 ring-rose-400/50"
+              ? "border-white bg-[#57534e] ring-2 ring-white/30"
               : "border-gray-600 bg-[#302e2b] text-gray-200 hover:bg-[#45423f]"
           }`}
         >
@@ -131,7 +121,7 @@ export default function EditorPosisi({
       </div>
 
       {galat && (
-        <p role="alert" className="mt-2 text-xs font-medium text-amber-300">
+        <p role="alert" className="mt-2 text-xs font-medium text-gray-300">
           {galat}
         </p>
       )}
