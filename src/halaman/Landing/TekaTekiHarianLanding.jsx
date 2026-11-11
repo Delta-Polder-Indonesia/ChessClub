@@ -29,6 +29,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import KerangkaTekaTekiHarian from "./KerangkaTekaTekiHarian.jsx";
 import { Chess } from "chess.js";
 import { useI18n } from "../../lib/i18n.jsx";
 import { Tombol } from "../../components/Tombol.jsx";
@@ -447,64 +448,11 @@ export default function TekaTekiHarianLanding() {
 
   /* ------------------------------------------------------------- render */
 
-  // Snapshot belum ada (masih memuat) → tampilkan kerangka dengan ukuran
-  // yang sama seperti konten akhir, supaya tidak terjadi pergeseran tata
-  // letak (CLS) saat seksi tiba-tiba muncul setelah data siap.
-  if (!daftar) {
-    return (
-      <section
-        aria-labelledby="teka-teki-harian-judul"
-        className="w-full pl-6 md:pl-8 pr-6 md:pr-8 pb-12 xl:pb-16 pt-12 xl:pt-16 overflow-hidden"
-      >
-        <div className="relative mx-auto w-full max-w-7xl">
-          <div className="grid items-center gap-x-6 gap-y-10 xl:grid-cols-12 xl:gap-x-8">
-            <div className="xl:col-span-3 xl:min-h-[440px] flex flex-col justify-center gap-y-6">
-              <div className="h-8 w-3/4 bg-grey-200 rounded animate-pulse" />
-              <div className="h-6 w-1/2 bg-grey-200 rounded animate-pulse" />
-              <div className="h-40 w-40 rounded-full bg-grey-200 mx-auto animate-pulse" />
-              <div className="h-12 w-full bg-grey-200 rounded animate-pulse" />
-              <div className="h-4 w-3/4 bg-grey-200 rounded animate-pulse" />
-            </div>
-            <div className="xl:col-span-6 flex justify-center">
-              <div className="aspect-square w-full max-w-lg rounded-lg border border-grey-200 bg-grey-50 animate-pulse" />
-            </div>
-            <div className="xl:col-span-3 xl:min-h-[440px] flex flex-col justify-center gap-y-7">
-              <div className="h-6 w-1/3 bg-grey-200 rounded animate-pulse" />
-              <div className="h-8 w-2/3 bg-grey-200 rounded animate-pulse" />
-              <div className="h-6 w-full bg-grey-200 rounded animate-pulse" />
-            </div>
-          </div>
-        </div>
-      </section>
-    );
-  }
-  if (daftar.length === 0) {
-    return (
-      <section
-        aria-labelledby="teka-teki-harian-judul"
-        className="w-full pl-6 md:pl-8 pr-6 md:pr-8 pb-12 xl:pb-16 pt-12 xl:pt-16 overflow-hidden"
-      >
-        <div className="relative mx-auto w-full max-w-7xl">
-          <div className="grid items-center gap-x-6 gap-y-10 xl:grid-cols-12 xl:gap-x-8">
-            <div className="xl:col-span-3 xl:min-h-[440px] flex flex-col justify-center gap-y-6">
-              <div className="h-8 w-3/4 bg-grey-200 rounded animate-pulse" />
-              <div className="h-6 w-1/2 bg-grey-200 rounded animate-pulse" />
-              <div className="h-40 w-40 rounded-full bg-grey-200 mx-auto animate-pulse" />
-              <div className="h-12 w-full bg-grey-200 rounded animate-pulse" />
-              <div className="h-4 w-3/4 bg-grey-200 rounded animate-pulse" />
-            </div>
-            <div className="xl:col-span-6 flex justify-center">
-              <div className="aspect-square w-full max-w-lg rounded-lg border border-grey-200 bg-grey-50 animate-pulse" />
-            </div>
-            <div className="xl:col-span-3 xl:min-h-[440px] flex flex-col justify-center gap-y-7">
-              <div className="h-6 w-1/3 bg-grey-200 rounded animate-pulse" />
-              <div className="h-8 w-2/3 bg-grey-200 rounded animate-pulse" />
-              <div className="h-6 w-full bg-grey-200 rounded animate-pulse" />
-            </div>
-          </div>
-        </div>
-      </section>
-    );
+  // Kerangka dipakai saat snapshot belum tersedia, termasuk ketika kosong.
+  // Komponen yang sama juga menjadi fallback Suspense di Landing, sehingga
+  // seksi ini tidak muncul mendadak setelah chunk papan catur dimuat.
+  if (!daftar || daftar.length === 0) {
+    return <KerangkaTekaTekiHarian />;
   }
 
   const nomorSoal = Math.min(game.indeks + 1, daftar.length);

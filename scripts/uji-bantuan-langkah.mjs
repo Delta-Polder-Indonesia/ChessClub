@@ -511,7 +511,10 @@ const teksPapan = readFileSync(path.join(ROOT, "src/halaman/PapanInteraktif/Papa
 const teksPopup = readFileSync(path.join(ROOT, "src/halaman/PapanInteraktif/PopupPengaturan.jsx"), "utf8");
 uji("halaman mengirim bantuanPetak ke papan", teksPapan.includes("bantuanPetak={bantuanNyala ?"));
 uji("halaman mengirim bantuanPanah ke papan", teksPapan.includes("bantuanPanah={bantuanNyala ?"));
-uji("halaman mengirim onLewatiPetak (petak yang dilintasi saat seret)", teksPapan.includes("onLewatiPetak={lewatiPetak}"));
+uji(
+  "halaman mengirim onLewatiPetak hanya saat bukan mode susun",
+  /onLewatiPetak=\{modeEditPosisi\s*\?\s*undefined\s*:\s*lewatiPetak\}/.test(teksPapan)
+);
 uji("bantuan hanya diminta untuk petak yang SAH", /sasaran\.includes\(petak\)[\s\S]{0,80}bantuanSeret\.panggil/.test(teksPapan));
 uji("sakelar bantuan ada di Pengaturan Papan", teksPopup.includes("papan.bantuanToggle"));
 uji("halaman menyalakan engine saat bantuan diaktifkan", /if \(nilai\) nyalakanEngine\(\)/.test(teksPapan));

@@ -32,6 +32,7 @@ import MetaHalaman from "../../components/MetaHalaman.jsx";
 import { useTandaBantu } from "../../lib/tandaBantu.js";
 import { bangunPgnUntukAnalisa } from "./services/puzzlePgn.js";
 import { bandLevel } from "./services/puzzleFilter.js";
+import { hitungTangkapanPuzzle } from "./services/tangkapanPuzzle.js";
 import { DAFTAR_TEMA } from "./data/temaTekaTeki.js";
 import { usePuzzleSession } from "./hooks/usePuzzleSession.js";
 import { usePuzzleGame } from "./hooks/usePuzzleGame.js";
@@ -203,6 +204,7 @@ export default function TekaTeki() {
     sedangSeret,
     komentar,
   } = kondisi;
+  const tangkapan = useMemo(() => hitungTangkapanPuzzle(jalurFen), [jalurFen]);
 
   /*
    * Soal baru selalu memasang papan bersih, termasuk tanda bantu.
@@ -489,15 +491,15 @@ export default function TekaTeki() {
         tampilan={{
           orientasi,
           giliran: fen && fen.split(" ")[1] === "b" ? "hitam" : "putih",
-          jumlahLangkah: Math.ceil(langkahPenuh.length / 2),
-          bukanSkakmat: masalah?.type === "Tactical",
           teksTingkat: masalah ? t(KUNCI_LEVEL[bandLevel(masalah.rating ?? 0)]) : "",
           teksCekmat: pesan?.jenis === "selesai" ? pesan.teks : "",
           eloSoal: masalah?.rating ?? 1500,
           namaHitam: masalah?.pemainHitam || "",
           eloHitam: masalah?.eloHitam || 0,
+          tangkapanHitam: tangkapan.olehHitam,
           namaPutih: masalah?.pemainPutih || "",
           eloPutih: masalah?.eloPutih || 0,
+          tangkapanPutih: tangkapan.olehPutih,
           nilaiSetBidak: setBidak,
           onGantiSetBidak: setSetBidak,
           daftarSet: DAFTAR_SET,
