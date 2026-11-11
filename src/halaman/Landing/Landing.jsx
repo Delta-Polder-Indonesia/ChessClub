@@ -40,6 +40,7 @@ import { KartuAlatLatihan } from "./KartuAlatLatihan.jsx";
  */
 const TekaTekiHarianLanding = lazy(() => import("./TekaTekiHarianLanding.jsx"));
 import MaestroEdision from "./MaestroEdision.jsx";
+import KerangkaTekaTekiHarian from "./KerangkaTekaTekiHarian.jsx";
 import Testimoni from "./Testimoni.jsx";
 import {
   JUDUL_SEKSI,
@@ -684,7 +685,7 @@ export default function Landing() {
           disediakan tersembunyi untuk pembaca layar & mesin pencari. */}
       <h1 className="sr-only font-serif">{t("common.namaKomunitas")}</h1>
       <LandingHero t={t} />
-      <Suspense fallback={null}>
+      <Suspense fallback={<KerangkaTekaTekiHarian />}>
         <TekaTekiHarianLanding />
       </Suspense>
       <Testimoni />
