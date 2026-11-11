@@ -3,10 +3,8 @@ import { ChessPiece } from "../../components/chess/ChessPiece.jsx";
 import { KUNCI_HAPUS_BIDAK } from "./bersama/editorPosisi.js";
 
 const JENIS = ["k", "q", "r", "b", "n", "p"];
-const BIDAK = [
-  ...JENIS.map((jenis) => jenis.toUpperCase()),
-  ...JENIS,
-];
+const BIDAK_PUTIH = JENIS.map((jenis) => jenis.toUpperCase());
+const BIDAK_HITAM = JENIS;
 
 export default function EditorPosisi({
   terpilih,
@@ -75,49 +73,62 @@ export default function EditorPosisi({
         </button>
       </div>
 
-      <div className="flex flex-wrap items-center gap-1.5">
-        {BIDAK.map((simbol) => {
-          const putih = simbol === simbol.toUpperCase();
-          const jenis = simbol.toLowerCase();
-          const dipilih = terpilih === simbol;
-          const nama = t(`tekaTeki.namaBidak.${jenis}`);
-          const warna = t(putih ? "papan.warnaPutih" : "papan.warnaHitam");
-          return (
-            <button
-              key={simbol}
-              type="button"
-              aria-label={`${warna}: ${nama}`}
-              aria-pressed={dipilih}
-              onClick={() => onPilih(dipilih ? null : simbol)}
-              className={`flex size-10 items-center justify-center rounded-md border transition-colors ${
-                dipilih
-                  ? "border-white bg-[#57534e] ring-2 ring-white/30"
-                  : "border-gray-600 bg-[#302e2b] hover:bg-[#45423f]"
-              }`}
-            >
-              <ChessPiece
-                piece={simbol}
-                set={setBidak}
-                className="size-8"
-              />
-            </button>
-          );
-        })}
-        <button
-          type="button"
-          aria-label={t("papan.hapusBidak")}
-          aria-pressed={terpilih === KUNCI_HAPUS_BIDAK}
-          onClick={() =>
-            onPilih(terpilih === KUNCI_HAPUS_BIDAK ? null : KUNCI_HAPUS_BIDAK)
-          }
-          className={`min-h-10 rounded-md border px-3 text-xs font-semibold transition-colors ${
-            terpilih === KUNCI_HAPUS_BIDAK
-              ? "border-white bg-[#57534e] ring-2 ring-white/30"
-              : "border-gray-600 bg-[#302e2b] text-gray-200 hover:bg-[#45423f]"
-          }`}
-        >
-          {t("papan.hapusBidak")}
-        </button>
+      <div className="space-y-3">
+        {[
+          { label: t("papan.warnaPutih"), daftar: BIDAK_PUTIH, putih: true },
+          { label: t("papan.warnaHitam"), daftar: BIDAK_HITAM, putih: false },
+        ].map(({ label, daftar, putih }) => (
+          <div key={label} className="flex items-center gap-3">
+            <span className="w-12 shrink-0 text-xs font-semibold text-gray-300">
+              {label}
+            </span>
+            <div className="grid min-w-0 flex-1 grid-cols-6 gap-1.5">
+              {daftar.map((simbol) => {
+                const jenis = simbol.toLowerCase();
+                const dipilih = terpilih === simbol;
+                const nama = t(`tekaTeki.namaBidak.${jenis}`);
+                const warna = t(putih ? "papan.warnaPutih" : "papan.warnaHitam");
+                return (
+                  <button
+                    key={simbol}
+                    type="button"
+                    aria-label={`${warna}: ${nama}`}
+                    aria-pressed={dipilih}
+                    onClick={() => onPilih(dipilih ? null : simbol)}
+                    className={`flex aspect-square min-w-0 items-center justify-center rounded-md border transition-colors ${
+                      dipilih
+                        ? "border-white bg-[#57534e] ring-2 ring-white/30"
+                        : "border-gray-600 bg-[#302e2b] hover:bg-[#45423f]"
+                    }`}
+                  >
+                    <ChessPiece
+                      piece={simbol}
+                      set={setBidak}
+                      className="h-[min(2rem,80%)] w-[min(2rem,80%)]"
+                    />
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+        <div className="flex justify-end">
+          <button
+            type="button"
+            aria-label={t("papan.hapusBidak")}
+            aria-pressed={terpilih === KUNCI_HAPUS_BIDAK}
+            onClick={() =>
+              onPilih(terpilih === KUNCI_HAPUS_BIDAK ? null : KUNCI_HAPUS_BIDAK)
+            }
+            className={`rounded-md border px-3 py-2 text-xs font-semibold transition-colors ${
+              terpilih === KUNCI_HAPUS_BIDAK
+                ? "border-white bg-[#57534e] text-white ring-2 ring-white/30"
+                : "border-gray-600 bg-[#302e2b] text-gray-200 hover:bg-[#45423f]"
+            }`}
+          >
+            {t("papan.hapusBidak")}
+          </button>
+        </div>
       </div>
 
       {galat && (
