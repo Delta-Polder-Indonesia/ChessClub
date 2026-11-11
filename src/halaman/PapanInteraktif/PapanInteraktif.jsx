@@ -1743,10 +1743,10 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
                 </button>
               </div>
 
-              <div className="min-w-0 flex-1">
+              <div className="flex min-h-0 min-w-0 flex-1 flex-col">
                 {/* Panel kanan — satu kolom utuh ala LayoutTekaTeki: tinggi tetap di lg supaya
                     kontrol dasar tidak ikut naik-turun saat isi tab pendek/kosong */}
-                <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-lg border border-[#312e2b] bg-[#211f1c]">
+                <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-[#312e2b] bg-[#211f1c]">
                 {modeEditPosisi && (
                   <div className="min-h-0 flex-1 overflow-y-auto border-b border-[#312e2b] bg-[#211f1c] p-4">
                     <EditorPosisi
