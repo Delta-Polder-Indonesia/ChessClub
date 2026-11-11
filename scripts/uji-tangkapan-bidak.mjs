@@ -206,7 +206,10 @@ console.log("\nD. halaman papan interaktif: kantong & baris pemain");
     /langkah\.filter\(\(m\) => m\.captured\)\.map\(\(m\) => m\.to\)/.test(halaman),
     "penanda tangkapan tidak disuplai induk"
   );
-  uji("daftar tangkapan diteruskan ke papan", /sasaranTangkap=\{seleksi\.tangkap\}/.test(halaman));
+  uji(
+    "sasaran tangkapan diteruskan ke papan kecuali dalam mode susun",
+    /sasaranTangkap=\{modeEditPosisi\s*\?\s*\[\]\s*:\s*seleksi\.tangkap\}/.test(halaman)
+  );
   uji(
     "petak terpilih + sasaran + tangkapan adalah SATU state",
     /const \[seleksi, setSeleksi\] = useState\(SELEKSI_KOSONG\)/.test(halaman) &&
