@@ -1750,10 +1750,10 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
                 </button>
               </div>
 
-              <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+              <div className="flex min-h-0 min-w-0 flex-none flex-col lg:flex-1">
                 {/* Panel kanan — satu kolom utuh ala LayoutTekaTeki: tinggi tetap di lg supaya
                     kontrol dasar tidak ikut naik-turun saat isi tab pendek/kosong */}
-                <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-[#312e2b] bg-[#211f1c]">
+                <div className="flex h-auto min-h-0 flex-col overflow-hidden rounded-lg border border-[#312e2b] bg-[#211f1c] lg:h-full lg:flex-1">
                 {modeEditPosisi && (
                   <div className="min-h-0 flex-1 overflow-y-auto border-b border-[#312e2b] bg-[#211f1c] p-4">
                     <EditorPosisi
@@ -1810,7 +1810,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
                   role="tabpanel"
                   id={`panel-papan-${tabPanel}`}
                   aria-labelledby={`tab-papan-${tabPanel}`}
-                  className={`min-h-0 flex-1 p-4 ${
+                  className={`min-h-0 flex-none p-4 lg:flex-1 ${
                     tabPanel === "analisa"
                       ? "flex flex-col overflow-hidden"
                       : "overflow-y-auto"
