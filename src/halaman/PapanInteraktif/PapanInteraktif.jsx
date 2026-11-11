@@ -1547,7 +1547,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
               kerangka diganti tata letak asli. Bagian yang memang butuh buku
               (tab Buku/Penjelajah/Partai) menampilkan statusnya sendiri. */}
           <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-x-hidden overflow-y-auto lg:flex-row lg:items-stretch lg:gap-3 lg:overflow-hidden">
-              <div className="mx-auto flex w-full max-w-[520px] shrink-0 flex-col justify-center overflow-y-auto lg:mx-0 lg:max-w-[min(600px,calc(100dvh-140px),calc(100vw-620px))]">
+              <div className="mx-auto flex w-full max-w-[520px] shrink-0 flex-col justify-center overflow-y-auto lg:mx-0 lg:max-w-[min(520px,calc(100dvh-140px),calc(100vw-634px))]">
                 {/* ─── BARIS PEMAIN ATAS — mengikuti orientasi papan ─── */}
                 <BarisProfil {...barisAtas} setBidak={setBidak} className="mb-2" />
 
@@ -1724,7 +1724,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
                 </button>
               </div>
 
-              <div className="flex min-h-0 min-w-0 flex-none flex-col lg:w-[min(400px,35vw)] lg:flex-none">
+              <div className="flex min-h-0 min-w-0 flex-none flex-col lg:flex-1">
                 {/* Panel kanan — satu kolom utuh ala LayoutTekaTeki: tinggi tetap di lg supaya
                     kontrol dasar tidak ikut naik-turun saat isi tab pendek/kosong */}
                 <div className="flex h-auto min-h-0 flex-col overflow-hidden rounded-lg border border-[#312e2b] bg-[#211f1c] lg:h-full lg:flex-1">
