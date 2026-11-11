@@ -18,6 +18,7 @@ import {
   fenDariPeta,
   petaDariFen,
   KUNCI_HAPUS_BIDAK,
+  validasiPosisiSusun,
 } from "./bersama/editorPosisi.js";
 import { useEngineCatur } from "../../lib/gunakanEngineCatur.js";
 import { nilaiDariSudutPelangkah } from "../../lib/bantuanSeret.js";
@@ -254,6 +255,11 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
 
   function terapkanEditPosisi() {
     const posisi = fenLogisRef.current;
+    const galatLegalitas = validasiPosisiSusun(posisi);
+    if (galatLegalitas) {
+      setGalatEditPosisi(t(galatLegalitas));
+      return;
+    }
     try {
       const peta = petaDariFen(posisi);
       const rajaPutih = Object.values(peta).filter((b) => b === "K").length;
@@ -1547,6 +1553,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
 
   /* ------------------------------------------------------------ tampilan */
   const namaUtama = infoPembukaan.nama ? infoPembukaan.nama[0] : null;
+  const galatLegalitasSusun = modeEditPosisi ? validasiPosisiSusun(fen) : null;
 
   const isi = (
     <div className={`flex flex-col ${tertanam ? "h-full w-full" : "min-h-screen lg:h-screen"} overflow-hidden bg-[#262421] text-gray-200 font-sans select-none`}>
@@ -1751,6 +1758,9 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
                   <div className="min-h-0 flex-1 overflow-y-auto border-b border-[#312e2b] bg-[#211f1c] p-4">
                     <EditorPosisi
                       terpilih={bidakEditTerpilih}
+                      fen={fen}
+                      posisiSah={!galatLegalitasSusun}
+                      galatLegalitas={galatLegalitasSusun ? t(galatLegalitasSusun) : ""}
                       onPilih={setBidakEditTerpilih}
                       onGiliran={ubahGiliranEdit}
                       giliran={fen.split(/\s+/)[1] === "b" ? "b" : "w"}

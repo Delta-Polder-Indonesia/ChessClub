@@ -1,4 +1,31 @@
+import { Chess } from "chess.js";
+
 export const KUNCI_HAPUS_BIDAK = "__hapus_bidak__";
+
+/** Null when this FEN can represent a position reached by legal chess play. */
+export function validasiPosisiSusun(fen) {
+  try {
+    const peta = petaDariFen(fen);
+    const rajaPutih = Object.values(peta).filter((simbol) => simbol === "K").length;
+    const rajaHitam = Object.values(peta).filter((simbol) => simbol === "k").length;
+    if (rajaPutih !== 1 || rajaHitam !== 1) return "posisiPerluRaja";
+    if (Object.entries(peta).some(([petak, simbol]) => simbol.toLowerCase() === "p" && /[18]$/.test(petak))) {
+      return "posisiPionIlegal";
+    }
+    const game = new Chess(fen);
+    const raja = { w: [], b: [] };
+    for (const baris of game.board()) {
+      for (const bidak of baris) {
+        if (bidak?.type === "k") raja[bidak.color].push(bidak.square);
+      }
+    }
+    const rajaLawan = game.turn() === "w" ? "b" : "w";
+    if (game.isAttacked(raja[rajaLawan][0], game.turn())) return "posisiRajaDiserang";
+    return null;
+  } catch {
+    return "posisiTidakSah";
+  }
+}
 
 /** Ubah field susunan bidak FEN menjadi peta `petak -> simbol bidak`. */
 export function petaDariFen(fen) {

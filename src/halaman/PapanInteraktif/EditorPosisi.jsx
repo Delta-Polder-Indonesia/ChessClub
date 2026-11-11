@@ -8,6 +8,9 @@ const BIDAK_HITAM = JENIS;
 
 export default function EditorPosisi({
   terpilih,
+  fen,
+  posisiSah,
+  galatLegalitas,
   onPilih,
   onGiliran,
   giliran,
@@ -37,7 +40,8 @@ export default function EditorPosisi({
         <button
           type="button"
           onClick={onTerapkan}
-          className="rounded-md bg-[#e7e5e4] px-3 py-2 text-xs font-semibold text-[#262421] transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400"
+          disabled={!posisiSah}
+          className="rounded-md bg-[#e7e5e4] px-3 py-2 text-xs font-semibold text-[#262421] transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-[#e7e5e4]"
         >
           {t("papan.selesaiEditPosisi")}
         </button>
@@ -71,6 +75,30 @@ export default function EditorPosisi({
             warna: t(giliran === "w" ? "papan.warnaPutih" : "papan.warnaHitam"),
           })}
         </button>
+      </div>
+
+      <div className="mb-4 grid gap-1.5">
+        <label htmlFor="fen-susun" className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+          {t("papan.fenPosisiSusun")}
+        </label>
+        <input
+          id="fen-susun"
+          type="text"
+          readOnly
+          value={fen}
+          aria-label={t("papan.fenPosisiSusun")}
+          className="w-full rounded-md border border-[#3a3835] bg-[#1e1c18] px-3 py-2 font-mono text-xs leading-relaxed text-gray-200 outline-none selection:bg-gray-600"
+        />
+        {!posisiSah && (
+          <p role="status" className="text-xs font-semibold text-gray-200">
+            {t("papan.posisiIlegal")}: {galatLegalitas}
+          </p>
+        )}
+        {galat && !galatLegalitas && (
+          <p role="alert" className="text-xs font-medium text-gray-300">
+            {galat}
+          </p>
+        )}
       </div>
 
       <div className="space-y-3">
@@ -129,13 +157,9 @@ export default function EditorPosisi({
             {t("papan.hapusBidak")}
           </button>
         </div>
+
       </div>
 
-      {galat && (
-        <p role="alert" className="mt-2 text-xs font-medium text-gray-300">
-          {galat}
-        </p>
-      )}
     </section>
   );
 }
