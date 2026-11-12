@@ -1,92 +1,14 @@
 import { useId } from "react";
-import { ChessPiece } from "../../components/chess/ChessPiece.jsx";
 import { DAFTAR_SET } from "../../components/chess/pemuatBidak.js";
-import { Switch } from "../../components/ui/switch.jsx";
 import { GAYA_KOMENTATOR } from "../../lib/komentator.js";
-import { TEMA_PAPAN } from "../TekaTeki/temaPapan.js";
 import { PILIHAN_WARNA_PAPAN } from "./bersama/konstanta.js";
-
-const BIDAK_PRATINJAU = ["R", "N", "B", "Q", "K", "P"];
-
-function PratinjauBidak({ set }) {
-  return (
-    <div
-      aria-hidden="true"
-      className="flex h-10 w-[11.5rem] shrink-0 items-center justify-center gap-1 overflow-hidden rounded-[0.25rem] border border-border bg-[#272727] px-1.5"
-    >
-      {BIDAK_PRATINJAU.map((bidak) => (
-        <ChessPiece key={bidak} piece={bidak} set={set} className="h-6 w-6 object-contain" />
-      ))}
-    </div>
-  );
-}
-
-function PratinjauPapan({ tema }) {
-  const palet = TEMA_PAPAN[tema] ?? TEMA_PAPAN.metal;
-  return (
-    <div
-      aria-hidden="true"
-      className="grid h-10 w-10 shrink-0 grid-cols-8 overflow-hidden rounded-[0.25rem] border border-border"
-    >
-      {Array.from({ length: 64 }, (_, i) => (
-        <span
-          key={i}
-          style={{
-            backgroundColor:
-              (Math.floor(i / 8) + (i % 8)) % 2 === 0 ? palet.terang : palet.gelap,
-          }}
-        />
-      ))}
-    </div>
-  );
-}
-
-function BarisPilihan({ judul, deskripsi, pratinjau, sejajar = false, children }) {
-  if (sejajar) {
-    return (
-      <div className="flex items-center justify-between gap-4 border-b border-border py-3">
-        <div className="min-w-0">
-          <p className="text-sm font-semibold text-foreground">{judul}</p>
-          <p className="mt-0.5 text-xs leading-5 text-foregroundGrey">{deskripsi}</p>
-        </div>
-        <div className="flex shrink-0 items-center gap-2">
-          {pratinjau}
-          {children}
-        </div>
-      </div>
-    );
-  }
-  return (
-    <div className="border-b border-border py-3">
-      <p className="text-sm font-semibold text-foreground">{judul}</p>
-      <p className="mt-0.5 text-xs leading-5 text-foregroundGrey">{deskripsi}</p>
-      <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-        {pratinjau}
-        {children}
-      </div>
-    </div>
-  );
-}
-
-function BarisSakelar({ judul, deskripsi, checked, onCheckedChange }) {
-  return (
-    <div className="flex items-center justify-between gap-4 border-b border-border py-3">
-      <div className="min-w-0">
-        <p className="text-sm font-semibold text-foreground">{judul}</p>
-        <p className="mt-0.5 text-xs leading-5 text-foregroundGrey">{deskripsi}</p>
-      </div>
-      <Switch
-        size="sm"
-        checked={checked}
-        onCheckedChange={onCheckedChange}
-        aria-label={judul}
-      />
-    </div>
-  );
-}
-
-const KELAS_SELECT =
-  "h-10 w-auto max-w-full rounded-borderRoundness border border-border bg-[#272727] px-2 text-sm text-foreground outline-none transition-colors hover:border-borderHighlighted focus:border-[#81b64c]";
+import {
+  BarisPilihan,
+  BarisSakelar,
+  KELAS_SELECT,
+  PratinjauBidak,
+  PratinjauPapan,
+} from "./bersama/KontrolPengaturanPapan.jsx";
 
 /**
  * Isi pengaturan papan TANPA bingkai dialog — dipakai LayarPengaturan

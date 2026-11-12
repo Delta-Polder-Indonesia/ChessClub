@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { Bookmark, Brain, Cpu, Flag, FlipVertical2, Plus, Settings, Share2, Volume2, VolumeX, X } from "lucide-react";
+import { Bookmark, Brain, Cpu, Flag, FlipVertical2, Plus, Settings, Share2, X } from "lucide-react";
 import { Chess } from "chess.js";
 import PapanTekaTeki from "../TekaTeki/PapanTekaTeki.jsx";
 import License from "../Analisa/komponen/svg/license.jsx";
@@ -15,6 +15,16 @@ import { SUARA, useSuara } from "../../lib/suara.js";
 import { FEN_AWAL, KUCI_NAMA_PROMOSI, PILIHAN_PROMOSI, PILIHAN_WARNA_PAPAN } from "../PapanInteraktif/bersama/konstanta.js";
 import { PENGATURAN_AWAL, usePengaturanPapan } from "../PapanInteraktif/bersama/gunakanPengaturanPapan.js";
 import { usePengaturanBersama } from "../PapanInteraktif/bersama/PengaturanKonteks.jsx";
+import {
+  BarisAksi,
+  BarisPilihan,
+  BarisSakelar,
+  KELAS_SELECT,
+  KELAS_TOMBOL_AKSI,
+  KartuPengaturanPapan,
+  PratinjauBidak,
+  PratinjauPapan,
+} from "../PapanInteraktif/bersama/KontrolPengaturanPapan.jsx";
 import BilahEvaluasi from "../PapanInteraktif/bersama/BilahEvaluasi.jsx";
 import { BarisProfil } from "../PapanInteraktif/bersama/BarisProfil.jsx";
 import { susunTangkapan } from "../PapanInteraktif/bersama/TangkapanBidakData.js";
@@ -239,7 +249,7 @@ function DialogSelesai({ hasil, statusTeks, onTutup, onPartaiBaru, onTandingUlan
   );
 }
 
-function PengaturanPermainan({
+function PanelPengaturanPve({
   onTutup,
   t,
   setBidak,
@@ -250,96 +260,78 @@ function PengaturanPermainan({
   setSuaraNyala,
   onBalikPapan,
 }) {
-  const refDialog = useDialog(onTutup);
+  const idSetBidak = useId();
+  const idWarnaPapan = useId();
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
-      onClick={onTutup}
+    <KartuPengaturanPapan
+      data-panel="pve-pengaturan"
+      judul={t("papan.pengaturanPapan")}
+      onTutup={onTutup}
+      labelTutup={t("papan.tutup")}
+      className="min-h-0 flex-1"
     >
-      <section
-        ref={refDialog}
-        tabIndex={-1}
-        role="dialog"
-        aria-modal="true"
-        aria-label={t("papan.pvePengaturan")}
-        className="w-full max-w-sm rounded-lg border border-[#3b3935] bg-[#1e1c18] p-5 text-gray-200 shadow-xl"
-        onClick={(event) => event.stopPropagation()}
+      <BarisPilihan
+        judul={t("papan.setBidak")}
+        deskripsi={t("papan.setBidakDeskripsi")}
+        pratinjau={<PratinjauBidak set={setBidak} />}
       >
-        <header className="mb-5 flex items-center justify-between gap-4">
-          <h2 className="text-base font-bold text-white">{t("papan.pvePengaturan")}</h2>
-          <button
-            type="button"
-            onClick={onTutup}
-            className="rounded p-1 text-gray-400 transition hover:bg-[#312e2b] hover:text-white"
-            aria-label={t("papan.tutup")}
-            title={t("papan.tutup")}
-          >
-            <X className="h-5 w-5" aria-hidden="true" />
-          </button>
-        </header>
+        <select
+          id={idSetBidak}
+          value={setBidak}
+          onChange={(event) => setSetBidak(event.target.value)}
+          aria-label={t("papan.setBidak")}
+          className={KELAS_SELECT}
+        >
+          {DAFTAR_SET.map((set) => (
+            <option key={set.id} value={set.id}>
+              {set.nama}
+            </option>
+          ))}
+        </select>
+      </BarisPilihan>
 
-        <div className="space-y-4">
-          <label className="flex flex-col gap-1.5 text-xs font-semibold text-gray-400">
-            {t("papan.setBidak")}
-            <select
-              data-autofokus
-              value={setBidak}
-              onChange={(event) => setSetBidak(event.target.value)}
-              className="rounded-md border border-[#4a4742] bg-[#262421] px-3 py-2 text-sm font-normal text-gray-100 outline-none focus:border-[#81b64c]"
-            >
-              {DAFTAR_SET.map((set) => (
-                <option key={set.id} value={set.id}>
-                  {set.nama}
-                </option>
-              ))}
-            </select>
-          </label>
+      <BarisPilihan
+        judul={t("papan.warnaPapan")}
+        deskripsi={t("papan.warnaPapanDeskripsi")}
+        pratinjau={<PratinjauPapan tema={tema} />}
+      >
+        <select
+          id={idWarnaPapan}
+          value={tema}
+          onChange={(event) => setTema(event.target.value)}
+          aria-label={t("papan.warnaPapan")}
+          className={KELAS_SELECT}
+        >
+          {PILIHAN_WARNA_PAPAN.map(([nilai, kunci]) => (
+            <option key={nilai} value={nilai}>
+              {t(kunci)}
+            </option>
+          ))}
+        </select>
+      </BarisPilihan>
 
-          <label className="flex flex-col gap-1.5 text-xs font-semibold text-gray-400">
-            {t("papan.pveTemaPapan")}
-            <select
-              value={tema}
-              onChange={(event) => setTema(event.target.value)}
-              className="rounded-md border border-[#4a4742] bg-[#262421] px-3 py-2 text-sm font-normal text-gray-100 outline-none focus:border-[#81b64c]"
-            >
-              {PILIHAN_WARNA_PAPAN.map(([nilai, kunci]) => (
-                <option key={nilai} value={nilai}>
-                  {t(kunci)}
-                </option>
-              ))}
-            </select>
-          </label>
+      <BarisSakelar
+        judul={t("papan.suara")}
+        deskripsi={t("papan.suaraDeskripsi")}
+        checked={suaraNyala}
+        onCheckedChange={setSuaraNyala}
+      />
 
-          <div className="flex items-center justify-between gap-4 border-y border-[#312e2b] py-3">
-            <span className="text-sm font-semibold text-gray-300">{t("papan.suara")}</span>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={suaraNyala}
-              onClick={() => setSuaraNyala(!suaraNyala)}
-              className={`flex h-8 items-center gap-2 rounded-md border px-2.5 text-xs font-semibold transition ${
-                suaraNyala
-                  ? "border-[#81b64c] bg-[#81b64c]/15 text-[#b7dc8c]"
-                  : "border-[#4a4742] bg-[#262421] text-gray-400"
-              }`}
-            >
-              {suaraNyala ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
-              {suaraNyala ? t("papan.suaraNyala") : t("papan.suaraMati")}
-            </button>
-          </div>
-
-          <button
-            type="button"
-            onClick={onBalikPapan}
-            className="flex w-full items-center justify-center gap-2 rounded-md border border-[#4a4742] px-3 py-2.5 text-sm font-semibold text-gray-200 transition hover:border-[#81b64c] hover:text-white"
-          >
-            <FlipVertical2 className="h-4 w-4" aria-hidden="true" />
-            {t("papan.pveBalikPapan")}
-          </button>
-        </div>
-      </section>
-    </div>
+      <BarisAksi
+        judul={t("papan.pveBalikPapan")}
+        deskripsi={t("papan.pveBalikPapanDeskripsi")}
+      >
+        <button
+          type="button"
+          onClick={onBalikPapan}
+          className={KELAS_TOMBOL_AKSI}
+        >
+          <FlipVertical2 className="h-4 w-4" aria-hidden="true" />
+          {t("papan.pveBalikPapan")}
+        </button>
+      </BarisAksi>
+    </KartuPengaturanPapan>
   );
 }
 
@@ -466,6 +458,15 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
     window.addEventListener("keydown", saatEscape);
     return () => window.removeEventListener("keydown", saatEscape);
   }, [promosi]);
+
+  useEffect(() => {
+    if (!tampilPengaturan || promosi || konfirmasiMenyerah || tampilDialogSelesai) return;
+    function saatEscape(e) {
+      if (e.key === "Escape") setTampilPengaturan(false);
+    }
+    window.addEventListener("keydown", saatEscape);
+    return () => window.removeEventListener("keydown", saatEscape);
+  }, [tampilPengaturan, promosi, konfirmasiMenyerah, tampilDialogSelesai]);
 
   useEffect(() => {
     fenRef.current = fen;
@@ -1117,8 +1118,11 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
           <div className="space-y-1 px-5 py-2">
             <button
               type="button"
-              onClick={() => setTampilPengaturan(true)}
-              className="flex w-full items-center gap-2 py-1.5 text-left text-sm font-bold text-slate-300 transition hover:text-white"
+              onClick={() => setTampilPengaturan((tampil) => !tampil)}
+              aria-expanded={tampilPengaturan}
+              className={`flex w-full items-center gap-2 py-1.5 text-left text-sm font-bold transition ${
+                tampilPengaturan ? "text-white" : "text-slate-300 hover:text-white"
+              }`}
             >
               <Settings size={20} className="shrink-0" aria-hidden="true" />
               {t("papan.pengaturan")}
@@ -1273,8 +1277,13 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
           </div>
           <button
             type="button"
-            onClick={() => setTampilPengaturan(true)}
-            className="rounded-md border border-[#4a4742] p-2 text-gray-300 transition hover:border-[#81b64c] hover:text-white"
+            onClick={() => setTampilPengaturan((tampil) => !tampil)}
+            aria-expanded={tampilPengaturan}
+            className={`rounded-md border p-2 transition ${
+              tampilPengaturan
+                ? "border-[#81b64c] bg-[#2c2926] text-white"
+                : "border-[#4a4742] text-gray-300 hover:border-[#81b64c] hover:text-white"
+            }`}
             aria-label={t("papan.pvePengaturan")}
             title={t("papan.pvePengaturan")}
           >
@@ -1282,6 +1291,20 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
           </button>
         </div>
 
+        {tampilPengaturan ? (
+          <PanelPengaturanPve
+            onTutup={() => setTampilPengaturan(false)}
+            t={t}
+            setBidak={setBidak}
+            setSetBidak={setSetBidak}
+            tema={tema}
+            setTema={setTema}
+            suaraNyala={suaraNyala}
+            setSuaraNyala={setSuaraNyala}
+            onBalikPapan={() => setOrientasiPapan((orientasi) => (orientasi === "w" ? "b" : "w"))}
+          />
+        ) : (
+          <>
         <section
           aria-label={t("papan.pveDialogMesin")}
           className="flex min-h-[88px] shrink-0 items-center gap-2 sm:gap-3"
@@ -1579,6 +1602,8 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
               : t("papan.pveMulai")}
           </button>
         )}
+          </>
+        )}
       </aside>
 
       {konfirmasiMenyerah && (
@@ -1600,20 +1625,6 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
           onPartaiBaru={keHalamanUtama}
           onTandingUlang={mulaiPartai}
           t={t}
-        />
-      )}
-
-      {tampilPengaturan && (
-        <PengaturanPermainan
-          onTutup={() => setTampilPengaturan(false)}
-          t={t}
-          setBidak={setBidak}
-          setSetBidak={setSetBidak}
-          tema={tema}
-          setTema={setTema}
-          suaraNyala={suaraNyala}
-          setSuaraNyala={setSuaraNyala}
-          onBalikPapan={() => setOrientasiPapan((orientasi) => (orientasi === "w" ? "b" : "w"))}
         />
       )}
       </div>

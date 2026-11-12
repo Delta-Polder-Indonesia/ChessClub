@@ -125,6 +125,52 @@ export default function KartuKomentator({
   });
   const avatarBuku = gambarAvatar === AVATAR_BUKU;
 
+  if (hanyaKontrol) {
+    return (
+      <section aria-label={t("papan.komentator.judul")} className={className}>
+        <div className="flex items-center justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-foreground">{t("papan.komentator.judul")}</p>
+            <p className="mt-0.5 text-xs leading-5 text-foregroundGrey">
+              {t("papan.komentator.bicaraSaatLangkah")}
+            </p>
+          </div>
+          <Switch
+            size="sm"
+            checked={nyala}
+            onCheckedChange={() => setNyala(!nyala)}
+            aria-label={nyala ? t("papan.komentator.matikan") : t("papan.komentator.nyalakan")}
+            title={nyala ? t("papan.komentator.matikan") : t("papan.komentator.nyalakan")}
+          />
+        </div>
+        {nyala && (
+          <div
+            role="radiogroup"
+            aria-label={t("papan.komentator.gayaLabel")}
+            className="mt-2.5 flex flex-wrap items-center gap-1 rounded-borderRoundness border border-border bg-[#272727] p-1 text-xs font-medium"
+          >
+            {GAYA_KOMENTATOR.map((g) => (
+              <button
+                key={g}
+                type="button"
+                role="radio"
+                aria-checked={gaya === g}
+                onClick={() => setGaya(g)}
+                className={`rounded-[0.2rem] px-2.5 py-1 transition-colors ${
+                  gaya === g
+                    ? "bg-[#81b64c] text-white"
+                    : "text-foregroundGrey hover:text-foreground"
+                }`}
+              >
+                {t(`papan.komentator.gaya${g.charAt(0).toUpperCase() + g.slice(1)}`)}
+              </button>
+            ))}
+          </div>
+        )}
+      </section>
+    );
+  }
+
   return (
     <section aria-label={t("papan.komentator.judul")} className={className}>
       {!sembunyikanKontrol && <div className="flex flex-wrap items-center justify-between gap-2">

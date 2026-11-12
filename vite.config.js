@@ -103,6 +103,7 @@ export default defineConfig({
       "@base-ui/react/preview-card",
       "@base-ui/react/progress",
       "@base-ui/react/separator",
+      "@base-ui/react/switch",
       "@radix-ui/react-accordion",
       "@radix-ui/react-alert-dialog",
       "@radix-ui/react-dialog",

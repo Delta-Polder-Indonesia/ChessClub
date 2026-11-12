@@ -204,6 +204,7 @@ function siapkanGlobal() {
     window.requestAnimationFrame ?? ((cb) => setTimeout(() => cb(Date.now()), 0));
   window.cancelAnimationFrame = window.cancelAnimationFrame ?? ((id) => clearTimeout(id));
   window.scrollTo = () => {};
+  if (!window.PointerEvent) window.PointerEvent = window.MouseEvent;
   window.Element.prototype.scrollIntoView = function scrollIntoView() {};
   window.Element.prototype.scrollTo = function scrollTo() {};
   window.HTMLMediaElement.prototype.play = function play() {
@@ -232,6 +233,7 @@ function siapkanGlobal() {
     "Node",
     "Event",
     "MouseEvent",
+    "PointerEvent",
     "KeyboardEvent",
     "CustomEvent",
   ]) {
@@ -868,15 +870,25 @@ judul("kontrol mesin analisis tersedia di Pengaturan");
   const tabPengaturan = dok.querySelector('[data-tab="pengaturan"]');
   if (tabPengaturan) klikEl(tabPengaturan);
   await tungguSampai(() => !!dok.querySelector('[data-panel="pengaturan"]'), 1000);
+  const panelPengaturan = dok.querySelector('[data-panel="pengaturan"]');
+  const kartuPengaturan = panelPengaturan?.querySelector(".analisa-root");
+  uji(
+    "panel pengaturan memakai gaya kartu .analisa-root + pratinjau bidak & papan",
+    !!kartuPengaturan &&
+      kartuPengaturan.querySelectorAll("img").length === 6 &&
+      kartuPengaturan.querySelector(".grid-cols-8")?.children.length === 64 &&
+      panelPengaturan?.querySelectorAll('[role="switch"]').length >= 4
+  );
   const toggleEngine = dok.querySelector('[data-aksi="toggle-engine"]');
-  uji("sakelar mesin analisis tersedia", !!toggleEngine && !toggleEngine.checked);
+  const engineAktif = () => toggleEngine?.getAttribute("aria-checked") === "true";
+  uji("sakelar mesin analisis tersedia", !!toggleEngine && !engineAktif());
   if (toggleEngine) {
     klikEl(toggleEngine);
     await tunggu(60);
-    uji("sakelar menyalakan mesin analisis", toggleEngine.checked);
+    uji("sakelar menyalakan mesin analisis", engineAktif());
     klikEl(toggleEngine);
     await tunggu(60);
-    uji("sakelar mematikan mesin analisis", !toggleEngine.checked);
+    uji("sakelar mematikan mesin analisis", !engineAktif());
   }
 }
 
@@ -1160,16 +1172,13 @@ judul("ingat posisi: bisa dimatikan & tidak menyimpan pilihan baru");
   if (tabPengaturan) {
     klikEl(tabPengaturan);
     await tungguSampai(() => !!dok.querySelector('[data-panel="pengaturan"]'), 1000);
-    const label = [...dok.querySelectorAll("label")].find((l) =>
-      (l.textContent || "").includes(kamus.ingatPosisi)
-    );
-    uji("sakelar 'Ingat posisi' tampil", !!label);
-    const kotak = label?.querySelector('input[type="checkbox"]');
+    const kotak = dok.querySelector('[data-aksi="ingat-posisi"]');
+    uji("sakelar 'Ingat posisi' tampil", !!kotak);
     if (kotak) {
-      // React memetakan onChange checkbox ke event CLICK (bukan change), dan
-      // jsdom menjalankan perilaku aktivasi klik pada checkbox — jadi klik biasa
-      // sudah membalik `checked` sekaligus memicu onChange.
-      uji("sakelar awalnya aktif (bawaan ingat posisi = true)", kotak.checked === true);
+      uji(
+        "sakelar awalnya aktif (bawaan ingat posisi = true)",
+        kotak.getAttribute("aria-checked") === "true"
+      );
       klikEl(kotak);
       await tunggu(150);
       uji(
