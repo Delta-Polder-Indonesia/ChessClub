@@ -52,8 +52,30 @@ export function petaDariFen(fen) {
   return peta;
 }
 
-/** Bangun FEN posisi edit; hak rokade dan en passant direset demi konsistensi. */
-export function fenDariPeta(peta, giliran = "w") {
+/** Kembalikan daftar hak rokade yang dimungkinkan oleh posisi raja/benteng pada `peta`. */
+export function hakRokadeTersedia(peta) {
+  let tersedia = "";
+  if (peta.e1 === "K" && peta.h1 === "R") tersedia += "K";
+  if (peta.e1 === "K" && peta.a1 === "R") tersedia += "Q";
+  if (peta.e8 === "k" && peta.h8 === "r") tersedia += "k";
+  if (peta.e8 === "k" && peta.a8 === "r") tersedia += "q";
+  return tersedia;
+}
+
+/** Saring field hak rokade agar hanya menyimpan hak yang sah menurut `peta` dan berurutan `KQkq`. */
+export function bersihkanHakRokade(peta, hakRokade = "-") {
+  const teks = String(hakRokade || "");
+  if (!teks || teks === "-") return "-";
+  const mungkin = hakRokadeTersedia(peta);
+  const sah = "KQkq"
+    .split("")
+    .filter((simbol) => teks.includes(simbol) && mungkin.includes(simbol))
+    .join("");
+  return sah || "-";
+}
+
+/** Bangun FEN posisi edit dengan mempertahankan hak rokade yang masih sah. */
+export function fenDariPeta(peta, giliran = "w", hakRokade = "-") {
   const ranks = [];
   for (let rank = 8; rank >= 1; rank -= 1) {
     let kosong = 0;
@@ -74,30 +96,36 @@ export function fenDariPeta(peta, giliran = "w") {
     if (kosong) baris += kosong;
     ranks.push(baris);
   }
-  return `${ranks.join("/")} ${giliran === "b" ? "b" : "w"} - - 0 1`;
+  const rokadeSah = bersihkanHakRokade(peta, hakRokade);
+  return `${ranks.join("/")} ${giliran === "b" ? "b" : "w"} ${rokadeSah} - 0 1`;
 }
 
 /** Ubah satu petak tanpa memaksa posisi sementara menjadi posisi legal. */
 export function aturBidak(fen, petak, simbol) {
   if (!/^[a-h][1-8]$/.test(petak)) return fen;
+  const ruas = String(fen || "").trim().split(/\s+/);
   const peta = petaDariFen(fen);
   if (simbol) peta[petak] = simbol;
   else delete peta[petak];
-  return fenDariPeta(peta, String(fen).trim().split(/\s+/)[1]);
+  return fenDariPeta(peta, ruas[1], ruas[2] || "-");
 }
 
 
 /** Ubah satu hak rokade pada field ketiga FEN tanpa alterasi field lain. */
-export function aturHakRokade(fen, hak, ativo) {
+export function aturHakRokade(fen, hak, aktif) {
   if (!["K", "Q", "k", "q"].includes(hak)) return fen;
   const ruas = String(fen || "").trim().split(/\s+/);
   if (ruas.length < 6) return fen;
+  let peta;
+  try {
+    peta = petaDariFen(fen);
+  } catch {
+    return fen;
+  }
   const hakSaatIni = ruas[2] === "-" ? "" : ruas[2];
-  const hakBerikutnya = ativo
+  const hakBerikutnya = aktif
     ? [...new Set([...hakSaatIni, hak])].join("")
-    : hakSaatIni.replace(hak, "");
-  ruas[2] = hakBerikutnya
-    ? "KQkq".split("").filter((simbol) => hakBerikutnya.includes(simbol)).join("")
-    : "-";
+    : hakSaatIni.replaceAll(hak, "");
+  ruas[2] = bersihkanHakRokade(peta, hakBerikutnya);
   return ruas.join(" ");
 }

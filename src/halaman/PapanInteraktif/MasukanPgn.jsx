@@ -1,11 +1,21 @@
 import { useState } from "react";
+import { FEN_AWAL } from "./bersama/konstanta.js";
 import { useDialog } from "./bersama/gunakanDialog.js";
 
 /** Dialog Review: tempel PGN atau FEN lalu muat ke papan. */
-export default function MasukanPgn({ onTerapkan, onTutup, t }) {
-  const [teks, setTeks] = useState("");
+export default function MasukanPgn({
+  onTerapkan,
+  onTutup,
+  t,
+  hanyaFen = false,
+  nilaiAwal = "",
+}) {
+  const [teks, setTeks] = useState(nilaiAwal);
   const [galat, setGalat] = useState(false);
   const refDialog = useDialog(onTutup);
+  const judul = hanyaFen ? t("papan.posisiFen") : t("papan.inputPgnFen");
+  const placeholder = hanyaFen ? FEN_AWAL : t("papan.pgnPlaceholder");
+  const pesanGalat = hanyaFen ? t("papan.posisiTidakSah") : t("papan.pgnGalat");
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
@@ -16,12 +26,12 @@ export default function MasukanPgn({ onTerapkan, onTutup, t }) {
         tabIndex={-1}
         role="dialog"
         aria-modal="true"
-        aria-label={t("papan.inputPgnFen")}
+        aria-label={judul}
         className="max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-lg border border-[#312e2b] bg-[#1e1c18] p-5"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-3 flex items-center justify-between">
-          <h3 className="text-base font-bold text-white">{t("papan.inputPgnFen")}</h3>
+          <h3 className="text-base font-bold text-white">{judul}</h3>
           <button
             type="button"
             onClick={onTutup}
@@ -40,12 +50,12 @@ export default function MasukanPgn({ onTerapkan, onTutup, t }) {
           }}
           rows={7}
           spellCheck={false}
-          placeholder={t("papan.pgnPlaceholder")}
+          placeholder={placeholder}
           className="w-full resize-y rounded-md border border-[#363431] bg-[#262421] p-3 font-mono text-xs leading-5 text-gray-200 outline-none transition placeholder:text-gray-600 focus:border-[#81b64c]"
         />
         {galat && (
           <p className="mt-2 text-xs font-medium text-red-400">
-            {t("papan.pgnGalat")}
+            {pesanGalat}
           </p>
         )}
         <div className="mt-4 flex justify-end gap-2">
