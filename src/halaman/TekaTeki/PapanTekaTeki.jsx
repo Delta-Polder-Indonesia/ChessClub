@@ -245,6 +245,7 @@ const Petak = memo(function Petak({
   resign,
   warnaPapan,
   setBidak,
+  tampilKoordinat,
   onTekan,
   onKlik,
 }) {
@@ -258,6 +259,8 @@ const Petak = memo(function Petak({
   };
 
   const terang = (baris + kolom) % 2 === 0;
+  const tampilLajur = tampilKoordinat === "semua" || (tampilKoordinat === "tepi" && baris === 7);
+  const tampilBaris = tampilKoordinat === "semua" || (tampilKoordinat === "tepi" && kolom === 0);
 
   return (
     <button
@@ -339,7 +342,7 @@ const Petak = memo(function Petak({
       )}
 
       {/* Koordinat: huruf lajur di baris bawah, angka baris di kolom kiri. */}
-      {baris === 7 && (
+      {tampilLajur && (
         <span
           className="pointer-events-none absolute bottom-0.5 right-1 text-[9px] md:text-[10px] font-bold leading-none"
           style={{ color: terang ? warnaPapan.teksTerang : warnaPapan.teksGelap }}
@@ -347,7 +350,7 @@ const Petak = memo(function Petak({
           {sq[0]}
         </span>
       )}
-      {kolom === 0 && (
+      {tampilBaris && (
         <span
           className="pointer-events-none absolute top-0.5 left-1 text-[9px] md:text-[10px] font-bold leading-none"
           style={{ color: terang ? warnaPapan.teksTerang : warnaPapan.teksGelap }}
@@ -485,6 +488,10 @@ export default function PapanTekaTeki({
   membeku = false,
   setBidak = "merida",
   tema = "hijau",
+  // "tidak" | "tepi" | "semua" — koordinat lajur/baris di papan.
+  tampilKoordinat = "tepi",
+  tampilTitikLangkah = true,
+  sorotLangkahAkhir = true,
   animasi = true, // luncurkan bidak saat posisi berganti (matikan bila perlu)
   modeEdit = false,
   onHapusBidak,
@@ -1113,11 +1120,11 @@ export default function PapanTekaTeki({
               bidak={bidak}
               bisaSeret={!!bidak && (modeEdit || warnaBidak === giliran) && !terkunci}
               dipilih={terpilih === sq}
-              jadiSasaran={sasaran.includes(sq)}
+              jadiSasaran={tampilTitikLangkah && sasaran.includes(sq)}
               jadiTangkap={sasaranTangkap.includes(sq)}
               jadiPetunjuk={!!petunjuk && (petunjuk.from === sq || petunjuk.to === sq)}
               jadiSalah={!!kesalahan && (kesalahan.from === sq || kesalahan.to === sq)}
-              jadiAkhir={!!langkahAkhir && (langkahAkhir.from === sq || langkahAkhir.to === sq)}
+              jadiAkhir={sorotLangkahAkhir && !!langkahAkhir && (langkahAkhir.from === sq || langkahAkhir.to === sq)}
               sedangDiseret={!!seret && seret.from === sq}
               warnaMark={tanda.petak[sq] || null}
               bantuan={bantuanPetak?.[sq] || null}
@@ -1127,6 +1134,7 @@ export default function PapanTekaTeki({
               resign={!!ikonResign && ikonResign.petak === sq}
               warnaPapan={warnaPapan}
               setBidak={setBidak}
+              tampilKoordinat={tampilKoordinat}
               onTekan={onTekanPetak}
               onKlik={onKlikPetak}
             />

@@ -16,6 +16,8 @@
 export const komentatorPapan = {
   judul: "Board Commentator",
   keterangan: "Live commentary driven by board dynamics, opening patterns, and engine evaluation.",
+  bicaraSaatLangkah: "Speaks when a piece moves.",
+  tidakDitampilkan: "Hidden",
   nyalakan: "Turn commentator on",
   matikan: "Turn commentator off",
   gayaLabel: "Narration Style",

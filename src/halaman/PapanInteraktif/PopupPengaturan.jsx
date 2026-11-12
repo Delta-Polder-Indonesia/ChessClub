@@ -1,8 +1,8 @@
 import { useId } from "react";
 import { ChessPiece } from "../../components/chess/ChessPiece.jsx";
 import { DAFTAR_SET } from "../../components/chess/pemuatBidak.js";
-import KartuKomentator from "../../components/KartuKomentator.jsx";
 import { Switch } from "../../components/ui/switch.jsx";
+import { GAYA_KOMENTATOR } from "../../lib/komentator.js";
 import { TEMA_PAPAN } from "../TekaTeki/temaPapan.js";
 import { useDialog } from "./bersama/gunakanDialog.js";
 import { PILIHAN_WARNA_PAPAN } from "./bersama/konstanta.js";
@@ -42,7 +42,21 @@ function PratinjauPapan({ tema }) {
   );
 }
 
-function BarisPilihan({ judul, deskripsi, pratinjau, children }) {
+function BarisPilihan({ judul, deskripsi, pratinjau, sejajar = false, children }) {
+  if (sejajar) {
+    return (
+      <div className="flex items-center justify-between gap-4 border-b border-border py-3">
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-foreground">{judul}</p>
+          <p className="mt-0.5 text-xs leading-5 text-foregroundGrey">{deskripsi}</p>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          {pratinjau}
+          {children}
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="border-b border-border py-3">
       <p className="text-sm font-semibold text-foreground">{judul}</p>
@@ -83,8 +97,8 @@ const KELAS_SELECT =
  * @param {string} p.t                 fungsi terjemahan
  * @param {string} p.bidak             id set bidak yang sedang aktif
  * @param {(id: string) => void} p.setBidak  ganti set bidak
- * @param {object} p.kartuKomentator   properti yang diteruskan apa adanya ke
- *        <KartuKomentator> (nyala, setNyala, gaya, setGaya, t)
+ * @param {object} p.kartuKomentator   preferensi komentator
+ *        (nyala, setNyala, gaya, setGaya, t)
  */
 export function IsiPengaturanPapan({
   t,
@@ -100,10 +114,23 @@ export function IsiPengaturanPapan({
   setBantuanNyala,
   warnaPapan,
   setWarnaPapan,
+  tampilKoordinat,
+  setTampilKoordinat,
+  tampilTitikLangkah,
+  setTampilTitikLangkah,
+  sorotLangkahAkhir,
+  setSorotLangkahAkhir,
+  promosiOtomatis,
+  setPromosiOtomatis,
   kartuKomentator,
 }) {
   const idSetBidak = useId();
   const idWarnaPapan = useId();
+  const idKoordinat = useId();
+  const idKomentator = useId();
+  const nilaiKomentator = kartuKomentator.nyala ? kartuKomentator.gaya : "tidak";
+  const labelGaya = (g) =>
+    t(`papan.komentator.gaya${g.charAt(0).toUpperCase() + g.slice(1)}`);
   return (
     <div className="flex flex-col [&>*:first-child]:pt-0">
       <BarisPilihan
@@ -141,6 +168,41 @@ export function IsiPengaturanPapan({
           {PILIHAN_WARNA_PAPAN.map(([nilai, kunci]) => <option key={nilai} value={nilai}>{t(kunci)}</option>)}
         </select>
       </BarisPilihan>
+      <BarisPilihan
+        judul={t("papan.koordinatPapan")}
+        deskripsi={t("papan.koordinatPapanDeskripsi")}
+        sejajar
+      >
+        <select
+          id={idKoordinat}
+          value={tampilKoordinat}
+          onChange={(e) => setTampilKoordinat(e.target.value)}
+          aria-label={t("papan.koordinatPapan")}
+          className={KELAS_SELECT}
+        >
+          <option value="tidak">{t("papan.koordinatTidak")}</option>
+          <option value="tepi">{t("papan.koordinatTepi")}</option>
+          <option value="semua">{t("papan.koordinatSemua")}</option>
+        </select>
+      </BarisPilihan>
+      <BarisSakelar
+        judul={t("papan.titikLangkah")}
+        deskripsi={t("papan.titikLangkahDeskripsi")}
+        checked={tampilTitikLangkah}
+        onCheckedChange={setTampilTitikLangkah}
+      />
+      <BarisSakelar
+        judul={t("papan.sorotLangkahAkhir")}
+        deskripsi={t("papan.sorotLangkahAkhirDeskripsi")}
+        checked={sorotLangkahAkhir}
+        onCheckedChange={setSorotLangkahAkhir}
+      />
+      <BarisSakelar
+        judul={t("papan.promosiOtomatis")}
+        deskripsi={t("papan.promosiOtomatisDeskripsi")}
+        checked={promosiOtomatis}
+        onCheckedChange={setPromosiOtomatis}
+      />
       <BarisSakelar
         judul={t("papan.suara")}
         deskripsi={t("papan.suaraDeskripsi")}
@@ -165,9 +227,34 @@ export function IsiPengaturanPapan({
         checked={awanTampilanPenuh}
         onCheckedChange={setAwanTampilanPenuh}
       />
-      <div className="pt-3">
-        <KartuKomentator {...kartuKomentator} hanyaKontrol className="" />
-      </div>
+      <BarisPilihan
+        judul={t("papan.komentator.judul")}
+        deskripsi={t("papan.komentator.bicaraSaatLangkah")}
+        sejajar
+      >
+        <select
+          id={idKomentator}
+          value={nilaiKomentator}
+          onChange={(e) => {
+            const nilai = e.target.value;
+            if (nilai === "tidak") {
+              kartuKomentator.setNyala(false);
+              return;
+            }
+            kartuKomentator.setGaya(nilai);
+            kartuKomentator.setNyala(true);
+          }}
+          aria-label={t("papan.komentator.judul")}
+          className={KELAS_SELECT}
+        >
+          <option value="tidak">{t("papan.komentator.tidakDitampilkan")}</option>
+          {GAYA_KOMENTATOR.map((g) => (
+            <option key={g} value={g}>
+              {labelGaya(g)}
+            </option>
+          ))}
+        </select>
+      </BarisPilihan>
     </div>
   );
 }
@@ -181,8 +268,8 @@ export function IsiPengaturanPapan({
  * @param {() => void} p.onTutup                 tutup popup
  * @param {string} p.bidak                       id set bidak yang sedang aktif
  * @param {(id: string) => void} p.setBidak   ganti set bidak
- * @param {object} p.kartuKomentator properti yang diteruskan apa adanya ke
- *        <KartuKomentator> (nyala, setNyala, gaya, setGaya, t)
+ * @param {object} p.kartuKomentator preferensi komentator
+ *        (nyala, setNyala, gaya, setGaya, t)
  */
 export default function PopupPengaturan({
   onTutup,

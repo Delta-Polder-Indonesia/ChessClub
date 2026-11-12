@@ -16,6 +16,8 @@
 export const komentatorPapan = {
   judul: "Komentator Papan",
   keterangan: "Ulasan langsung berbasis dinamika posisi, pola pembukaan, dan evaluasi mesin.",
+  bicaraSaatLangkah: "Berbicara saat bidak melangkah.",
+  tidakDitampilkan: "Tidak ditampilkan",
   nyalakan: "Nyalakan komentator",
   matikan: "Matikan komentator",
   gayaLabel: "Gaya Narasi",

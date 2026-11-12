@@ -13,6 +13,10 @@ import { bacaTampilanPanahMesin } from "../../../lib/gunakanEngineCatur.js";
 export const PENGATURAN_AWAL = {
   bidak: "alpha",
   warnaPapan: "metal",
+  tampilKoordinat: "tepi",
+  tampilTitikLangkah: true,
+  sorotLangkahAkhir: true,
+  promosiOtomatis: false,
   tampilPanahMesin: true,
   awanTampilanPenuh: true,
   bantuanNyala: false,

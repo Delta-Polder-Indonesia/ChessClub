@@ -64,6 +64,14 @@ export default function LayarPengaturan({ pengaturan = null }) {
   const setBantuanNyala = (v) => ubah("bantuanNyala", v);
   const warnaPapan = pp.warnaPapan;
   const setWarnaPapan = (v) => ubah("warnaPapan", v);
+  const tampilKoordinat = pp.tampilKoordinat ?? "tepi";
+  const setTampilKoordinat = (v) => ubah("tampilKoordinat", v);
+  const tampilTitikLangkah = pp.tampilTitikLangkah !== false;
+  const setTampilTitikLangkah = (v) => ubah("tampilTitikLangkah", v);
+  const sorotLangkahAkhir = pp.sorotLangkahAkhir !== false;
+  const setSorotLangkahAkhir = (v) => ubah("sorotLangkahAkhir", v);
+  const promosiOtomatis = pp.promosiOtomatis === true;
+  const setPromosiOtomatis = (v) => ubah("promosiOtomatis", v);
 
   // Pengaturan engine analisa — dibaca oleh Papan Interaktif (useEngineCatur).
   const mesin = pp.mesin;
@@ -244,6 +252,14 @@ export default function LayarPengaturan({ pengaturan = null }) {
                   setBantuanNyala={setBantuanNyala}
                   warnaPapan={warnaPapan}
                   setWarnaPapan={setWarnaPapan}
+                  tampilKoordinat={tampilKoordinat}
+                  setTampilKoordinat={setTampilKoordinat}
+                  tampilTitikLangkah={tampilTitikLangkah}
+                  setTampilTitikLangkah={setTampilTitikLangkah}
+                  sorotLangkahAkhir={sorotLangkahAkhir}
+                  setSorotLangkahAkhir={setSorotLangkahAkhir}
+                  promosiOtomatis={promosiOtomatis}
+                  setPromosiOtomatis={setPromosiOtomatis}
                   kartuKomentator={{
                     nyala: preferensiKomentator.nyala,
                     setNyala: preferensiKomentator.setNyala,

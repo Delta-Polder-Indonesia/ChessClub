@@ -136,6 +136,10 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
   const setAwanTampilanPenuh = useCallback((v) => ubahPengaturan("awanTampilanPenuh", v), [ubahPengaturan]);
   const setBantuanNyala = useCallback((v) => ubahPengaturan("bantuanNyala", v), [ubahPengaturan]);
   const setTampilPanahMesinPapan = useCallback((v) => ubahPengaturan("tampilPanahMesin", v), [ubahPengaturan]);
+  const setTampilKoordinat = useCallback((v) => ubahPengaturan("tampilKoordinat", v), [ubahPengaturan]);
+  const setTampilTitikLangkah = useCallback((v) => ubahPengaturan("tampilTitikLangkah", v), [ubahPengaturan]);
+  const setSorotLangkahAkhir = useCallback((v) => ubahPengaturan("sorotLangkahAkhir", v), [ubahPengaturan]);
+  const setPromosiOtomatis = useCallback((v) => ubahPengaturan("promosiOtomatis", v), [ubahPengaturan]);
 
   const [pohon, setPohon] = useState(null);
   const [mode, setMode] = useState("koordinat"); // "koordinat" | "san"
@@ -334,6 +338,10 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
   // latihan, bukan analisa otomatis; dinyalakan dari Pengaturan Papan.
   const bantuanNyala = pp.bantuanNyala;
   const warnaPapan = pp.warnaPapan;
+  const tampilKoordinat = pp.tampilKoordinat ?? "tepi";
+  const tampilTitikLangkah = pp.tampilTitikLangkah !== false;
+  const sorotLangkahAkhir = pp.sorotLangkahAkhir !== false;
+  const promosiOtomatis = pp.promosiOtomatis === true;
   // Tombol "Coba lagi": penghitung memicu ulang efek kueri, ref sekali-pakai
   // meminta kueri berikutnya melewati cache kegagalan klien (30 detik).
   const [awanUlang, setAwanUlang] = useState(0);
@@ -744,15 +752,20 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
       }
     } catch { /* posisi rusak — deteksi promosi dilewati */ }
 
-    if (butuhPromosi && !promo) {
-      setPromosi({ from, to, warna: warnaPromosi });
-      setSeleksi(SELEKSI_KOSONG);
-      return;
+    let promosiTerpilih = promo;
+    if (butuhPromosi && !promosiTerpilih) {
+      if (promosiOtomatis) {
+        promosiTerpilih = "q";
+      } else {
+        setPromosi({ from, to, warna: warnaPromosi });
+        setSeleksi(SELEKSI_KOSONG);
+        return;
+      }
     }
 
     let pindah;
     try {
-      pindah = game.move({ from, to, promotion: promo });
+      pindah = game.move({ from, to, promotion: promosiTerpilih });
     } catch {
       pindah = null;
     }
@@ -898,7 +911,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
     },
     // Posisi dibaca dari `fenLogisRef` (selalu mutakhir) — lihat mulaiSeret.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [promosi]
+    [promosi, promosiOtomatis]
   );
 
   const batalkanSeret = useCallback(() => {
@@ -1583,6 +1596,9 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
                     membeku={false}
                     setBidak={setBidak}
                     tema={warnaPapan}
+                    tampilKoordinat={tampilKoordinat}
+                    tampilTitikLangkah={tampilTitikLangkah}
+                    sorotLangkahAkhir={sorotLangkahAkhir}
                     onKlik={modeEditPosisi ? klikPetakEdit : klikPetak}
                     onMulaiSeret={modeEditPosisi ? undefined : mulaiSeret}
                     onSelesaiSeret={modeEditPosisi ? pindahBidakEdit : selesaiSeret}
@@ -2076,6 +2092,14 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
           }}
           warnaPapan={warnaPapan}
           setWarnaPapan={setWarnaPapan}
+          tampilKoordinat={tampilKoordinat}
+          setTampilKoordinat={setTampilKoordinat}
+          tampilTitikLangkah={tampilTitikLangkah}
+          setTampilTitikLangkah={setTampilTitikLangkah}
+          sorotLangkahAkhir={sorotLangkahAkhir}
+          setSorotLangkahAkhir={setSorotLangkahAkhir}
+          promosiOtomatis={promosiOtomatis}
+          setPromosiOtomatis={setPromosiOtomatis}
           kartuKomentator={{
             nyala: preferensiKomentator.nyala,
             setNyala: preferensiKomentator.setNyala,
