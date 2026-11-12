@@ -1937,7 +1937,7 @@ export default function PapanInteraktif({ tertanam = false, pengaturan = null } 
                     />
                   </div>
 
-                  <div className="grid grid-cols-4 gap-2 text-xs font-semibold text-gray-300">
+                  <div className="grid grid-cols-6 gap-2 text-xs font-semibold text-gray-300">
                     <button
                       type="button"
                       onClick={reset}
@@ -1980,6 +1980,41 @@ export default function PapanInteraktif({ tertanam = false, pengaturan = null } 
                     >
                       <Pencil className="h-4 w-4" />
                       <span>{t("papan.susun")}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!suaraNyala) mainkanSuara(SUARA.tesSuara);
+                        setSuaraNyala((n) => !n);
+                      }}
+                      aria-pressed={suaraNyala}
+                      aria-label={suaraNyala ? t("papan.suaraNyala") : t("papan.suaraMati")}
+                      title={suaraNyala ? t("papan.suaraNyala") : t("papan.suaraMati")}
+                      className={suaraNyala
+                        ? "flex min-w-0 flex-col items-center gap-1 rounded border border-[#312e2b] bg-[#262421] p-2 text-gray-300 transition hover:bg-[#312e2b]"
+                        : "flex min-w-0 flex-col items-center gap-1 rounded border border-[#312e2b] bg-[#262421] p-2 text-[#b33430] transition hover:bg-[#312e2b]"}
+                    >
+                      {suaraNyala ? (
+                        <Volume2 className="h-4 w-4" />
+                      ) : (
+                        <VolumeX className="h-4 w-4" />
+                      )}
+                      <span className="max-w-full truncate">
+                        {t(suaraNyala ? "papan.suaraNyala" : "papan.suaraMati")}
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setOrientasi((o) => (o === "w" ? "b" : "w"))}
+                      aria-label={t("papan.flip")}
+                      title={t("papan.flip")}
+                      className="flex min-w-0 flex-col items-center gap-1 rounded border border-[#312e2b] bg-[#262421] p-2 text-gray-300 transition hover:bg-[#312e2b]"
+                    >
+                      <svg className="h-4 w-4" viewBox="0 0 120 120" fill="currentColor" aria-hidden="true">
+                        <path d="M 21.475246,117.78677 H 73.154894 L 56.373294,98.524495 H 40.73752 V 35.922099 H 59.999794 L 31.106383,2.2131167 2.2129751,35.922099 H 21.475246 Z" />
+                        <path d="m 98.524909,2.2132354 -51.679643,0 16.781593,19.2622766 15.635776,0 V 84.077908 H 60.00036 L 88.893772,117.78689 117.78718,84.077908 Z" />
+                      </svg>
+                      <span className="max-w-full truncate">{t("papan.flip")}</span>
                     </button>
                   </div>
                 </div>
