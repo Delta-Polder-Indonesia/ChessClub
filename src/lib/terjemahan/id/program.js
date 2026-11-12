@@ -237,7 +237,7 @@ export const tipsTekaTeki = {
     faq2Tanya:
       "Bisakah memilih tingkat kesulitan, panjang langkah, atau satu motif saja?",
     faq2Jawab:
-      "Ya. Panel saringan menyediakan pilihan lima koleksi, lima pita level (dari bawah 1.000 hingga 1.900+), panjang langkah (1 hingga 4+ langkah serta taktik non-mat), 18 tema taktik, pelatih, dan giliran melangkah.",
+      "Ya. Setiap penyaring di bilah kiri dapat digabung — misalnya hanya mengerjakan motif pengikat (pin) di pita Level 2, atau membatasi kolam ke skakmat dua langkah saja.",
     faq3Tanya:
       "Mengapa koleksi tambahan baru diunduh saat berpindah dari Skakmat Lichess?",
     faq3Jawab:

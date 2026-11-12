@@ -235,7 +235,7 @@ export const tipsTekaTeki = {
     faq2Tanya:
       "Can I filter by rating level, move length, or a single tactical motif?",
     faq2Jawab:
-      "Yes. The filter sidebar lets you narrow by all five collections, five rating bands (from under 1,000 up to 1,900+), solution length (1 to 4+ moves plus non-mate tactics), 18 tactical motifs, coach, and side to move.",
+      "Yes. Every filter in the sidebar can be combined — for example, drilling only pins inside Level 2 or narrowing the pool strictly to two-move checkmates.",
     faq3Tanya:
       "Why do extended collections load only when switching from Lichess Checkmates?",
     faq3Jawab:
