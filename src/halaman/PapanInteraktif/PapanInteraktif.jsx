@@ -1616,137 +1616,147 @@ export default function PapanInteraktif({ tertanam = false, pengaturan = null } 
   /* ------------------------------------------------------------ tampilan */
   const namaUtama = infoPembukaan.nama ? infoPembukaan.nama[0] : null;
   const galatLegalitasSusun = modeEditPosisi ? validasiPosisiSusun(fen) : null;
+  const TagAreaPapan = tertanam ? "div" : "main";
 
   const isi = (
     <div className={`flex flex-col ${tertanam ? "h-full w-full" : "min-h-screen lg:h-screen"} overflow-hidden bg-[#262421] text-gray-200 font-sans select-none`}>
-      <div className="flex flex-col lg:flex-row flex-1 min-h-0">
-
-
+      <div className="flex min-h-0 flex-1 flex-col overflow-x-hidden overflow-y-auto lg:flex-row lg:overflow-hidden">
         {/* ═══════════════════════════════════════════════════════ */}
-        {/* AREA UTAMA                                            */}
+        {/* AREA PAPAN (pola AreaPapan Teka-Teki)                  */}
         {/* ═══════════════════════════════════════════════════════ */}
-        <main className="flex-1 flex items-stretch justify-start bg-[#262421] min-w-0 overflow-hidden">
-          <div className="mx-auto flex h-full w-full max-w-[1160px] min-h-0 flex-col px-4 py-6 md:px-8">
-          {/* Papan & panel SELALU dirender, tanpa menunggu buku pembukaan.
-              Dulu seluruh isi area ini digerbangi `!pohon` sehingga papan dan
-              panel kanan (termasuk elemen LCP "Analisis Engine") baru dicat
-              setelah 506 KiB buku pembukaan selesai diunduh — audit PageSpeed
-              mencatat LCP 6,7 dtk (render delay 4.320 ms) dan CLS 0,071 saat
-              kerangka diganti tata letak asli. Bagian yang memang butuh buku
-              (tab Buku/Penjelajah/Partai) menampilkan statusnya sendiri. */}
-          <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-x-hidden overflow-y-auto lg:flex-row lg:items-stretch lg:justify-between lg:gap-6 lg:overflow-hidden">
-              <div className="mx-auto flex w-full max-w-[520px] shrink-0 flex-col justify-center overflow-y-auto lg:mx-0 lg:max-w-[min(520px,calc(100dvh-140px),calc(100vw-634px))]">
-                {/* ─── BARIS PEMAIN ATAS — mengikuti orientasi papan ─── */}
-                <BarisProfil {...barisAtas} setBidak={setBidak} className="mb-2" />
+        {/* Papan & panel SELALU dirender, tanpa menunggu buku pembukaan.
+            Dulu seluruh isi area ini digerbangi `!pohon` sehingga papan dan
+            panel kanan (termasuk elemen LCP "Analisis Engine") baru dicat
+            setelah 506 KiB buku pembukaan selesai diunduh — audit PageSpeed
+            mencatat LCP 6,7 dtk (render delay 4.320 ms) dan CLS 0,071 saat
+            kerangka diganti tata letak asli. Bagian yang memang butuh buku
+            (tab Buku/Penjelajah/Partai) menampilkan statusnya sendiri. */}
+        <TagAreaPapan
+          data-area="papan"
+          className="flex shrink-0 items-stretch justify-center bg-[#262421] p-4 sm:p-6 lg:min-w-0 lg:flex-1 lg:items-center lg:overflow-hidden lg:[container-type:size]"
+        >
+          <div className="grid min-h-0 w-full max-w-[720px] grid-cols-[2.25rem_minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)_auto] gap-2 lg:w-fit lg:max-w-none lg:grid-cols-[2.25rem_var(--sisi-papan)] lg:grid-rows-[auto_var(--sisi-papan)_auto] lg:[--sisi-papan:min(calc(100cqw-2.75rem),calc(100cqh-6rem))]">
+            {/* ─── BARIS PEMAIN ATAS — mengikuti orientasi papan ─── */}
+            <BarisProfil {...barisAtas} setBidak={setBidak} tanpaJorokan className="col-start-2 row-start-1 min-h-10 w-0 min-w-full" />
 
-                <div className="flex flex-col justify-center">
-                <div className="flex items-stretch gap-1.5">
-                  <BilahEvaluasi
-                    cpPutih={hasilTertahan?.cpPutih ?? 0}
-                    matePutih={hasilTertahan?.matePutih ?? null}
-                    teksSkor={hasilTertahan?.teksSkor ?? ""}
-                    orientasi={orientasi}
-                    label={t("papan.engineSkor")}
-                    adaEvaluasi={Boolean(hasilTertahan)}
-                  />
-                  <div className="relative min-w-0 flex-1">
-                  <PapanTekaTeki
-                    fen={fen}
-                    orientasi={orientasi}
-                    terpilih={modeEditPosisi ? null : terpilih}
-                    sasaran={modeEditPosisi ? [] : sasaran}
-                    sasaranTangkap={modeEditPosisi ? [] : seleksi.tangkap}
-                    modeEdit={modeEditPosisi}
-                    onHapusBidak={hapusBidakEdit}
-                    kesalahan={kesalahan}
-                    langkahAkhir={langkahAkhir}
-                    tanda={tanda}
-                    panahMesin={tampilPanahMesin ? panahMesin : null}
-                    bantuanPetak={bantuanNyala ? bantuanSeret.petakBantuan : null}
-                    bantuanPanah={bantuanNyala ? bantuanSeret.panahBantuan : null}
-                    ikonLangkah={ikonLangkahAkhir}
-                    ikonSkakmat={ikonSkakmat}
-                    ikonMahkota={ikonMahkota}
-                    terkunci={!!promosi}
-                    membeku={false}
-                    setBidak={setBidak}
-                    tema={warnaPapan}
-                    tampilKoordinat={tampilKoordinat}
-                    tampilTitikLangkah={tampilTitikLangkah}
-                    sorotLangkahAkhir={sorotLangkahAkhir}
-                    onKlik={modeEditPosisi ? klikPetakEdit : klikPetak}
-                    onMulaiSeret={modeEditPosisi ? undefined : mulaiSeret}
-                    onSelesaiSeret={modeEditPosisi ? pindahBidakEdit : selesaiSeret}
-                    onBatalSeret={modeEditPosisi ? undefined : batalkanSeret}
-                    onLewatiPetak={modeEditPosisi ? undefined : lewatiPetak}
-                    onJatuh={cobaLangkah}
-                    onTandaPetak={tandaPetak}
-                    onTandaPanah={tandaPanah}
-                    onHapusTanda={hapusSemuaTanda}
-                  />
-
-                  {promosi && (
-                    <div
-                      className="absolute inset-0 z-50 flex items-center justify-center bg-black/40"
-                      onClick={batalPromosi}
-                    >
-                      <div
-                        role="dialog"
-                        aria-modal="true"
-                        aria-label={t("tekaTeki.promosiJudul")}
-                        className="flex flex-col items-center gap-3 rounded-lg bg-white/95 p-4"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <p className="text-sm font-semibold text-slate-700">
-                          {t(
-                            promosi.warna === "w"
-                              ? "tekaTeki.promosiPutih"
-                              : "tekaTeki.promosiHitam"
-                          )}
-                        </p>
-                        <div className="flex gap-2">
-                          {PILIHAN_PROMOSI.map((p) => (
-                            <button
-                              key={p}
-                              type="button"
-                              onClick={() => pilihPromosi(p)}
-                              aria-label={t(KUCI_NAMA_PROMOSI[p])}
-                              title={t(KUCI_NAMA_PROMOSI[p])}
-                              className="flex h-14 w-14 items-center justify-center rounded-md bg-slate-100 p-1.5 transition hover:bg-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                            >
-                              <ChessPiece
-                                piece={promosi.warna === "w" ? p.toUpperCase() : p}
-                                set={setBidak}
-                                className="h-full w-full"
-                              />
-                            </button>
-                          ))}
-                        </div>
-                        <button
-                          type="button"
-                          onClick={batalPromosi}
-                          className="text-xs font-medium text-slate-500 underline-offset-2 transition hover:text-slate-700 hover:underline"
-                        >
-                          {t("tekaTeki.promosiBatal")}
-                        </button>
-                      </div>
+            <div
+              data-baris="papan"
+              className="col-start-2 row-start-2 flex min-h-0 min-w-0"
+            >
+              <div className="relative flex min-h-0 min-w-0 flex-1 items-center justify-center">
+                <div className="relative flex aspect-square w-full min-w-0 max-w-full items-center justify-center lg:h-full lg:w-auto lg:max-h-full">
+                  <div className="relative flex aspect-square w-full min-w-0 max-w-full items-center justify-center rounded-md shadow-2xl">
+                    <div className="absolute inset-y-0 right-full mr-2 flex w-9 shrink-0 items-stretch">
+                      <BilahEvaluasi
+                        cpPutih={hasilTertahan?.cpPutih ?? 0}
+                        matePutih={hasilTertahan?.matePutih ?? null}
+                        teksSkor={hasilTertahan?.teksSkor ?? ""}
+                        orientasi={orientasi}
+                        label={t("papan.engineSkor")}
+                        adaEvaluasi={Boolean(hasilTertahan)}
+                      />
                     </div>
-                  )}
+                    <PapanTekaTeki
+                      fen={fen}
+                      orientasi={orientasi}
+                      terpilih={modeEditPosisi ? null : terpilih}
+                      sasaran={modeEditPosisi ? [] : sasaran}
+                      sasaranTangkap={modeEditPosisi ? [] : seleksi.tangkap}
+                      modeEdit={modeEditPosisi}
+                      onHapusBidak={hapusBidakEdit}
+                      kesalahan={kesalahan}
+                      langkahAkhir={langkahAkhir}
+                      tanda={tanda}
+                      panahMesin={tampilPanahMesin ? panahMesin : null}
+                      bantuanPetak={bantuanNyala ? bantuanSeret.petakBantuan : null}
+                      bantuanPanah={bantuanNyala ? bantuanSeret.panahBantuan : null}
+                      ikonLangkah={ikonLangkahAkhir}
+                      ikonSkakmat={ikonSkakmat}
+                      ikonMahkota={ikonMahkota}
+                      terkunci={!!promosi}
+                      membeku={false}
+                      setBidak={setBidak}
+                      tema={warnaPapan}
+                      tampilKoordinat={tampilKoordinat}
+                      tampilTitikLangkah={tampilTitikLangkah}
+                      sorotLangkahAkhir={sorotLangkahAkhir}
+                      onKlik={modeEditPosisi ? klikPetakEdit : klikPetak}
+                      onMulaiSeret={modeEditPosisi ? undefined : mulaiSeret}
+                      onSelesaiSeret={modeEditPosisi ? pindahBidakEdit : selesaiSeret}
+                      onBatalSeret={modeEditPosisi ? undefined : batalkanSeret}
+                      onLewatiPetak={modeEditPosisi ? undefined : lewatiPetak}
+                      onJatuh={cobaLangkah}
+                      onTandaPetak={tandaPetak}
+                      onTandaPanah={tandaPanah}
+                      onHapusTanda={hapusSemuaTanda}
+                    />
+
+                    {promosi && (
+                      <div
+                        className="absolute inset-0 z-50 flex items-center justify-center bg-black/40"
+                        onClick={batalPromosi}
+                      >
+                        <div
+                          role="dialog"
+                          aria-modal="true"
+                          aria-label={t("tekaTeki.promosiJudul")}
+                          className="flex flex-col items-center gap-3 rounded-lg bg-white/95 p-4"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <p className="text-sm font-semibold text-slate-700">
+                            {t(
+                              promosi.warna === "w"
+                                ? "tekaTeki.promosiPutih"
+                                : "tekaTeki.promosiHitam"
+                            )}
+                          </p>
+                          <div className="flex gap-2">
+                            {PILIHAN_PROMOSI.map((p) => (
+                              <button
+                                key={p}
+                                type="button"
+                                onClick={() => pilihPromosi(p)}
+                                aria-label={t(KUCI_NAMA_PROMOSI[p])}
+                                title={t(KUCI_NAMA_PROMOSI[p])}
+                                className="flex h-14 w-14 items-center justify-center rounded-md bg-slate-100 p-1.5 transition-colors hover:bg-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                              >
+                                <ChessPiece
+                                  piece={promosi.warna === "w" ? p.toUpperCase() : p}
+                                  set={setBidak}
+                                  className="h-full w-full"
+                                />
+                              </button>
+                            ))}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={batalPromosi}
+                            className="text-xs font-medium text-slate-500 underline-offset-2 transition-colors hover:text-slate-700 hover:underline"
+                          >
+                            {t("tekaTeki.promosiBatal")}
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
-                </div>
-
-                {/* ─── BARIS PEMAIN BAWAH — mengikuti orientasi papan ─── */}
-                <BarisProfil {...barisBawah} setBidak={setBidak} namaDiBawah className="mt-3" />
-
               </div>
+            </div>
 
-              <div className="flex min-h-0 min-w-0 flex-none flex-col lg:w-full lg:max-w-[520px] lg:flex-1">
-                {/* Panel kanan — satu kolom utuh ala LayoutTekaTeki: tinggi tetap di lg supaya
-                    kontrol dasar tidak ikut naik-turun saat isi tab pendek/kosong */}
-                <div className="flex h-auto min-h-0 flex-col rounded-lg border border-[#312e2b] bg-[#211f1c] lg:h-full lg:flex-1">
+            {/* ─── BARIS PEMAIN BAWAH — mengikuti orientasi papan ─── */}
+            <BarisProfil {...barisBawah} setBidak={setBidak} tanpaJorokan namaDiBawah className="col-start-2 row-start-3 min-h-10 w-0 min-w-full" />
+          </div>
+        </TagAreaPapan>
+
+        {/* ═══════════════════════════════════════════════════════ */}
+        {/* PANEL KANAN (pola TekaTekiShell + PanelTab)            */}
+        {/* ═══════════════════════════════════════════════════════ */}
+        <aside
+          data-panel="kanan"
+          className="flex min-h-0 w-full shrink-0 flex-col border-t border-[#312e2b] bg-[#211f1c] lg:h-full lg:w-[clamp(300px,calc(70vw_-_416px),480px)] lg:border-t-0 lg:border-l"
+        >
                 {modeEditPosisi && (
-                  <div className="min-h-0 flex-1 overflow-y-auto rounded-t-lg p-4">
+                  <div className="min-h-0 flex-1 overflow-y-auto p-4">
                     <EditorPosisi
                       terpilih={bidakEditTerpilih}
                       fen={fen}
@@ -1771,12 +1781,12 @@ export default function PapanInteraktif({ tertanam = false, pengaturan = null } 
                 )}
                 {!modeEditPosisi && (
                   <>
-                {/* Header Tab Navigasi — pola panel kanan Chess.com (referensi prompt.md) */}
+                {/* Header Tab Navigasi — pola PanelTab Teka-Teki */}
                 <div
                   role="tablist"
                   aria-label={t("papan.panel")}
                   onKeyDown={saatKunciTab}
-                  className="flex flex-shrink-0 overflow-hidden rounded-t-lg border-b border-[#312e2b] bg-[#1e1c18]"
+                  className="m-3 mb-0 flex flex-shrink-0 items-center gap-1 rounded-lg border border-[#312e2b] bg-[#262421] p-1"
                 >
                   {TAB_PANEL.map((tab, indeks) => (
                     <button
@@ -1791,13 +1801,13 @@ export default function PapanInteraktif({ tertanam = false, pengaturan = null } 
                       aria-controls={`panel-papan-${tab.id}`}
                       tabIndex={tabPanel === tab.id ? 0 : -1}
                       onClick={() => setTabPanel(tab.id)}
-                      className={`flex-1 min-w-0 py-3 flex items-center justify-center gap-2 text-xs font-bold border-b-2 transition-all ${
+                      className={`flex min-w-0 flex-auto items-center justify-center gap-1.5 rounded-md px-1.5 py-1.5 text-xs font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#81b64c] xl:px-2 ${
                         tabPanel === tab.id
-                          ? "border-[#81b64c] text-white bg-[#262421]"
-                          : "border-transparent text-gray-400 hover:text-gray-200 hover:bg-[#262421]"
+                          ? "bg-[#3d3a37] text-white shadow-sm"
+                          : "text-gray-400 hover:text-gray-200"
                       }`}
                     >
-                      <IkonTab nama={tab.id} className="h-4 w-4 shrink-0" />
+                      <IkonTab nama={tab.id} className="h-4 w-4 shrink-0 lg:hidden xl:block" />
                       <span className="min-w-0 truncate">{t(tab.labelKey)}</span>
                     </button>
                   ))}
@@ -1996,8 +2006,8 @@ export default function PapanInteraktif({ tertanam = false, pengaturan = null } 
                 </>
                 )}
 
-                {/* Panel Kontrol Bawah Navigasi — menyatu di dasar panel ala LayoutTekaTeki */}
-                <div className="mt-auto flex-shrink-0 space-y-3 rounded-b-lg border-t border-[#312e2b] bg-[#1e1c18] p-3">
+                {/* Panel Kontrol Bawah Navigasi — menyatu di dasar panel ala KontrolLangkah */}
+                <div className="mt-auto flex flex-shrink-0 flex-col gap-3 border-t border-[#312e2b] bg-[#1e1c18] p-3">
                   <div className="flex items-center gap-1 rounded-lg border border-[#312e2b] bg-[#262421] p-1">
                     <TombolKeAwal
                       onClick={keAwal}
@@ -2026,9 +2036,9 @@ export default function PapanInteraktif({ tertanam = false, pengaturan = null } 
                       type="button"
                       onClick={reset}
                       disabled={modeEditPosisi}
-                      className="flex min-w-0 flex-col items-center gap-1 rounded border border-[#312e2b] bg-[#262421] p-2 transition hover:bg-[#312e2b] disabled:cursor-not-allowed disabled:opacity-40"
+                      className="flex min-w-0 flex-col items-center gap-1.5 rounded-lg border border-[#312e2b] bg-[#262421] px-1.5 py-2.5 transition-colors hover:bg-[#312e2b] hover:text-white disabled:cursor-not-allowed disabled:opacity-40 xl:p-2.5"
                     >
-                      <Plus className="h-4 w-4 text-gray-400" />
+                      <Plus className="h-4 w-4 text-gray-400" aria-hidden="true" />
                       <span>{t("papan.baru")}</span>
                     </button>
                     <button
@@ -2036,7 +2046,7 @@ export default function PapanInteraktif({ tertanam = false, pengaturan = null } 
                       onClick={() => setOrientasi((o) => (o === "w" ? "b" : "w"))}
                       aria-label={t("papan.flip")}
                       title={t("papan.flip")}
-                      className="flex min-w-0 flex-col items-center gap-1 rounded border border-[#312e2b] bg-[#262421] p-2 text-gray-300 transition hover:bg-[#312e2b]"
+                      className="flex min-w-0 flex-col items-center gap-1.5 rounded-lg border border-[#312e2b] bg-[#262421] px-1.5 py-2.5 text-gray-300 transition-colors hover:bg-[#312e2b] hover:text-white xl:p-2.5"
                     >
                       <svg className="h-4 w-4" viewBox="0 0 120 120" fill="currentColor" aria-hidden="true">
                         <path d="M 21.475246,117.78677 H 73.154894 L 56.373294,98.524495 H 40.73752 V 35.922099 H 59.999794 L 31.106383,2.2131167 2.2129751,35.922099 H 21.475246 Z" />
@@ -2053,14 +2063,14 @@ export default function PapanInteraktif({ tertanam = false, pengaturan = null } 
                       aria-pressed={suaraNyala}
                       aria-label={suaraNyala ? t("papan.suaraNyala") : t("papan.suaraMati")}
                       title={suaraNyala ? t("papan.suaraNyala") : t("papan.suaraMati")}
-                      className={suaraNyala
-                        ? "flex min-w-0 flex-col items-center gap-1 rounded border border-[#312e2b] bg-[#262421] p-2 text-gray-300 transition hover:bg-[#312e2b]"
-                        : "flex min-w-0 flex-col items-center gap-1 rounded border border-[#312e2b] bg-[#262421] p-2 text-[#b33430] transition hover:bg-[#312e2b]"}
+                      className={`flex min-w-0 flex-col items-center gap-1.5 rounded-lg border border-[#312e2b] bg-[#262421] px-1.5 py-2.5 transition-colors hover:bg-[#312e2b] xl:p-2.5 ${
+                        suaraNyala ? "text-gray-300 hover:text-white" : "text-[#e2655c]"
+                      }`}
                     >
                       {suaraNyala ? (
-                        <Volume2 className="h-4 w-4" />
+                        <Volume2 className="h-4 w-4" aria-hidden="true" />
                       ) : (
-                        <VolumeX className="h-4 w-4" />
+                        <VolumeX className="h-4 w-4" aria-hidden="true" />
                       )}
                       <span className="max-w-full truncate">{t("papan.suaraNav")}</span>
                     </button>
@@ -2086,7 +2096,7 @@ export default function PapanInteraktif({ tertanam = false, pengaturan = null } 
                         aria-haspopup="menu"
                         aria-expanded={menuAksiTerbuka}
                         title={t("papan.lainnya")}
-                        className="flex w-full flex-col items-center gap-1 rounded border border-[#312e2b] bg-[#262421] p-2 text-gray-300 transition hover:bg-[#312e2b]"
+                        className="flex w-full flex-col items-center gap-1.5 rounded-lg border border-[#312e2b] bg-[#262421] px-1.5 py-2.5 text-gray-300 transition-colors hover:bg-[#312e2b] hover:text-white xl:p-2.5"
                       >
                         <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
                         <span className="max-w-full truncate">
@@ -2144,11 +2154,7 @@ export default function PapanInteraktif({ tertanam = false, pengaturan = null } 
                     </div>
                   </div>
                 </div>
-                </div>
-              </div>
-            </div>
-        </div>
-      </main>
+        </aside>
       </div>
 
       {tampilPgn && (
