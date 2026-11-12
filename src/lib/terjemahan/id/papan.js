@@ -461,6 +461,8 @@ export const papan = {
     batalEditPosisi: "Batal",
     kosongkanPapan: "Kosongkan",
     giliranEdit: "Giliran: {warna} (ubah)",
+    giliranJalan: "Giliran jalan",
+    editFen: "Edit",
     petunjukEditPosisi: "Pilih bidak lalu klik petak untuk menaruh atau menggantinya. Seret bidak di papan untuk memindahkan; pilih Hapus bidak lalu klik petak untuk menghapus.",
     hapusBidak: "Hapus bidak",
     posisiPerluRaja: "Posisi harus memiliki tepat satu raja putih dan satu raja hitam sebelum dimainkan.",
