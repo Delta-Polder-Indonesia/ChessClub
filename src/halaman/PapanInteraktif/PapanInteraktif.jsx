@@ -388,7 +388,6 @@ export default function PapanInteraktif({ tertanam = false, pengaturan = null } 
     permainanSelesai,
     panahMesin,
     tampilPanahMesin,
-    setTampilPanahMesin,
     nyalakanEngine,
     matikanEngine,
   } = useEngineCatur(fen, opsiEngine);
