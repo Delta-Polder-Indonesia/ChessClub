@@ -1,9 +1,79 @@
 import { useId } from "react";
+import { ChessPiece } from "../../components/chess/ChessPiece.jsx";
 import { DAFTAR_SET } from "../../components/chess/pemuatBidak.js";
 import KartuKomentator from "../../components/KartuKomentator.jsx";
 import { Switch } from "../../components/ui/switch.jsx";
+import { TEMA_PAPAN } from "../TekaTeki/temaPapan.js";
 import { useDialog } from "./bersama/gunakanDialog.js";
 import { PILIHAN_WARNA_PAPAN } from "./bersama/konstanta.js";
+
+const BIDAK_PRATINJAU = ["R", "N", "B", "Q", "K", "P"];
+
+function PratinjauBidak({ set }) {
+  return (
+    <div
+      aria-hidden="true"
+      className="flex h-10 w-[11.5rem] shrink-0 items-center justify-center gap-1 overflow-hidden rounded-[0.25rem] border border-border bg-[#272727] px-1.5"
+    >
+      {BIDAK_PRATINJAU.map((bidak) => (
+        <ChessPiece key={bidak} piece={bidak} set={set} className="h-6 w-6 object-contain" />
+      ))}
+    </div>
+  );
+}
+
+function PratinjauPapan({ tema }) {
+  const palet = TEMA_PAPAN[tema] ?? TEMA_PAPAN.metal;
+  return (
+    <div
+      aria-hidden="true"
+      className="grid h-10 w-10 shrink-0 grid-cols-8 overflow-hidden rounded-[0.25rem] border border-border"
+    >
+      {Array.from({ length: 64 }, (_, i) => (
+        <span
+          key={i}
+          style={{
+            backgroundColor:
+              (Math.floor(i / 8) + (i % 8)) % 2 === 0 ? palet.terang : palet.gelap,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function BarisPilihan({ judul, deskripsi, pratinjau, children }) {
+  return (
+    <div className="border-b border-border py-3">
+      <p className="text-sm font-semibold text-foreground">{judul}</p>
+      <p className="mt-0.5 text-xs leading-5 text-foregroundGrey">{deskripsi}</p>
+      <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+        {pratinjau}
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function BarisSakelar({ judul, deskripsi, checked, onCheckedChange }) {
+  return (
+    <div className="flex items-center justify-between gap-4 border-b border-border py-3">
+      <div className="min-w-0">
+        <p className="text-sm font-semibold text-foreground">{judul}</p>
+        <p className="mt-0.5 text-xs leading-5 text-foregroundGrey">{deskripsi}</p>
+      </div>
+      <Switch
+        size="sm"
+        checked={checked}
+        onCheckedChange={onCheckedChange}
+        aria-label={judul}
+      />
+    </div>
+  );
+}
+
+const KELAS_SELECT =
+  "h-10 w-auto max-w-full rounded-borderRoundness border border-border bg-[#272727] px-2 text-sm text-foreground outline-none transition-colors hover:border-borderHighlighted focus:border-[#81b64c]";
 
 /**
  * Isi pengaturan papan TANPA bingkai dialog — dipakai LayarPengaturan
@@ -33,85 +103,70 @@ export function IsiPengaturanPapan({
   kartuKomentator,
 }) {
   const idSetBidak = useId();
+  const idWarnaPapan = useId();
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-row gap-2">
-        <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <label htmlFor={idSetBidak} className="text-xs font-bold text-foregroundGrey">
-            {t("papan.setBidak")}
-          </label>
-          <select
-            id={idSetBidak}
-            data-autofokus
-            value={bidak}
-            onChange={(e) => setBidak(e.target.value)}
-            className="w-full rounded-borderRoundness border border-border bg-[#272727] px-2 py-1 text-sm text-foreground outline-none"
-          >
-            {DAFTAR_SET.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.nama}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <label htmlFor="warna-papan" className="text-xs font-bold text-foregroundGrey">{t("papan.warnaPapan")}</label>
-          <select
-            id="warna-papan"
-            value={warnaPapan}
-            onChange={(e) => setWarnaPapan(e.target.value)}
-            className="w-full rounded-borderRoundness border border-border bg-[#272727] px-2 py-1 text-sm text-foreground outline-none"
-          >
-            {PILIHAN_WARNA_PAPAN.map(([nilai, kunci]) => <option key={nilai} value={nilai}>{t(kunci)}</option>)}
-          </select>
-        </div>
-      </div>
-      <div className="flex items-center justify-between gap-3">
-        <span className="text-xs font-bold text-foregroundGrey">
-          {t("papan.suara")}
-        </span>
-        <Switch
-          size="sm"
-          checked={suaraNyala}
-          onCheckedChange={setSuaraNyala}
-          aria-label={t("papan.suara")}
-        />
-      </div>
-      <div className="flex items-center justify-between gap-3">
-        <span className="text-xs font-bold text-foregroundGrey">
-          {t("papan.enginePanahToggle")}
-        </span>
-        <Switch
-          size="sm"
-          checked={tampilPanahMesin}
-          onCheckedChange={setTampilPanahMesin}
-          aria-label={t("papan.enginePanahToggle")}
-        />
-      </div>
-      <div className="flex items-center justify-between gap-3">
-        <span className="text-xs font-bold text-foregroundGrey">
-          {t("papan.bantuanToggle")}
-        </span>
-        <Switch
-          size="sm"
-          checked={bantuanNyala}
-          onCheckedChange={setBantuanNyala}
-          aria-label={t("papan.bantuanToggle")}
-        />
-      </div>
-      <div className="flex items-center justify-between gap-3">
-        <span className="text-xs font-bold text-foregroundGrey">
-          {t("papan.awanTampilanPenuh")}
-        </span>
-        <Switch
-          size="sm"
-          checked={awanTampilanPenuh}
-          onCheckedChange={setAwanTampilanPenuh}
-          aria-label={t("papan.awanTampilanPenuh")}
-        />
-      </div>
-      <div className="border-t border-border pt-3">
-        <KartuKomentator {...kartuKomentator} hanyaKontrol />
+    <div className="flex flex-col [&>*:first-child]:pt-0">
+      <BarisPilihan
+        judul={t("papan.setBidak")}
+        deskripsi={t("papan.setBidakDeskripsi")}
+        pratinjau={<PratinjauBidak set={bidak} />}
+      >
+        <select
+          id={idSetBidak}
+          data-autofokus
+          value={bidak}
+          onChange={(e) => setBidak(e.target.value)}
+          aria-label={t("papan.setBidak")}
+          className={KELAS_SELECT}
+        >
+          {DAFTAR_SET.map((s) => (
+            <option key={s.id} value={s.id}>
+              {s.nama}
+            </option>
+          ))}
+        </select>
+      </BarisPilihan>
+      <BarisPilihan
+        judul={t("papan.warnaPapan")}
+        deskripsi={t("papan.warnaPapanDeskripsi")}
+        pratinjau={<PratinjauPapan tema={warnaPapan} />}
+      >
+        <select
+          id={idWarnaPapan}
+          value={warnaPapan}
+          onChange={(e) => setWarnaPapan(e.target.value)}
+          aria-label={t("papan.warnaPapan")}
+          className={KELAS_SELECT}
+        >
+          {PILIHAN_WARNA_PAPAN.map(([nilai, kunci]) => <option key={nilai} value={nilai}>{t(kunci)}</option>)}
+        </select>
+      </BarisPilihan>
+      <BarisSakelar
+        judul={t("papan.suara")}
+        deskripsi={t("papan.suaraDeskripsi")}
+        checked={suaraNyala}
+        onCheckedChange={setSuaraNyala}
+      />
+      <BarisSakelar
+        judul={t("papan.enginePanahToggle")}
+        deskripsi={t("papan.enginePanahToggleDeskripsi")}
+        checked={tampilPanahMesin}
+        onCheckedChange={setTampilPanahMesin}
+      />
+      <BarisSakelar
+        judul={t("papan.bantuanToggle")}
+        deskripsi={t("papan.bantuanToggleDeskripsi")}
+        checked={bantuanNyala}
+        onCheckedChange={setBantuanNyala}
+      />
+      <BarisSakelar
+        judul={t("papan.awanTampilanPenuh")}
+        deskripsi={t("papan.awanTampilanPenuhDeskripsi")}
+        checked={awanTampilanPenuh}
+        onCheckedChange={setAwanTampilanPenuh}
+      />
+      <div className="pt-3">
+        <KartuKomentator {...kartuKomentator} hanyaKontrol className="" />
       </div>
     </div>
   );
