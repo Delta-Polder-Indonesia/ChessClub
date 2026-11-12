@@ -1989,19 +1989,19 @@ export default function PapanInteraktif({ tertanam = false, pengaturan = null } 
                       <button
                         type="button"
                         onClick={() => setMenuAksiTerbuka((terbuka) => !terbuka)}
-                        aria-label="Aksi lainnya"
+                        aria-label={t("papan.lainnya")}
                         aria-haspopup="menu"
                         aria-expanded={menuAksiTerbuka}
-                        title="Aksi lainnya"
+                        title={t("papan.lainnya")}
                         className="flex w-full flex-col items-center gap-1 rounded border border-[#312e2b] bg-[#262421] p-2 text-gray-300 transition hover:bg-[#312e2b]"
                       >
                         <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
-                        <span>Lainnya</span>
+                        <span>{t("papan.lainnya")}</span>
                       </button>
                       {menuAksiTerbuka && (
                         <div
                           role="menu"
-                          aria-label="Aksi papan lainnya"
+                          aria-label={t("papan.menuAksiLainnya")}
                           className="absolute bottom-full right-0 z-50 mb-2 flex w-52 flex-col overflow-hidden rounded-lg border border-[#3a3835] bg-[#1e1c18] p-1.5 text-sm font-medium text-gray-200 shadow-xl"
                         >
                           <button
@@ -2016,7 +2016,7 @@ export default function PapanInteraktif({ tertanam = false, pengaturan = null } 
                             className="flex items-center gap-3 rounded px-3 py-2.5 text-left hover:bg-[#312e2b]"
                           >
                             <Pencil className="h-4 w-4 shrink-0 text-gray-400" aria-hidden="true" />
-                            <span>{modeEditPosisi ? "Batalkan edit posisi" : t("papan.editPosisi")}</span>
+                            <span>{modeEditPosisi ? t("papan.batalEditPosisi") : t("papan.editPosisi")}</span>
                           </button>
                           <button
                             type="button"
@@ -2029,7 +2029,7 @@ export default function PapanInteraktif({ tertanam = false, pengaturan = null } 
                             className="flex items-center gap-3 rounded px-3 py-2.5 text-left hover:bg-[#312e2b] disabled:cursor-not-allowed disabled:opacity-40"
                           >
                             <RotateCw className="h-4 w-4 shrink-0 text-gray-400" aria-hidden="true" />
-                            <span>Input PGN / FEN</span>
+                            <span>{t("papan.inputPgnFen")}</span>
                           </button>
                           <button
                             type="button"
@@ -2042,7 +2042,7 @@ export default function PapanInteraktif({ tertanam = false, pengaturan = null } 
                             className="flex items-center gap-3 rounded px-3 py-2.5 text-left hover:bg-[#312e2b] disabled:cursor-not-allowed disabled:opacity-40"
                           >
                             <Bookmark className="h-4 w-4 shrink-0 text-gray-400" aria-hidden="true" />
-                            <span>{pgnTersalin ? t("papan.tersalinSingkat") : "Salin PGN"}</span>
+                            <span>{pgnTersalin ? t("papan.tersalinSingkat") : `${t("papan.salin")} PGN`}</span>
                           </button>
                         </div>
                       )}
