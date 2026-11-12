@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 
 /**
- * Perilaku dialog modal yang benar — dipakai MasukanPgn & PopupPengaturan.
+ * Perilaku dialog modal yang benar — dipakai MasukanPgn & dialog lainnya.
  *
  * - Fokus awal: elemen `[data-autofokus]` bila ada, kalau tidak elemen
  *   fokusabel pertama, kalau tidak ada kotak dialognya sendiri.

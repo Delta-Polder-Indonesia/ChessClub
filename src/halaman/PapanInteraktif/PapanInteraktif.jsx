@@ -7,6 +7,7 @@ import {
   RotateCw,
   Volume2,
   VolumeX,
+  MoreHorizontal,
 } from "lucide-react";
 import { useI18n } from "../../lib/i18n.jsx";
 import { ChessPiece } from "../../components/chess/ChessPiece.jsx";
@@ -14,6 +15,8 @@ import PapanTekaTeki from "../TekaTeki/PapanTekaTeki.jsx";
 import EditorPosisi from "./EditorPosisi.jsx";
 import {
   aturBidak,
+  aturHakRokade,
+  bersihkanHakRokade,
   fenDariPeta,
   petaDariFen,
   KUNCI_HAPUS_BIDAK,
@@ -76,7 +79,6 @@ import { susunTangkapan } from "./bersama/TangkapanBidakData.js";
 import MasukanPgn from "./MasukanPgn.jsx";
 import LangkahExplorer from "./LangkahExplorer.jsx";
 import PanelBasisDataAwan from "./PanelBasisDataAwan.jsx";
-import PopupPengaturan from "./PopupPengaturan.jsx";
 import { usePengaturanPapan } from "./bersama/gunakanPengaturanPapan.js";
 import { usePengaturanBersama } from "./bersama/PengaturanKonteks.jsx";
 import { cariEngine } from "../../lib/engineCatur.js";
@@ -122,7 +124,7 @@ function StatusBuku({ gagal, onUlang, t }) {
  *  membersihkan seleksi tidak memicu render papan yang tidak perlu. */
 const SELEKSI_KOSONG = Object.freeze({ dari: null, tujuan: [], tangkap: [] });
 
-export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = null, pengaturan = null } = {}) {
+export default function PapanInteraktif({ tertanam = false, pengaturan = null } = {}) {
   const { t, bahasa } = useI18n();
   // Pengaturan dari tata letak /papan-interaktif/* (konteks bersama, hidup
   // lintas halaman). Bila tidak ada, pakai state lokal agar komponen tetap
@@ -131,15 +133,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
   const pengaturanBersama = usePengaturanBersama();
   const { nilai: pp, ubah: ubahPengaturan } =
     pengaturan ?? pengaturanBersama ?? pengaturanLokal;
-  const setBidakPapan = useCallback((v) => ubahPengaturan("bidak", v), [ubahPengaturan]);
-  const setWarnaPapan = useCallback((v) => ubahPengaturan("warnaPapan", v), [ubahPengaturan]);
-  const setAwanTampilanPenuh = useCallback((v) => ubahPengaturan("awanTampilanPenuh", v), [ubahPengaturan]);
-  const setBantuanNyala = useCallback((v) => ubahPengaturan("bantuanNyala", v), [ubahPengaturan]);
   const setTampilPanahMesinPapan = useCallback((v) => ubahPengaturan("tampilPanahMesin", v), [ubahPengaturan]);
-  const setTampilKoordinat = useCallback((v) => ubahPengaturan("tampilKoordinat", v), [ubahPengaturan]);
-  const setTampilTitikLangkah = useCallback((v) => ubahPengaturan("tampilTitikLangkah", v), [ubahPengaturan]);
-  const setSorotLangkahAkhir = useCallback((v) => ubahPengaturan("sorotLangkahAkhir", v), [ubahPengaturan]);
-  const setPromosiOtomatis = useCallback((v) => ubahPengaturan("promosiOtomatis", v), [ubahPengaturan]);
 
   const [pohon, setPohon] = useState(null);
   const [mode, setMode] = useState("koordinat"); // "koordinat" | "san"
@@ -219,12 +213,14 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
     setSeleksi(SELEKSI_KOSONG);
     setLangkahAkhir(null);
     setGalatEditPosisi("");
+    setFenTersalin(false);
   }
 
   function mulaiEditPosisi() {
     fenSebelumEditRef.current = fenLogisRef.current;
     setBidakEditTerpilih(null);
     setGalatEditPosisi("");
+    setFenTersalin(false);
     setModeEditPosisi(true);
     setSeleksi(SELEKSI_KOSONG);
     setPromosi(null);
@@ -238,12 +234,13 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
   }
 
   function pindahBidakEdit(dari, ke) {
+    const ruas = fenLogisRef.current.trim().split(/\s+/);
     const peta = petaDariFen(fenLogisRef.current);
     const simbol = peta[dari];
     if (!simbol) return;
     delete peta[dari];
     peta[ke] = simbol;
-    ubahFENEdit(fenDariPeta(peta, fenLogisRef.current.split(/\s+/)[1]));
+    ubahFENEdit(fenDariPeta(peta, ruas[1], ruas[2] || "-"));
   }
 
   function hapusBidakEdit(petak) {
@@ -251,16 +248,21 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
   }
 
   function ubahGiliranEdit(giliran) {
+    const ruas = fenLogisRef.current.trim().split(/\s+/);
     ubahFENEdit(
-      fenDariPeta(petaDariFen(fenLogisRef.current), giliran)
+      fenDariPeta(petaDariFen(fenLogisRef.current), giliran, ruas[2] || "-")
     );
+  }
+
+  function ubahRokadeEdit(hak, aktif) {
+    ubahFENEdit(aturHakRokade(fenLogisRef.current, hak, aktif));
   }
 
   function terapkanEditPosisi() {
     const posisi = fenLogisRef.current;
     const galatLegalitas = validasiPosisiSusun(posisi);
     if (galatLegalitas) {
-      setGalatEditPosisi(t(galatLegalitas));
+      setGalatEditPosisi(t(`papan.${galatLegalitas}`));
       return;
     }
     try {
@@ -270,13 +272,18 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
       if (rajaPutih !== 1 || rajaHitam !== 1) {
         throw new Error(t("papan.posisiPerluRaja"));
       }
-      const fenSah = new Chess(posisi).fen();
+      const ruasPosisi = posisi.trim().split(/\s+/);
+      if (ruasPosisi.length >= 6) {
+        ruasPosisi[2] = bersihkanHakRokade(peta, ruasPosisi[2]);
+      }
+      const fenSah = new Chess(ruasPosisi.join(" ")).fen();
       fenLogisRef.current = fenSah;
       setFenAwal(fenSah);
       terapkanPosisi({ fen: fenSah, riwayat: [], riwayatLengkap: [], jalur: [] });
       setModeEditPosisi(false);
       setBidakEditTerpilih(null);
       setGalatEditPosisi("");
+      setFenTersalin(false);
       setLangkahAkhir(null);
       setPilihan(-1);
       setOrientasi("w");
@@ -297,6 +304,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
     setModeEditPosisi(false);
     setBidakEditTerpilih(null);
     setGalatEditPosisi("");
+    setFenTersalin(false);
     setSeleksi(SELEKSI_KOSONG);
   }
 
@@ -308,13 +316,44 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
   const setBidak = pp.bidak;
 
   const [pgnTersalin, setPgnTersalin] = useState(false);
+  const [fenTersalin, setFenTersalin] = useState(false);
   const [pilihan, setPilihan] = useState(-1); // id pembukaan terpilih di dropdown
-  // Popup pengaturan hanya untuk tanpa onBukaPengaturan (mis. halaman
-  // Teka-Teki); di /papan-interaktif tombol gear membuka layar Pengaturan.
-  const [tampilSetting, setTampilSetting] = useState(false);
   // Tab aktif panel kanan: "analisa" | "books" | "explorer" | "games".
   const [tabPanel, setTabPanel] = useState("analisa");
   const [tampilPgn, setTampilPgn] = useState(false); // dialog Review (input PGN/FEN)
+  const [menuAksiTerbuka, setMenuAksiTerbuka] = useState(false);
+  const menuAksiRef = useRef(null);
+  const tombolMenuAksiRef = useRef(null);
+  const fokusMenuSaatBukaRef = useRef(null);
+
+  // Tutup menu aksi saat pengguna menekan Escape atau berinteraksi di luar menu.
+  useEffect(() => {
+    if (!menuAksiTerbuka) return undefined;
+    if (fokusMenuSaatBukaRef.current) {
+      const targetFokus = fokusMenuSaatBukaRef.current;
+      fokusMenuSaatBukaRef.current = null;
+      const items = [
+        ...(menuAksiRef.current?.querySelectorAll('[role="menuitem"]:not([disabled])') ?? []),
+      ];
+      const tujuan = targetFokus === "terakhir" ? items[items.length - 1] : items[0];
+      tujuan?.focus();
+    }
+    const saatKlikLuar = (event) => {
+      if (!menuAksiRef.current?.contains(event.target)) setMenuAksiTerbuka(false);
+    };
+    const saatEscape = (event) => {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      setMenuAksiTerbuka(false);
+      tombolMenuAksiRef.current?.focus();
+    };
+    document.addEventListener("pointerdown", saatKlikLuar);
+    document.addEventListener("keydown", saatEscape);
+    return () => {
+      document.removeEventListener("pointerdown", saatKlikLuar);
+      document.removeEventListener("keydown", saatEscape);
+    };
+  }, [menuAksiTerbuka]);
   // Basis data awan (chessdb.cn) — hanya dipanggil SETELAH partai keluar dari
   // buku pembukaan lokal; `posisi` menyimpan FEN yang datanya sedang tampil
   // supaya jawaban posisi lama tidak pernah menimpa posisi sekarang.
@@ -375,18 +414,15 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
     permainanSelesai,
     panahMesin,
     tampilPanahMesin,
-    setTampilPanahMesin,
     nyalakanEngine,
     matikanEngine,
   } = useEngineCatur(fen, opsiEngine);
 
-  // Bantuan langkah tersimpan di Pengaturan (hidup lintas tab), tetapi engine
-  // hanya dimulai saat dinyalakan. Papan yang dibuka ulang dengan bantuan
-  // aktif harus menyalakan engine lagi (sekali saat mount).
+  // Bantuan langkah membutuhkan engine setiap kali sakelar diaktifkan,
+  // termasuk ketika pengguna menyalakannya setelah halaman sudah terbuka.
   useEffect(() => {
-    if (pp.bantuanNyala) nyalakanEngine();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-once: engine hanya dinyalakan sekali saat papan dibuka
-  }, []);
+    if (bantuanNyala) nyalakanEngine();
+  }, [bantuanNyala, nyalakanEngine]);
 
   // Hasil evaluasi terakhir ditahan selama analisis posisi baru berjalan,
   // agar bar evaluasi tidak hilang dan papan tidak goyang.
@@ -410,6 +446,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
   const abaikanKlikRef = useRef(false);
   const timerSalah = useRef(null);
   const timerSalin = useRef(null);
+  const timerSalinFen = useRef(null);
 
   // Snapshot hasil engine per-FEN: tiap posisi yang dianalisis menyimpan
   // nilai eval paling akurat-nya, sehingga langkah yang baru dimainkan bisa
@@ -518,6 +555,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
     () => () => {
       window.clearTimeout(timerSalah.current);
       window.clearTimeout(timerSalin.current);
+      window.clearTimeout(timerSalinFen.current);
     },
     []
   );
@@ -846,15 +884,6 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
     return () => window.removeEventListener("keydown", saatEscape);
   }, [promosi]);
 
-  useEffect(() => {
-    if (!tampilSetting) return;
-    function saatEscape(e) {
-      if (e.key === "Escape") setTampilSetting(false);
-    }
-    window.addEventListener("keydown", saatEscape);
-    return () => window.removeEventListener("keydown", saatEscape);
-  }, [tampilSetting]);
-
   // Petak asal yang sedang diseret — dipakai bantuan langkah; disimpan di ref
   // karena dipanggil dari callback pointermove (bukan render).
   const seretDariRef = useRef(null);
@@ -1141,14 +1170,23 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
       }
       // FEN dimuat sebagai posisi awal yang baru (mandiri): riwayat
       // dikosongkan karena FEN tidak menyimpan langkah-langkah sebelumnya.
-      setFenAwal(fenBaru);
-      setRiwayat([]);
-      setRiwayatLengkap([]);
-      setJalur([]);
-      setFen(fenBaru);
-      bersih();
+      if (modeEditPosisi) {
+        const ruasFen = fenBaru.split(/\s+/);
+        ruasFen[2] = bersihkanHakRokade(petaDariFen(fenBaru), ruasFen[2]);
+        ubahFENEdit(ruasFen.join(" "));
+      } else {
+        setFenAwal(fenBaru);
+        setRiwayat([]);
+        setRiwayatLengkap([]);
+        setJalur([]);
+        setFen(fenBaru);
+        bersih();
+      }
       return true;
     }
+    // Saat dialog dibuka dari tombol Edit FEN, hanya terima FEN agar
+    // mode susun tetap aktif dan tidak mengimpor riwayat PGN secara tak sengaja.
+    if (modeEditPosisi) return false;
     // Selain itu: anggap PGN — hormati header [FEN "…"] bila ada (partai dari
     // posisi kustom), kalau tidak mulai dari posisi awal standar.
     const daftar = sanDariPgn(isi);
@@ -1201,6 +1239,43 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
     } else {
       selesai();
     }
+  }
+
+  function salinFen() {
+    const selesai = () => {
+      setFenTersalin(true);
+      window.clearTimeout(timerSalinFen.current);
+      timerSalinFen.current = window.setTimeout(() => setFenTersalin(false), 1500);
+    };
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(fen).then(selesai).catch(() => {});
+    }
+  }
+
+  function saatKunciMenuAksi(e) {
+    if (e.key === "Tab") {
+      setMenuAksiTerbuka(false);
+      return;
+    }
+    const items = [
+      ...(menuAksiRef.current?.querySelectorAll('[role="menuitem"]:not([disabled])') ?? []),
+    ];
+    if (!items.length) return;
+    const indeks = items.indexOf(document.activeElement);
+    let tujuan = null;
+    if (e.key === "ArrowDown") {
+      tujuan = items[indeks >= 0 ? (indeks + 1) % items.length : 0];
+    } else if (e.key === "ArrowUp") {
+      tujuan = items[indeks >= 0 ? (indeks - 1 + items.length) % items.length : items.length - 1];
+    } else if (e.key === "Home") {
+      tujuan = items[0];
+    } else if (e.key === "End") {
+      tujuan = items[items.length - 1];
+    }
+    if (!tujuan) return;
+    e.preventDefault();
+    e.stopPropagation();
+    tujuan.focus();
   }
 
   /** Navigasi keyboard antar-tab panel (panah/Home/End) — fokus ikut berpindah. */
@@ -1550,8 +1625,8 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
         {/* ═══════════════════════════════════════════════════════ */}
         {/* AREA UTAMA                                            */}
         {/* ═══════════════════════════════════════════════════════ */}
-        <main className="flex-1 flex items-center justify-center bg-[#262421] min-w-0 overflow-hidden">
-          <div className="flex h-full w-full max-w-[1280px] min-h-0 flex-col px-4 py-6 md:px-8">
+        <main className="flex-1 flex items-stretch justify-start bg-[#262421] min-w-0 overflow-hidden">
+          <div className="mx-auto flex h-full w-full max-w-[1160px] min-h-0 flex-col px-4 py-6 md:px-8">
           {/* Papan & panel SELALU dirender, tanpa menunggu buku pembukaan.
               Dulu seluruh isi area ini digerbangi `!pohon` sehingga papan dan
               panel kanan (termasuk elemen LCP "Analisis Engine") baru dicat
@@ -1559,7 +1634,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
               mencatat LCP 6,7 dtk (render delay 4.320 ms) dan CLS 0,071 saat
               kerangka diganti tata letak asli. Bagian yang memang butuh buku
               (tab Buku/Penjelajah/Partai) menampilkan statusnya sendiri. */}
-          <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-x-hidden overflow-y-auto lg:flex-row lg:items-stretch lg:gap-3 lg:overflow-hidden">
+          <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-x-hidden overflow-y-auto lg:flex-row lg:items-stretch lg:justify-between lg:gap-6 lg:overflow-hidden">
               <div className="mx-auto flex w-full max-w-[520px] shrink-0 flex-col justify-center overflow-y-auto lg:mx-0 lg:max-w-[min(520px,calc(100dvh-140px),calc(100vw-634px))]">
                 {/* ─── BARIS PEMAIN ATAS — mengikuti orientasi papan ─── */}
                 <BarisProfil {...barisAtas} setBidak={setBidak} className="mb-2" />
@@ -1666,94 +1741,25 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
 
               </div>
 
-              {/* Kolom kontrol papan (gear & flip) — di samping papan, ala LayoutTekaTeki.
-                  Layar sempit (<lg): bilah mendatar di bawah papan (hemat tinggi vertikal);
-                  desktop (lg+): kolom vertikal di samping papan seperti biasa. */}
-              <div className="flex flex-row items-center justify-center gap-2 lg:-ml-3 lg:flex-col lg:justify-start lg:pt-14">
-                <button
-                  type="button"
-                  onClick={() => (onBukaPengaturan ? onBukaPengaturan() : setTampilSetting(!tampilSetting))}
-                  aria-expanded={tampilSetting}
-                  className={`p-2 rounded-md transition ${
-                    tampilSetting
-                      ? "text-white bg-[#312e2b]"
-                      : "text-gray-500 hover:text-white hover:bg-[#312e2b]"
-                  }`}
-                  aria-label={t("papan.pengaturan")}
-                  title={t("papan.pengaturan")}
-                >
-                  <svg className="w-5 h-5" viewBox="0 0 512 512" fill="currentColor">
-                    <path d="M502.325,307.303l-39.006-30.805c-6.215-4.908-9.665-12.429-9.668-20.348c0-0.084,0-0.168,0-0.252
-                      c-0.014-7.936,3.44-15.478,9.667-20.396l39.007-30.806c8.933-7.055,12.093-19.185,7.737-29.701l-17.134-41.366
-                      c-4.356-10.516-15.167-16.86-26.472-15.532l-49.366,5.8c-7.881,0.926-15.656-1.966-21.258-7.586
-                      c-0.059-0.06-0.118-0.119-0.177-0.178c-5.597-5.602-8.476-13.36-7.552-21.225l5.799-49.363
-                      c1.328-11.305-5.015-22.116-15.531-26.472L337.004,1.939c-10.516-4.356-22.646-1.196-29.701,7.736l-30.805,39.005
-                      c-4.908,6.215-12.43,9.665-20.349,9.668c-0.084,0-0.168,0-0.252,0c-7.935,0.014-15.477-3.44-20.395-9.667L204.697,9.675
-                      c-7.055-8.933-19.185-12.092-29.702-7.736L133.63,19.072c-10.516,4.356-16.86,15.167-15.532,26.473l5.799,49.366
-                      c0.926,7.881-1.964,15.656-7.585,21.257c-0.059,0.059-0.118,0.118-0.178,0.178c-5.602,5.598-13.36,8.477-21.226,7.552
-                      l-49.363-5.799c-11.305-1.328-22.116,5.015-26.472,15.531L1.939,174.996c-4.356,10.516-1.196,22.646,7.736,29.701l39.006,30.805
-                      c6.215,4.908,9.665,12.429,9.668,20.348c0,0.084,0,0.167,0,0.251c0.014,7.935-3.44,15.477-9.667,20.395L9.675,307.303
-                      c-8.933,7.055-12.092,19.185-7.736,29.701l17.134,41.365c4.356,10.516,15.168,16.86,26.472,15.532l49.366-5.799
-                      c7.882-0.926,15.656,1.965,21.258,7.586c0.059,0.059,0.118,0.119,0.178,0.178c5.597,5.603,8.476,13.36,7.552,21.226l-5.799,49.364
-                      c-1.328,11.305,5.015,22.116,15.532,26.472l41.366,17.134c10.516,4.356,22.646,1.196,29.701-7.736l30.804-39.005
-                      c4.908-6.215,12.43-9.665,20.348-9.669c0.084,0,0.168,0,0.251,0c7.936-0.014,15.478,3.44,20.396,9.667l30.806,39.007
-                      c7.055,8.933,19.185,12.093,29.701,7.736l41.366-17.134c10.516-4.356,16.86-15.168,15.532-26.472l-5.8-49.366
-                      c-0.926-7.881,1.965-15.656,7.586-21.257c0.059-0.059,0.119-0.119,0.178-0.178c5.602-5.597,13.36-8.476,21.225-7.552l49.364,5.799
-                      c11.305,1.328,22.117-5.015,26.472-15.531l17.134-41.365C514.418,326.488,511.258,314.358,502.325,307.303z M281.292,329.698
-                      c-39.68,16.436-85.172-2.407-101.607-42.087c-16.436-39.68,2.407-85.171,42.087-101.608c39.68-16.436,85.172,2.407,101.608,42.088
-                      C339.815,267.771,320.972,313.262,281.292,329.698z" />
-                  </svg>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    // Bunyikan saat dinyalakan supaya pengguna langsung dengar contohnya.
-                    if (!suaraNyala) mainkanSuara(SUARA.tesSuara);
-                    setSuaraNyala((n) => !n);
-                  }}
-                  aria-pressed={suaraNyala}
-                  className={`p-2 rounded-md transition ${
-                    suaraNyala
-                      ? "text-gray-500 hover:text-white hover:bg-[#312e2b]"
-                      : "text-[#b33430] hover:bg-[#312e2b]"
-                  }`}
-                  aria-label={suaraNyala ? t("papan.suaraNyala") : t("papan.suaraMati")}
-                  title={suaraNyala ? t("papan.suaraNyala") : t("papan.suaraMati")}
-                >
-                  {suaraNyala ? (
-                    <Volume2 className="w-5 h-5" />
-                  ) : (
-                    <VolumeX className="w-5 h-5" />
-                  )}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setOrientasi((o) => (o === "w" ? "b" : "w"))}
-                  className="p-2 rounded-md text-gray-500 hover:text-white hover:bg-[#312e2b] transition"
-                  aria-label={t("papan.flip")}
-                  title={t("papan.flip")}
-                >
-                  <svg className="w-5 h-5" viewBox="0 0 120 120" fill="currentColor">
-                    <path d="M 21.475246,117.78677 H 73.154894 L 56.373294,98.524495 H 40.73752 V 35.922099 H 59.999794 L 31.106383,2.2131167 2.2129751,35.922099 H 21.475246 Z" />
-                    <path d="m 98.524909,2.2132354 -51.679643,0 16.781593,19.2622766 15.635776,0 V 84.077908 H 60.00036 L 88.893772,117.78689 117.78718,84.077908 H 98.524909 Z" />
-                  </svg>
-                </button>
-              </div>
-
-              <div className="flex min-h-0 min-w-0 flex-none flex-col lg:flex-1">
+              <div className="flex min-h-0 min-w-0 flex-none flex-col lg:w-full lg:max-w-[520px] lg:flex-1">
                 {/* Panel kanan — satu kolom utuh ala LayoutTekaTeki: tinggi tetap di lg supaya
                     kontrol dasar tidak ikut naik-turun saat isi tab pendek/kosong */}
-                <div className="flex h-auto min-h-0 flex-col overflow-hidden rounded-lg border border-[#312e2b] bg-[#211f1c] lg:h-full lg:flex-1">
+                <div className="flex h-auto min-h-0 flex-col rounded-lg border border-[#312e2b] bg-[#211f1c] lg:h-full lg:flex-1">
                 {modeEditPosisi && (
-                  <div className="min-h-0 flex-1 overflow-y-auto border-b border-[#312e2b] bg-[#211f1c] p-4">
+                  <div className="min-h-0 flex-1 overflow-y-auto rounded-t-lg p-4">
                     <EditorPosisi
                       terpilih={bidakEditTerpilih}
                       fen={fen}
                       posisiSah={!galatLegalitasSusun}
-                      galatLegalitas={galatLegalitasSusun ? t(galatLegalitasSusun) : ""}
+                      galatLegalitas={galatLegalitasSusun ? t(`papan.${galatLegalitasSusun}`) : ""}
                       onPilih={setBidakEditTerpilih}
                       onGiliran={ubahGiliranEdit}
                       giliran={fen.split(/\s+/)[1] === "b" ? "b" : "w"}
+                      hakRokade={fen.split(/\s+/)[2] === "-" ? "" : (fen.split(/\s+/)[2] ?? "")}
+                      onUbahRokade={ubahRokadeEdit}
+                      onEditFen={() => setTampilPgn(true)}
+                      onSalinFen={salinFen}
+                      fenTersalin={fenTersalin}
                       onKosongkan={() => ubahFENEdit(fenDariPeta({}, fen.split(/\s+/)[1]))}
                       onAwal={() => ubahFENEdit(FEN_AWAL)}
                       onTerapkan={terapkanEditPosisi}
@@ -1770,7 +1776,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
                   role="tablist"
                   aria-label={t("papan.panel")}
                   onKeyDown={saatKunciTab}
-                  className="flex flex-shrink-0 border-b border-[#312e2b] bg-[#1e1c18]"
+                  className="flex flex-shrink-0 overflow-hidden rounded-t-lg border-b border-[#312e2b] bg-[#1e1c18]"
                 >
                   {TAB_PANEL.map((tab, indeks) => (
                     <button
@@ -2020,45 +2026,122 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
                       type="button"
                       onClick={reset}
                       disabled={modeEditPosisi}
-                      className="flex flex-col items-center gap-1 rounded border border-[#312e2b] bg-[#262421] p-2 transition hover:bg-[#312e2b] disabled:cursor-not-allowed disabled:opacity-40"
+                      className="flex min-w-0 flex-col items-center gap-1 rounded border border-[#312e2b] bg-[#262421] p-2 transition hover:bg-[#312e2b] disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       <Plus className="h-4 w-4 text-gray-400" />
                       <span>{t("papan.baru")}</span>
                     </button>
                     <button
                       type="button"
-                      onClick={salinPgn}
-                      disabled={modeEditPosisi || (!riwayat.length && !posisiKustom)}
-                      title={t("papan.daftarLangkahPgn")}
-                      className="flex flex-col items-center gap-1 rounded border border-[#312e2b] bg-[#262421] p-2 transition hover:bg-[#312e2b] disabled:cursor-not-allowed disabled:opacity-40"
+                      onClick={() => setOrientasi((o) => (o === "w" ? "b" : "w"))}
+                      aria-label={t("papan.flip")}
+                      title={t("papan.flip")}
+                      className="flex min-w-0 flex-col items-center gap-1 rounded border border-[#312e2b] bg-[#262421] p-2 text-gray-300 transition hover:bg-[#312e2b]"
                     >
-                      <Bookmark className="h-4 w-4 text-gray-400" />
-                      <span>{pgnTersalin ? t("papan.tersalinSingkat") : t("papan.simpan")}</span>
+                      <svg className="h-4 w-4" viewBox="0 0 120 120" fill="currentColor" aria-hidden="true">
+                        <path d="M 21.475246,117.78677 H 73.154894 L 56.373294,98.524495 H 40.73752 V 35.922099 H 59.999794 L 31.106383,2.2131167 2.2129751,35.922099 H 21.475246 Z" />
+                        <path d="m 98.524909,2.2132354 -51.679643,0 16.781593,19.2622766 15.635776,0 V 84.077908 H 60.00036 L 88.893772,117.78689 117.78718,84.077908 H 98.524909 Z" />
+                      </svg>
+                      <span className="max-w-full truncate">{t("papan.flip")}</span>
                     </button>
                     <button
                       type="button"
-                      onClick={() => setTampilPgn(true)}
-                      disabled={modeEditPosisi}
-                      title={t("papan.inputPgnFen")}
-                      className="flex flex-col items-center gap-1 rounded border border-[#312e2b] bg-[#262421] p-2 transition hover:bg-[#312e2b] disabled:cursor-not-allowed disabled:opacity-40"
+                      onClick={() => {
+                        if (!suaraNyala) mainkanSuara(SUARA.tesSuara);
+                        setSuaraNyala((n) => !n);
+                      }}
+                      aria-pressed={suaraNyala}
+                      aria-label={suaraNyala ? t("papan.suaraNyala") : t("papan.suaraMati")}
+                      title={suaraNyala ? t("papan.suaraNyala") : t("papan.suaraMati")}
+                      className={suaraNyala
+                        ? "flex min-w-0 flex-col items-center gap-1 rounded border border-[#312e2b] bg-[#262421] p-2 text-gray-300 transition hover:bg-[#312e2b]"
+                        : "flex min-w-0 flex-col items-center gap-1 rounded border border-[#312e2b] bg-[#262421] p-2 text-[#b33430] transition hover:bg-[#312e2b]"}
                     >
-                      <RotateCw className="h-4 w-4 text-gray-400" />
-                      <span>{t("papan.tinjau")}</span>
+                      {suaraNyala ? (
+                        <Volume2 className="h-4 w-4" />
+                      ) : (
+                        <VolumeX className="h-4 w-4" />
+                      )}
+                      <span className="max-w-full truncate">{t("papan.suaraNav")}</span>
                     </button>
-                    <button
-                      type="button"
-                      onClick={modeEditPosisi ? batalkanEditPosisi : mulaiEditPosisi}
-                      aria-pressed={modeEditPosisi}
-                      title={t("papan.editPosisi")}
-                      className={`flex flex-col items-center gap-1 rounded border p-2 transition ${
-                        modeEditPosisi
-                          ? "border-white bg-[#3a3835] text-white"
-                          : "border-[#312e2b] bg-[#262421] text-gray-300 hover:bg-[#312e2b]"
-                      }`}
-                    >
-                      <Pencil className="h-4 w-4" />
-                      <span>{t("papan.susun")}</span>
-                    </button>
+                    <div ref={menuAksiRef} className="relative min-w-0">
+                      <button
+                        ref={tombolMenuAksiRef}
+                        type="button"
+                        onClick={(event) => {
+                          if (!menuAksiTerbuka && event.detail === 0) {
+                            fokusMenuSaatBukaRef.current = "pertama";
+                          }
+                          setMenuAksiTerbuka((terbuka) => !terbuka);
+                        }}
+                        onKeyDown={(event) => {
+                          if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+                            event.preventDefault();
+                            fokusMenuSaatBukaRef.current =
+                              event.key === "ArrowUp" ? "terakhir" : "pertama";
+                            setMenuAksiTerbuka(true);
+                          }
+                        }}
+                        aria-label={t("papan.lainnya")}
+                        aria-haspopup="menu"
+                        aria-expanded={menuAksiTerbuka}
+                        title={t("papan.lainnya")}
+                        className="flex w-full flex-col items-center gap-1 rounded border border-[#312e2b] bg-[#262421] p-2 text-gray-300 transition hover:bg-[#312e2b]"
+                      >
+                        <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
+                        <span className="max-w-full truncate">
+                          {pgnTersalin ? t("papan.tersalinSingkat") : t("papan.lainnya")}
+                        </span>
+                      </button>
+                      {menuAksiTerbuka && (
+                        <div
+                          role="menu"
+                          aria-label={t("papan.menuAksiLainnya")}
+                          onKeyDown={saatKunciMenuAksi}
+                          className="absolute bottom-full right-0 z-50 mb-2 flex w-52 flex-col overflow-hidden rounded-lg border border-[#3a3835] bg-[#1e1c18] p-1.5 text-sm font-medium text-gray-200 shadow-xl"
+                        >
+                          <button
+                            type="button"
+                            role="menuitem"
+                            onClick={() => {
+                              setMenuAksiTerbuka(false);
+                              if (modeEditPosisi) batalkanEditPosisi();
+                              else mulaiEditPosisi();
+                            }}
+                            className="flex items-center gap-3 rounded px-3 py-2.5 text-left hover:bg-[#312e2b]"
+                          >
+                            <Pencil className="h-4 w-4 shrink-0 text-gray-400" aria-hidden="true" />
+                            <span>{modeEditPosisi ? t("papan.batalEditPosisi") : t("papan.editPosisi")}</span>
+                          </button>
+                          <button
+                            type="button"
+                            role="menuitem"
+                            onClick={() => {
+                              setMenuAksiTerbuka(false);
+                              setTampilPgn(true);
+                            }}
+                            disabled={modeEditPosisi}
+                            className="flex items-center gap-3 rounded px-3 py-2.5 text-left hover:bg-[#312e2b] disabled:cursor-not-allowed disabled:opacity-40"
+                          >
+                            <RotateCw className="h-4 w-4 shrink-0 text-gray-400" aria-hidden="true" />
+                            <span>{t("papan.inputPgnFen")}</span>
+                          </button>
+                          <button
+                            type="button"
+                            role="menuitem"
+                            onClick={() => {
+                              setMenuAksiTerbuka(false);
+                              salinPgn();
+                            }}
+                            disabled={modeEditPosisi || (!riwayat.length && !posisiKustom)}
+                            className="flex items-center gap-3 rounded px-3 py-2.5 text-left hover:bg-[#312e2b] disabled:cursor-not-allowed disabled:opacity-40"
+                          >
+                            <Bookmark className="h-4 w-4 shrink-0 text-gray-400" aria-hidden="true" />
+                            <span>{pgnTersalin ? t("papan.tersalinSingkat") : t("papan.salinPgn")}</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
                 </div>
@@ -2069,46 +2152,16 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
       </div>
 
       {tampilPgn && (
-        <MasukanPgn onTerapkan={terapkanTeks} onTutup={() => setTampilPgn(false)} t={t} />
-      )}
-      {tampilSetting && (
-        <PopupPengaturan
-          onTutup={() => setTampilSetting(false)}
+        <MasukanPgn
+          key={modeEditPosisi ? "fen" : "pgn"}
+          hanyaFen={modeEditPosisi}
+          nilaiAwal={modeEditPosisi ? fen : ""}
+          onTerapkan={terapkanTeks}
+          onTutup={() => setTampilPgn(false)}
           t={t}
-          bidak={setBidak}
-          setBidak={setBidakPapan}
-          suaraNyala={suaraNyala}
-          setSuaraNyala={setSuaraNyala}
-          tampilPanahMesin={tampilPanahMesin}
-          setTampilPanahMesin={setTampilPanahMesin}
-          awanTampilanPenuh={awanTampilanPenuh}
-          setAwanTampilanPenuh={setAwanTampilanPenuh}
-          bantuanNyala={bantuanNyala}
-          setBantuanNyala={(nilai) => {
-            setBantuanNyala(nilai);
-            // Pembanding warna datang dari eval engine posisi sekarang —
-            // menyalakan bantuan berarti menyalakan engine juga.
-            if (nilai) nyalakanEngine();
-          }}
-          warnaPapan={warnaPapan}
-          setWarnaPapan={setWarnaPapan}
-          tampilKoordinat={tampilKoordinat}
-          setTampilKoordinat={setTampilKoordinat}
-          tampilTitikLangkah={tampilTitikLangkah}
-          setTampilTitikLangkah={setTampilTitikLangkah}
-          sorotLangkahAkhir={sorotLangkahAkhir}
-          setSorotLangkahAkhir={setSorotLangkahAkhir}
-          promosiOtomatis={promosiOtomatis}
-          setPromosiOtomatis={setPromosiOtomatis}
-          kartuKomentator={{
-            nyala: preferensiKomentator.nyala,
-            setNyala: preferensiKomentator.setNyala,
-            gaya: preferensiKomentator.gaya,
-            setGaya: preferensiKomentator.setGaya,
-            t,
-          }}
         />
       )}
+
     </div>
   );
 

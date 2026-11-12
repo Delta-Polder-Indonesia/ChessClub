@@ -517,7 +517,7 @@ uji(
 );
 uji("bantuan hanya diminta untuk petak yang SAH", /sasaran\.includes\(petak\)[\s\S]{0,80}bantuanSeret\.panggil/.test(teksPapan));
 uji("sakelar bantuan ada di Pengaturan Papan", teksPopup.includes("papan.bantuanToggle"));
-uji("halaman menyalakan engine saat bantuan diaktifkan", /if \(nilai\) nyalakanEngine\(\)/.test(teksPapan));
+uji("halaman menyalakan engine saat bantuan diaktifkan", /if \(bantuanNyala\) nyalakanEngine\(\)/.test(teksPapan));
 uji("bantuan dibersihkan saat posisi berganti", /bersihkanBantuanRef\.current\(\);\s*\n\s*\}, \[fen\]\)/.test(teksPapan));
 
 console.log(`\n${gagal === 0 ? "LULUS" : "GAGAL"}: ${lulus} lulus, ${gagal} gagal`);

@@ -14,9 +14,8 @@ import "../Analisa/analisa.css";
 /**
  * Layar "Pengaturan" sidebar — khusus mode Analisa. Tata letak mengikuti
  * layar Deteksi Engine: PanelLayar + dua kotak berdampingan; kiri pengaturan
- * engine (SelectDaftar bergaya deteksi), kanan pengaturan papan (IsiPengaturan
- * dibagikan dengan PopupPengaturan). Menggantikan popup: tombol gear di
- * samping papan langsung membuka halaman ini lewat onBukaPengaturan.
+ * engine (SelectDaftar bergaya deteksi), kanan pengaturan papan
+ * (`IsiPengaturanPapan`).
  */
 
 /**

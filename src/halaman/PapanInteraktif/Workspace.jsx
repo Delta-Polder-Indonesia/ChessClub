@@ -1,5 +1,5 @@
 import { Suspense, lazy, useEffect } from "react";
-import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { useI18n } from "../../lib/i18n.jsx";
 import IkonTab from "./bersama/IkonTab.jsx";
 import { PenyediaPengaturanPapan } from "./bersama/PengaturanKonteks.jsx";
@@ -19,18 +19,12 @@ function KerangkaMode() {
 }
 
 /**
- * Isi rute `/papan-interaktif` (papan buku/bebas). Tombol gear-nya membuka
- * halaman pengaturan, bukan popup — perilaku yang sama seperti sebelum tiap
- * mode menjadi rute sendiri.
+ * Isi rute `/papan-interaktif` (papan buku/bebas).
  */
 export function HalamanPapanBuku() {
-  const pergi = useNavigate();
   return (
     <Suspense fallback={<KerangkaMode />}>
-      <PapanBuku
-        tertanam
-        onBukaPengaturan={() => pergi("/papan-interaktif/pengaturan")}
-      />
+      <PapanBuku tertanam />
     </Suspense>
   );
 }
