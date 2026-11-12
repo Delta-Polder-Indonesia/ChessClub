@@ -842,15 +842,6 @@ export default function PapanInteraktif({ tertanam = false, pengaturan = null } 
     return () => window.removeEventListener("keydown", saatEscape);
   }, [promosi]);
 
-  useEffect(() => {
-    if (!tampilSetting) return;
-    function saatEscape(e) {
-      if (e.key === "Escape") setTampilSetting(false);
-    }
-    window.addEventListener("keydown", saatEscape);
-    return () => window.removeEventListener("keydown", saatEscape);
-  }, [tampilSetting]);
-
   // Petak asal yang sedang diseret — dipakai bantuan langkah; disimpan di ref
   // karena dipanggil dari callback pointermove (bukan render).
   const seretDariRef = useRef(null);
