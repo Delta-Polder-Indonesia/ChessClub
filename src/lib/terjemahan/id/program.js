@@ -182,19 +182,39 @@ export const tipsTekaTeki = {
       "Total keseluruhan: 12.037 soal bernomor unik pada rentang rating 600–2.567.",
     caraJudul: "Cara berlatih dan membedah posisi",
     caraSubjudul: "Alur mengerjakan soal",
+    cara1Judul: "Saring kolam soal",
     cara1:
-      "Pilih koleksi soal, pita level 1–5 (dari bawah 1.000 hingga 1.900+), panjang langkah, tema taktik, atau warna yang melangkah melalui panel pengaturan.",
+      "Pilih koleksi soal, pita level 1–5 (dari bawah 1.000 hingga 1.900+), panjang langkah, tema taktik, atau warna yang melangkah melalui panel saringan.",
+    cara2Judul: "Tandai variasi di papan",
     cara2:
       "Klik kanan petak atau seret klik kanan di papan untuk menggambar lingkaran penanda dan panah variasi selagi menghitung, lalu jalankan langkah dengan klik atau seret bidak.",
+    cara3Judul: "Mainkan sampai tuntas",
     cara3:
       "Setiap langkah tepat langsung dibalas otomatis oleh pertahanan terbaik lawan hingga rangkaian selesai; bila buntu, tombol Petunjuk menyoroti petak asal dan tujuan langkah pertama.",
+    cara4Judul: "Bagikan lewat nomor URL",
     cara4:
       "Nomor soal tertulis langsung pada alamat halaman (/teka-teki/problem/:id) sehingga setiap posisi mudah dicatat atau dibagikan untuk didiskusikan bersama rekan klub.",
     bantuSubjudul: "Evaluasi sesudah teka-teki pecah",
+    bantu1Judul: "Kartu komentator & video pelatih",
+    bantu1Badge: "1.681 soal video",
     bantu1:
       "Begitu kombinasi tuntas, kartu komentator merangkum motif taktis yang baru dijalankan. Pada koleksi Taktik + Video, rekaman penjelasan pelatih dapat diputar secara manual untuk membandingkan kandidat langkah yang Anda hitung dengan rencana utamanya.",
+    bantu2Judul: "Stockfish 18 & Papan Analisa",
+    bantu2Badge: "PGN + mesin",
     bantu2:
-      "Jika Anda ingin menguji mengapa pengorbanan alternatif tidak berhasil, nyalakan Stockfish 18 di bilah samping atau tekan Bedah di Papan Analisa untuk membuka posisi beserta notasi PGN lengkapnya di ruang analisis.",
+      "Jika Anda ingin menguji mengapa pengorbanan alternatif tidak berhasil, nyalakan Stockfish 18 di tab Pengaturan atau tekan Bedah di Papan Analisa untuk membuka posisi beserta notasi PGN lengkapnya di ruang analisis.",
+    temaJudul: "Latih satu motif atau pita level per sesi",
+    temaLead:
+      "Penyaring tema membatasi latihan pada satu gagasan dari 18 motif terkurasi dalam tiga kelompok, atau mempersempit kolam berdasarkan lima pita rating (600–2.567) dan panjang langkah.",
+    temaSatuan: "tema",
+    levelJudul: "Pita rating & panjang langkah",
+    levelBadge: "5 level · 5 panjang",
+    levelRingkas:
+      "Persempit latihan ke rentang rating NACCL yang pas atau target kedalaman kalkulasi dari skakmat cepat hingga kombinasi non-mat:",
+    levelPita:
+      "Level 1 (<1.000) | Level 2 (1.000–1.249) | Level 3 (1.250–1.549) | Level 4 (1.550–1.899) | Level 5 (≥1.900)",
+    levelLangkah:
+      "1 langkah | 2 langkah | 3 langkah | 4+ langkah | Taktik non-mat",
     tipsJudul: "Empat kebiasaan menghitung taktik",
     tips1Judul: "Urutkan skak, tangkapan, dan ancaman",
     tips1Isi:
@@ -208,6 +228,27 @@ export const tipsTekaTeki = {
     tips4Judul: "Naik pita level sesudah bersih tanpa petunjuk",
     tips4Isi:
       "Kerjakan pita rating yang dapat Anda selesaikan berturut-turut tanpa menebak langkah, lalu naik satu tingkat. Simpan nomor soal yang meleset untuk diuji ulang beberapa hari kemudian.",
+    faqJudul: "Pertanyaan yang sering diajukan",
+    faqLead:
+      "Ringkasan aturan kerja alat teka-teki, pemuatan koleksi tambahan, fungsi petunjuk, dan opsi analisis setelah soal selesai.",
+    faq1Tanya: "Apakah semua 12.037 teka-teki gratis dan tanpa akun?",
+    faq1Jawab:
+      "Ya. Seluruh 12.037 soal dapat dikerjakan langsung di peramban tanpa mendaftar akun dan tanpa batas harian. Progres soal terpecahkan serta posisi terakhir disimpan secara lokal di perangkat Anda melalui pengaturan Ingat Posisi.",
+    faq2Tanya:
+      "Bisakah memilih tingkat kesulitan, panjang langkah, atau satu motif saja?",
+    faq2Jawab:
+      "Ya. Panel saringan menyediakan pilihan lima koleksi, lima pita level (dari bawah 1.000 hingga 1.900+), panjang langkah (1 hingga 4+ langkah serta taktik non-mat), 18 tema taktik, pelatih, dan giliran melangkah.",
+    faq3Tanya:
+      "Mengapa koleksi tambahan baru diunduh saat berpindah dari Skakmat Lichess?",
+    faq3Jawab:
+      "Koleksi bawaan (#1–#5.486) dimuat lebih dulu agar halaman cepat dibuka. Saat Anda berpindah ke Taktik + Video, Partai Legenda Dunia, Studi Akhir Permainan, atau Arsip Taktik (#5.487–#12.037), berkas tambahannya diunduh sekali di latar belakang.",
+    faq4Tanya: "Apa yang terjadi jika langkah saya salah atau saya buntu?",
+    faq4Jawab:
+      "Langkah keliru tidak mengubah papan sehingga Anda bebas menghitung ulang dan mencoba lagi. Bila membutuhkan arahan, tombol Petunjuk menyoroti petak asal dan tujuan langkah pertama pada giliran Anda.",
+    faq5Tanya:
+      "Bisakah posisi setelah selesai diuji dengan Stockfish atau dibuka di Papan Analisa?",
+    faq5Jawab:
+      "Ya. Anda dapat mengaktifkan Stockfish 18 langsung melalui tab Pengaturan atau menekan Bedah di Papan Analisa untuk mengirim posisi beserta notasi PGN lengkapnya ke ruang analisis.",
     penutupJudul: "Uji kecepatan atau bedah lebih dalam",
     penutupAwal:
       "Sesudah pola dasar terbaca rapi tanpa tekanan jam, uji refleks pengenalan motif Anda dalam batas 3 atau 5 menit di",

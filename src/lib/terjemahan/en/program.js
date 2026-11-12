@@ -180,19 +180,39 @@ export const tipsTekaTeki = {
       "Combined catalog: 12,037 uniquely numbered puzzles spanning ratings 600–2,567.",
     caraJudul: "How to train and review positions",
     caraSubjudul: "Solving workflow",
+    cara1Judul: "Filter the puzzle pool",
     cara1:
-      "Select a collection, level band 1–5 (from under 1,000 up to 1,900+), move length, tactical motif, or side to move inside the settings panel.",
+      "Select a collection, level band 1–5 (from under 1,000 up to 1,900+), move length, tactical motif, or side to move inside the filter panel.",
+    cara2Judul: "Sketch lines on the board",
     cara2:
       "Right-click squares or right-drag across the board to sketch highlight circles and candidate arrows while calculating, then click or drag your piece to play.",
+    cara3Judul: "Play the full winning line",
     cara3:
       "Each accurate move is answered automatically by the defender's strongest reply until the line concludes; when stuck, the Hint button marks the first move's origin and target squares.",
+    cara4Judul: "Share or bookmark by number",
     cara4:
       "Every puzzle writes its number straight into the page URL (/teka-teki/problem/:id), making positions easy to bookmark or share with clubmates.",
     bantuSubjudul: "Post-solve analysis tools",
+    bantu1Judul: "Commentator card & coach video",
+    bantu1Badge: "1,681 video puzzles",
     bantu1:
       "Once a combination finishes, the commentator card summarizes the motif behind your winning move. In the Tactics + Video set, the coach's recorded breakdown unlocks for manual playback so you can compare your candidate lines against the main idea.",
+    bantu2Judul: "Stockfish 18 & Analysis Board",
+    bantu2Badge: "PGN + engine",
     bantu2:
-      "To test why an alternative sacrifice fails, toggle Stockfish 18 directly in the sidebar or press Open in Analysis Board to send the full PGN and variations into the analysis workspace.",
+      "To test why an alternative sacrifice fails, toggle Stockfish 18 directly in the Settings tab or press Open in Analysis Board to send the full PGN and variations into the analysis workspace.",
+    temaJudul: "Train one motif or rating band per session",
+    temaLead:
+      "The theme picker narrows the pool to a single idea from 18 curated motifs across three groups, or filters by five rating bands (600–2,567) and move length.",
+    temaSatuan: "themes",
+    levelJudul: "Rating bands & move length",
+    levelBadge: "5 bands · 5 lengths",
+    levelRingkas:
+      "Narrow puzzles to the NACCL rating bracket you want or choose a target depth from quick checkmates to non-mate tactics:",
+    levelPita:
+      "Level 1 (<1,000) | Level 2 (1,000–1,249) | Level 3 (1,250–1,549) | Level 4 (1,550–1,899) | Level 5 (≥1,900)",
+    levelLangkah:
+      "1 move | 2 moves | 3 moves | 4+ moves | Non-mate tactic",
     tipsJudul: "Four habits for cleaner calculation",
     tips1Judul: "Order checks, captures, and threats",
     tips1Isi:
@@ -206,6 +226,27 @@ export const tipsTekaTeki = {
     tips4Judul: "Step up a band after clean streaks",
     tips4Isi:
       "Stay in a rating band you can solve consecutively without hints or guesses before moving up, and jot down missed puzzle numbers to revisit days later.",
+    faqJudul: "Frequently asked questions",
+    faqLead:
+      "How the puzzle trainer handles puzzle pools, optional downloads, hints, and post-solve engine review.",
+    faq1Tanya: "Are all 12,037 puzzles free with no account required?",
+    faq1Jawab:
+      "Yes. Every puzzle runs directly in your browser with no sign-up and no daily cap. Solved counts and your last visited puzzle number are stored locally on your device when Remember Position is enabled.",
+    faq2Tanya:
+      "Can I filter by rating level, move length, or a single tactical motif?",
+    faq2Jawab:
+      "Yes. The filter sidebar lets you narrow by all five collections, five rating bands (from under 1,000 up to 1,900+), solution length (1 to 4+ moves plus non-mate tactics), 18 tactical motifs, coach, and side to move.",
+    faq3Tanya:
+      "Why do extended collections load only when switching from Lichess Checkmates?",
+    faq3Jawab:
+      "The default pool (#1–#5,486) loads first so the trainer opens quickly. Switching to Tactics + Video, World Legends, Endgame Studies, or Tactics Archive (#5,487–#12,037) fetches the extended dataset once in the background.",
+    faq4Tanya: "What happens when I play a wrong move or get stuck?",
+    faq4Jawab:
+      "An incorrect move does not advance the position, leaving you free to recalculate and try again. Whenever you need a nudge, the Hint button highlights the origin and destination squares for your next move.",
+    faq5Tanya:
+      "Can I check sidelines with an engine after finishing a puzzle?",
+    faq5Jawab:
+      "Yes. You can toggle Stockfish 18 directly in the Settings tab or press Open in Analysis Board to send the position and complete PGN into the full analysis board.",
     penutupJudul: "Test your speed or dig deeper",
     penutupAwal:
       "Once core motifs read cleanly without clock pressure, test your pattern speed over 3- or 5-minute runs in",
