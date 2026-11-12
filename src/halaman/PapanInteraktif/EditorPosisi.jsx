@@ -14,6 +14,8 @@ export default function EditorPosisi({
   onPilih,
   onGiliran,
   giliran,
+  onEditFen,
+  onSalinFen,
   onKosongkan,
   onAwal,
   onTerapkan,
@@ -66,29 +68,70 @@ export default function EditorPosisi({
         >
           {t("papan.kosongkanPapan")}
         </button>
-        <button
-          type="button"
-          onClick={() => onGiliran(giliran === "w" ? "b" : "w")}
-          className="rounded-md border border-[#57534e] px-3 py-2 text-xs font-semibold text-gray-200 transition hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500"
-        >
-          {t("papan.giliranEdit", {
-            warna: t(giliran === "w" ? "papan.warnaPutih" : "papan.warnaHitam"),
-          })}
-        </button>
       </div>
 
-      <div className="mb-4 grid gap-1.5">
-        <label htmlFor="fen-susun" className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
-          {t("papan.fenPosisiSusun")}
-        </label>
-        <input
-          id="fen-susun"
-          type="text"
-          readOnly
-          value={fen}
-          aria-label={t("papan.fenPosisiSusun")}
-          className="w-full rounded-md border border-[#3a3835] bg-[#1e1c18] px-3 py-2 font-mono text-xs leading-relaxed text-gray-200 outline-none selection:bg-gray-600"
-        />
+      <div className="mb-4 grid gap-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="mr-1 text-xs font-semibold text-gray-300">
+            {t("papan.giliranJalan")}:
+          </span>
+          <button
+            type="button"
+            aria-pressed={giliran === "w"}
+            onClick={() => onGiliran("w")}
+            className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-semibold transition-colors ${
+              giliran === "w"
+                ? "border-[#a3a09b] bg-[#45423f] text-white"
+                : "border-[#57534e] text-gray-300 hover:bg-white/5"
+            }`}
+          >
+            <ChessPiece piece="K" set={setBidak} className="h-5 w-5" />
+            {t("papan.warnaPutih")}
+          </button>
+          <button
+            type="button"
+            aria-pressed={giliran === "b"}
+            onClick={() => onGiliran("b")}
+            className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-semibold transition-colors ${
+              giliran === "b"
+                ? "border-[#a3a09b] bg-[#45423f] text-white"
+                : "border-[#57534e] text-gray-300 hover:bg-white/5"
+            }`}
+          >
+            <ChessPiece piece="k" set={setBidak} className="h-5 w-5" />
+            {t("papan.warnaHitam")}
+          </button>
+        </div>
+
+        <div className="grid gap-1.5">
+          <label htmlFor="fen-susun" className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+            {t("papan.fenPosisiSusun")}
+          </label>
+          <div className="flex min-w-0 items-center gap-2">
+            <input
+              id="fen-susun"
+              type="text"
+              readOnly
+              value={fen}
+              aria-label={t("papan.fenPosisiSusun")}
+              className="min-w-0 flex-1 rounded-md border border-[#3a3835] bg-[#1e1c18] px-3 py-2 font-mono text-xs leading-relaxed text-gray-200 outline-none selection:bg-gray-600"
+            />
+            <button
+              type="button"
+              onClick={onEditFen}
+              className="shrink-0 rounded-md border border-[#57534e] px-3 py-2 text-xs font-semibold text-gray-200 transition hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500"
+            >
+              {t("papan.editFen")}
+            </button>
+            <button
+              type="button"
+              onClick={onSalinFen}
+              className="shrink-0 rounded-md border border-[#57534e] px-3 py-2 text-xs font-semibold text-gray-200 transition hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500"
+            >
+              {t("papan.salin")}
+            </button>
+          </div>
+        </div>
         {!posisiSah && (
           <p role="status" className="text-xs font-semibold text-gray-200">
             {t("papan.posisiIlegal")}: {galatLegalitas}
