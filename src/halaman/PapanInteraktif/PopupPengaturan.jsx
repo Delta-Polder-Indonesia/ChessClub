@@ -4,7 +4,6 @@ import { DAFTAR_SET } from "../../components/chess/pemuatBidak.js";
 import { Switch } from "../../components/ui/switch.jsx";
 import { GAYA_KOMENTATOR } from "../../lib/komentator.js";
 import { TEMA_PAPAN } from "../TekaTeki/temaPapan.js";
-import { useDialog } from "./bersama/gunakanDialog.js";
 import { PILIHAN_WARNA_PAPAN } from "./bersama/konstanta.js";
 
 const BIDAK_PRATINJAU = ["R", "N", "B", "Q", "K", "P"];
@@ -91,7 +90,7 @@ const KELAS_SELECT =
 
 /**
  * Isi pengaturan papan TANPA bingkai dialog — dipakai LayarPengaturan
- * (sidebar Pengaturan, khusus mode Analisa) dan PopupPengaturan.
+ * (sidebar Pengaturan, khusus mode Analisa).
  *
  * @param {object} p
  * @param {string} p.t                 fungsi terjemahan
@@ -255,65 +254,6 @@ export function IsiPengaturanPapan({
           ))}
         </select>
       </BarisPilihan>
-    </div>
-  );
-}
-
-/**
- * Popup "Pengaturan Papan" — set bidak, suara, panah engine, tampilan penuh
- * basis data awan, warna papan, plus kontrol komentator. Dipisah dari
- * PapanInteraktif.jsx agar modal pengaturan mudah dirawat sendiri.
- *
- * @param {object} p
- * @param {() => void} p.onTutup                 tutup popup
- * @param {string} p.bidak                       id set bidak yang sedang aktif
- * @param {(id: string) => void} p.setBidak   ganti set bidak
- * @param {object} p.kartuKomentator preferensi komentator
- *        (nyala, setNyala, gaya, setGaya, t)
- */
-export default function PopupPengaturan({
-  onTutup,
-  t,
-  ...sisa
-}) {
-  const refDialog = useDialog(onTutup);
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-      onClick={onTutup}
-    >
-      <div
-        ref={refDialog}
-        tabIndex={-1}
-        role="dialog"
-        aria-modal="true"
-        aria-label={t("papan.pengaturanPapan")}
-        className="max-h-[90dvh] w-full max-w-sm overflow-y-auto rounded-lg border border-[#312e2b] bg-[#1e1c18] p-5"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-lg font-bold text-white">{t("papan.pengaturanPapan")}</h3>
-          <button
-            type="button"
-            onClick={onTutup}
-            className="text-gray-400 transition hover:text-gray-200"
-            title={t("papan.tutup")}
-            aria-label={t("papan.tutup")}
-          >
-            ✕
-          </button>
-        </div>
-        <IsiPengaturanPapan t={t} {...sisa} />
-        <div className="mt-5 flex justify-end">
-          <button
-            type="button"
-            onClick={onTutup}
-            className="rounded-md border border-[#81b64c] bg-[#81b64c] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#a3d168]"
-          >
-            {t("papan.tutup")}
-          </button>
-        </div>
-      </div>
     </div>
   );
 }

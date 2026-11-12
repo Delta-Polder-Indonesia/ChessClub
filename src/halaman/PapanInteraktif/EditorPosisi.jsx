@@ -1,6 +1,10 @@
 import { useI18n } from "../../lib/i18n.jsx";
 import { ChessPiece } from "../../components/chess/ChessPiece.jsx";
-import { KUNCI_HAPUS_BIDAK } from "./bersama/editorPosisi.js";
+import {
+  KUNCI_HAPUS_BIDAK,
+  hakRokadeTersedia,
+  petaDariFen,
+} from "./bersama/editorPosisi.js";
 
 const JENIS = ["k", "q", "r", "b", "n", "p"];
 const BIDAK_PUTIH = JENIS.map((jenis) => jenis.toUpperCase());
@@ -14,10 +18,11 @@ export default function EditorPosisi({
   onPilih,
   onGiliran,
   giliran,
-  hakRokade,
+  hakRokade = "",
   onUbahRokade,
   onEditFen,
   onSalinFen,
+  fenTersalin = false,
   onKosongkan,
   onAwal,
   onTerapkan,
@@ -26,6 +31,12 @@ export default function EditorPosisi({
   galat,
 }) {
   const { t } = useI18n();
+  let rokadeMungkin = "";
+  try {
+    rokadeMungkin = hakRokadeTersedia(petaDariFen(fen));
+  } catch {
+    rokadeMungkin = "";
+  }
 
   return (
     <section
@@ -81,7 +92,7 @@ export default function EditorPosisi({
             type="button"
             aria-pressed={giliran === "w"}
             onClick={() => onGiliran("w")}
-            className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-semibold transition-colors ${
+            className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 ${
               giliran === "w"
                 ? "border-[#a3a09b] bg-[#45423f] text-white"
                 : "border-[#57534e] text-gray-300 hover:bg-white/5"
@@ -94,7 +105,7 @@ export default function EditorPosisi({
             type="button"
             aria-pressed={giliran === "b"}
             onClick={() => onGiliran("b")}
-            className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-semibold transition-colors ${
+            className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 ${
               giliran === "b"
                 ? "border-[#a3a09b] bg-[#45423f] text-white"
                 : "border-[#57534e] text-gray-300 hover:bg-white/5"
@@ -116,22 +127,26 @@ export default function EditorPosisi({
               { hak: "K", label: t("papan.rokadePutihRaja"), notasi: "O-O" },
               { hak: "Q", label: t("papan.rokadePutihMenteri"), notasi: "O-O-O" },
             ].map(({ hak, label, notasi }) => {
-              const aktif = hakRokade.includes(hak);
+              const mungkin = rokadeMungkin.includes(hak);
+              const aktif = mungkin && hakRokade.includes(hak);
               return (
                 <label
                   key={hak}
-                  className={`flex min-w-0 cursor-pointer items-center justify-between gap-2 rounded-md border px-3 py-2 text-left transition-colors ${
-                    aktif
-                      ? "border-[#a3a09b] bg-[#45423f] text-white"
-                      : "border-[#57534e] text-gray-300 hover:bg-white/5"
+                  className={`flex min-w-0 items-center justify-between gap-2 rounded-md border px-3 py-2 text-left transition-colors ${
+                    !mungkin
+                      ? "cursor-not-allowed border-[#57534e] text-gray-500 opacity-40"
+                      : aktif
+                        ? "cursor-pointer border-[#a3a09b] bg-[#45423f] text-white"
+                        : "cursor-pointer border-[#57534e] text-gray-300 hover:bg-white/5"
                   }`}
                 >
                   <span className="flex min-w-0 items-center gap-2">
                     <input
                       type="checkbox"
                       checked={aktif}
+                      disabled={!mungkin}
                       onChange={(event) => onUbahRokade(hak, event.target.checked)}
-                      className="h-4 w-4 shrink-0 accent-[#d6d3d1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#262421]"
+                      className="h-4 w-4 shrink-0 accent-[#d6d3d1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#262421] disabled:cursor-not-allowed"
                     />
                     <span className="min-w-0 text-xs font-medium">{label}</span>
                   </span>
@@ -167,7 +182,7 @@ export default function EditorPosisi({
               onClick={onSalinFen}
               className="shrink-0 rounded-md border border-[#57534e] px-3 py-2 text-xs font-semibold text-gray-200 transition hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500"
             >
-              {t("papan.salin")}
+              {fenTersalin ? t("papan.tersalinSingkat") : t("papan.salin")}
             </button>
           </div>
         </div>
