@@ -364,6 +364,7 @@ export const papan = {
     gagalMuat:
       "Gagal memuat data pembukaan. Periksa koneksi internet Anda, lalu muat ulang halaman ini.",
     suara: "Suara papan",
+    suaraNav: "Suara",
     suaraDeskripsi: "Bunyi langkah dan notifikasi saat bermain.",
     suaraNyala: "Suara aktif — klik untuk mematikan",
     ikonLangkah: {
