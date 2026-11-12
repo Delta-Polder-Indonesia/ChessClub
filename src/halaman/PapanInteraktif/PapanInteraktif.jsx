@@ -392,13 +392,11 @@ export default function PapanInteraktif({ tertanam = false, pengaturan = null } 
     matikanEngine,
   } = useEngineCatur(fen, opsiEngine);
 
-  // Bantuan langkah tersimpan di Pengaturan (hidup lintas tab), tetapi engine
-  // hanya dimulai saat dinyalakan. Papan yang dibuka ulang dengan bantuan
-  // aktif harus menyalakan engine lagi (sekali saat mount).
+  // Bantuan langkah membutuhkan engine setiap kali sakelar diaktifkan,
+  // termasuk ketika pengguna menyalakannya setelah halaman sudah terbuka.
   useEffect(() => {
-    if (pp.bantuanNyala) nyalakanEngine();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-once: engine hanya dinyalakan sekali saat papan dibuka
-  }, []);
+    if (bantuanNyala) nyalakanEngine();
+  }, [bantuanNyala, nyalakanEngine]);
 
   // Hasil evaluasi terakhir ditahan selama analisis posisi baru berjalan,
   // agar bar evaluasi tidak hilang dan papan tidak goyang.
