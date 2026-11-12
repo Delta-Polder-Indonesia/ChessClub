@@ -459,6 +459,8 @@ export const papan = {
     batalEditPosisi: "Cancel",
     kosongkanPapan: "Clear board",
     giliranEdit: "Turn: {warna} (change)",
+    giliranJalan: "Side to move",
+    editFen: "Edit",
     petunjukEditPosisi: "Select a piece, then click a square to place or replace it. Drag pieces on the board to move them; select Remove piece, then click a square to clear it.",
     hapusBidak: "Remove piece",
     posisiPerluRaja: "The position needs exactly one white king and one black king before it can be played.",
