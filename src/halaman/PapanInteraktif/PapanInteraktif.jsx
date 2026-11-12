@@ -7,6 +7,7 @@ import {
   RotateCw,
   Volume2,
   VolumeX,
+  MoreHorizontal,
 } from "lucide-react";
 import { useI18n } from "../../lib/i18n.jsx";
 import { ChessPiece } from "../../components/chess/ChessPiece.jsx";
@@ -303,6 +304,25 @@ export default function PapanInteraktif({ tertanam = false, pengaturan = null } 
   // Tab aktif panel kanan: "analisa" | "books" | "explorer" | "games".
   const [tabPanel, setTabPanel] = useState("analisa");
   const [tampilPgn, setTampilPgn] = useState(false); // dialog Review (input PGN/FEN)
+  const [menuAksiTerbuka, setMenuAksiTerbuka] = useState(false);
+  const menuAksiRef = useRef(null);
+
+  // Tutup menu aksi saat pengguna menekan Escape atau berinteraksi di luar menu.
+  useEffect(() => {
+    if (!menuAksiTerbuka) return undefined;
+    const saatKlikLuar = (event) => {
+      if (!menuAksiRef.current?.contains(event.target)) setMenuAksiTerbuka(false);
+    };
+    const saatEscape = (event) => {
+      if (event.key === "Escape") setMenuAksiTerbuka(false);
+    };
+    document.addEventListener("pointerdown", saatKlikLuar);
+    document.addEventListener("keydown", saatEscape);
+    return () => {
+      document.removeEventListener("pointerdown", saatKlikLuar);
+      document.removeEventListener("keydown", saatEscape);
+    };
+  }, [menuAksiTerbuka]);
   // Basis data awan (chessdb.cn) — hanya dipanggil SETELAH partai keluar dari
   // buku pembukaan lokal; `posisi` menyimpan FEN yang datanya sedang tampil
   // supaya jawaban posisi lama tidak pernah menimpa posisi sekarang.
@@ -1920,49 +1940,28 @@ export default function PapanInteraktif({ tertanam = false, pengaturan = null } 
                     />
                   </div>
 
-                  <div className="grid grid-cols-6 gap-2 text-xs font-semibold text-gray-300">
+                  <div className="grid grid-cols-4 gap-2 text-xs font-semibold text-gray-300">
                     <button
                       type="button"
                       onClick={reset}
                       disabled={modeEditPosisi}
-                      className="flex flex-col items-center gap-1 rounded border border-[#312e2b] bg-[#262421] p-2 transition hover:bg-[#312e2b] disabled:cursor-not-allowed disabled:opacity-40"
+                      className="flex min-w-0 flex-col items-center gap-1 rounded border border-[#312e2b] bg-[#262421] p-2 transition hover:bg-[#312e2b] disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       <Plus className="h-4 w-4 text-gray-400" />
                       <span>{t("papan.baru")}</span>
                     </button>
                     <button
                       type="button"
-                      onClick={salinPgn}
-                      disabled={modeEditPosisi || (!riwayat.length && !posisiKustom)}
-                      title={t("papan.daftarLangkahPgn")}
-                      className="flex flex-col items-center gap-1 rounded border border-[#312e2b] bg-[#262421] p-2 transition hover:bg-[#312e2b] disabled:cursor-not-allowed disabled:opacity-40"
+                      onClick={() => setOrientasi((o) => (o === "w" ? "b" : "w"))}
+                      aria-label={t("papan.flip")}
+                      title={t("papan.flip")}
+                      className="flex min-w-0 flex-col items-center gap-1 rounded border border-[#312e2b] bg-[#262421] p-2 text-gray-300 transition hover:bg-[#312e2b]"
                     >
-                      <Bookmark className="h-4 w-4 text-gray-400" />
-                      <span>{pgnTersalin ? t("papan.tersalinSingkat") : t("papan.simpan")}</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setTampilPgn(true)}
-                      disabled={modeEditPosisi}
-                      title={t("papan.inputPgnFen")}
-                      className="flex flex-col items-center gap-1 rounded border border-[#312e2b] bg-[#262421] p-2 transition hover:bg-[#312e2b] disabled:cursor-not-allowed disabled:opacity-40"
-                    >
-                      <RotateCw className="h-4 w-4 text-gray-400" />
-                      <span>{t("papan.tinjau")}</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={modeEditPosisi ? batalkanEditPosisi : mulaiEditPosisi}
-                      aria-pressed={modeEditPosisi}
-                      title={t("papan.editPosisi")}
-                      className={`flex flex-col items-center gap-1 rounded border p-2 transition ${
-                        modeEditPosisi
-                          ? "border-white bg-[#3a3835] text-white"
-                          : "border-[#312e2b] bg-[#262421] text-gray-300 hover:bg-[#312e2b]"
-                      }`}
-                    >
-                      <Pencil className="h-4 w-4" />
-                      <span>{t("papan.susun")}</span>
+                      <svg className="h-4 w-4" viewBox="0 0 120 120" fill="currentColor" aria-hidden="true">
+                        <path d="M 21.475246,117.78677 H 73.154894 L 56.373294,98.524495 H 40.73752 V 35.922099 H 59.999794 L 31.106383,2.2131167 2.2129751,35.922099 H 21.475246 Z" />
+                        <path d="m 98.524909,2.2132354 -51.679643,0 16.781593,19.2622766 15.635776,0 V 84.077908 H 60.00036 L 88.893772,117.78689 117.78718,84.077908 H 98.524909 Z" />
+                      </svg>
+                      <span className="max-w-full truncate">{t("papan.flip")}</span>
                     </button>
                     <button
                       type="button"
@@ -1986,19 +1985,68 @@ export default function PapanInteraktif({ tertanam = false, pengaturan = null } 
                         {t(suaraNyala ? "papan.suaraNyala" : "papan.suaraMati")}
                       </span>
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => setOrientasi((o) => (o === "w" ? "b" : "w"))}
-                      aria-label={t("papan.flip")}
-                      title={t("papan.flip")}
-                      className="flex min-w-0 flex-col items-center gap-1 rounded border border-[#312e2b] bg-[#262421] p-2 text-gray-300 transition hover:bg-[#312e2b]"
-                    >
-                      <svg className="h-4 w-4" viewBox="0 0 120 120" fill="currentColor" aria-hidden="true">
-                        <path d="M 21.475246,117.78677 H 73.154894 L 56.373294,98.524495 H 40.73752 V 35.922099 H 59.999794 L 31.106383,2.2131167 2.2129751,35.922099 H 21.475246 Z" />
-                        <path d="m 98.524909,2.2132354 -51.679643,0 16.781593,19.2622766 15.635776,0 V 84.077908 H 60.00036 L 88.893772,117.78689 117.78718,84.077908 H 98.524909 Z" />
-                      </svg>
-                      <span className="max-w-full truncate">{t("papan.flip")}</span>
-                    </button>
+                    <div ref={menuAksiRef} className="relative min-w-0">
+                      <button
+                        type="button"
+                        onClick={() => setMenuAksiTerbuka((terbuka) => !terbuka)}
+                        aria-label="Aksi lainnya"
+                        aria-haspopup="menu"
+                        aria-expanded={menuAksiTerbuka}
+                        title="Aksi lainnya"
+                        className="flex w-full flex-col items-center gap-1 rounded border border-[#312e2b] bg-[#262421] p-2 text-gray-300 transition hover:bg-[#312e2b]"
+                      >
+                        <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
+                        <span>Lainnya</span>
+                      </button>
+                      {menuAksiTerbuka && (
+                        <div
+                          role="menu"
+                          aria-label="Aksi papan lainnya"
+                          className="absolute bottom-full right-0 z-50 mb-2 flex w-52 flex-col overflow-hidden rounded-lg border border-[#3a3835] bg-[#1e1c18] p-1.5 text-sm font-medium text-gray-200 shadow-xl"
+                        >
+                          <button
+                            type="button"
+                            role="menuitem"
+                            onClick={() => {
+                              setMenuAksiTerbuka(false);
+                              if (modeEditPosisi) batalkanEditPosisi();
+                              else mulaiEditPosisi();
+                            }}
+                            aria-pressed={modeEditPosisi}
+                            className="flex items-center gap-3 rounded px-3 py-2.5 text-left hover:bg-[#312e2b]"
+                          >
+                            <Pencil className="h-4 w-4 shrink-0 text-gray-400" aria-hidden="true" />
+                            <span>{modeEditPosisi ? "Batalkan edit posisi" : t("papan.editPosisi")}</span>
+                          </button>
+                          <button
+                            type="button"
+                            role="menuitem"
+                            onClick={() => {
+                              setMenuAksiTerbuka(false);
+                              setTampilPgn(true);
+                            }}
+                            disabled={modeEditPosisi}
+                            className="flex items-center gap-3 rounded px-3 py-2.5 text-left hover:bg-[#312e2b] disabled:cursor-not-allowed disabled:opacity-40"
+                          >
+                            <RotateCw className="h-4 w-4 shrink-0 text-gray-400" aria-hidden="true" />
+                            <span>Input PGN / FEN</span>
+                          </button>
+                          <button
+                            type="button"
+                            role="menuitem"
+                            onClick={() => {
+                              setMenuAksiTerbuka(false);
+                              salinPgn();
+                            }}
+                            disabled={modeEditPosisi || (!riwayat.length && !posisiKustom)}
+                            className="flex items-center gap-3 rounded px-3 py-2.5 text-left hover:bg-[#312e2b] disabled:cursor-not-allowed disabled:opacity-40"
+                          >
+                            <Bookmark className="h-4 w-4 shrink-0 text-gray-400" aria-hidden="true" />
+                            <span>{pgnTersalin ? t("papan.tersalinSingkat") : "Salin PGN"}</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
                 </div>
