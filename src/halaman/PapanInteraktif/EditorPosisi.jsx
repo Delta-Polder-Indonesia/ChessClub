@@ -118,20 +118,25 @@ export default function EditorPosisi({
             ].map(({ hak, label, notasi }) => {
               const aktif = hakRokade.includes(hak);
               return (
-                <button
+                <label
                   key={hak}
-                  type="button"
-                  aria-pressed={aktif}
-                  onClick={() => onUbahRokade(hak, !aktif)}
-                  className={`flex min-w-0 items-center justify-between gap-2 rounded-md border px-3 py-2 text-left transition-colors ${
+                  className={`flex min-w-0 cursor-pointer items-center justify-between gap-2 rounded-md border px-3 py-2 text-left transition-colors ${
                     aktif
                       ? "border-[#a3a09b] bg-[#45423f] text-white"
                       : "border-[#57534e] text-gray-300 hover:bg-white/5"
                   }`}
                 >
-                  <span className="min-w-0 text-xs font-medium">{label}</span>
+                  <span className="flex min-w-0 items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={aktif}
+                      onChange={(event) => onUbahRokade(hak, event.target.checked)}
+                      className="h-4 w-4 shrink-0 accent-[#d6d3d1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#262421]"
+                    />
+                    <span className="min-w-0 text-xs font-medium">{label}</span>
+                  </span>
                   <span className="shrink-0 font-mono text-xs font-semibold">{notasi}</span>
-                </button>
+                </label>
               );
             })}
           </div>
