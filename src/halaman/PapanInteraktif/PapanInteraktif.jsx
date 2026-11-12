@@ -248,6 +248,18 @@ export default function PapanInteraktif({ tertanam = false, pengaturan = null } 
     );
   }
 
+  function ubahRokadeEdit(hak, aktif) {
+    const ruas = fenLogisRef.current.trim().split(/\\s+/);
+    const hakSaatIni = ruas[2] === "-" ? "" : ruas[2];
+    const hakBerikutnya = aktif
+      ? [...new Set([...hakSaatIni, hak])].join("")
+      : hakSaatIni.replace(hak, "");
+    ruas[2] = hakBerikutnya
+      ? "KQkq".split("").filter((simbol) => hakBerikutnya.includes(simbol)).join("")
+      : "-";
+    ubahFENEdit(ruas.join(" "));
+  }
+
   function terapkanEditPosisi() {
     const posisi = fenLogisRef.current;
     const galatLegalitas = validasiPosisiSusun(posisi);
@@ -1686,6 +1698,8 @@ export default function PapanInteraktif({ tertanam = false, pengaturan = null } 
                       onPilih={setBidakEditTerpilih}
                       onGiliran={ubahGiliranEdit}
                       giliran={fen.split(/\s+/)[1] === "b" ? "b" : "w"}
+                      hakRokade={fen.split(/\\s+/)[2] === "-" ? "" : fen.split(/\\s+/)[2]}
+                      onUbahRokade={ubahRokadeEdit}
                       onEditFen={() => setTampilPgn(true)}
                       onSalinFen={() => navigator.clipboard?.writeText(fen).catch(() => {})}
                       onKosongkan={() => ubahFENEdit(fenDariPeta({}, fen.split(/\s+/)[1]))}
