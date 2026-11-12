@@ -15,6 +15,7 @@ import PapanTekaTeki from "../TekaTeki/PapanTekaTeki.jsx";
 import EditorPosisi from "./EditorPosisi.jsx";
 import {
   aturBidak,
+  aturHakRokade,
   fenDariPeta,
   petaDariFen,
   KUNCI_HAPUS_BIDAK,
@@ -249,15 +250,7 @@ export default function PapanInteraktif({ tertanam = false, pengaturan = null } 
   }
 
   function ubahRokadeEdit(hak, aktif) {
-    const ruas = fenLogisRef.current.trim().split(/\\s+/);
-    const hakSaatIni = ruas[2] === "-" ? "" : ruas[2];
-    const hakBerikutnya = aktif
-      ? [...new Set([...hakSaatIni, hak])].join("")
-      : hakSaatIni.replace(hak, "");
-    ruas[2] = hakBerikutnya
-      ? "KQkq".split("").filter((simbol) => hakBerikutnya.includes(simbol)).join("")
-      : "-";
-    ubahFENEdit(ruas.join(" "));
+    ubahFENEdit(aturHakRokade(fenLogisRef.current, hak, aktif));
   }
 
   function terapkanEditPosisi() {
