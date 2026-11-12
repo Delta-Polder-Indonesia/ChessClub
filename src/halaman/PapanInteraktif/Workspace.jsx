@@ -29,7 +29,6 @@ export function HalamanPapanBuku() {
     <Suspense fallback={<KerangkaMode />}>
       <PapanBuku
         tertanam
-        onBukaPengaturan={() => pergi("/papan-interaktif/pengaturan")}
       />
     </Suspense>
   );
