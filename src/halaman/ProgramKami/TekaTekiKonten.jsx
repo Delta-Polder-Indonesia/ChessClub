@@ -1,14 +1,7 @@
 import { Link } from "react-router-dom";
+import { Compass, Layers, PlayCircle, Target, Trophy } from "lucide-react";
 import { HalamanIsi } from "../../components/PageBagian.jsx";
 import { TombolConten } from "../../components/TombolConten.jsx";
-import {
-  TabelKonten,
-  KepalaTabelKonten,
-  BadanTabelKonten,
-  BarisTabelKonten,
-  JudulKolomKonten,
-  SelTabelKonten,
-} from "../../components/konten/TabelKonten.jsx";
 import PapanStatis from "../../components/PapanStatis.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 import { gambar } from "../../lib/asets.js";
@@ -17,9 +10,9 @@ import { gambar } from "../../lib/asets.js";
  * Halaman "Teka-teki & Tips" (/program-kami/teka-teki).
  *
  * Pintu masuk ke alat latihan taktik tanpa batas waktu di /teka-teki/problem.
- * Mengikuti DESIGN.md: serif untuk bacaan, sans untuk kontrol & tabel ringkas,
- * mono untuk angka & notasi; garis 1px datar tanpa gradien/glow dan tanpa
- * tumpukan kartu.
+ * Mengikuti DESIGN.md: serif untuk bacaan, sans untuk kontrol & badge,
+ * mono untuk angka & notasi; garis 1px datar tanpa gradien/glow dengan tata
+ * letak 1 kartu sorotan lebar + 4 kartu kurasi.
  */
 
 const RUTE_ALAT = "/teka-teki/problem";
@@ -39,28 +32,40 @@ const PAPAN_PENGENAL =
 export default function TekaTekiKonten() {
   const { t } = useI18n();
 
+  const satuanSoal = t("tipsTekaTeki.kolomJumlah").toLowerCase();
+
   const daftarKoleksi = [
     {
+      id: "lichess",
+      ikon: Target,
       nama: t("tipsTekaTeki.kol1Nama"),
       jumlah: t("tipsTekaTeki.kol1Jumlah"),
       fokus: t("tipsTekaTeki.kol1Fokus"),
     },
     {
+      id: "video",
+      ikon: PlayCircle,
       nama: t("tipsTekaTeki.kol2Nama"),
       jumlah: t("tipsTekaTeki.kol2Jumlah"),
       fokus: t("tipsTekaTeki.kol2Fokus"),
     },
     {
+      id: "legenda",
+      ikon: Trophy,
       nama: t("tipsTekaTeki.kol3Nama"),
       jumlah: t("tipsTekaTeki.kol3Jumlah"),
       fokus: t("tipsTekaTeki.kol3Fokus"),
     },
     {
+      id: "studi",
+      ikon: Compass,
       nama: t("tipsTekaTeki.kol4Nama"),
       jumlah: t("tipsTekaTeki.kol4Jumlah"),
       fokus: t("tipsTekaTeki.kol4Fokus"),
     },
     {
+      id: "arsip",
+      ikon: Layers,
       nama: t("tipsTekaTeki.kol5Nama"),
       jumlah: t("tipsTekaTeki.kol5Jumlah"),
       fokus: t("tipsTekaTeki.kol5Fokus"),
@@ -130,7 +135,7 @@ export default function TekaTekiKonten() {
           </div>
         </section>
 
-        {/* Lima koleksi soal — tabel datar 1px dengan angka terverifikasi */}
+        {/* Lima koleksi soal — 1 kartu sorotan lebar + 4 kartu kurasi berbatas 1px */}
         <section className="w-full border-t border-grey-200 bg-paper">
           <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
             <h2 className="font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-balance text-grey-800">
@@ -140,41 +145,52 @@ export default function TekaTekiKonten() {
               {t("tipsTekaTeki.koleksiLead")}
             </p>
 
-            <div className="mt-10 border-t border-grey-200 pt-4">
-              <TabelKonten>
-                <KepalaTabelKonten>
-                  <BarisTabelKonten>
-                    <JudulKolomKonten className="py-3 font-medium text-grey-800">
-                      {t("tipsTekaTeki.kolomKoleksi")}
-                    </JudulKolomKonten>
-                    <JudulKolomKonten className="py-3 text-right font-medium text-grey-800">
-                      {t("tipsTekaTeki.kolomJumlah")}
-                    </JudulKolomKonten>
-                    <JudulKolomKonten className="py-3 font-medium text-grey-800">
-                      {t("tipsTekaTeki.kolomFokus")}
-                    </JudulKolomKonten>
-                  </BarisTabelKonten>
-                </KepalaTabelKonten>
-                <BadanTabelKonten>
-                  {daftarKoleksi.map((kol) => (
-                    <BarisTabelKonten key={kol.nama}>
-                      <SelTabelKonten className="py-3.5 align-top font-serif text-base font-semibold whitespace-nowrap text-grey-800">
-                        {kol.nama}
-                      </SelTabelKonten>
-                      <SelTabelKonten className="py-3.5 text-right align-top font-mono text-sm font-medium tabular-nums whitespace-nowrap text-grey-800">
-                        {kol.jumlah}
-                      </SelTabelKonten>
-                      <SelTabelKonten className="py-3.5 align-top font-serif text-sm leading-relaxed text-pretty text-grey-600">
-                        {kol.fokus}
-                      </SelTabelKonten>
-                    </BarisTabelKonten>
-                  ))}
-                </BadanTabelKonten>
-              </TabelKonten>
-              <p className="mt-4 mb-0 text-xs leading-relaxed text-grey-600">
-                {t("tipsTekaTeki.koleksiCatatan")}
-              </p>
+            <div className="mt-10 grid gap-5 md:grid-cols-2">
+              {daftarKoleksi.map((kol, idx) => {
+                const Ikon = kol.ikon;
+                const unggulan = idx === 0;
+                return (
+                  <article
+                    key={kol.id}
+                    className={`flex flex-col rounded-lg border border-grey-200 bg-paper p-6 transition-colors hover:border-grey-300 ${
+                      unggulan ? "md:col-span-2 md:p-7" : ""
+                    }`}
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-grey-200 pb-3.5">
+                      <div className="flex items-center gap-2.5">
+                        <Ikon className="size-4 shrink-0 text-primary" aria-hidden="true" />
+                        <h3
+                          className={`m-0 font-serif font-semibold leading-snug text-grey-800 ${
+                            unggulan ? "text-xl" : "text-lg"
+                          }`}
+                        >
+                          {kol.nama}
+                        </h3>
+                      </div>
+                      <span
+                        className={`shrink-0 rounded border px-2.5 py-0.5 font-mono text-sm font-medium tabular-nums ${
+                          unggulan
+                            ? "border-primary/25 bg-primary/5 text-primary"
+                            : "border-grey-200 bg-paper text-grey-800"
+                        }`}
+                      >
+                        {kol.jumlah} {satuanSoal}
+                      </span>
+                    </div>
+                    <p
+                      className={`m-0 mt-4 font-serif text-base leading-relaxed text-pretty text-grey-600 ${
+                        unggulan ? "max-w-3xl" : "max-w-prose"
+                      }`}
+                    >
+                      {kol.fokus}
+                    </p>
+                  </article>
+                );
+              })}
             </div>
+            <p className="mt-6 mb-0 font-serif text-sm leading-relaxed text-grey-600">
+              {t("tipsTekaTeki.koleksiCatatan")}
+            </p>
           </div>
         </section>
 
