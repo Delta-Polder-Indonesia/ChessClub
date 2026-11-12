@@ -1140,14 +1140,21 @@ export default function PapanInteraktif({ tertanam = false, pengaturan = null } 
       }
       // FEN dimuat sebagai posisi awal yang baru (mandiri): riwayat
       // dikosongkan karena FEN tidak menyimpan langkah-langkah sebelumnya.
-      setFenAwal(fenBaru);
-      setRiwayat([]);
-      setRiwayatLengkap([]);
-      setJalur([]);
-      setFen(fenBaru);
-      bersih();
+      if (modeEditPosisi) {
+        ubahFENEdit(fenBaru);
+      } else {
+        setFenAwal(fenBaru);
+        setRiwayat([]);
+        setRiwayatLengkap([]);
+        setJalur([]);
+        setFen(fenBaru);
+        bersih();
+      }
       return true;
     }
+    // Saat dialog dibuka dari tombol Edit FEN, hanya terima FEN agar
+    // mode susun tetap aktif dan tidak mengimpor riwayat PGN secara tak sengaja.
+    if (modeEditPosisi) return false;
     // Selain itu: anggap PGN — hormati header [FEN "…"] bila ada (partai dari
     // posisi kustom), kalau tidak mulai dari posisi awal standar.
     const daftar = sanDariPgn(isi);
@@ -1679,6 +1686,8 @@ export default function PapanInteraktif({ tertanam = false, pengaturan = null } 
                       onPilih={setBidakEditTerpilih}
                       onGiliran={ubahGiliranEdit}
                       giliran={fen.split(/\s+/)[1] === "b" ? "b" : "w"}
+                      onEditFen={() => setTampilPgn(true)}
+                      onSalinFen={() => navigator.clipboard?.writeText(fen).catch(() => {})}
                       onKosongkan={() => ubahFENEdit(fenDariPeta({}, fen.split(/\s+/)[1]))}
                       onAwal={() => ubahFENEdit(FEN_AWAL)}
                       onTerapkan={terapkanEditPosisi}
