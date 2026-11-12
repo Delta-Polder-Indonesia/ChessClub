@@ -1549,7 +1549,7 @@ export default function PapanInteraktif({ tertanam = false, pengaturan = null } 
         {/* ═══════════════════════════════════════════════════════ */}
         {/* AREA UTAMA                                            */}
         {/* ═══════════════════════════════════════════════════════ */}
-        <main className="main flex-1 flex items-stretch justify-start bg-[#262421] min-w-0 overflow-hidden">
+        <main className="flex-1 flex items-stretch justify-start bg-[#262421] min-w-0 overflow-hidden">
           <div className="flex h-full w-full min-h-0 flex-col px-4 py-6 md:px-8">
           {/* Papan & panel SELALU dirender, tanpa menunggu buku pembukaan.
               Dulu seluruh isi area ini digerbangi `!pohon` sehingga papan dan
