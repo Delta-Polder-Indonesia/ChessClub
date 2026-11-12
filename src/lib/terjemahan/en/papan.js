@@ -471,6 +471,8 @@ export const papan = {
     salin: "Copy",
     tersalinSingkat: "Copied",
     tutup: "Close",
+    lainnya: "More",
+    menuAksiLainnya: "More board actions",
     baru: "New",
     simpan: "Save",
     tinjau: "Review",
