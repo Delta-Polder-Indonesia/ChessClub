@@ -430,32 +430,27 @@ export default function TekaTekiKonten() {
               ))}
             </div>
 
-            <div className="mt-12 flex flex-col gap-6 pt-2 md:flex-row md:items-center md:justify-between">
-              <div className="max-w-prose">
-                <h3 className="m-0 font-serif text-xl font-semibold leading-snug text-grey-800">
-                  {t("tipsTekaTeki.penutupJudul")}
-                </h3>
-                <p className="mt-3 mb-0 text-base leading-relaxed text-pretty text-grey-600">
-                  {t("tipsTekaTeki.penutupAwal")}{" "}
-                  <Link
-                    to={RUTE_RUSH_ALAT}
-                    className="font-semibold text-primary underline underline-offset-2 hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                  >
-                    {t("nav.tekaTekiRush")}
-                  </Link>{" "}
-                  {t("tipsTekaTeki.penutupTengah")}{" "}
-                  <Link
-                    to={RUTE_ANALISA}
-                    className="font-semibold text-primary underline underline-offset-2 hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                  >
-                    {t("tipsTekaTeki.tautanAnalisa")}
-                  </Link>{" "}
-                  {t("tipsTekaTeki.penutupAkhir")}
-                </p>
-              </div>
-              <div className="shrink-0 font-sans">
-                <TombolConten to={RUTE_ALAT}>{t("tipsTekaTeki.ctaUtama")}</TombolConten>
-              </div>
+            <div className="mt-12 pt-2">
+              <h3 className="m-0 font-serif text-lg font-semibold leading-snug text-grey-800">
+                {t("tipsTekaTeki.penutupJudul")}
+              </h3>
+              <p className="mt-3 mb-0 max-w-prose text-base leading-relaxed text-pretty text-grey-600">
+                {t("tipsTekaTeki.penutupAwal")}{" "}
+                <Link
+                  to={RUTE_RUSH_ALAT}
+                  className="font-semibold text-primary underline underline-offset-2 hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                >
+                  {t("nav.tekaTekiRush")}
+                </Link>{" "}
+                {t("tipsTekaTeki.penutupTengah")}{" "}
+                <Link
+                  to={RUTE_ANALISA}
+                  className="font-semibold text-primary underline underline-offset-2 hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                >
+                  {t("tipsTekaTeki.tautanAnalisa")}
+                </Link>{" "}
+                {t("tipsTekaTeki.penutupAkhir")}
+              </p>
             </div>
           </div>
         </section>
