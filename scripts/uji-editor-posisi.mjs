@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { FEN_AWAL } from "../src/halaman/PapanInteraktif/bersama/konstanta.js";
 import {
   aturBidak,
+  aturHakRokade,
   fenDariPeta,
   petaDariFen,
   validasiPosisiSusun,
@@ -17,7 +18,13 @@ assert.equal(petaDariFen(diedit).e4, "Q");
 assert.equal(diedit.split(" ")[1], "w");
 assert.equal(diedit.split(" ")[2], "-");
 assert.equal(FEN_AWAL.split(" ")[2], "KQkq");
-assert.equal(FEN_AWAL.replace(" KQkq ", " - ").split(" ")[2], "-");
+assert.equal(aturHakRokade(FEN_AWAL, "K", false).split(" ")[2], "Qkq");
+assert.equal(aturHakRokade(FEN_AWAL, "q", false).split(" ")[2], "KQk");
+assert.equal(aturHakRokade(FEN_AWAL, "k", false).split(" ")[2], "KQq");
+assert.equal(aturHakRokade(FEN_AWAL, "Q", false).split(" ")[2], "Kkq");
+assert.equal(aturHakRokade("8/8/8/8/8/8/8/8 w - - 0 1", "Q", true).split(" ")[2], "Q");
+assert.equal(aturHakRokade(FEN_AWAL, "K", false).replace(" ", "|"), FEN_AWAL.replace(" ", "|").replace("KQkq", "Qkq"));
+assert.equal(aturHakRokade(FEN_AWAL, "X", true), FEN_AWAL);
 
 
 const dihapus = aturBidak(diedit, "e4", null);
