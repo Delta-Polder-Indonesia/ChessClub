@@ -1,8 +1,8 @@
 import { useId } from "react";
 import { DAFTAR_SET } from "../../components/chess/pemuatBidak.js";
-import { GAYA_KOMENTATOR } from "../../lib/komentator.js";
 import { PILIHAN_WARNA_PAPAN } from "./bersama/konstanta.js";
 import {
+  BarisKomentatorPapan,
   BarisPilihan,
   BarisSakelar,
   KELAS_SELECT,
@@ -48,10 +48,6 @@ export function IsiPengaturanPapan({
   const idSetBidak = useId();
   const idWarnaPapan = useId();
   const idKoordinat = useId();
-  const idKomentator = useId();
-  const nilaiKomentator = kartuKomentator.nyala ? kartuKomentator.gaya : "tidak";
-  const labelGaya = (g) =>
-    t(`papan.komentator.gaya${g.charAt(0).toUpperCase() + g.slice(1)}`);
   return (
     <div className="flex flex-col [&>*:first-child]:pt-0">
       <BarisPilihan
@@ -148,34 +144,13 @@ export function IsiPengaturanPapan({
         checked={awanTampilanPenuh}
         onCheckedChange={setAwanTampilanPenuh}
       />
-      <BarisPilihan
-        judul={t("papan.komentator.judul")}
-        deskripsi={t("papan.komentator.bicaraSaatLangkah")}
-        sejajar
-      >
-        <select
-          id={idKomentator}
-          value={nilaiKomentator}
-          onChange={(e) => {
-            const nilai = e.target.value;
-            if (nilai === "tidak") {
-              kartuKomentator.setNyala(false);
-              return;
-            }
-            kartuKomentator.setGaya(nilai);
-            kartuKomentator.setNyala(true);
-          }}
-          aria-label={t("papan.komentator.judul")}
-          className={KELAS_SELECT}
-        >
-          <option value="tidak">{t("papan.komentator.tidakDitampilkan")}</option>
-          {GAYA_KOMENTATOR.map((g) => (
-            <option key={g} value={g}>
-              {labelGaya(g)}
-            </option>
-          ))}
-        </select>
-      </BarisPilihan>
+      <BarisKomentatorPapan
+        t={t}
+        nyala={kartuKomentator.nyala}
+        setNyala={kartuKomentator.setNyala}
+        gaya={kartuKomentator.gaya}
+        setGaya={kartuKomentator.setGaya}
+      />
     </div>
   );
 }

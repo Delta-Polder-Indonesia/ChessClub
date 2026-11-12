@@ -1,9 +1,10 @@
 /**
  * Tab "Pengaturan": set bidak, warna papan, suara, mesin, panah mesin,
- * "Ingat posisi", dan kartu komentator — gaya selaras /papan-interaktif/pengaturan.
+ * "Ingat posisi", dan Komentator Papan — gaya selaras /papan-interaktif/pengaturan.
  */
 import { useI18n } from "../../../lib/i18n.jsx";
 import {
+  BarisKomentatorPapan,
   BarisPilihan,
   BarisSakelar,
   KELAS_SELECT,
@@ -27,7 +28,7 @@ export default function PanelPengaturan({
   onGantiIngatPosisi = null,
   teksPosisiTersimpan = "",
   teksIngatNonaktif = "",
-  kartu = null,
+  komentator = null,
   pilihanWarnaPapan = [],
   nilaiWarnaPapan = "green",
   onGantiWarnaPapan = null,
@@ -124,7 +125,15 @@ export default function PanelPengaturan({
           />
         )}
 
-        {kartu && <div className="border-b border-border py-3">{kartu}</div>}
+        {komentator && (
+          <BarisKomentatorPapan
+            t={t}
+            nyala={komentator.nyala}
+            setNyala={komentator.setNyala}
+            gaya={komentator.gaya}
+            setGaya={komentator.setGaya}
+          />
+        )}
       </KartuPengaturanPapan>
     </div>
   );

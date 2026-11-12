@@ -518,6 +518,12 @@ export default function TekaTeki() {
               : "",
           teksIngatNonaktif: ingatPosisi ? "" : t("tekaTeki.ingatNonaktif"),
           komentatorNyala: preferensiKomentator.nyala,
+          komentator: {
+            nyala: preferensiKomentator.nyala,
+            setNyala: preferensiKomentator.setNyala,
+            gaya: preferensiKomentator.gaya,
+            setGaya: preferensiKomentator.setGaya,
+          },
           kartuKomentator,
         }}
         tabPanelAktif={tabPanelAktif}

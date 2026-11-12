@@ -1,7 +1,9 @@
+import { useId } from "react";
 import { X } from "lucide-react";
 import "../../Analisa/analisa.css";
 import { ChessPiece } from "../../../components/chess/ChessPiece.jsx";
 import { Switch } from "../../../components/ui/switch.jsx";
+import { GAYA_KOMENTATOR } from "../../../lib/komentator.js";
 import { TEMA_PAPAN } from "../../TekaTeki/temaPapan.js";
 
 const BIDAK_PRATINJAU = ["R", "N", "B", "Q", "K", "P"];
@@ -48,7 +50,7 @@ export function PratinjauPapan({ tema }) {
 export function BarisPilihan({ judul, deskripsi = "", pratinjau = null, sejajar = false, children }) {
   if (sejajar) {
     return (
-      <div className="flex items-center justify-between gap-4 border-b border-border py-3">
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-border py-3">
         <div className="min-w-0">
           <p className="text-sm font-semibold text-foreground">{judul}</p>
           {deskripsi && (
@@ -113,6 +115,45 @@ export function BarisAksi({ judul, deskripsi = "", children }) {
       </div>
       <div className="shrink-0">{children}</div>
     </div>
+  );
+}
+
+export function BarisKomentatorPapan({ t, nyala, setNyala, gaya, setGaya, id = undefined }) {
+  const idBawaan = useId();
+  const idSelect = id || idBawaan;
+  const nilaiKomentator = nyala ? gaya : "tidak";
+  const labelGaya = (g) =>
+    t(`papan.komentator.gaya${g.charAt(0).toUpperCase() + g.slice(1)}`);
+
+  return (
+    <BarisPilihan
+      judul={t("papan.komentator.judul")}
+      deskripsi={t("papan.komentator.bicaraSaatLangkah")}
+      sejajar
+    >
+      <select
+        id={idSelect}
+        value={nilaiKomentator}
+        onChange={(e) => {
+          const nilai = e.target.value;
+          if (nilai === "tidak") {
+            setNyala(false);
+            return;
+          }
+          setGaya(nilai);
+          setNyala(true);
+        }}
+        aria-label={t("papan.komentator.judul")}
+        className={KELAS_SELECT}
+      >
+        <option value="tidak">{t("papan.komentator.tidakDitampilkan")}</option>
+        {GAYA_KOMENTATOR.map((g) => (
+          <option key={g} value={g}>
+            {labelGaya(g)}
+          </option>
+        ))}
+      </select>
+    </BarisPilihan>
   );
 }
 
