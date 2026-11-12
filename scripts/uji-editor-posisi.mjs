@@ -16,6 +16,9 @@ const diedit = aturBidak(FEN_AWAL, "e4", "Q");
 assert.equal(petaDariFen(diedit).e4, "Q");
 assert.equal(diedit.split(" ")[1], "w");
 assert.equal(diedit.split(" ")[2], "-");
+assert.equal(FEN_AWAL.split(" ")[2], "KQkq");
+assert.equal(FEN_AWAL.replace(" KQkq ", " - ").split(" ")[2], "-");
+
 
 const dihapus = aturBidak(diedit, "e4", null);
 assert.equal(petaDariFen(dihapus).e4, undefined);
