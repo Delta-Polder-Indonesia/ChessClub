@@ -1997,9 +1997,7 @@ export default function PapanInteraktif({ tertanam = false, pengaturan = null } 
                       ) : (
                         <VolumeX className="h-4 w-4" />
                       )}
-                      <span className="max-w-full truncate">
-                        {t(suaraNyala ? "papan.suaraNyala" : "papan.suaraMati")}
-                      </span>
+                      <span className="max-w-full truncate">{t("papan.suaraNav")}</span>
                     </button>
                     <div ref={menuAksiRef} className="relative min-w-0">
                       <button
