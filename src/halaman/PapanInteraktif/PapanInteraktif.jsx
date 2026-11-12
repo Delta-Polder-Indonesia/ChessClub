@@ -130,15 +130,7 @@ export default function PapanInteraktif({ tertanam = false, pengaturan = null } 
   const pengaturanBersama = usePengaturanBersama();
   const { nilai: pp, ubah: ubahPengaturan } =
     pengaturan ?? pengaturanBersama ?? pengaturanLokal;
-  const setBidakPapan = useCallback((v) => ubahPengaturan("bidak", v), [ubahPengaturan]);
-  const setWarnaPapan = useCallback((v) => ubahPengaturan("warnaPapan", v), [ubahPengaturan]);
-  const setAwanTampilanPenuh = useCallback((v) => ubahPengaturan("awanTampilanPenuh", v), [ubahPengaturan]);
-  const setBantuanNyala = useCallback((v) => ubahPengaturan("bantuanNyala", v), [ubahPengaturan]);
   const setTampilPanahMesinPapan = useCallback((v) => ubahPengaturan("tampilPanahMesin", v), [ubahPengaturan]);
-  const setTampilKoordinat = useCallback((v) => ubahPengaturan("tampilKoordinat", v), [ubahPengaturan]);
-  const setTampilTitikLangkah = useCallback((v) => ubahPengaturan("tampilTitikLangkah", v), [ubahPengaturan]);
-  const setSorotLangkahAkhir = useCallback((v) => ubahPengaturan("sorotLangkahAkhir", v), [ubahPengaturan]);
-  const setPromosiOtomatis = useCallback((v) => ubahPengaturan("promosiOtomatis", v), [ubahPengaturan]);
 
   const [pohon, setPohon] = useState(null);
   const [mode, setMode] = useState("koordinat"); // "koordinat" | "san"
