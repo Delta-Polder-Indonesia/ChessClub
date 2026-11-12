@@ -364,6 +364,7 @@ export const papan = {
     gagalMuat:
       "Failed to load the opening data. Check your internet connection, then reload this page.",
     suara: "Board sounds",
+    suaraNav: "Sound",
     suaraDeskripsi: "Move sounds and notifications while playing.",
     suaraNyala: "Sound on — click to mute",
     ikonLangkah: {
