@@ -90,7 +90,7 @@ export function aturBidak(fen, petak, simbol) {
 /** Ubah satu hak rokade pada field ketiga FEN tanpa alterasi field lain. */
 export function aturHakRokade(fen, hak, ativo) {
   if (!["K", "Q", "k", "q"].includes(hak)) return fen;
-  const ruas = String(fen || "").trim().split(/\\s+/);
+  const ruas = String(fen || "").trim().split(/\s+/);
   if (ruas.length < 6) return fen;
   const hakSaatIni = ruas[2] === "-" ? "" : ruas[2];
   const hakBerikutnya = ativo
