@@ -146,6 +146,7 @@ window.matchMedia =
   window.matchMedia ??
   ((media) => ({ matches: false, media, addEventListener() {}, removeEventListener() {} }));
 window.scrollTo = () => {};
+if (!window.PointerEvent) window.PointerEvent = window.MouseEvent;
 window.Element.prototype.scrollIntoView = function scrollIntoView() {};
 window.HTMLElement.prototype.scrollTo = function scrollTo() {};
 window.Element.prototype.scrollTo = function scrollTo() {};
@@ -159,7 +160,7 @@ globalThis.ResizeObserver = PengamatPalsu;
 globalThis.IntersectionObserver = PengamatPalsu;
 globalThis.requestAnimationFrame = window.requestAnimationFrame;
 globalThis.cancelAnimationFrame = window.cancelAnimationFrame;
-for (const nama of ["HTMLElement", "Element", "Node", "Event", "MouseEvent", "KeyboardEvent", "CustomEvent"]) {
+for (const nama of ["HTMLElement", "Element", "Node", "Event", "MouseEvent", "PointerEvent", "KeyboardEvent", "CustomEvent"]) {
   if (window[nama]) globalThis[nama] = window[nama];
 }
 
@@ -864,6 +865,98 @@ console.log("\n9. deret 1.e4 e5 2.Nf3 Nc6 — tiap posisi dievaluasi terpisah, t
     /0[.,]60/.test(p.labelBilah()),
     p.labelBilah()
   );
+
+  p.tutup();
+}
+
+/* ------ 10. pengaturan permainan tampil di panel kanan (bukan pop up dialog) ------ */
+
+console.log("\n10. pengaturan permainan di panel kanan tanpa popup dialog");
+{
+  const p = await partaiBaru();
+  const semuaAside = [...p.wadah.querySelectorAll("aside")];
+  const kiri = semuaAside[0];
+  const kanan = semuaAside.at(-1);
+  const tombolGir = kanan?.querySelector('button[aria-label="Pengaturan permainan"]');
+  const tombolSidebar = [...(kiri?.querySelectorAll("button") || [])].find(
+    (b) => b.textContent.trim() === "Pengaturan"
+  );
+  uji("tombol gir dan tombol sidebar Pengaturan tersedia", !!tombolGir && !!tombolSidebar);
+
+  // Klik tombol gir → tidak ada role="dialog", pengaturan muncul di dalam <aside> kanan
+  tombolGir?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+  await tungguSampai(() => !!kanan?.querySelector('[data-panel="pve-pengaturan"]'));
+  const panelPengaturan = kanan?.querySelector('[data-panel="pve-pengaturan"]');
+  uji("tidak membuka popup role='dialog'", !p.wadah.querySelector('[role="dialog"]'));
+  uji(
+    "tampilan pengaturan muncul di dalam panel kanan dengan gaya .analisa-root",
+    !!panelPengaturan && panelPengaturan.classList.contains("analisa-root")
+  );
+  const pilihanSelect = [...(panelPengaturan?.querySelectorAll("select") || [])];
+  const sakelarSuara = panelPengaturan?.querySelector('[role="switch"]');
+  const tombolBalik = [...(panelPengaturan?.querySelectorAll("button") || [])].find(
+    (b) => b.textContent.trim() === "Balik papan"
+  );
+  const pratinjauBidak = panelPengaturan?.querySelectorAll('img');
+  const pratinjauPapan = panelPengaturan?.querySelector('.grid-cols-8');
+  uji(
+    "pengaturan memuat Set Bidak, Warna papan, Suara papan, Balik papan + pratinjau",
+    pilihanSelect.length === 2 &&
+      !!sakelarSuara &&
+      !!tombolBalik &&
+      (pratinjauBidak?.length || 0) === 6 &&
+      (pratinjauPapan?.children.length || 0) === 64
+  );
+
+  // Balik papan mengubah orientasi petak pertama dari a8 ke h1
+  const petakAwal = p.wadah.querySelector("[data-petak]")?.getAttribute("data-petak");
+  tombolBalik?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+  await tunggu(20);
+  const petakSetelahBalik = p.wadah.querySelector("[data-petak]")?.getAttribute("data-petak");
+  uji("Balik papan membalik orientasi papan", petakAwal === "a8" && petakSetelahBalik === "h1");
+
+  // Ganti Set Bidak, Warna papan, dan sakelar Suara
+  const [pilihBidak, pilihTema] = pilihanSelect;
+  if (pilihBidak) {
+    pilihBidak.value = "merida";
+    pilihBidak.dispatchEvent(new window.Event("change", { bubbles: true }));
+  }
+  if (pilihTema) {
+    pilihTema.value = "blue";
+    pilihTema.dispatchEvent(new window.Event("change", { bubbles: true }));
+  }
+  const suaraSebelum = sakelarSuara?.getAttribute("aria-checked") === "true";
+  sakelarSuara?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+  await tunggu(30);
+  const suaraSesudah = sakelarSuara?.getAttribute("aria-checked") === "true";
+  uji(
+    "kontrol Set Bidak, Warna papan, dan sakelar Suara merespons perubahan",
+    pilihBidak?.value === "merida" &&
+      pilihTema?.value === "blue" &&
+      suaraSesudah === !suaraSebelum
+  );
+
+  // Tutup dengan tombol X → panel riwayat/permainan kembali tanpa kehilangan state
+  const tombolTutup = panelPengaturan?.querySelector('button[aria-label="Tutup"]');
+  tombolTutup?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+  await tungguSampai(() => !kanan?.querySelector('[data-panel="pve-pengaturan"]'));
+  uji(
+    "menutup pengaturan mengembalikan tampilan permainan di panel kanan",
+    !kanan?.querySelector('[data-panel="pve-pengaturan"]') &&
+      kanan?.textContent.includes("Daftar langkah")
+  );
+
+  // Buka lewat tombol sidebar Pengaturan dan tutup dengan Escape
+  tombolSidebar?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+  await tungguSampai(() => !!kanan?.querySelector('[data-panel="pve-pengaturan"]'));
+  uji(
+    "tombol sidebar Pengaturan juga membuka pengaturan di panel kanan tanpa dialog",
+    !!kanan?.querySelector('[data-panel="pve-pengaturan"]') &&
+      !p.wadah.querySelector('[role="dialog"]')
+  );
+  window.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+  await tungguSampai(() => !kanan?.querySelector('[data-panel="pve-pengaturan"]'));
+  uji("tombol Escape menutup panel pengaturan kanan", !kanan?.querySelector('[data-panel="pve-pengaturan"]'));
 
   p.tutup();
 }

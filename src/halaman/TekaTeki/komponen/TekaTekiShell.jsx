@@ -195,7 +195,7 @@ export default function TekaTekiShell({
               onGantiIngatPosisi={tampilan.onGantiIngatPosisi}
               teksPosisiTersimpan={tampilan.teksPosisiTersimpan}
               teksIngatNonaktif={tampilan.teksIngatNonaktif}
-              kartu={tampilan.kartuKomentator}
+              komentator={tampilan.komentator}
               pilihanWarnaPapan={tampilan.pilihanWarnaPapan}
               nilaiWarnaPapan={tampilan.nilaiWarnaPapan}
               onGantiWarnaPapan={tampilan.onGantiWarnaPapan}
