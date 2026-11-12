@@ -1682,7 +1682,7 @@ export default function PapanInteraktif({ tertanam = false, pengaturan = null } 
                     kontrol dasar tidak ikut naik-turun saat isi tab pendek/kosong */}
                 <div className="flex h-auto min-h-0 flex-col overflow-hidden rounded-lg border border-[#312e2b] bg-[#211f1c] lg:h-full lg:flex-1">
                 {modeEditPosisi && (
-                  <div className="min-h-0 flex-1 overflow-y-auto border-b border-[#312e2b] bg-[#211f1c] p-4">
+                  <div className="min-h-0 flex-1 overflow-y-auto p-4">
                     <EditorPosisi
                       terpilih={bidakEditTerpilih}
                       fen={fen}
