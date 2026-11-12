@@ -30,7 +30,7 @@ export default function EditorPosisi({
   return (
     <section
       aria-label={t("papan.editPosisi")}
-      className="mx-auto w-full max-w-xl rounded-lg border border-[#3a3835] bg-[#262421] p-4 shadow-lg"
+      className="w-full"
     >
       <div className="mb-4 border-b border-[#3a3835] pb-3">
         <h2 className="text-sm font-bold tracking-wide text-gray-100">
