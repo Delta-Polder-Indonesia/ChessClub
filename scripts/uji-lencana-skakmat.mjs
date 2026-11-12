@@ -413,27 +413,33 @@ function klik(el) {
 {
   const teksSebelum = teksKomentator(wadahHalaman);
   const ambilPanelPengaturan = () => wadahHalaman.querySelector('[data-panel="pengaturan"]');
-  const radioGaya = (akar = wadahHalaman) =>
-    [...akar.querySelectorAll('section[aria-label="Komentator Papan"] [role="radio"]')];
+  const pilihKomentator = (akar = wadahHalaman) =>
+    [...akar.querySelectorAll('select[aria-label="Komentator Papan"]')];
   const tabPengaturan = wadahHalaman.querySelector('[data-tab="pengaturan"]');
   klik(tabPengaturan);
   await tungguHingga(() => !!ambilPanelPengaturan(), 1000);
 
   const panelPengaturan = ambilPanelPengaturan();
-  const semuaRadio = radioGaya();
+  const semuaPemilih = pilihKomentator();
+  const pemilih = pilihKomentator(panelPengaturan)[0];
+  const nilaiOpsi = [...(pemilih?.options || [])].map((o) => o.value);
   uji(
-    "tab Pengaturan memuat tiga kontrol gaya komentator",
-    !!tabPengaturan && !!panelPengaturan && radioGaya(panelPengaturan).length === 3
+    "tab Pengaturan memuat pemilih gaya komentator (Tidak ditampilkan + 3 gaya)",
+    !!tabPengaturan &&
+      !!panelPengaturan &&
+      !!pemilih &&
+      nilaiOpsi.length === 4 &&
+      ["tidak", "santai", "formal", "genZ"].every((v) => nilaiOpsi.includes(v))
   );
   uji(
     "kontrol gaya komentator hanya ada di tab Pengaturan",
-    !!panelPengaturan && semuaRadio.length === 3 && semuaRadio.every((r) => panelPengaturan.contains(r))
+    !!panelPengaturan && semuaPemilih.length === 1 && panelPengaturan.contains(pemilih)
   );
 
-  const tombolFormal = panelPengaturan?.querySelector(
-    'section[aria-label="Komentator Papan"] [role="radio"][aria-checked="false"]'
-  );
-  klik(tombolFormal);
+  if (pemilih) {
+    pemilih.value = "formal";
+    pemilih.dispatchEvent(new dom.window.Event("change", { bubbles: true }));
+  }
   await tungguHingga(() => dom.window.localStorage.getItem("kci-komentator-gaya") === "formal", 1000);
 
   const tabMain = wadahHalaman.querySelector('[data-tab="main"]');
@@ -444,7 +450,7 @@ function klik(el) {
   );
   uji(
     "komentator: ganti gaya mengubah kalimat & menyimpan preferensi",
-    !!tombolFormal &&
+    !!pemilih &&
       teksKomentator(wadahHalaman) !== teksSebelum &&
       dom.window.localStorage.getItem("kci-komentator-gaya") === "formal"
   );
@@ -452,10 +458,11 @@ function klik(el) {
   // Kembalikan ke santai agar uji berikutnya (papan interaktif) tidak bergantung urutan.
   klik(tabPengaturan);
   await tungguHingga(() => !!ambilPanelPengaturan(), 1000);
-  const tombolSantai = ambilPanelPengaturan()?.querySelector(
-    'section[aria-label="Komentator Papan"] [role="radio"][aria-checked="false"]'
-  );
-  klik(tombolSantai);
+  const pemilihUlang = pilihKomentator(ambilPanelPengaturan())[0];
+  if (pemilihUlang) {
+    pemilihUlang.value = "santai";
+    pemilihUlang.dispatchEvent(new dom.window.Event("change", { bubbles: true }));
+  }
   await tungguHingga(() => dom.window.localStorage.getItem("kci-komentator-gaya") === "santai", 1000);
   klik(tabMain);
   await tungguHingga(() => tabMain?.getAttribute("aria-selected") === "true", 1000);

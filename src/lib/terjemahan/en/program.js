@@ -150,68 +150,6 @@ export const tipsTekaTeki = {
     pengantarCaption:
       "Puzzle #1,927 from the Lichess Checkmates set (rating 1,095, French Defense): White to move and finish the kingside attack in two moves.",
     pengantarTautan: "Try puzzle #1,927 in the trainer",
-    koleksiJudul: "Five collections in one workspace",
-    koleksiLead:
-      "Every figure below is counted directly from the data files loaded by the trainer. Extended archive files download only when you switch away from the default collection so the initial load stays fast.",
-    kolomKoleksi: "Collection",
-    kolomJumlah: "Puzzles",
-    kolomFokus: "Scope & training focus",
-    kol1Nama: "Lichess Checkmates",
-    kol1Jumlah: "5,486",
-    kol1Fokus:
-      "Default set (#1–#5,486): 1,377 mate-in-one, 2,991 mate-in-two, and 1,118 mate-in-three positions from real games (2,923 White to move, 2,563 Black to move).",
-    kol2Nama: "Tactics + Video",
-    kol2Jumlah: "1,681",
-    kol2Fokus:
-      "Selected tactical positions paired with English-language coach video explanations that unlock only after you solve the puzzle.",
-    kol3Nama: "World Legends",
-    kol3Jumlah: "222",
-    kol3Fokus:
-      "Combinative turning points from historic games by world champions and classical masters to sharpen attacking calculation.",
-    kol4Nama: "Endgame Studies",
-    kol4Jumlah: "86",
-    kol4Fokus:
-      "Curated endgame compositions demanding quiet moves, king opposition calculation, and accurate pawn promotion lines.",
-    kol5Nama: "Tactics Archive",
-    kol5Jumlah: "6,551",
-    kol5Fokus:
-      "The complete extended pool (#5,487–#12,037), including 3,267 non-mate tactical combinations, 1,383 mate-in-4+ problems, and per-coach filters.",
-    koleksiCatatan:
-      "Combined catalog: 12,037 uniquely numbered puzzles spanning ratings 600–2,567.",
-    caraJudul: "How to train and review positions",
-    caraSubjudul: "Solving workflow",
-    cara1:
-      "Select a collection, level band 1–5 (from under 1,000 up to 1,900+), move length, tactical motif, or side to move inside the settings panel.",
-    cara2:
-      "Right-click squares or right-drag across the board to sketch highlight circles and candidate arrows while calculating, then click or drag your piece to play.",
-    cara3:
-      "Each accurate move is answered automatically by the defender's strongest reply until the line concludes; when stuck, the Hint button marks the first move's origin and target squares.",
-    cara4:
-      "Every puzzle writes its number straight into the page URL (/teka-teki/problem/:id), making positions easy to bookmark or share with clubmates.",
-    bantuSubjudul: "Post-solve analysis tools",
-    bantu1:
-      "Once a combination finishes, the commentator card summarizes the motif behind your winning move. In the Tactics + Video set, the coach's recorded breakdown unlocks for manual playback so you can compare your candidate lines against the main idea.",
-    bantu2:
-      "To test why an alternative sacrifice fails, toggle Stockfish 18 directly in the sidebar or press Open in Analysis Board to send the full PGN and variations into the analysis workspace.",
-    tipsJudul: "Four habits for cleaner calculation",
-    tips1Judul: "Order checks, captures, and threats",
-    tips1Isi:
-      "Start with the moves that restrict the defender most: examine every legal check first, then captures, and only afterward quiet threats.",
-    tips2Judul: "Calculate the defender's best reply to the end",
-    tips2Isi:
-      "Avoid playing the first attractive check on impulse. Verify your answer against every legal block, king flight square, and recapture before moving.",
-    tips3Judul: "Drill one tactical motif per session",
-    tips3Isi:
-      "Filter by a single theme such as pins, forks, deflections, attractions, or smothered mates until the piece geometry registers at a glance.",
-    tips4Judul: "Step up a band after clean streaks",
-    tips4Isi:
-      "Stay in a rating band you can solve consecutively without hints or guesses before moving up, and jot down missed puzzle numbers to revisit days later.",
-    penutupJudul: "Test your speed or dig deeper",
-    penutupAwal:
-      "Once core motifs read cleanly without clock pressure, test your pattern speed over 3- or 5-minute runs in",
-    penutupTengah: "or explore defensive sidelines with the engine on the",
-    tautanAnalisa: "Analysis Board",
-    penutupAkhir: "whenever a position deserves a second look.",
   }
 
 export const bukuPembukaan = {

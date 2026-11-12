@@ -152,68 +152,6 @@ export const tipsTekaTeki = {
     pengantarCaption:
       "Soal #1.927 dari koleksi Skakmat Lichess (rating 1.095, Pertahanan Prancis): Putih melangkah untuk menuntaskan serangan sayap raja dalam dua langkah.",
     pengantarTautan: "Coba soal #1.927 di alat latihan",
-    koleksiJudul: "Lima koleksi dalam satu ruang latihan",
-    koleksiLead:
-      "Setiap koleksi disusun dari berkas soal yang dipakai langsung oleh alat latihan. Berkas tambahan baru diunduh saat Anda berpindah dari koleksi bawaan agar pemuatan awal tetap ringan.",
-    kolomKoleksi: "Koleksi",
-    kolomJumlah: "Soal",
-    kolomFokus: "Cakupan & fokus latihan",
-    kol1Nama: "Skakmat Lichess",
-    kol1Jumlah: "5.486",
-    kol1Fokus:
-      "Koleksi bawaan (#1–#5.486): 1.377 skakmat 1 langkah, 2.991 skakmat 2 langkah, dan 1.118 skakmat 3 langkah dari partai nyata (2.923 giliran Putih, 2.563 giliran Hitam).",
-    kol2Nama: "Taktik + Video",
-    kol2Jumlah: "1.681",
-    kol2Fokus:
-      "Posisi taktis pilihan yang menyertakan rekaman video pembahasan pelatih berbahasa Inggris; pemutar video baru terbuka sesudah soal berhasil dipecahkan.",
-    kol3Nama: "Partai Legenda Dunia",
-    kol3Jumlah: "222",
-    kol3Fokus:
-      "Titik balik kombinatif dari partai bersejarah para juara dunia dan master klasik untuk melatih ketajaman membaca serangan.",
-    kol4Nama: "Studi Akhir Permainan",
-    kol4Jumlah: "86",
-    kol4Fokus:
-      "Komposisi babak akhir terpilih yang menuntut langkah tenang, perhitungan oposisi raja, dan manuver promosi pion.",
-    kol5Nama: "Arsip Taktik",
-    kol5Jumlah: "6.551",
-    kol5Fokus:
-      "Gabungan seluruh soal tambahan (#5.487–#12.037), termasuk 3.267 kombinasi non-skakmat, 1.383 skakmat 4+ langkah, serta saringan per pelatih.",
-    koleksiCatatan:
-      "Total keseluruhan: 12.037 soal bernomor unik pada rentang rating 600–2.567.",
-    caraJudul: "Cara berlatih dan membedah posisi",
-    caraSubjudul: "Alur mengerjakan soal",
-    cara1:
-      "Pilih koleksi soal, pita level 1–5 (dari bawah 1.000 hingga 1.900+), panjang langkah, tema taktik, atau warna yang melangkah melalui panel pengaturan.",
-    cara2:
-      "Klik kanan petak atau seret klik kanan di papan untuk menggambar lingkaran penanda dan panah variasi selagi menghitung, lalu jalankan langkah dengan klik atau seret bidak.",
-    cara3:
-      "Setiap langkah tepat langsung dibalas otomatis oleh pertahanan terbaik lawan hingga rangkaian selesai; bila buntu, tombol Petunjuk menyoroti petak asal dan tujuan langkah pertama.",
-    cara4:
-      "Nomor soal tertulis langsung pada alamat halaman (/teka-teki/problem/:id) sehingga setiap posisi mudah dicatat atau dibagikan untuk didiskusikan bersama rekan klub.",
-    bantuSubjudul: "Evaluasi sesudah teka-teki pecah",
-    bantu1:
-      "Begitu kombinasi tuntas, kartu komentator merangkum motif taktis yang baru dijalankan. Pada koleksi Taktik + Video, rekaman penjelasan pelatih dapat diputar secara manual untuk membandingkan kandidat langkah yang Anda hitung dengan rencana utamanya.",
-    bantu2:
-      "Jika Anda ingin menguji mengapa pengorbanan alternatif tidak berhasil, nyalakan Stockfish 18 di bilah samping atau tekan Bedah di Papan Analisa untuk membuka posisi beserta notasi PGN lengkapnya di ruang analisis.",
-    tipsJudul: "Empat kebiasaan menghitung taktik",
-    tips1Judul: "Urutkan skak, tangkapan, dan ancaman",
-    tips1Isi:
-      "Mulailah selalu dari langkah yang paling membatasi balasan lawan: periksa seluruh skak legal, lanjutkan ke pukulan perwira, baru kemudian pertimbangkan ancaman mat atau langkah tenang.",
-    tips2Judul: "Tuntaskan balasan terbaik lawan di kepala",
-    tips2Isi:
-      "Jangan menggerakkan bidak hanya karena langkah pertama terlihat menjanjikan. Pastikan setiap cara lawan menutup skak, menggeser raja, atau memukul balik sudah memiliki jawaban pasti.",
-    tips3Judul: "Ulang satu motif sampai terbaca sekilas",
-    tips3Isi:
-      "Gunakan saringan tema seperti paku (pin), garpu (fork), defleksi, attraksi, atau skakmat sempit dalam satu sesi fokus agar geometri bidaknya lekat di ingatan visual.",
-    tips4Judul: "Naik pita level sesudah bersih tanpa petunjuk",
-    tips4Isi:
-      "Kerjakan pita rating yang dapat Anda selesaikan berturut-turut tanpa menebak langkah, lalu naik satu tingkat. Simpan nomor soal yang meleset untuk diuji ulang beberapa hari kemudian.",
-    penutupJudul: "Uji kecepatan atau bedah lebih dalam",
-    penutupAwal:
-      "Sesudah pola dasar terbaca rapi tanpa tekanan jam, uji refleks pengenalan motif Anda dalam batas 3 atau 5 menit di",
-    penutupTengah: "atau telusuri cabang pertahanan lanjutannya bersama mesin di",
-    tautanAnalisa: "Papan Analisa",
-    penutupAkhir: "kapan pun Anda menemukan posisi yang layak dipelajari ulang.",
   }
 
 export const bukuPembukaan = {

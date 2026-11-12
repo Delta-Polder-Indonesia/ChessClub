@@ -105,6 +105,7 @@ export const papan = {
     pvePengaturan: "Pengaturan permainan",
     pveTemaPapan: "Tema papan",
     pveBalikPapan: "Balik papan",
+    pveBalikPapanDeskripsi: "Putar orientasi papan antara Putih dan Hitam.",
     pveEvaluasi: "Evaluasi posisi",
     pveDialogMesin: "Dialog lawan",
     pveDialogAvatar: "Ekspresi lawan",

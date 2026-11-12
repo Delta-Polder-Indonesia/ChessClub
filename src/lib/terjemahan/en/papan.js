@@ -105,6 +105,7 @@ export const papan = {
     pvePengaturan: "Game settings",
     pveTemaPapan: "Board theme",
     pveBalikPapan: "Flip board",
+    pveBalikPapanDeskripsi: "Rotate the board orientation between White and Black.",
     pveEvaluasi: "Position evaluation",
     pveDialogMesin: "Opponent dialogue",
     pveDialogAvatar: "Opponent expression",
