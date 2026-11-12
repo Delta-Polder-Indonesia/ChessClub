@@ -76,7 +76,6 @@ import { susunTangkapan } from "./bersama/TangkapanBidakData.js";
 import MasukanPgn from "./MasukanPgn.jsx";
 import LangkahExplorer from "./LangkahExplorer.jsx";
 import PanelBasisDataAwan from "./PanelBasisDataAwan.jsx";
-import PopupPengaturan from "./PopupPengaturan.jsx";
 import { usePengaturanPapan } from "./bersama/gunakanPengaturanPapan.js";
 import { usePengaturanBersama } from "./bersama/PengaturanKonteks.jsx";
 import { cariEngine } from "../../lib/engineCatur.js";
@@ -122,7 +121,7 @@ function StatusBuku({ gagal, onUlang, t }) {
  *  membersihkan seleksi tidak memicu render papan yang tidak perlu. */
 const SELEKSI_KOSONG = Object.freeze({ dari: null, tujuan: [], tangkap: [] });
 
-export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = null, pengaturan = null } = {}) {
+export default function PapanInteraktif({ tertanam = false, pengaturan = null } = {}) {
   const { t, bahasa } = useI18n();
   // Pengaturan dari tata letak /papan-interaktif/* (konteks bersama, hidup
   // lintas halaman). Bila tidak ada, pakai state lokal agar komponen tetap
@@ -309,9 +308,6 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
 
   const [pgnTersalin, setPgnTersalin] = useState(false);
   const [pilihan, setPilihan] = useState(-1); // id pembukaan terpilih di dropdown
-  // Popup pengaturan hanya untuk tanpa onBukaPengaturan (mis. halaman
-  // Teka-Teki); di /papan-interaktif tombol gear membuka layar Pengaturan.
-  const [tampilSetting, setTampilSetting] = useState(false);
   // Tab aktif panel kanan: "analisa" | "books" | "explorer" | "games".
   const [tabPanel, setTabPanel] = useState("analisa");
   const [tampilPgn, setTampilPgn] = useState(false); // dialog Review (input PGN/FEN)
@@ -1666,80 +1662,6 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
 
               </div>
 
-              {/* Kolom kontrol papan (gear & flip) — di samping papan, ala LayoutTekaTeki.
-                  Layar sempit (<lg): bilah mendatar di bawah papan (hemat tinggi vertikal);
-                  desktop (lg+): kolom vertikal di samping papan seperti biasa. */}
-              <div className="flex flex-row items-center justify-center gap-2 lg:-ml-3 lg:flex-col lg:justify-start lg:pt-14">
-                <button
-                  type="button"
-                  onClick={() => (onBukaPengaturan ? onBukaPengaturan() : setTampilSetting(!tampilSetting))}
-                  aria-expanded={tampilSetting}
-                  className={`p-2 rounded-md transition ${
-                    tampilSetting
-                      ? "text-white bg-[#312e2b]"
-                      : "text-gray-500 hover:text-white hover:bg-[#312e2b]"
-                  }`}
-                  aria-label={t("papan.pengaturan")}
-                  title={t("papan.pengaturan")}
-                >
-                  <svg className="w-5 h-5" viewBox="0 0 512 512" fill="currentColor">
-                    <path d="M502.325,307.303l-39.006-30.805c-6.215-4.908-9.665-12.429-9.668-20.348c0-0.084,0-0.168,0-0.252
-                      c-0.014-7.936,3.44-15.478,9.667-20.396l39.007-30.806c8.933-7.055,12.093-19.185,7.737-29.701l-17.134-41.366
-                      c-4.356-10.516-15.167-16.86-26.472-15.532l-49.366,5.8c-7.881,0.926-15.656-1.966-21.258-7.586
-                      c-0.059-0.06-0.118-0.119-0.177-0.178c-5.597-5.602-8.476-13.36-7.552-21.225l5.799-49.363
-                      c1.328-11.305-5.015-22.116-15.531-26.472L337.004,1.939c-10.516-4.356-22.646-1.196-29.701,7.736l-30.805,39.005
-                      c-4.908,6.215-12.43,9.665-20.349,9.668c-0.084,0-0.168,0-0.252,0c-7.935,0.014-15.477-3.44-20.395-9.667L204.697,9.675
-                      c-7.055-8.933-19.185-12.092-29.702-7.736L133.63,19.072c-10.516,4.356-16.86,15.167-15.532,26.473l5.799,49.366
-                      c0.926,7.881-1.964,15.656-7.585,21.257c-0.059,0.059-0.118,0.118-0.178,0.178c-5.602,5.598-13.36,8.477-21.226,7.552
-                      l-49.363-5.799c-11.305-1.328-22.116,5.015-26.472,15.531L1.939,174.996c-4.356,10.516-1.196,22.646,7.736,29.701l39.006,30.805
-                      c6.215,4.908,9.665,12.429,9.668,20.348c0,0.084,0,0.167,0,0.251c0.014,7.935-3.44,15.477-9.667,20.395L9.675,307.303
-                      c-8.933,7.055-12.092,19.185-7.736,29.701l17.134,41.365c4.356,10.516,15.168,16.86,26.472,15.532l49.366-5.799
-                      c7.882-0.926,15.656,1.965,21.258,7.586c0.059,0.059,0.118,0.119,0.178,0.178c5.597,5.603,8.476,13.36,7.552,21.226l-5.799,49.364
-                      c-1.328,11.305,5.015,22.116,15.532,26.472l41.366,17.134c10.516,4.356,22.646,1.196,29.701-7.736l30.804-39.005
-                      c4.908-6.215,12.43-9.665,20.348-9.669c0.084,0,0.168,0,0.251,0c7.936-0.014,15.478,3.44,20.396,9.667l30.806,39.007
-                      c7.055,8.933,19.185,12.093,29.701,7.736l41.366-17.134c10.516-4.356,16.86-15.168,15.532-26.472l-5.8-49.366
-                      c-0.926-7.881,1.965-15.656,7.586-21.257c0.059-0.059,0.119-0.119,0.178-0.178c5.602-5.597,13.36-8.476,21.225-7.552l49.364,5.799
-                      c11.305,1.328,22.117-5.015,26.472-15.531l17.134-41.365C514.418,326.488,511.258,314.358,502.325,307.303z M281.292,329.698
-                      c-39.68,16.436-85.172-2.407-101.607-42.087c-16.436-39.68,2.407-85.171,42.087-101.608c39.68-16.436,85.172,2.407,101.608,42.088
-                      C339.815,267.771,320.972,313.262,281.292,329.698z" />
-                  </svg>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    // Bunyikan saat dinyalakan supaya pengguna langsung dengar contohnya.
-                    if (!suaraNyala) mainkanSuara(SUARA.tesSuara);
-                    setSuaraNyala((n) => !n);
-                  }}
-                  aria-pressed={suaraNyala}
-                  className={`p-2 rounded-md transition ${
-                    suaraNyala
-                      ? "text-gray-500 hover:text-white hover:bg-[#312e2b]"
-                      : "text-[#b33430] hover:bg-[#312e2b]"
-                  }`}
-                  aria-label={suaraNyala ? t("papan.suaraNyala") : t("papan.suaraMati")}
-                  title={suaraNyala ? t("papan.suaraNyala") : t("papan.suaraMati")}
-                >
-                  {suaraNyala ? (
-                    <Volume2 className="w-5 h-5" />
-                  ) : (
-                    <VolumeX className="w-5 h-5" />
-                  )}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setOrientasi((o) => (o === "w" ? "b" : "w"))}
-                  className="p-2 rounded-md text-gray-500 hover:text-white hover:bg-[#312e2b] transition"
-                  aria-label={t("papan.flip")}
-                  title={t("papan.flip")}
-                >
-                  <svg className="w-5 h-5" viewBox="0 0 120 120" fill="currentColor">
-                    <path d="M 21.475246,117.78677 H 73.154894 L 56.373294,98.524495 H 40.73752 V 35.922099 H 59.999794 L 31.106383,2.2131167 2.2129751,35.922099 H 21.475246 Z" />
-                    <path d="m 98.524909,2.2132354 -51.679643,0 16.781593,19.2622766 15.635776,0 V 84.077908 H 60.00036 L 88.893772,117.78689 117.78718,84.077908 H 98.524909 Z" />
-                  </svg>
-                </button>
-              </div>
-
               <div className="flex min-h-0 min-w-0 flex-none flex-col lg:flex-1">
                 {/* Panel kanan — satu kolom utuh ala LayoutTekaTeki: tinggi tetap di lg supaya
                     kontrol dasar tidak ikut naik-turun saat isi tab pendek/kosong */}
@@ -2071,44 +1993,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
       {tampilPgn && (
         <MasukanPgn onTerapkan={terapkanTeks} onTutup={() => setTampilPgn(false)} t={t} />
       )}
-      {tampilSetting && (
-        <PopupPengaturan
-          onTutup={() => setTampilSetting(false)}
-          t={t}
-          bidak={setBidak}
-          setBidak={setBidakPapan}
-          suaraNyala={suaraNyala}
-          setSuaraNyala={setSuaraNyala}
-          tampilPanahMesin={tampilPanahMesin}
-          setTampilPanahMesin={setTampilPanahMesin}
-          awanTampilanPenuh={awanTampilanPenuh}
-          setAwanTampilanPenuh={setAwanTampilanPenuh}
-          bantuanNyala={bantuanNyala}
-          setBantuanNyala={(nilai) => {
-            setBantuanNyala(nilai);
-            // Pembanding warna datang dari eval engine posisi sekarang —
-            // menyalakan bantuan berarti menyalakan engine juga.
-            if (nilai) nyalakanEngine();
-          }}
-          warnaPapan={warnaPapan}
-          setWarnaPapan={setWarnaPapan}
-          tampilKoordinat={tampilKoordinat}
-          setTampilKoordinat={setTampilKoordinat}
-          tampilTitikLangkah={tampilTitikLangkah}
-          setTampilTitikLangkah={setTampilTitikLangkah}
-          sorotLangkahAkhir={sorotLangkahAkhir}
-          setSorotLangkahAkhir={setSorotLangkahAkhir}
-          promosiOtomatis={promosiOtomatis}
-          setPromosiOtomatis={setPromosiOtomatis}
-          kartuKomentator={{
-            nyala: preferensiKomentator.nyala,
-            setNyala: preferensiKomentator.setNyala,
-            gaya: preferensiKomentator.gaya,
-            setGaya: preferensiKomentator.setGaya,
-            t,
-          }}
-        />
-      )}
+
     </div>
   );
 
