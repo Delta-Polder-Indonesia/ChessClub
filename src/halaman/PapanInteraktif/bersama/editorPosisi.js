@@ -85,3 +85,19 @@ export function aturBidak(fen, petak, simbol) {
   else delete peta[petak];
   return fenDariPeta(peta, String(fen).trim().split(/\s+/)[1]);
 }
+
+
+/** Ubah satu hak rokade pada field ketiga FEN tanpa alterasi field lain. */
+export function aturHakRokade(fen, hak, ativo) {
+  if (!["K", "Q", "k", "q"].includes(hak)) return fen;
+  const ruas = String(fen || "").trim().split(/\\s+/);
+  if (ruas.length < 6) return fen;
+  const hakSaatIni = ruas[2] === "-" ? "" : ruas[2];
+  const hakBerikutnya = ativo
+    ? [...new Set([...hakSaatIni, hak])].join("")
+    : hakSaatIni.replace(hak, "");
+  ruas[2] = hakBerikutnya
+    ? "KQkq".split("").filter((simbol) => hakBerikutnya.includes(simbol)).join("")
+    : "-";
+  return ruas.join(" ");
+}
