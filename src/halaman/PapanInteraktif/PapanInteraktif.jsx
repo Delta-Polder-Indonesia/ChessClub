@@ -1691,7 +1691,7 @@ export default function PapanInteraktif({ tertanam = false, pengaturan = null } 
                       onPilih={setBidakEditTerpilih}
                       onGiliran={ubahGiliranEdit}
                       giliran={fen.split(/\s+/)[1] === "b" ? "b" : "w"}
-                      hakRokade={fen.split(/\\s+/)[2] === "-" ? "" : fen.split(/\\s+/)[2]}
+                      hakRokade={fen.split(/\s+/)[2] === "-" ? "" : fen.split(/\s+/)[2]}
                       onUbahRokade={ubahRokadeEdit}
                       onEditFen={() => setTampilPgn(true)}
                       onSalinFen={() => navigator.clipboard?.writeText(fen).catch(() => {})}
