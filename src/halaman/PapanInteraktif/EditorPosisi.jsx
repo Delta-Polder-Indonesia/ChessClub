@@ -14,6 +14,8 @@ export default function EditorPosisi({
   onPilih,
   onGiliran,
   giliran,
+  hakRokade,
+  onUbahRokade,
   onEditFen,
   onSalinFen,
   onKosongkan,
@@ -102,6 +104,38 @@ export default function EditorPosisi({
             {t("papan.warnaHitam")}
           </button>
         </div>
+
+        <fieldset className="grid gap-2">
+          <legend className="text-xs font-semibold text-gray-300">
+            {t("papan.rokade")}
+          </legend>
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { hak: "k", label: t("papan.rokadeHitamRaja"), notasi: "O-O" },
+              { hak: "q", label: t("papan.rokadeHitamMenteri"), notasi: "O-O-O" },
+              { hak: "K", label: t("papan.rokadePutihRaja"), notasi: "O-O" },
+              { hak: "Q", label: t("papan.rokadePutihMenteri"), notasi: "O-O-O" },
+            ].map(({ hak, label, notasi }) => {
+              const aktif = hakRokade.includes(hak);
+              return (
+                <button
+                  key={hak}
+                  type="button"
+                  aria-pressed={aktif}
+                  onClick={() => onUbahRokade(hak, !aktif)}
+                  className={`flex min-w-0 items-center justify-between gap-2 rounded-md border px-3 py-2 text-left transition-colors ${
+                    aktif
+                      ? "border-[#a3a09b] bg-[#45423f] text-white"
+                      : "border-[#57534e] text-gray-300 hover:bg-white/5"
+                  }`}
+                >
+                  <span className="min-w-0 text-xs font-medium">{label}</span>
+                  <span className="shrink-0 font-mono text-xs font-semibold">{notasi}</span>
+                </button>
+              );
+            })}
+          </div>
+        </fieldset>
 
         <div className="grid gap-1.5">
           <label htmlFor="fen-susun" className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
