@@ -1626,7 +1626,7 @@ export default function PapanInteraktif({ tertanam = false, pengaturan = null } 
         {/* AREA UTAMA                                            */}
         {/* ═══════════════════════════════════════════════════════ */}
         <main className="flex-1 flex items-stretch justify-start bg-[#262421] min-w-0 overflow-hidden">
-          <div className="flex h-full w-full min-h-0 flex-col px-4 py-6 md:px-8">
+          <div className="mx-auto flex h-full w-full max-w-[1160px] min-h-0 flex-col px-4 py-6 md:px-8">
           {/* Papan & panel SELALU dirender, tanpa menunggu buku pembukaan.
               Dulu seluruh isi area ini digerbangi `!pohon` sehingga papan dan
               panel kanan (termasuk elemen LCP "Analisis Engine") baru dicat
@@ -1634,7 +1634,7 @@ export default function PapanInteraktif({ tertanam = false, pengaturan = null } 
               mencatat LCP 6,7 dtk (render delay 4.320 ms) dan CLS 0,071 saat
               kerangka diganti tata letak asli. Bagian yang memang butuh buku
               (tab Buku/Penjelajah/Partai) menampilkan statusnya sendiri. */}
-          <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-x-hidden overflow-y-auto lg:flex-row lg:items-stretch lg:justify-center lg:gap-4 lg:overflow-hidden">
+          <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-x-hidden overflow-y-auto lg:flex-row lg:items-stretch lg:justify-between lg:gap-6 lg:overflow-hidden">
               <div className="mx-auto flex w-full max-w-[520px] shrink-0 flex-col justify-center overflow-y-auto lg:mx-0 lg:max-w-[min(520px,calc(100dvh-140px),calc(100vw-634px))]">
                 {/* ─── BARIS PEMAIN ATAS — mengikuti orientasi papan ─── */}
                 <BarisProfil {...barisAtas} setBidak={setBidak} className="mb-2" />
