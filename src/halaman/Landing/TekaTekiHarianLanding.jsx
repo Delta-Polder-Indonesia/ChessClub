@@ -58,6 +58,7 @@ import {
   tanggalHariIni,
   warnaGiliran,
 } from "../../lib/tekaTekiHarian.js";
+import { useTandaBantu } from "../../lib/tandaBantu.js";
 
 const RUTE_HARIAN = "/teka-teki-harian";
 const RUTE_GABUNG = "/pendaftaran-anggota";
@@ -112,6 +113,7 @@ export default function TekaTekiHarianLanding() {
   const [daftar, setDaftar] = useState(null);
   const [progres, setProgres] = useState(() => bacaProgres(hariIni));
   const [dialogGabung, setDialogGabung] = useState(false);
+  const { tanda, tandaPetak, tandaPanah, hapusSemuaTanda } = useTandaBantu();
 
   // Keadaan permainan per soal — diperbarui secara atomik saat beralih soal,
   // sehingga FEN dan identitas soal baru selalu tampil bersamaan.
@@ -190,6 +192,7 @@ export default function TekaTekiHarianLanding() {
     (data) => {
       clearSemuaTimer();
       selesaiRef.current = false;
+      hapusSemuaTanda();
       setGame((prev) => ({
         ...prev,
         indeks: data.indeks,
@@ -208,7 +211,7 @@ export default function TekaTekiHarianLanding() {
         menungguLawan: false,
       }));
     },
-    [clearSemuaTimer]
+    [clearSemuaTimer, hapusSemuaTanda]
   );
 
   // Inisialisasi state permainan saat data soal termuat — indeks melanjutkan
@@ -357,6 +360,33 @@ export default function TekaTekiHarianLanding() {
       return;
     }
     pilihPetak(petak);
+  }
+
+  /**
+   * Awal seret / tekan pada bidak sendiri. Dipisahkan dari `klikPetak` karena
+   * peramban memegang pointer capture di elemen papan selama seret, sehingga
+   * event `click` pada petak tidak selalu mendarat di tombol petak.
+   */
+  function mulaiSeret(petak) {
+    pilihPetak(petak);
+  }
+
+  /**
+   * Akhir seret. `klikUlang` = bidak ditekan lalu dilepas di petak yang sama
+   * saat bidak itu sudah terpilih: penanda langkahnya harus hilang (klik
+   * pertama memilih, klik kedua membatalkan).
+   */
+  function selesaiSeret(from, to, klikUlang) {
+    if (klikUlang) {
+      setGame((prev) => ({ ...prev, terpilih: null, sasaran: [] }));
+      return;
+    }
+    if (!to || from === to) return;
+    cobaLangkah(from, to);
+  }
+
+  function batalSeret() {
+    setGame((prev) => ({ ...prev, terpilih: null, sasaran: [] }));
   }
 
   function cobaLangkah(from, to, promo) {
@@ -513,7 +543,7 @@ export default function TekaTekiHarianLanding() {
             <section
               aria-label={t("landing.harianProgresAria")}
               data-component="HomeRatingProgress"
-              className="flex min-w-0 justify-center"
+              className="flex min-w-0 justify-center xl:justify-start"
             >
               <CincinKemajuan
                 ukuran={200}
@@ -534,13 +564,14 @@ export default function TekaTekiHarianLanding() {
                   n: jatahTerpakai,
                   total: BATAS_HARIAN,
                 })}
+                className="xl:translate-x-[60px]"
               />
             </section>
 
             <section
               aria-label={t("landing.harianTrackAria")}
               data-component="GameTowerProgress"
-              className="flex min-w-0 flex-col gap-y-3 border-t border-grey-200 pt-4"
+              className="relative z-10 -mt-14 flex min-w-0 flex-col gap-y-3 border-t border-grey-200 bg-paper pt-4"
             >
               <div className="flex items-end justify-between gap-4">
                 <div className="flex min-w-0 flex-col gap-y-1">
@@ -668,7 +699,14 @@ export default function TekaTekiHarianLanding() {
                     membeku={game.menungguLawan}
                     onKlik={klikPetak}
                     onPilih={pilihPetak}
+                    onMulaiSeret={mulaiSeret}
+                    onSelesaiSeret={selesaiSeret}
+                    onBatalSeret={batalSeret}
                     onJatuh={cobaLangkah}
+                    tanda={tanda}
+                    onTandaPetak={tandaPetak}
+                    onTandaPanah={tandaPanah}
+                    onHapusTanda={hapusSemuaTanda}
                   />
 
                   {/* Pemilih promosi tetap berada di atas papan demo. */}
@@ -736,7 +774,7 @@ export default function TekaTekiHarianLanding() {
               <section className="border-t border-grey-200 pt-5">
                 <p
                   aria-live="polite"
-                    className={`font-sans text-sm font-semibold ${
+                  className={`font-sans text-sm font-semibold ${
                     game.selesaiSoal
                       ? "text-primary"
                       : game.pesan?.jenis === "salah"
