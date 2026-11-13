@@ -513,7 +513,7 @@ export default function TekaTekiHarianLanding() {
             <section
               aria-label={t("landing.harianProgresAria")}
               data-component="HomeRatingProgress"
-              className="flex min-w-0 justify-center xl:justify-start"
+              className="flex min-w-0 justify-center"
             >
               <CincinKemajuan
                 ukuran={200}
@@ -534,14 +534,13 @@ export default function TekaTekiHarianLanding() {
                   n: jatahTerpakai,
                   total: BATAS_HARIAN,
                 })}
-                className="xl:translate-x-[60px]"
               />
             </section>
 
             <section
               aria-label={t("landing.harianTrackAria")}
               data-component="GameTowerProgress"
-              className="relative z-10 -mt-14 flex min-w-0 flex-col gap-y-3 border-t border-grey-200 bg-paper pt-4"
+              className="flex min-w-0 flex-col gap-y-3 border-t border-grey-200 pt-4"
             >
               <div className="flex items-end justify-between gap-4">
                 <div className="flex min-w-0 flex-col gap-y-1">
@@ -737,11 +736,11 @@ export default function TekaTekiHarianLanding() {
               <section className="border-t border-grey-200 pt-5">
                 <p
                   aria-live="polite"
-                  className={`font-sans text-sm font-semibold ${
+                    className={`font-sans text-sm font-semibold ${
                     game.selesaiSoal
                       ? "text-primary"
                       : game.pesan?.jenis === "salah"
-                        ? "text-accent-600"
+                        ? "text-red-700"
                         : "text-grey-600"
                   }`}
                 >
@@ -752,7 +751,7 @@ export default function TekaTekiHarianLanding() {
                     type="button"
                     onClick={tampilkanPetunjuk}
                     disabled={game.selesaiSoal || game.menungguLawan}
-                    className="rounded border border-grey-200 px-3 py-2 text-sm font-semibold text-grey-700 transition-colors hover:border-primary hover:text-primary disabled:opacity-40"
+                    className="rounded border border-grey-200 px-3 py-2 text-sm font-semibold text-grey-800 transition-colors hover:border-primary hover:text-primary disabled:opacity-40"
                   >
                     {t("landing.harianPetunjuk")}
                   </button>
@@ -765,7 +764,7 @@ export default function TekaTekiHarianLanding() {
                         langkah: soal.langkah,
                       })
                     }
-                    className="rounded border border-grey-200 px-3 py-2 text-sm font-semibold text-grey-700 transition-colors hover:border-primary hover:text-primary"
+                    className="rounded border border-grey-200 px-3 py-2 text-sm font-semibold text-grey-800 transition-colors hover:border-primary hover:text-primary"
                   >
                     {t("landing.harianUlangi")}
                   </button>

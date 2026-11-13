@@ -33,10 +33,9 @@ export default function RushTekaTekiLanding() {
     { judul: t("rushLanding.fitur3Judul"), isi: t("rushLanding.fitur3Isi") },
   ];
 
-  const gambarRush = sumberGambar(
-    "/images/RushPuzzle.webp",
-    "(min-width: 1024px) 520px, (min-width: 768px) 46vw, 92vw",
-  );
+  const gambarRush = sumberGambar("/images/RushPuzzle.webp", {
+    sizes: "(min-width: 1024px) 520px, (min-width: 768px) 46vw, 92vw",
+  });
 
   return (
     <HalamanIsi

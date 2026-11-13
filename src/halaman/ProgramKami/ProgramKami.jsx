@@ -3,7 +3,7 @@ import { HalamanIsi } from "../../components/PageBagian.jsx";
 import { Tombol } from "../../components/Tombol.jsx";
 import { ArrowRightIcon } from "../../components/icons.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
-import { gambar } from "../../lib/asets.js";
+import { sumberGambar } from "../../lib/asets.js";
 
 /**
  * Halaman "Program Kami" (/program-kami).
@@ -99,8 +99,10 @@ export default function ProgramKami() {
           <article className="mt-10 grid items-center gap-8 md:mt-12 md:grid-cols-2 md:gap-12">
             <figure className="order-2 m-0 border border-grey-200 bg-white p-1.5 md:order-1">
               <img
-                src={gambar("/images/landing-sorotan-program.webp")}
-                alt="Sesi latihan berjenjang bersama pelatih Komunitas Catur Indonesia"
+                {...sumberGambar("/images/landing-sorotan-program.webp", {
+                  sizes: "(min-width: 768px) 45vw, 92vw",
+                })}
+                alt={t("program.sorotanAlt")}
                 width={640}
                 height={427}
                 draggable="false"

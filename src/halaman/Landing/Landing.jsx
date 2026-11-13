@@ -57,11 +57,10 @@ const SLIDE_DURATION = 7000;
 /** Hero carousel — slide full-width gambar + overlay gelap + navigasi garis progress. */
 function LandingHero({ t }) {
   const [index, setIndex] = useState(0);
+  const [terjeda, setTerjeda] = useState(false);
+  const kurangiGerak = Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches);
 
-  /* Gambar hero = elemen LCP halaman. sumberHero() memberi 828w untuk ponsel
-     (berkas yang sama dengan <link rel=preload> + <div id=boot-hero> di
-     index.html, jadi tidak ada gambar yang diunduh dua kali) dan 1280w untuk
-     layar lebar. */
+  /* Gambar hero = elemen LCP halaman. */
   const SLIDES = useMemo(() => [
     { label: "2015 - 2016", sumber: sumberHero("/images/tonggak-2015.jpg") },
     { label: "2016 - 2017", sumber: sumberHero("/images/tonggak-2016.jpg") },
@@ -72,11 +71,12 @@ function LandingHero({ t }) {
   ], []);
 
   useEffect(() => {
+    if (terjeda || kurangiGerak) return undefined;
     const timer = window.setTimeout(() => {
       setIndex((i) => (i + 1) % SLIDES.length);
     }, SLIDE_DURATION);
     return () => window.clearTimeout(timer);
-  }, [index, SLIDES.length]);
+  }, [index, SLIDES.length, terjeda, kurangiGerak]);
 
   // Pra-unduh gambar slide BERIKUTNYA. Tanpa ini, peralihan slide pertama
   // kali sempat memperlihatkan latar gelap kosong karena gambar slide
@@ -97,7 +97,15 @@ function LandingHero({ t }) {
        dua warna. Padding bawah tetap `pb-16` untuk jarak ke seksi berikut.
        Tinggi 650px juga harus sama dengan `#boot-hero` di index.html dan
        `PlaceholderHalaman`, supaya tidak ada lompatan saat React mount. */
-    <section className="w-full relative bg-transparent pb-16 overflow-hidden">
+    <section
+      className="w-full relative bg-transparent pb-16 overflow-hidden"
+      onMouseEnter={() => setTerjeda(true)}
+      onMouseLeave={() => setTerjeda(false)}
+      onFocus={() => setTerjeda(true)}
+      onBlur={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget)) setTerjeda(false);
+      }}
+    >
       <div className="w-full relative h-full min-h-[650px] overflow-hidden">
         {SLIDES.map((slide, i) => (
           <div
@@ -109,17 +117,14 @@ function LandingHero({ t }) {
             aria-hidden={i !== index}
           >
             <div className="w-full relative h-full min-h-[650px] bg-hero">
-              {i === index && (
-                <img
-                  {...slide.sumber}
-                  alt=""
-                  width={1280}
-                  height={714}
-                  decoding="async"
-                  fetchpriority="high"
-                  className="absolute inset-0 w-full h-full object-cover"
-                />
-              )}
+              <img
+                {...slide.sumber}
+                alt=""
+                loading={i === 0 ? "eager" : "lazy"}
+                decoding="async"
+                fetchpriority={i === 0 ? "high" : undefined}
+                className="absolute inset-0 w-full h-full object-cover"
+              />
               <div className="absolute inset-0 pointer-events-none bg-black/50" />
             </div>
           </div>
@@ -161,30 +166,23 @@ function LandingHero({ t }) {
       </div>
 
       {/* Navigasi garis progress — di bawah gambar */}
-      <div className="absolute bottom-24 left-0 right-0 z-10 lg:max-w-[960px] xl:max-w-[1280px] mx-auto flex space-x-2 px-8 md:px-10 lg:px-4 xl:px-0 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="absolute bottom-24 left-0 right-0 z-10 lg:max-w-[960px] xl:max-w-[1280px] mx-auto flex gap-2 px-8 md:px-10 lg:px-4 xl:px-0 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {SLIDES.map((slide, i) => {
           const active = i === index;
           return (
-            <div
+            <button
               key={slide.label}
-              role="button"
-              tabIndex={0}
+              type="button"
               aria-label={slide.label}
               aria-current={active ? "true" : undefined}
               onClick={() => setIndex(i)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  setIndex(i);
-                }
-              }}
-              className={`swiper-pagination-line relative flex-1 min-w-[120px] cursor-pointer py-2 md:py-4 transition-all duration-300 text-[13px] font-sans font-medium group border-b-[3px] border-white/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 ${
+              className={`swiper-pagination-line relative flex-1 min-w-[120px] cursor-pointer py-2 md:py-4 transition-colors duration-300 text-left text-[13px] font-sans font-medium group border-b-[3px] border-white/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 ${
                 active ? "text-white" : "text-white/50"
               }`}
             >
               <div className="flex items-center gap-1 md:gap-2">
                 <svg
-                  className={`bullet-dot w-2 h-2 md:w-3 md:h-3 transition-all duration-300 group-hover:opacity-100 ${
+                  className={`bullet-dot w-2 h-2 md:w-3 md:h-3 transition-opacity duration-300 group-hover:opacity-100 ${
                     active ? "text-blue-400 opacity-100" : "opacity-10"
                   }`}
                   viewBox="0 0 8 8"
@@ -193,7 +191,7 @@ function LandingHero({ t }) {
                 >
                   <circle cx="4" cy="4" r="4" fill="currentColor" />
                 </svg>
-                <div className="bullet-title transition-all duration-300 group-hover:text-white whitespace-nowrap">
+                <div className="bullet-title transition-colors duration-300 group-hover:text-white whitespace-nowrap">
                   {slide.label}
                 </div>
               </div>
@@ -201,14 +199,14 @@ function LandingHero({ t }) {
                 key={active ? `progress-${index}` : undefined}
                 className="bullet-progress absolute bottom-[-3px] border-b-[3px] border-blue-400 pointer-events-none"
                 style={
-                  active
+                  active && !terjeda && !kurangiGerak
                     ? {
                         animation: `progressbar ${SLIDE_DURATION}ms linear forwards`,
                       }
-                    : { transform: "scaleX(0)" }
+                    : { transform: active ? "scaleX(1)" : "scaleX(0)" }
                 }
               />
-            </div>
+            </button>
           );
         })}
       </div>
@@ -379,7 +377,8 @@ function CardCarousel({ index, setIndex, t }) {
         >
           {tripled.map((k, i) => {
             const isActive = i === index;
-            // Kartu kecil TIDAK memakai transisi warna sama sekali.videMarkup
+            const terlihat = i >= index && i <= index + 2;
+            // Kartu kecil TIDAK memakai transisi warna sama sekali.
             // Alasannya: `isActive` berubah seketika ketika tombol diklik,
             // sementara posisinya masih bergeser 500 ms. Bila warna ikut
             // bertransisi 150 ms, kartu yang baru menjadi aktif masih WHITE
@@ -393,6 +392,8 @@ function CardCarousel({ index, setIndex, t }) {
                 key={`${k.judul}-${i}`}
                 to={k.to}
                 title={k.judul}
+                tabIndex={terlihat ? undefined : -1}
+                aria-hidden={!terlihat || undefined}
                 // Kartu 320x168, padding 18/18/14, jarak 14 — nilai `.t-card--plinth`
                 // di `index.duybiyfa.css`. Judul memakai skala `.t-card-quote`
                 // (.94rem/1.5, clamp 4) dan kategori skala `.t-name` (.82rem).
@@ -417,7 +418,7 @@ function CardCarousel({ index, setIndex, t }) {
                     pertama membuat garis ikut putih pada kartu yang kebetulan
                     lewat di bawah kursor, yang kedua membuat garis putih pada
                     kartu keluar memudar terlambat setelah penanda biru pindah. */}
-                  <div className={`h-[2px] w-full rounded-sm ${isActive ? "bg-white" : "bg-black"}`} />
+                  <div className={`h-[2px] w-full rounded-sm ${isActive ? "bg-white" : "bg-grey-800"}`} />
                   <div className="flex items-end justify-between gap-3">
                     <p className={`font-mono text-[0.82rem] leading-[1.2] tracking-[0.01em] truncate ${isActive ? "text-white/90" : "text-grey-600 group-hover:text-white"}`}>
                       {k.desk}
@@ -435,7 +436,7 @@ function CardCarousel({ index, setIndex, t }) {
           type="button"
           aria-label={t("landing.sebelumnya")}
           onClick={() => setIndex((i) => i - 1)}
-          className="w-10 h-10 flex items-center justify-center bg-white border border-slate-300 rounded-lg hover:bg-primary hover:border-primary transition-colors group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          className="w-10 h-10 flex items-center justify-center bg-white border border-grey-300 rounded-lg hover:bg-primary hover:border-primary transition-colors group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         >
           <ArrowRightIcon className="size-6 text-grey-600 rotate-180 group-hover:text-white transition-colors" />
         </button>
@@ -443,7 +444,7 @@ function CardCarousel({ index, setIndex, t }) {
           type="button"
           aria-label={t("landing.selanjutnya")}
           onClick={() => setIndex((i) => i + 1)}
-          className="w-10 h-10 flex items-center justify-center bg-white border border-slate-300 rounded-lg hover:bg-primary hover:border-primary transition-colors group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          className="w-10 h-10 flex items-center justify-center bg-white border border-grey-300 rounded-lg hover:bg-primary hover:border-primary transition-colors group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         >
           <ArrowRightIcon className="size-6 text-grey-600 group-hover:text-white transition-colors" />
         </button>
@@ -477,7 +478,7 @@ function BagianGambarKartu({ t }) {
                 layar 320px setelah padding `clamp(22px,4vw,56px)`.
                 Lebar 620px dianggap sebagai batas keras: kalau di layar sempit
                 judul meluber, turunkan `whitespace-nowrap`. */}
-            <h2 className="font-serif font-extralight text-[clamp(1.5rem,4.4vw,3.25rem)] leading-[1.1] tracking-[0em] text-grey-900 whitespace-nowrap">
+            <h2 className="font-serif font-extralight text-[clamp(1.5rem,4.4vw,3.25rem)] leading-[1.1] tracking-[0em] text-grey-800 whitespace-nowrap">
               {t("landing.pustakaHeading")}
             </h2>
             {/* `.hero-body` sumber: 1rem / 300 / 1.6 / `text-wrap: pretty`.
@@ -493,7 +494,7 @@ function BagianGambarKartu({ t }) {
                 karena yang ditunjuk adalah
                 katalog e-book ini sendiri: posisinya langsung di bawah
                 deskripsi katalog, bukan di seksi lain. */}
-            <p className="mt-6 font-serif text-[0.8125rem] text-slate-600">
+            <p className="mt-6 font-serif text-[0.8125rem] text-grey-600">
               {t("landing.tigaJalanAkademiTerms")}
             </p>
             <div className="mt-4">
@@ -544,7 +545,7 @@ function PratinjauFoto({ terbuka, foto, alt, onTutup, t }) {
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4"
+      className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 p-4"
       role="dialog"
       aria-modal="true"
       aria-label={alt}
@@ -614,24 +615,22 @@ function HarapanTerimaKasih({ t }) {
         <div className="w-full relative bg-transparent md:pt-4 xl:pt-4">
           <div className="relative w-full mx-auto flex flex-col gap-y-6">
             <h2 className={JUDUL_SEKSI}>{t("landing.harapanJudul")}</h2>
-            <div className="relative w-full overflow-x-auto xl:overflow-x-visible">
-              <div className="relative z-[1] font-serif prose-kci max-w-none">
-                <p>{t("landing.harapanPembuka")}</p>
-                <p>{t("landing.harapanP1")}</p>
-                <p>{t("landing.harapanP2")}</p>
-                <p>{t("landing.harapanP3")}</p>
-                <p>{t("landing.harapanTutup1")}</p>
-                <p>{t("landing.harapanTutup2")}</p>
-                <p>{t("landing.harapanTutup3")}</p>
-              </div>
+            <div className="relative z-[1] font-serif prose-kci max-w-none">
+              <p>{t("landing.harapanPembuka")}</p>
+              <p>{t("landing.harapanP1")}</p>
+              <p>{t("landing.harapanP2")}</p>
+              <p>{t("landing.harapanP3")}</p>
+              <p>{t("landing.harapanTutup1")}</p>
+              <p>{t("landing.harapanTutup2")}</p>
+              <p>{t("landing.harapanTutup3")}</p>
             </div>
             <div className="w-full relative bg-transparent">
               <p className="font-serif font-semibold text-lg text-grey-800">
                 {t("landing.harapanNama")}
               </p>
-<p className="mt-1 font-serif text-[0.8125rem] text-grey-600">
-                    {t("landing.harapanJabatan")}
-                  </p>
+              <p className="mt-1 font-serif text-[0.8125rem] text-grey-600">
+                {t("landing.harapanJabatan")}
+              </p>
             </div>
           </div>
         </div>
@@ -671,15 +670,11 @@ function AjakanBergabung({ t }) {
 export default function Landing() {
   const { t } = useI18n();
 
-  useEffect(() => {
-    document.title = t("common.namaKomunitas");
-  }, [t]);
-
   return (
     <div className="w-full overflow-x-hidden">
       <MetaHalaman
         title={t("common.judulBeranda")}
-        description="Blunder Skuad — Komunitas Catur Indonesia: wadah bermain, belajar, dan bertumbuh bagi pecatur. Ikuti jadwal turnamen, peringkat anggota, kelas pelatihan, dan kabar komunitas terbaru."
+        description={t("landing.metaDeskripsi")}
       />
       {/* H1 utama halaman — hero sengaja visual murni, jadi judul halaman
           disediakan tersembunyi untuk pembaca layar & mesin pencari. */}

@@ -57,7 +57,7 @@ function IkonUnduh() {
 function Field({ label, htmlFor, children }) {
   return (
     <div className="grid gap-1.5">
-      <Label htmlFor={htmlFor} className="font-semibold text-grey-600 uppercase text-[11px] tracking-wider select-none">
+      <Label htmlFor={htmlFor} className="font-semibold text-grey-600 uppercase text-xs tracking-wider select-none">
         {label}
       </Label>
       {children}
@@ -200,7 +200,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
 
   return (
     <div
-      className="fixed inset-0 z-[90] flex items-center justify-center overflow-y-auto bg-black/60 p-4 sm:p-6 backdrop-blur-[2px]"
+      className="fixed inset-0 z-[90] flex items-center justify-center overflow-y-auto bg-black/70 p-4 sm:p-6"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onTutup();
       }}
@@ -209,12 +209,12 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="judul-unduh-ebook"
-        className="w-full max-w-[440px] overflow-hidden rounded-lg border border-slate-300 bg-white shadow-none"
+        className="w-full max-w-[440px] overflow-hidden rounded-lg border border-grey-300 bg-white shadow-none"
       >
         {/* Header */}
-        <CardHeader className="flex-row items-center justify-between gap-4 border-b border-slate-200 bg-grey-50 p-5 shadow-none">
+        <CardHeader className="flex-row items-center justify-between gap-4 border-b border-grey-200 bg-grey-50 p-5 shadow-none">
           <div className="flex min-w-0 items-center gap-3">
-            <div className="flex h-11 w-11 flex-none items-center justify-center rounded-lg border border-slate-300 bg-white p-1">
+            <div className="flex h-11 w-11 flex-none items-center justify-center rounded-lg border border-grey-300 bg-white p-1">
               <img
                 src={berkasPublik("/images/color-icon/book-open-aqua.svg")}
                 alt=""
@@ -236,7 +236,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
             size="icon"
             onClick={onTutup}
             aria-label={t("unduhEbook.tutup")}
-            className="h-9 w-9 flex-none rounded-lg border border-slate-300 bg-white text-grey-600 shadow-none transition-colors hover:bg-grey-100 hover:text-grey-800"
+            className="h-9 w-9 flex-none rounded-lg border border-grey-300 bg-white text-grey-600 shadow-none transition-colors hover:bg-grey-100 hover:text-grey-800"
           >
             <IkonTutup />
           </Button>
@@ -247,7 +247,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
           <>
             <CardContent className="flex flex-col items-center gap-4 bg-white p-6 sm:p-8 text-center">
               <IkonCentang />
-              <div className="space-y-1">
+              <div className="flex flex-col gap-1">
                 <CardTitle as="h3" className="text-sm font-semibold text-grey-800">
                   {t("unduhEbook.tercatatJudul")}
                 </CardTitle>
@@ -264,7 +264,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
                     return (
                       <>
                         {awal}
-                        <strong className="border border-slate-300 bg-grey-100 px-1.5 py-0.5 font-semibold">{tercatat.nama}</strong>
+                        <strong className="border border-grey-300 bg-grey-100 px-1.5 py-0.5 font-semibold">{tercatat.nama}</strong>
                         {akhir}
                       </>
                     );
@@ -287,7 +287,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
               <Button
                 variant="ghost"
                 onClick={onTutup}
-                className="h-10 w-full rounded-lg border border-slate-300 bg-white text-xs font-semibold text-grey-800 shadow-none transition-colors hover:bg-grey-100"
+                className="h-10 w-full rounded-lg border border-grey-300 bg-white text-xs font-semibold text-grey-800 shadow-none transition-colors hover:bg-grey-100"
               >
                 {t("unduhEbook.tutup")}
               </Button>
@@ -298,7 +298,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
           <>
             <CardContent className="flex flex-col items-center gap-4 bg-white p-6 sm:p-8 text-center">
               <IkonCentang />
-              <div className="space-y-2">
+              <div className="flex flex-col gap-2">
                 <CardTitle as="h3" className="text-sm font-semibold text-grey-800">
                   {t("unduhEbook.mintaJudul")}
                 </CardTitle>
@@ -310,7 +310,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
                     return (
                       <>
                         {awal}
-                        <strong className="border border-slate-300 bg-grey-100 px-1.5 py-0.5 font-semibold">{t("unduhEbook.mintaIsiOpsi")}</strong>
+                        <strong className="border border-grey-300 bg-grey-100 px-1.5 py-0.5 font-semibold">{t("unduhEbook.mintaIsiOpsi")}</strong>
                         {akhir}
                       </>
                     );
@@ -321,7 +321,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
             <CardFooter className="bg-white p-6 pt-0">
               <Button
                 onClick={onTutup}
-                className="h-10 w-full rounded-lg border border-slate-300 bg-white text-xs font-semibold text-grey-800 shadow-none transition-colors hover:bg-grey-100"
+                className="h-10 w-full rounded-lg border border-grey-300 bg-white text-xs font-semibold text-grey-800 shadow-none transition-colors hover:bg-grey-100"
               >
                 {t("unduhEbook.mengerti")}
               </Button>
@@ -352,7 +352,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
                       setNama(e.target.value);
                       bersihkanGalat();
                     }}
-                    className="h-10 rounded-lg border border-slate-300 bg-white text-xs font-semibold text-grey-800 shadow-none focus-visible:ring-0 focus-visible:border-primary placeholder:text-slate-400 placeholder:font-normal"
+                    className="h-10 rounded-lg border border-grey-300 bg-white text-xs font-semibold text-grey-800 shadow-none focus-visible:ring-0 focus-visible:border-primary placeholder:text-grey-500 placeholder:font-normal"
                   />
                 </Field>
 
@@ -369,7 +369,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
                       setAkun(e.target.value);
                       bersihkanGalat();
                     }}
-                    className="h-10 rounded-lg border border-slate-300 bg-white text-xs font-semibold text-grey-800 shadow-none focus-visible:ring-0 focus-visible:border-primary placeholder:text-slate-400 placeholder:font-normal"
+                    className="h-10 rounded-lg border border-grey-300 bg-white text-xs font-semibold text-grey-800 shadow-none focus-visible:ring-0 focus-visible:border-primary placeholder:text-grey-500 placeholder:font-normal"
                   />
                 </Field>
 
@@ -388,7 +388,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
                         setKode(e.target.value.toUpperCase());
                         bersihkanGalat();
                       }}
-                      className="h-10 rounded-lg border border-slate-300 bg-white text-xs font-mono font-semibold tracking-wider text-grey-800 shadow-none focus-visible:ring-0 focus-visible:border-primary placeholder:text-slate-400 placeholder:font-sans placeholder:font-normal"
+                      className="h-10 rounded-lg border border-grey-300 bg-white text-xs font-mono font-semibold tracking-wider text-grey-800 shadow-none focus-visible:ring-0 focus-visible:border-primary placeholder:text-grey-500 placeholder:font-sans placeholder:font-normal"
                     />
                   </Field>
                 )}

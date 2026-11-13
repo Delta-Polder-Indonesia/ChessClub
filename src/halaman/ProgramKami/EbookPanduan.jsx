@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { HalamanIsi } from "../../components/PageBagian.jsx";
 import { CloseIcon } from "../../components/icons.jsx";
@@ -89,7 +89,7 @@ function SampulBuku({ jalur, judul }) {
   const [gagal, setGagal] = useState(false);
   if (!jalur || gagal) {
     return (
-      <div className="flex h-full w-full items-center justify-center bg-slate-200">
+      <div className="flex h-full w-full items-center justify-center bg-grey-200">
         <PdfIcon />
       </div>
     );
@@ -119,15 +119,8 @@ function KartuEbook({ buku, disorot, terbalik, padaBalik, padaBaca, padaUnduh })
   return (
     <article
       id={buku.id}
-      tabIndex={0}
       onClick={padaBalik}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          padaBalik();
-        }
-      }}
-      className={`group block aspect-[2/3] w-full cursor-pointer rounded-lg focus:outline-none lg:max-h-[280px] ${
+      className={`group block aspect-[2/3] w-full cursor-pointer rounded-lg lg:max-h-[280px] ${
         disorot ? "ring-4 ring-primary/60 ring-offset-2" : ""
       }`}
       aria-label={
@@ -137,7 +130,7 @@ function KartuEbook({ buku, disorot, terbalik, padaBalik, padaBaca, padaUnduh })
       }
     >
       <div
-        className={`relative h-full w-full rounded-lg transition-all duration-500 [transform-style:preserve-3d] group-hover:[transform:rotateY(180deg)] group-focus:[transform:rotateY(180deg)] ${
+        className={`relative h-full w-full rounded-lg transition-transform duration-500 [transform-style:preserve-3d] group-hover:[transform:rotateY(180deg)] group-focus-within:[transform:rotateY(180deg)] ${
           terbalik ? "[transform:rotateY(180deg)]" : ""
         }`}
       >
@@ -146,7 +139,7 @@ function KartuEbook({ buku, disorot, terbalik, padaBalik, padaBaca, padaUnduh })
           <div className="relative h-full w-full overflow-hidden rounded-lg [transform:translateZ(1px)]">
             <SampulBuku jalur={COVER[buku.id]} judul={buku.judul} />
             {!buku.tersedia && (
-              <span className="absolute bottom-2 right-2 z-20 rounded-full bg-amber-400 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-950">
+              <span className="absolute bottom-2 right-2 z-20 rounded-full border border-grey-300 bg-paper px-2.5 py-0.5 text-xs font-semibold text-grey-800">
                 {t("ebookPanduan.segeraHadir")}
               </span>
             )}
@@ -154,16 +147,16 @@ function KartuEbook({ buku, disorot, terbalik, padaBalik, padaBaca, padaUnduh })
         </div>
 
         {/* Sisi belakang — info & aksi */}
-        <div className="absolute inset-0 z-10 h-full w-full rounded-lg bg-slate-100 text-center [transform:rotateY(180deg)] [backface-visibility:hidden] [transform-style:preserve-3d]">
+        <div className="absolute inset-0 z-10 h-full w-full rounded-lg border border-grey-200 bg-grey-100 text-center [transform:rotateY(180deg)] [backface-visibility:hidden] [transform-style:preserve-3d]">
           <div className="flex min-h-full flex-col items-center justify-center gap-2 p-3 [transform:translateZ(1px)]">
             <div className="flex-none">
               <PdfIcon />
             </div>
-            <span className="rounded bg-slate-200 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-600">
+            <span className="rounded bg-grey-200 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-grey-600">
               {buku.kategori}
             </span>
-            <p className="m-0 line-clamp-2 text-[12px] font-semibold leading-4 text-slate-900">{buku.judul}</p>
-            <p className="m-0 text-[11px] text-slate-700">{buku.ukuran}</p>
+            <p className="m-0 line-clamp-2 text-xs font-semibold leading-4 text-grey-800">{buku.judul}</p>
+            <p className="m-0 text-xs text-grey-600">{buku.ukuran}</p>
             {buku.tersedia ? (
               <div className="mx-auto flex w-full max-w-[160px] flex-row items-stretch justify-center gap-1.5">
                 <button
@@ -172,7 +165,7 @@ function KartuEbook({ buku, disorot, terbalik, padaBalik, padaBaca, padaUnduh })
                     e.stopPropagation();
                     padaBaca();
                   }}
-                  className="inline-flex items-center justify-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                  className="inline-flex items-center justify-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                 >
                   <IkonBaca /> {t("ebookPanduan.baca")}
                 </button>
@@ -182,13 +175,13 @@ function KartuEbook({ buku, disorot, terbalik, padaBalik, padaBaca, padaUnduh })
                     e.stopPropagation();
                     padaUnduh();
                   }}
-                  className="inline-flex items-center justify-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-slate-700 hover:border-slate-300 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-400"
+                  className="inline-flex items-center justify-center gap-1.5 rounded-md border border-grey-200 bg-white px-3 py-1.5 text-xs font-semibold text-grey-800 transition-colors hover:border-grey-300 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                 >
                   <IkonUnduh /> {t("ebookPanduan.unduh")}
                 </button>
               </div>
             ) : (
-              <span className="rounded border border-dashed border-slate-300 px-3 py-1.5 text-[11px] font-medium text-slate-400">
+              <span className="rounded border border-dashed border-grey-300 px-3 py-1.5 text-xs font-medium text-grey-500">
                 {t("ebookPanduan.belumTersedia")}
               </span>
             )}
@@ -211,6 +204,8 @@ export default function EbookPanduan() {
   const [disorot, setDisorot] = useState(null);
   const { id: bukuIdPath, kategori: kategoriPath } = useParams();
   const [kartuBalik, setKartuBalik] = useState(() => new Set());
+  const dialogPdfRef = useRef(null);
+  const tutupPdfRef = useRef(null);
 
   // Tiket kedaluwarsa dibuang sekali saat halaman dibuka supaya buku berikutnya
   // tidak pernah memakai tiket mati (server akan menolaknya di tengah render PDF).
@@ -325,6 +320,41 @@ export default function EbookPanduan() {
     }
   }, [pdfAktif, unduhan]);
 
+  const adaPdfAktif = Boolean(pdfAktif);
+  // Fokus otomatis ke dialog pembaca PDF saat dibuka, kurung Tab di dalamnya
+  // selama ModalUnduhEbook tidak menutupi di atasnya, lalu pulihkan fokus.
+  useEffect(() => {
+    if (!adaPdfAktif) return undefined;
+    const pemicu = document.activeElement;
+    const frame = window.requestAnimationFrame(() => {
+      tutupPdfRef.current?.focus();
+    });
+    const onTab = (e) => {
+      if (e.key !== "Tab" || unduhan) return;
+      const fokus = [
+        ...(dialogPdfRef.current?.querySelectorAll(
+          'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        ) || []),
+      ];
+      if (!fokus.length) return;
+      const pertama = fokus[0];
+      const terakhir = fokus[fokus.length - 1];
+      if (e.shiftKey && document.activeElement === pertama) {
+        e.preventDefault();
+        terakhir.focus();
+      } else if (!e.shiftKey && document.activeElement === terakhir) {
+        e.preventDefault();
+        pertama.focus();
+      }
+    };
+    window.addEventListener("keydown", onTab);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("keydown", onTab);
+      if (pemicu instanceof HTMLElement) pemicu.focus();
+    };
+  }, [adaPdfAktif, unduhan]);
+
   // Bila dibuka dari laman lain dengan /ebook-panduan/<id>, gulir ke kartu
   // e-book terkait dan sorot sebentar agar pengguna tahu posisinya.
   useEffect(() => {
@@ -388,7 +418,7 @@ export default function EbookPanduan() {
           </div>
           <div className="flex flex-wrap items-center gap-4">
             <div className="overflow-x-auto">
-              <div role="tablist" aria-label={t("ebookPanduan.filterAriaLabel")} className="w-max flex flex-nowrap items-center gap-1 bg-slate-200 rounded-full p-2">
+              <div role="tablist" aria-label={t("ebookPanduan.filterAriaLabel")} className="w-max flex flex-nowrap items-center gap-1 rounded-full bg-grey-200 p-2">
                 {kategoriList.map((k) => {
                   const aktif = k === kategoriAktif;
                   return (
@@ -401,8 +431,8 @@ export default function EbookPanduan() {
                       onClick={() => setKategoriAktif(k)}
                       className={
                         aktif
-                          ? "flex whitespace-nowrap rounded-full bg-primary px-4 py-2 text-sm text-white transition-all duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-                          : "flex whitespace-nowrap rounded-full px-4 py-2 text-sm text-black transition-all duration-300 hover:bg-slate-300/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-400"
+                          ? "flex whitespace-nowrap rounded-full bg-primary px-4 py-2 text-sm text-white transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                          : "flex whitespace-nowrap rounded-full px-4 py-2 text-sm text-grey-800 transition-colors hover:bg-grey-300/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                       }
                     >
                       {k === "Semua" ? t("ebookPanduan.semua") : k}
@@ -411,7 +441,7 @@ export default function EbookPanduan() {
                 })}
               </div>
             </div>
-            <span className="ml-auto whitespace-nowrap text-[12px] text-slate-700">{t("ebookPanduan.dokumenCount", { n: daftarTampil.length })}</span>
+            <span className="ml-auto whitespace-nowrap text-xs text-grey-600">{t("ebookPanduan.dokumenCount", { n: daftarTampil.length })}</span>
           </div>
     
           <div
@@ -452,16 +482,22 @@ export default function EbookPanduan() {
           <FiturEbook />
 
           {pdfAktif && (
-            <div className="fixed inset-0 z-[80] flex flex-col bg-black/60 backdrop-blur-sm">
-              <div className="flex h-[56px] shrink-0 items-center justify-between border-b border-slate-200 bg-white px-4 md:px-6">
+            <div
+              ref={dialogPdfRef}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="judul-pembaca-pdf"
+              className="fixed inset-0 z-[80] flex flex-col bg-black/75"
+            >
+              <div className="flex h-[56px] shrink-0 items-center justify-between border-b border-grey-200 bg-white px-4 md:px-6">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="hidden sm:inline-flex rounded bg-[#F15642]/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#F15642] ring-1 ring-[#F15642]/20">
+                    <span className="hidden sm:inline-flex rounded bg-[#F15642]/10 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-[#F15642] ring-1 ring-[#F15642]/20">
                       {t("ebookPanduan.pdf")}
                     </span>
-                    <h2 className="truncate text-[14px] font-semibold text-slate-900">{pdfAktif.judul}</h2>
+                    <h2 id="judul-pembaca-pdf" className="truncate text-sm font-semibold text-grey-800">{pdfAktif.judul}</h2>
                   </div>
-                  <p className="mt-0.5 hidden text-[11px] text-slate-700 md:block">
+                  <p className="mt-0.5 hidden text-xs text-grey-600 md:block">
                     {t("ebookPanduan.info", {
                       kategori: pdfAktif.kategori,
                       ukuran: pdfAktif.ukuran,
@@ -476,15 +512,16 @@ export default function EbookPanduan() {
                   <button
                     type="button"
                     onClick={() => unduhDenganTiket(pdfAktif)}
-                    className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-slate-700 hover:bg-slate-50"
+                    className="inline-flex items-center gap-1.5 rounded-md border border-grey-200 bg-white px-3 py-1.5 text-xs font-semibold text-grey-800 transition-colors hover:bg-grey-50"
                   >
                     <IkonUnduh />
                     <span className="hidden sm:inline">{t("ebookPanduan.unduh")}</span>
                   </button>
                   <button
+                    ref={tutupPdfRef}
                     type="button"
                     onClick={() => setPdfAktif(null)}
-                    className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-grey-200 bg-white text-grey-600 transition-colors hover:bg-grey-50 hover:text-grey-800"
                     aria-label={t("ebookPanduan.tutup")}
                   >
                     <CloseIcon className="h-4 w-4" />
@@ -493,7 +530,7 @@ export default function EbookPanduan() {
               </div>
     
               <div className="flex min-h-0 flex-1 flex-col bg-[#525659] p-2 md:p-4">
-                <div className="mx-auto flex min-h-0 w-full max-w-[1024px] flex-1 flex-col overflow-hidden rounded-md shadow-xl">
+                <div className="mx-auto flex min-h-0 w-full max-w-[1024px] flex-1 flex-col overflow-hidden rounded-md border border-grey-300/20">
                   <PembacaPdf
                     sumber={sumberEbook(pdfAktif.file)}
                     padaGagal={() => {
@@ -520,7 +557,7 @@ export default function EbookPanduan() {
                     padaSiap={setHalamanPdf}
                   />
                 </div>
-                <div className="mx-auto mt-3 flex w-full max-w-[1024px] flex-wrap items-center justify-between gap-2 text-[11px] text-white/70">
+                <div className="mx-auto mt-3 flex w-full max-w-[1024px] flex-wrap items-center justify-between gap-2 text-xs text-white/80">
                   <span>
                     {t("ebookPanduan.bantuan")}{" "}
                     <a
@@ -533,7 +570,7 @@ export default function EbookPanduan() {
                     </a>
                     .
                   </span>
-                  <button type="button" onClick={() => setPdfAktif(null)} className="rounded bg-white/10 px-3 py-1 hover:bg-white/20">
+                  <button type="button" onClick={() => setPdfAktif(null)} className="rounded bg-white/10 px-3 py-1 transition-colors hover:bg-white/20">
                     {t("ebookPanduan.tutupEsc")}
                   </button>
                 </div>
