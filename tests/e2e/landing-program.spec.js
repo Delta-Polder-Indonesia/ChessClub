@@ -115,7 +115,9 @@ test("regresi Landing: meta/title i18n, tombol hero, CincinKemajuan, dan tabInde
   await expect(tombolHero).toHaveCount(6);
   await expect(page.locator('section div[role="button"]')).toHaveCount(0);
 
-  // CincinKemajuan & GameTowerProgress tidak bertumpuk (tanpa -mt-14).
+  // CincinKemajuan & GameTowerProgress tidak bertumpuk (tanpa -mt-14),
+  // dan di desktop (xl >= 1280px) tinggi kolom kiri tetap sejajar <= papan catur.
+  const kartuKiri = page.locator("[data-kartu-harian]");
   const ring = page.locator("[data-cincin-kemajuan]");
   await ring.scrollIntoViewIfNeeded();
   await expect(ring).toBeVisible();
@@ -126,6 +128,14 @@ test("regresi Landing: meta/title i18n, tombol hero, CincinKemajuan, dan tabInde
   expect(ringBox).toBeTruthy();
   expect(trackBox).toBeTruthy();
   expect(ringBox.y + ringBox.height).toBeLessThanOrEqual(trackBox.y + 1);
+  const lebarViewport = page.viewportSize()?.width ?? 0;
+  if (lebarViewport >= 1280) {
+    const leftBox = await kartuKiri.boundingBox();
+    const boardBox = await kartuKiri.locator("xpath=following-sibling::div[1]/div").first().boundingBox();
+    expect(leftBox).toBeTruthy();
+    expect(boardBox).toBeTruthy();
+    expect(leftBox.height).toBeLessThanOrEqual(boardBox.height + 1);
+  }
 
   // CardCarousel menonaktifkan tautan di luar 3 kartu aktif agar Tab tidak terjebak di duplikat off-screen.
   const tautanCarousel = page.locator('a[href^="/program-kami/ebook-panduan/"]');

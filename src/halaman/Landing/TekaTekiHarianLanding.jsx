@@ -496,16 +496,16 @@ export default function TekaTekiHarianLanding() {
           <div
             data-component="HomeLayoutDesktopLeft"
             data-kartu-harian
-            className="flex min-w-0 flex-col justify-center gap-y-6 xl:col-span-3 xl:min-h-[440px]"
+            className="flex min-w-0 flex-col justify-center gap-y-3.5 xl:col-span-3 xl:min-h-[440px]"
           >
             <header
               data-component="HomeWelcomeMessage"
-              className="flex flex-col items-center gap-y-2 text-center"
+              className="flex flex-col items-center gap-y-1 text-center"
             >
-              <h2 className="font-serif text-3xl font-semibold leading-tight text-grey-800">
+              <h2 className="font-serif text-2xl font-semibold leading-tight text-grey-800">
                 {judulKartu}
               </h2>
-              <p className="max-w-lg font-serif text-base leading-relaxed text-grey-600">
+              <p className="max-w-lg font-serif text-base leading-snug text-grey-600">
                 {deskKartu}
               </p>
             </header>
@@ -516,7 +516,7 @@ export default function TekaTekiHarianLanding() {
               className="flex min-w-0 justify-center"
             >
               <CincinKemajuan
-                ukuran={200}
+                ukuran={172}
                 nilai={jatahTerpakai}
                 maks={BATAS_HARIAN}
                 label={t("landing.harianRingLabel")}
@@ -540,14 +540,14 @@ export default function TekaTekiHarianLanding() {
             <section
               aria-label={t("landing.harianTrackAria")}
               data-component="GameTowerProgress"
-              className="flex min-w-0 flex-col gap-y-3 border-t border-grey-200 pt-4"
+              className="flex min-w-0 flex-col gap-y-2 border-t border-grey-200 pt-3"
             >
               <div className="flex items-end justify-between gap-4">
-                <div className="flex min-w-0 flex-col gap-y-1">
+                <div className="flex min-w-0 flex-col gap-y-0.5">
                   <h3 className="font-sans text-sm font-semibold text-primary">
                     {t("landing.harianKartuLabelJatah")}
                   </h3>
-                  <p className="flex items-baseline gap-1 font-serif text-2xl font-semibold text-grey-800">
+                  <p className="flex items-baseline gap-1 font-serif text-2xl font-semibold leading-none text-grey-800">
                     {jatahTerpakai}
                     <span className="font-sans text-base font-normal text-grey-600">
                       /{BATAS_HARIAN}
@@ -601,11 +601,11 @@ export default function TekaTekiHarianLanding() {
               </div>
             </section>
 
-            <div className="flex flex-wrap items-center gap-x-5 gap-y-3 font-sans">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 font-sans">
               <Tombol
                 to={RUTE_HARIAN}
                 variant="garis"
-                className="h-12 px-4 md:px-6"
+                className="h-10 px-4"
                 aria-label={`${t("landing.harianCta")}: ${t("landing.harianJudul")}`}
               >
                 <span className="order-1">{t("landing.harianCta")}</span>
