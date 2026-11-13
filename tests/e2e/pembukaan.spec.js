@@ -477,5 +477,15 @@ test("repertoar: papan pratinjau muncul setelah jalur dipilih", async ({ page })
   await expect(statistik).toContainText(papanId.repertoarStatJalur);
   await expect(statistik).toContainText(papanId.repertoarStatPerPembukaan);
 
+  // Panel pengaturan tampil non-popup di area utama mode tanpa menghapus statistik aktif.
+  await page.getByRole("button", { name: papanId.pengaturan, exact: true }).click();
+  await expect(page.locator('[role="dialog"]')).toHaveCount(0);
+  const panelPengaturan = page.locator('[data-panel="mode-pengaturan"]');
+  await expect(panelPengaturan).toBeVisible();
+  await panelPengaturan.getByLabel(papanId.warnaPapan).selectOption("blue");
+  await panelPengaturan.getByRole("button", { name: papanId.tutup }).click();
+  await expect(panelPengaturan).toBeHidden();
+  await expect(statistik).toBeVisible();
+
   expect(galat).toEqual([]);
 });

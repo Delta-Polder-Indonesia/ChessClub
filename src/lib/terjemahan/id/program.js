@@ -11,6 +11,7 @@ export const program = {
     p1: "Komunitas Catur Indonesia menghadirkan rangkaian program pembinaan yang dirancang agar setiap anggota memiliki jalur berkembang yang jelas — dari yang baru mengenal papan hingga yang mengejar gelar. Seluruh kegiatan berlangsung rutin, baik secara luring di sekretariat Medan maupun daring melalui klub BLUNDER SKUAD di Chess.com, sehingga anggota di kota mana pun tetap dapat ikut serta.",
     p2: "Program di bawah ini saling melengkapi: dimulai dari kelas berjenjang untuk membangun dasar, pendampingan personal, pembinaan usia dini, sarana belajar mandiri, hingga ajang unjuk kebolehan dan latihan taktik. Jadwal, pendaftaran, dan perubahan ketentuan selalu diumumkan melalui halaman Pengumuman dan kanal anggota; informasi resmi hanya berasal dari kanal tersebut dan surel info@komunitascatur.or.id.",
     programJudul: "Program Unggulan",
+    sorotanAlt: "Sesi latihan berjenjang bersama pelatih Komunitas Catur Indonesia",
     kartu: {
       kelas: {
         judul: "Kelas & Pelatihan Berjenjang",

@@ -11,6 +11,7 @@ export const program = {
     p1: "The Indonesia Chess Community offers a range of development programs designed so that every member has a clear path to grow — from those just learning the board to those chasing titles. All activities run regularly, both offline at the Medan secretariat and online through the BLUNDER SKUAD club on Chess.com, so members in any city can take part.",
     p2: "Programs below complement one another: starting with tiered classes to build the fundamentals, personal mentoring, early-age coaching, self-study resources, and finally a stage to show one's skill and sharpen tactics. Schedules, registrations, and changes to the terms are always announced on the Announcements page and in the member channel; official information comes only from those channels and the email info@komunitascatur.or.id.",
     programJudul: "Featured Programs",
+    sorotanAlt: "Tiered coaching session with Indonesia Chess Community coaches",
     kartu: {
       kelas: {
         judul: "Tiered Classes & Training",

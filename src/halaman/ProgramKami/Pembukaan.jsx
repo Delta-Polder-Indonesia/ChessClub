@@ -209,7 +209,7 @@ function PapanCg({ papan }) {
 /** Blok papan: kisi 6×6 berisi 36 papan mini + papan utama di kanan bawah. */
 function PapanMaia() {
   return (
-    <div className="relative flex aspect-square w-[544px] max-w-full items-center justify-center">
+    <div className="relative flex aspect-square w-full max-w-[544px] items-center justify-center">
       <div className="absolute left-0 top-0 grid h-3/4 w-3/4 grid-cols-6 grid-rows-6 gap-0.5 bg-transparent">
         {URUT_MINI.map((idx, i) => (
           <div key={i} className="relative">
@@ -221,7 +221,7 @@ function PapanMaia() {
           </div>
         ))}
       </div>
-      <div className="absolute bottom-0 right-0 z-10 h-3/4 w-3/4 overflow-hidden border border-grey-300 bg-gradient-to-br from-white/8 to-white/4 backdrop-blur-md">
+      <div className="absolute bottom-0 right-0 z-10 h-3/4 w-3/4 overflow-hidden border border-grey-300 bg-paper">
         <div className="h-full w-full">
           <div style={{ height: "100%", width: "100%" }}>
             <PapanCg papan={POSISI_UTAMA} />
@@ -335,7 +335,7 @@ function KatalogBuku({ t, angka }) {
         onChange={(kejadian) => setKueri(kejadian.target.value)}
         placeholder={t("bukuPembukaan.katalogPlaceholder")}
         aria-label={t("bukuPembukaan.katalogPlaceholder")}
-        className="w-full rounded border border-grey-300 bg-white px-4 py-2.5 font-sans text-sm text-grey-800 outline-none placeholder:text-grey-500 focus:border-slate-900"
+        className="w-full rounded border border-grey-300 bg-white px-4 py-2.5 font-sans text-sm text-grey-800 outline-none placeholder:text-grey-500 focus:border-primary"
       />
       <p aria-live="polite" className="m-0 mt-2 font-sans text-xs text-grey-600">
         {t("bukuPembukaan.katalogJumlah", {
@@ -343,7 +343,7 @@ function KatalogBuku({ t, angka }) {
           total: angka.format(KATALOG.length),
         })}
       </p>
-      <div className="mt-3 max-h-[30rem] overflow-y-auto rounded border border-grey-200">
+      <div className="mt-3 max-h-[30rem] overflow-auto rounded border border-grey-200">
         {/* `<table>` ditulis langsung, bukan lewat komponen `Table` dari
             ui/table: pembungkus `overflow-x-auto` bawaannya membuat satu lapis
             scroll tambahan, sehingga header sticky di bawah ini tidak lagi
@@ -430,8 +430,8 @@ export default function Pembukaan() {
           <h2 className="m-0 font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-grey-800">
             {t("bukuPembukaan.introJudul")}
           </h2>
-          <div className="mt-6 grid gap-x-12 gap-y-8 lg:grid-cols-[1fr_auto] lg:items-start">
-            <div className="flex flex-col gap-y-5">
+          <div className="mt-6 grid gap-x-12 gap-y-8 lg:grid-cols-[1fr_544px] lg:items-start">
+            <div className="flex min-w-0 flex-col gap-y-5">
               <p className="m-0 font-serif text-[1rem] leading-[1.8] text-pretty text-grey-600">
                 {t("bukuPembukaan.introP1")}
               </p>
@@ -444,7 +444,9 @@ export default function Pembukaan() {
                 </TombolConten>
               </div>
             </div>
-            <PapanMaia />
+            <div className="min-w-0 w-full">
+              <PapanMaia />
+            </div>
           </div>
 
         </div>
@@ -454,7 +456,7 @@ export default function Pembukaan() {
       <section className="w-full border-t border-grey-200 bg-paper">
         <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
           <div className="grid gap-x-16 gap-y-10 lg:grid-cols-12">
-            <div className="lg:col-span-4">
+            <div className="min-w-0 lg:col-span-4">
               <h2 className="m-0 font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-grey-800">
                 {t("bukuPembukaan.katalogJudul")}
               </h2>
@@ -463,12 +465,12 @@ export default function Pembukaan() {
               </p>
               <Link
                 to="/papan-interaktif"
-                className="mt-6 inline-flex font-sans text-sm font-semibold text-slate-900 underline decoration-grey-300 underline-offset-4 hover:decoration-slate-900"
+                className="mt-6 inline-flex font-sans text-sm font-semibold text-grey-800 underline decoration-grey-300 underline-offset-4 hover:decoration-grey-800"
               >
                 {t("bukuPembukaan.katalogCta")}
               </Link>
             </div>
-            <div className="lg:col-span-8">
+            <div className="min-w-0 lg:col-span-8">
               <KatalogBuku t={t} angka={angka} />
             </div>
           </div>

@@ -61,6 +61,23 @@ for (const [bahasa, t] of Object.entries(kamus)) {
     await expect(page.getByRole("status").filter({ hasText: t.hasil })).toBeVisible();
     await expect(page.getByRole("button", { name: t.berikut })).toBeVisible();
 
+    // Pengaturan tampil non-popup di area utama mode, memodifikasi warna papan,
+    // dan mempertahankan soal Turing test saat ditutup.
+    const labelPengaturan = bahasa === "en" ? "Settings" : "Pengaturan";
+    const labelWarna = bahasa === "en" ? "Board color" : "Warna papan";
+    await page.getByRole("button", { name: labelPengaturan, exact: true }).click();
+    await expect(page.locator('[role="dialog"]')).toHaveCount(0);
+    const panelPengaturan = page.locator('[data-panel="mode-pengaturan"]');
+    await expect(panelPengaturan).toBeVisible();
+    await panelPengaturan.getByLabel(labelWarna).selectOption("wood");
+    await page.keyboard.press("Escape");
+    await expect(panelPengaturan).toBeHidden();
+    await expect(page.getByRole("status").filter({ hasText: t.hasil })).toBeVisible();
+    await expect(page.locator('[data-petak="a8"]')).toHaveCSS(
+      "background-color",
+      "rgb(231, 199, 143)"
+    );
+
     expect(galat, galat.join("\n")).toEqual([]);
   });
 }

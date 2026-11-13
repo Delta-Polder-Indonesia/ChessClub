@@ -16,13 +16,33 @@
 import { useMemo } from "react";
 import { Chess } from "chess.js";
 import { ChessPiece } from "./chess/ChessPiece.jsx";
+import { TEMA_PAPAN } from "../halaman/TekaTeki/temaPapan.js";
 
 const FILE = ["a", "b", "c", "d", "e", "f", "g", "h"];
 const RANK = ["8", "7", "6", "5", "4", "3", "2", "1"];
 
-const PETAK_TERANG = "#ebecd0";
-const PETAK_GELAP = "#779556";
 const TINTA_LANGKAH = "rgba(255, 213, 79, 0.55)";
+
+const luminansiRelatif = (hex) => {
+  const kanal = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
+  const [r, g, b] = kanal.map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+};
+
+const rasioKontras = (a, b) => {
+  const la = luminansiRelatif(a);
+  const lb = luminansiRelatif(b);
+  return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
+};
+
+const warnaTeksKoordinat = (warnaLatar, warnaLawan) => {
+  const kandidat = [warnaLawan, "#000000", "#ffffff"];
+  const lolos = kandidat.find((w) => rasioKontras(w, warnaLatar) >= 4.5);
+  if (lolos) return lolos;
+  return rasioKontras("#000000", warnaLatar) >= rasioKontras("#ffffff", warnaLatar)
+    ? "#000000"
+    : "#ffffff";
+};
 
 export default function PapanStatis({
   fen,
@@ -31,8 +51,14 @@ export default function PapanStatis({
   terakhir = null,
   ariaLabel = "",
   setBidak = "merida",
+  tema = "hijau",
+  tampilKoordinat = "tepi",
+  sorotLangkahAkhir = true,
   className = "",
 }) {
+  const palet = TEMA_PAPAN[tema] ?? TEMA_PAPAN.hijau;
+  const teksTerang = warnaTeksKoordinat(palet.terang, palet.gelap);
+  const teksGelap = warnaTeksKoordinat(palet.gelap, palet.terang);
   const papan = useMemo(() => {
     try {
       return new Chess(fen).board();
@@ -67,10 +93,14 @@ export default function PapanStatis({
             const petak = `${FILE[kolom]}${RANK[baris]}`;
             const bidak = papan[baris][kolom];
             const ditandai =
-              terakhir && (petak === terakhir.from || petak === terakhir.to);
-            // Koordinat digambar pada tepi papan sesuai orientasi.
-            const tampilLajur = i === 7;
-            const tampilBaris = j === 0;
+              sorotLangkahAkhir &&
+              terakhir &&
+              (petak === terakhir.from || petak === terakhir.to);
+            // Koordinat digambar pada tepi papan sesuai orientasi atau semua petak.
+            const tampilLajur =
+              tampilKoordinat === "semua" || (tampilKoordinat === "tepi" && i === 7);
+            const tampilBaris =
+              tampilKoordinat === "semua" || (tampilKoordinat === "tepi" && j === 0);
             return (
               <div
                 key={petak}
@@ -87,7 +117,7 @@ export default function PapanStatis({
                     : ""
                 }
                 className="relative flex items-center justify-center"
-                style={{ backgroundColor: terang ? PETAK_TERANG : PETAK_GELAP }}
+                style={{ backgroundColor: terang ? palet.terang : palet.gelap }}
               >
                 {ditandai && (
                   <span
@@ -98,7 +128,7 @@ export default function PapanStatis({
                 {tampilLajur && (
                   <span
                     className="absolute bottom-0.5 right-1 z-10 font-mono text-[8px] font-bold leading-none"
-                    style={{ color: terang ? PETAK_GELAP : PETAK_TERANG }}
+                    style={{ color: terang ? teksTerang : teksGelap }}
                   >
                     {FILE[kolom]}
                   </span>
@@ -106,7 +136,7 @@ export default function PapanStatis({
                 {tampilBaris && (
                   <span
                     className="absolute left-1 top-0.5 z-10 font-mono text-[8px] font-bold leading-none"
-                    style={{ color: terang ? PETAK_GELAP : PETAK_TERANG }}
+                    style={{ color: terang ? teksTerang : teksGelap }}
                   >
                     {RANK[baris]}
                   </span>

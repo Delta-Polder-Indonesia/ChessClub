@@ -4,6 +4,8 @@
  */
 
 export const landing = {
+  metaDeskripsi:
+    "Blunder Skuad — Indonesia Chess Community: a place to play, learn, and grow for chess players. Follow tournament schedules, member ratings, coaching classes, and community news.",
   harianLabel: "Today's puzzle",
   harianJudul: "One move before you close the tab",
   harianDesk:

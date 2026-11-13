@@ -4,6 +4,8 @@
  */
 
 export const landing = {
+  metaDeskripsi:
+    "Blunder Skuad — Komunitas Catur Indonesia: wadah bermain, belajar, dan bertumbuh bagi pecatur. Ikuti jadwal turnamen, peringkat anggota, kelas pelatihan, dan kabar komunitas terbaru.",
   harianLabel: "Teka-teki hari ini",
   harianJudul: "Satu langkah sebelum menutup tab",
   harianDesk:

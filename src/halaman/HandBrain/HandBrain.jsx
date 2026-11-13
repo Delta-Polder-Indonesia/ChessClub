@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import PapanTekaTeki from "../TekaTeki/PapanTekaTeki.jsx";
 import { BarisProfil } from "../PapanInteraktif/bersama/BarisProfil.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
+import { SUARA, useSuara } from "../../lib/suara.js";
 import { PENGATURAN_AWAL, usePengaturanPapan } from "../PapanInteraktif/bersama/gunakanPengaturanPapan.js";
 import { usePengaturanBersama } from "../PapanInteraktif/bersama/PengaturanKonteks.jsx";
 import TataLetakModePapan from "../PapanInteraktif/bersama/TataLetakModePapan.jsx";
@@ -47,6 +48,7 @@ export default function HandBrain({ pengaturan = null }) {
   const pengaturanBersama = usePengaturanBersama();
   const sumberPengaturan = pengaturan ?? pengaturanBersama ?? pengaturanLokal;
   const pp = sumberPengaturan.nilai ?? PENGATURAN_AWAL;
+  const suara = useSuara();
 
   const [partai, setPartai] = useState(() => buatPartai());
   const [terpilih, setTerpilih] = useState(null);
@@ -89,6 +91,7 @@ export default function HandBrain({ pengaturan = null }) {
     if (bidak.type !== partai.jenis) {
       setPesan(t("papan.hbSalahJenis", { jenis: namaJenis(t, partai.jenis) }));
       bersihkanPilihan();
+      suara.mainkan(SUARA.ilegal);
       return;
     }
     setPesan("");
@@ -110,10 +113,14 @@ export default function HandBrain({ pengaturan = null }) {
       } else if (hasil.alasan === "tidak-legal") {
         setPesan(t("papan.hbTidakLegal"));
       }
+      suara.mainkan(SUARA.ilegal);
       return;
     }
     setPesan("");
     setPartai(hasil.partai);
+    const papanSesudah = papanDariLangkah(hasil.partai.langkah);
+    const pindahTerakhir = papanSesudah.history({ verbose: true }).at(-1);
+    if (pindahTerakhir) suara.mainkanLangkah(pindahTerakhir, papanSesudah);
   }
 
   function onKlik(square) {
@@ -154,6 +161,12 @@ export default function HandBrain({ pengaturan = null }) {
       judul={t("papan.menuHandBrain")}
       tautan={{ to: "/program-kami/hand-brain", label: t("papan.modeTentang") }}
       pengaturan={sumberPengaturan}
+      suara={suara}
+      opsiPengaturan={{
+        koordinat: true,
+        titikLangkah: true,
+        sorotLangkahAkhir: true,
+      }}
     >
     {/* Ukuran papan mengikuti mode Manusia vs Mesin: konten dibatasi 1280px dan
         kolom papan maksimal 520px, sehingga panel kanan selalu lebarnya sama. */}
@@ -186,6 +199,9 @@ export default function HandBrain({ pengaturan = null }) {
             tanda={tanda}
             setBidak={pp.bidak}
             tema={pp.warnaPapan}
+            tampilKoordinat={pp.tampilKoordinat ?? "tepi"}
+            tampilTitikLangkah={pp.tampilTitikLangkah !== false}
+            sorotLangkahAkhir={pp.sorotLangkahAkhir !== false}
             onKlik={onKlik}
             onSelesaiSeret={onSelesaiSeret}
             onTandaPetak={tandaPetak}
