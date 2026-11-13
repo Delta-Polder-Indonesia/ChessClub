@@ -115,27 +115,33 @@ test("regresi Landing: meta/title i18n, tombol hero, CincinKemajuan, dan tabInde
   await expect(tombolHero).toHaveCount(6);
   await expect(page.locator('section div[role="button"]')).toHaveCount(0);
 
-  // CincinKemajuan & GameTowerProgress tidak bertumpuk (tanpa -mt-14),
-  // dan di desktop (xl >= 1280px) tinggi kolom kiri tetap sejajar <= papan catur.
-  const kartuKiri = page.locator("[data-kartu-harian]");
+  // CincinKemajuan & GameTowerProgress tampil (desain PR #257 dipulihkan).
   const ring = page.locator("[data-cincin-kemajuan]");
   await ring.scrollIntoViewIfNeeded();
   await expect(ring).toBeVisible();
   const track = page.locator('[data-component="GameTowerProgress"]');
   await expect(track).toBeVisible();
-  const ringBox = await ring.boundingBox();
-  const trackBox = await track.boundingBox();
-  expect(ringBox).toBeTruthy();
-  expect(trackBox).toBeTruthy();
-  expect(ringBox.y + ringBox.height).toBeLessThanOrEqual(trackBox.y + 1);
-  const lebarViewport = page.viewportSize()?.width ?? 0;
-  if (lebarViewport >= 1280) {
-    const leftBox = await kartuKiri.boundingBox();
-    const boardBox = await kartuKiri.locator("xpath=following-sibling::div[1]/div").first().boundingBox();
-    expect(leftBox).toBeTruthy();
-    expect(boardBox).toBeTruthy();
-    expect(leftBox.height).toBeLessThanOrEqual(boardBox.height + 1);
-  }
+
+  // Papan TekaTekiHarianLanding mendukung mark petak & panah klik kanan + hapus saat klik kiri.
+  const e4 = page.locator('[data-petak="e4"]');
+  const d5 = page.locator('[data-petak="d5"]');
+  await e4.scrollIntoViewIfNeeded();
+  await e4.click({ button: "right" });
+  await expect(e4.locator('[data-tanda-petak="bawaan"]')).toBeVisible();
+
+  const b1 = await e4.boundingBox();
+  const b2 = await d5.boundingBox();
+  expect(b1).toBeTruthy();
+  expect(b2).toBeTruthy();
+  await page.mouse.move(b1.x + b1.width / 2, b1.y + b1.height / 2);
+  await page.mouse.down({ button: "right" });
+  await page.mouse.move(b2.x + b2.width / 2, b2.y + b2.height / 2, { steps: 5 });
+  await page.mouse.up({ button: "right" });
+  await expect(page.locator('svg polygon[data-arrow="e4d5"]')).toBeVisible();
+
+  await page.locator('[data-petak="d4"]').click();
+  await expect(page.locator('[data-tanda-petak]')).toHaveCount(0);
+  await expect(page.locator('svg polygon[data-arrow]')).toHaveCount(0);
 
   // CardCarousel menonaktifkan tautan di luar 3 kartu aktif agar Tab tidak terjebak di duplikat off-screen.
   const tautanCarousel = page.locator('a[href^="/program-kami/ebook-panduan/"]');

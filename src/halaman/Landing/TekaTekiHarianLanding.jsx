@@ -58,6 +58,7 @@ import {
   tanggalHariIni,
   warnaGiliran,
 } from "../../lib/tekaTekiHarian.js";
+import { useTandaBantu } from "../../lib/tandaBantu.js";
 
 const RUTE_HARIAN = "/teka-teki-harian";
 const RUTE_GABUNG = "/pendaftaran-anggota";
@@ -112,6 +113,7 @@ export default function TekaTekiHarianLanding() {
   const [daftar, setDaftar] = useState(null);
   const [progres, setProgres] = useState(() => bacaProgres(hariIni));
   const [dialogGabung, setDialogGabung] = useState(false);
+  const { tanda, tandaPetak, tandaPanah, hapusSemuaTanda } = useTandaBantu();
 
   // Keadaan permainan per soal — diperbarui secara atomik saat beralih soal,
   // sehingga FEN dan identitas soal baru selalu tampil bersamaan.
@@ -190,6 +192,7 @@ export default function TekaTekiHarianLanding() {
     (data) => {
       clearSemuaTimer();
       selesaiRef.current = false;
+      hapusSemuaTanda();
       setGame((prev) => ({
         ...prev,
         indeks: data.indeks,
@@ -208,7 +211,7 @@ export default function TekaTekiHarianLanding() {
         menungguLawan: false,
       }));
     },
-    [clearSemuaTimer]
+    [clearSemuaTimer, hapusSemuaTanda]
   );
 
   // Inisialisasi state permainan saat data soal termuat — indeks melanjutkan
@@ -496,16 +499,16 @@ export default function TekaTekiHarianLanding() {
           <div
             data-component="HomeLayoutDesktopLeft"
             data-kartu-harian
-            className="flex min-w-0 flex-col justify-center gap-y-3.5 xl:col-span-3 xl:min-h-[440px]"
+            className="flex min-w-0 flex-col justify-center gap-y-6 xl:col-span-3 xl:min-h-[440px]"
           >
             <header
               data-component="HomeWelcomeMessage"
-              className="flex flex-col items-center gap-y-1 text-center"
+              className="flex flex-col items-center gap-y-2 text-center"
             >
-              <h2 className="font-serif text-2xl font-semibold leading-tight text-grey-800">
+              <h2 className="font-serif text-3xl font-semibold leading-tight text-grey-800">
                 {judulKartu}
               </h2>
-              <p className="max-w-lg font-serif text-base leading-snug text-grey-600">
+              <p className="max-w-lg font-serif text-base leading-relaxed text-grey-600">
                 {deskKartu}
               </p>
             </header>
@@ -513,10 +516,10 @@ export default function TekaTekiHarianLanding() {
             <section
               aria-label={t("landing.harianProgresAria")}
               data-component="HomeRatingProgress"
-              className="flex min-w-0 justify-center"
+              className="flex min-w-0 justify-center xl:justify-start"
             >
               <CincinKemajuan
-                ukuran={172}
+                ukuran={200}
                 nilai={jatahTerpakai}
                 maks={BATAS_HARIAN}
                 label={t("landing.harianRingLabel")}
@@ -534,20 +537,21 @@ export default function TekaTekiHarianLanding() {
                   n: jatahTerpakai,
                   total: BATAS_HARIAN,
                 })}
+                className="xl:translate-x-[60px]"
               />
             </section>
 
             <section
               aria-label={t("landing.harianTrackAria")}
               data-component="GameTowerProgress"
-              className="flex min-w-0 flex-col gap-y-2 border-t border-grey-200 pt-3"
+              className="relative z-10 -mt-14 flex min-w-0 flex-col gap-y-3 border-t border-grey-200 bg-paper pt-4"
             >
               <div className="flex items-end justify-between gap-4">
-                <div className="flex min-w-0 flex-col gap-y-0.5">
+                <div className="flex min-w-0 flex-col gap-y-1">
                   <h3 className="font-sans text-sm font-semibold text-primary">
                     {t("landing.harianKartuLabelJatah")}
                   </h3>
-                  <p className="flex items-baseline gap-1 font-serif text-2xl font-semibold leading-none text-grey-800">
+                  <p className="flex items-baseline gap-1 font-serif text-2xl font-semibold text-grey-800">
                     {jatahTerpakai}
                     <span className="font-sans text-base font-normal text-grey-600">
                       /{BATAS_HARIAN}
@@ -601,11 +605,11 @@ export default function TekaTekiHarianLanding() {
               </div>
             </section>
 
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 font-sans">
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-3 font-sans">
               <Tombol
                 to={RUTE_HARIAN}
                 variant="garis"
-                className="h-10 px-4"
+                className="h-12 px-4 md:px-6"
                 aria-label={`${t("landing.harianCta")}: ${t("landing.harianJudul")}`}
               >
                 <span className="order-1">{t("landing.harianCta")}</span>
@@ -669,6 +673,10 @@ export default function TekaTekiHarianLanding() {
                     onKlik={klikPetak}
                     onPilih={pilihPetak}
                     onJatuh={cobaLangkah}
+                    tanda={tanda}
+                    onTandaPetak={tandaPetak}
+                    onTandaPanah={tandaPanah}
+                    onHapusTanda={hapusSemuaTanda}
                   />
 
                   {/* Pemilih promosi tetap berada di atas papan demo. */}
@@ -736,7 +744,7 @@ export default function TekaTekiHarianLanding() {
               <section className="border-t border-grey-200 pt-5">
                 <p
                   aria-live="polite"
-                    className={`font-sans text-sm font-semibold ${
+                  className={`font-sans text-sm font-semibold ${
                     game.selesaiSoal
                       ? "text-primary"
                       : game.pesan?.jenis === "salah"
