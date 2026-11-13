@@ -184,6 +184,11 @@ export default function TuringTest({ pengaturan = null }) {
       judul={t("papan.menuTuring")}
       tautan={{ to: "/program-kami/turing-test", label: t("papan.modeTentang") }}
       pengaturan={sumberPengaturan}
+      opsiPengaturan={{
+        koordinat: true,
+        titikLangkah: false,
+        sorotLangkahAkhir: true,
+      }}
     >
     {/* Ukuran papan mengikuti Hand & Brain dan Manusia vs Mesin (lihat HandBrain.jsx). */}
     <section
@@ -212,6 +217,8 @@ export default function TuringTest({ pengaturan = null }) {
                 tanda={tanda}
                 setBidak={pp.bidak}
                 tema={pp.warnaPapan}
+                tampilKoordinat={pp.tampilKoordinat ?? "tepi"}
+                sorotLangkahAkhir={pp.sorotLangkahAkhir !== false}
                 onKlik={() => {}}
                 onSelesaiSeret={() => {}}
                 onTandaPetak={tandaPetak}

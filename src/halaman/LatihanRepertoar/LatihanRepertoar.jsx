@@ -4,6 +4,7 @@ import PapanTekaTeki from "../TekaTeki/PapanTekaTeki.jsx";
 import Back from "../PapanInteraktif/bersama/ikon/back.jsx";
 import { BarisProfil } from "../PapanInteraktif/bersama/BarisProfil.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
+import { SUARA, useSuara } from "../../lib/suara.js";
 import {
   buatKartuDariJalur,
   cocokLangkahBuku,
@@ -149,6 +150,12 @@ export default function LatihanRepertoar({ pengaturan = null }) {
   const pengaturanBersama = usePengaturanBersama();
   const sumberPengaturan = pengaturan ?? pengaturanBersama ?? pengaturanLokal;
   const pp = sumberPengaturan.nilai ?? PENGATURAN_AWAL;
+  const suara = useSuara();
+  const opsiPengaturan = {
+    koordinat: true,
+    titikLangkah: true,
+    sorotLangkahAkhir: true,
+  };
 
   const [kartu, setKartu] = useState([]);
   const [memuatKartu, setMemuatKartu] = useState(true);
@@ -524,6 +531,7 @@ export default function LatihanRepertoar({ pengaturan = null }) {
       setPesan(t("papan.repertoarLangkahIlegal"));
       setTerpilih(null);
       setSasaran([]);
+      suara.mainkan(SUARA.ilegal);
       return;
     }
 
@@ -547,13 +555,16 @@ export default function LatihanRepertoar({ pengaturan = null }) {
         setFen(buku.fen());
         setLangkahAkhir({ from: langkahBuku.from, to: langkahBuku.to });
         setStatusLatihan("benar");
+        suara.mainkanLangkah(langkahBuku, buku);
       } else {
         setLangkahSalah(pindah.san);
         setStatusLatihan("salah");
+        suara.mainkan(SUARA.tekaTekiSalah);
       }
     } else {
       setLangkahSalah(pindah.san);
       setStatusLatihan("salah");
+      suara.mainkan(SUARA.tekaTekiSalah);
     }
   }
 
@@ -704,6 +715,7 @@ export default function LatihanRepertoar({ pengaturan = null }) {
       setPesan(t("papan.repertoarLangkahIlegal"));
       setTerpilih(null);
       setSasaran([]);
+      suara.mainkan(SUARA.ilegal);
       return;
     }
 
@@ -720,6 +732,7 @@ export default function LatihanRepertoar({ pengaturan = null }) {
     // Salah atau lewat batas waktu: percobaan berhenti di langkah ini.
     if (!nilai.benar) {
       setLangkahSalah(pindah.san);
+      suara.mainkan(SUARA.tekaTekiSalah);
       selesaikanTantangan({
         benar: tantangan.indeks,
         streakTerbaik: tantangan.streakTerbaik,
@@ -739,6 +752,7 @@ export default function LatihanRepertoar({ pengaturan = null }) {
     } catch {
       // Kartu rusak: papan tetap di posisi soal berikutnya, tanpa sorotan.
     }
+    if (langkahBuku) suara.mainkanLangkah(langkahBuku, buku);
 
     const indeksBaru = tantangan.indeks + 1;
     const streakBaru = tantangan.streak + 1;
@@ -841,6 +855,8 @@ export default function LatihanRepertoar({ pengaturan = null }) {
         judul={t("papan.menuLatihanRepertoar")}
         tautan={{ to: "/program-kami/latihan-repertoar", label: t("papan.modeTentang") }}
         pengaturan={sumberPengaturan}
+        suara={suara}
+        opsiPengaturan={opsiPengaturan}
       >
       <section aria-label={t("papan.repertoarJudul")} className="h-full min-h-0 overflow-y-auto">
         <div
@@ -882,6 +898,9 @@ export default function LatihanRepertoar({ pengaturan = null }) {
                     tanda={tanda}
                     setBidak={pp.bidak}
                     tema={pp.warnaPapan}
+                    tampilKoordinat={pp.tampilKoordinat ?? "tepi"}
+                    tampilTitikLangkah={pp.tampilTitikLangkah !== false}
+                    sorotLangkahAkhir={pp.sorotLangkahAkhir !== false}
                     onKlik={(square) => {
                       if (terpilih && sasaran.includes(square)) jawabLangkah(terpilih, square);
                       else pilihPetak(square);
@@ -1179,6 +1198,8 @@ export default function LatihanRepertoar({ pengaturan = null }) {
         judul={t("papan.menuLatihanRepertoar")}
         tautan={{ to: "/program-kami/latihan-repertoar", label: t("papan.modeTentang") }}
         pengaturan={sumberPengaturan}
+        suara={suara}
+        opsiPengaturan={opsiPengaturan}
       >
       <section aria-label={t("papan.repertoarTantanganJudul")} className="h-full min-h-0 overflow-y-auto">
         <div
@@ -1211,6 +1232,9 @@ export default function LatihanRepertoar({ pengaturan = null }) {
                   tanda={tanda}
                   setBidak={pp.bidak}
                   tema={pp.warnaPapan}
+                  tampilKoordinat={pp.tampilKoordinat ?? "tepi"}
+                  tampilTitikLangkah={pp.tampilTitikLangkah !== false}
+                  sorotLangkahAkhir={pp.sorotLangkahAkhir !== false}
                   onKlik={(square) => {
                     if (terpilih && sasaran.includes(square)) jawabTantangan(terpilih, square);
                     else pilihPetakTantangan(square);
@@ -1430,6 +1454,8 @@ export default function LatihanRepertoar({ pengaturan = null }) {
         judul={t("papan.menuLatihanRepertoar")}
         tautan={{ to: "/program-kami/latihan-repertoar", label: t("papan.modeTentang") }}
         pengaturan={sumberPengaturan}
+        suara={suara}
+        opsiPengaturan={opsiPengaturan}
       >
       <div
         data-statistik-repertoar
@@ -1600,6 +1626,8 @@ export default function LatihanRepertoar({ pengaturan = null }) {
       judul={t("papan.menuLatihanRepertoar")}
       tautan={{ to: "/program-kami/latihan-repertoar", label: t("papan.modeTentang") }}
       pengaturan={sumberPengaturan}
+      suara={suara}
+      opsiPengaturan={opsiPengaturan}
     >
     <div className="flex h-full min-h-0 flex-col overflow-y-auto p-4">
       <header className="flex shrink-0 flex-wrap items-start justify-between gap-3 border-b border-[#312e2b] pb-4">
@@ -1761,6 +1789,9 @@ export default function LatihanRepertoar({ pengaturan = null }) {
                             orientasi={warnaLatihan}
                             terakhir={pratinjauJalur.terakhir}
                             setBidak={pp.bidak}
+                            tema={pp.warnaPapan}
+                            tampilKoordinat={pp.tampilKoordinat ?? "tepi"}
+                            sorotLangkahAkhir={pp.sorotLangkahAkhir !== false}
                             ariaLabel={t("papan.repertoarPratinjau", { nama: jalurTerpilih.nama })}
                           />
                         </div>
@@ -1817,6 +1848,9 @@ export default function LatihanRepertoar({ pengaturan = null }) {
                   fen={garisAktif.fenAkhir}
                   orientasi={garisAktif.warna}
                   setBidak={pp.bidak}
+                  tema={pp.warnaPapan}
+                  tampilKoordinat={pp.tampilKoordinat ?? "tepi"}
+                  sorotLangkahAkhir={pp.sorotLangkahAkhir !== false}
                   ariaLabel={t("papan.repertoarPratinjau", { nama: garisAktif.nama })}
                 />
               ) : null}
@@ -1973,6 +2007,9 @@ export default function LatihanRepertoar({ pengaturan = null }) {
                             fen={jalur.fenAkhir}
                             orientasi={jalur.warna}
                             setBidak={pp.bidak}
+                            tema={pp.warnaPapan}
+                            tampilKoordinat={pp.tampilKoordinat ?? "tepi"}
+                            sorotLangkahAkhir={pp.sorotLangkahAkhir !== false}
                             ariaLabel={t("papan.repertoarPratinjau", { nama: jalur.nama })}
                           />
                         ) : (

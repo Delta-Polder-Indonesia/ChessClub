@@ -68,6 +68,28 @@ for (const [bahasa, t] of Object.entries(kamus)) {
     await expect(status).toHaveText(t.giliranHitam);
     await expect(page.getByRole("listitem").filter({ hasText: /^1\./ })).toHaveCount(1);
 
+    // Pengaturan tampil sebagai panel papan (bukan popup role="dialog"), menerapkan
+    // perubahan tema/bidak ke papan, dan menjaga progres partai saat ditutup.
+    const labelPengaturan = bahasa === "en" ? "Settings" : "Pengaturan";
+    const labelTutup = bahasa === "en" ? "Close" : "Tutup";
+    const labelWarna = bahasa === "en" ? "Board color" : "Warna papan";
+    await page.getByRole("button", { name: labelPengaturan, exact: true }).click();
+    await expect(page.locator('[role="dialog"]')).toHaveCount(0);
+    const panelPengaturan = page.locator('[data-panel="mode-pengaturan"]');
+    await expect(panelPengaturan).toBeVisible();
+    await panelPengaturan.getByLabel(labelWarna).selectOption("blue");
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth > window.innerWidth
+    );
+    expect(overflow).toBe(false);
+    await panelPengaturan.getByRole("button", { name: labelTutup }).click();
+    await expect(panelPengaturan).toBeHidden();
+    await expect(page.getByRole("listitem").filter({ hasText: /^1\./ })).toHaveCount(1);
+    await expect(page.locator('[data-petak="a8"]')).toHaveCSS(
+      "background-color",
+      "rgb(215, 229, 240)"
+    );
+
     // Partai baru mengosongkan riwayat dan kembali ke giliran Putih.
     await page.getByRole("button", { name: t.baru, exact: true }).click();
     await expect(status).toHaveText(t.giliranPutih);
