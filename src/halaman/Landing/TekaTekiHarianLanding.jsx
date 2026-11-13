@@ -362,6 +362,33 @@ export default function TekaTekiHarianLanding() {
     pilihPetak(petak);
   }
 
+  /**
+   * Awal seret / tekan pada bidak sendiri. Dipisahkan dari `klikPetak` karena
+   * peramban memegang pointer capture di elemen papan selama seret, sehingga
+   * event `click` pada petak tidak selalu mendarat di tombol petak.
+   */
+  function mulaiSeret(petak) {
+    pilihPetak(petak);
+  }
+
+  /**
+   * Akhir seret. `klikUlang` = bidak ditekan lalu dilepas di petak yang sama
+   * saat bidak itu sudah terpilih: penanda langkahnya harus hilang (klik
+   * pertama memilih, klik kedua membatalkan).
+   */
+  function selesaiSeret(from, to, klikUlang) {
+    if (klikUlang) {
+      setGame((prev) => ({ ...prev, terpilih: null, sasaran: [] }));
+      return;
+    }
+    if (!to || from === to) return;
+    cobaLangkah(from, to);
+  }
+
+  function batalSeret() {
+    setGame((prev) => ({ ...prev, terpilih: null, sasaran: [] }));
+  }
+
   function cobaLangkah(from, to, promo) {
     if (
       !game.posisi ||
@@ -672,6 +699,9 @@ export default function TekaTekiHarianLanding() {
                     membeku={game.menungguLawan}
                     onKlik={klikPetak}
                     onPilih={pilihPetak}
+                    onMulaiSeret={mulaiSeret}
+                    onSelesaiSeret={selesaiSeret}
+                    onBatalSeret={batalSeret}
                     onJatuh={cobaLangkah}
                     tanda={tanda}
                     onTandaPetak={tandaPetak}

@@ -122,6 +122,17 @@ test("regresi Landing: meta/title i18n, tombol hero, CincinKemajuan, dan tabInde
   const track = page.locator('[data-component="GameTowerProgress"]');
   await expect(track).toBeVisible();
 
+  // Klik bidak sendiri sekali -> tampilkan penanda langkah; klik sekali lagi -> hapus penanda.
+  const kuda = page.locator('[data-petak="g4"]');
+  await kuda.scrollIntoViewIfNeeded();
+  await kuda.click();
+  await expect(kuda.locator('[data-bantu-pilih]')).toBeVisible();
+  expect(await page.locator('[data-bantu-sasaran]').count()).toBeGreaterThan(0);
+
+  await kuda.click();
+  await expect(page.locator('[data-bantu-pilih]')).toHaveCount(0);
+  await expect(page.locator('[data-bantu-sasaran]')).toHaveCount(0);
+
   // Papan TekaTekiHarianLanding mendukung mark petak & panah klik kanan + hapus saat klik kiri.
   const e4 = page.locator('[data-petak="e4"]');
   const d5 = page.locator('[data-petak="d5"]');
