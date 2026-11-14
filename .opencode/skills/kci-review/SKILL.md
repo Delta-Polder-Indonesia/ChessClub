@@ -204,23 +204,27 @@ Tinjauan: `git diff origin/main...<cabang>` (N berkas, +tambah / -hapus).
 Dilewati: `package-lock.json`, `dist/`, snapshot Playwright.
 
 ### Critical
-1. **Injeksi FEN di muat partai** (`src/lib/imporPgn.js:58`, terkonfirmasi)
-   `fen` dari string PGN pengguna diteruskan ke `new Chess(fen)` tanpa dibersihkan.
-   Payload yang dibentuk khusus bisa membuat posisi tidak sah disimpan ke basis data.
-   Perbaikan: validasi lewat `bersihkanFen()` (lihat `server/src/basisDataAwan.js`)
-   sebelum dipakai; tolak dengan galat yang jelas bila tidak sah.
+1. **FEN dari impor PGN dipakai tanpa dibersihkan**
+   (`src/halaman/Analisa/basisData.js:xx`, terkonfirmasi)
+   Nilai `fen` dari string PGN yang diunggah pengguna diteruskan ke
+   `new Chess(fen)` tanpa validasi; payload yang dibentuk khusus bisa
+   membuat posisi tidak sah tersimpan ke IndexedDB.
+   Perbaikan: bersihkan lewat `bersihkanFen()` (pola yang sama dipakai
+   `server/src/basisDataAwan.js` untuk FEN yang dikirim ke layanan luar)
+   sebelum memuat; tolak dengan galat yang jelas bila FEN tidak sah.
 
 ### High
-2. **Token CSRF tidak disertakan pada aksi simpan repertoar**
-   (`src/lib/api/repertoar.js:34`, terkonfirmasi oleh `npm run uji:api-csrf`)
-   Permintaan POST memakai header bawaan `fetch` tanpa `X-CSRF-Token`, sehingga
-   dibalas 403.
+2. **Token CSRF tidak disertakan pada aksi tulis baru**
+   (`src/lib/api/<modul>.js:xx`, terkonfirmasi oleh `npm run uji:api-csrf`)
+   Permintaan POST memakai header bawaan `fetch` tanpa `X-CSRF-Token`,
+   sehingga dibalas 403.
    Perbaiki: ambil token dari `sessionStorage`/`<meta name="csrf-token">`
-   (pola yang dipakai `src/lib/api/anggota.js` dan `src/lib/api/ebook.js`) dan
-   sisipkan ke header `X-CSRF-Token`.
+   (pola yang dipakai `src/lib/api/anggota.js` dan `src/lib/api/ebook.js`)
+   dan sisipkan ke header `X-CSRF-Token`.
 
 ### Nits
-- `formatWaktu` diduplikasi di `PanelJam.jsx` dan `RushHasil.jsx`.
+- Fungsi bantu kecil yang dipakai di dua tempat namun didefinisikan
+  dua kali (mis. format durasi di panel jam dan di halaman hasil).
 ```
 
 Aturan laporan:
@@ -238,7 +242,9 @@ Aturan laporan:
 - Tetap ringkas. Jangan merangkum apa yang PR lakukan kecuali diminta; penulis sudah
   tahu.
 
-### Menjalankan uji sebelum menandatangani
+---
+
+## 8. Menjalankan uji sebelum menandatangani
 
 Patuhi `kci-pengujian/references/alur-uji-per-area.md` — jalankan uji minimum area yang
 disentuh, lalu:
@@ -261,9 +267,7 @@ Jika uji yang relevan gagal karena masalah di luar diff (mis. sandbox Arena tida
 mengunduh CDN Playwright, atau uji `uji:supabase` butuh kredensial), nyatakan dengan
 terus terang apa yang tidak bisa diverifikasi — jangan klaim lolos tanpa bukti.
 
----
-
-## 8. Setelah laporan
+## 9. Setelah laporan
 
 - Jangan menyunting berkas, melakukan *push*, atau mengepos komentar di GitHub kecuali
   diminta pengguna. Jika diminta memperbaiki temuan, perbaiki **hanya** temuan itu,
@@ -278,7 +282,7 @@ terus terang apa yang tidak bisa diverifikasi — jangan klaim lolos tanpa bukti
 
 ---
 
-## Acuan cepat apa yang tidak perlu ditinjau bila di luar lingkup
+## 10. Acuan cepat apa yang tidak perlu ditinjau bila di luar lingkup
 
 - Pembenihan massal tanpa permintaan (`AGENTS.md` "Scope control").
 - Perubahan pada berkas yang secara eksplisit dilindungi (lihat `AGENTS.md`):
