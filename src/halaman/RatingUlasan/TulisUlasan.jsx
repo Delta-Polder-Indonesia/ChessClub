@@ -13,7 +13,7 @@
  */
 import { useCallback, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { FormUlasan, PanahKiri } from "../Landing/komponen-rating.jsx";
+import { FormUlasan } from "../Landing/komponen-rating.jsx";
 import { useUlasan } from "../Landing/gunakanUlasan.js";
 import { useI18n } from "../../lib/i18n.jsx";
 import MetaHalaman from "../../components/MetaHalaman.jsx";
@@ -29,7 +29,6 @@ export default function TulisUlasan() {
   const [bintangAwal, setBintangAwal] = useState(0);
 
   useEffect(() => {
-    // Baca dari sessionStorage (pilihan di Landing) atau dari state navigasi.
     let nilai = 0;
     try {
       nilai = Number(globalThis.sessionStorage?.getItem(KUNCI_BINTANG_HERO)) || 0;
@@ -38,16 +37,14 @@ export default function TulisUlasan() {
     setBintangAwal(nilai);
   }, [location.state]);
 
-  const kembali = useCallback(() => {
+  const batal = useCallback(() => {
     navigate(-1);
   }, [navigate]);
 
   const kirim = useCallback(
     (data) => {
       const baru = tambah(data);
-      // Hapus pilihan bintang hero karena sudah terkirim.
       try { globalThis.sessionStorage?.removeItem(KUNCI_BINTANG_HERO); } catch { /* abaikan */ }
-      // Kembali ke halaman sebelumnya sambil membawa pesan sukses.
       navigate(-1, { state: { ulasTerkirim: true, bintang: baru.bintang }, replace: false });
     },
     [tambah, navigate]
@@ -59,21 +56,8 @@ export default function TulisUlasan() {
         title={t("landing.rating.tulisUlasan")}
         description={t("landing.rating.ajakSub")}
       />
-      {/* Halaman immersive (tanpa Header/Footer): tombol Kembali menempel di
-          tepi atas, konten di bawahnya, padding konsisten dengan layar
-          penuh lain di situs. */}
       <div className="min-h-screen bg-paper">
-        <div className="mx-auto w-full max-w-2xl px-6 pt-6 pb-14 md:px-8 md:pt-8 md:pb-20">
-          <button
-            type="button"
-            onClick={kembali}
-            aria-label={t("landing.rating.kembali")}
-            className="-ml-3 mb-6 inline-flex items-center gap-2 rounded-full px-3 py-2 font-sans text-sm font-medium text-foreground transition-colors hover:bg-backgroundBox"
-          >
-            <PanahKiri className="size-5" />
-            <span>{t("landing.rating.kembali")}</span>
-          </button>
-
+        <div className="mx-auto w-full max-w-2xl px-6 pt-10 pb-14 md:px-8 md:pt-14 md:pb-20">
           <div className="mb-6 flex flex-col items-start gap-2">
             <h1 className="font-sans text-2xl font-semibold text-foreground md:text-3xl">
               {t("landing.rating.ajakJudul")}
@@ -87,7 +71,7 @@ export default function TulisUlasan() {
             t={t}
             bintangAwal={bintangAwal}
             onKirim={kirim}
-            onBatal={kembali}
+            onBatal={batal}
           />
         </div>
       </div>
