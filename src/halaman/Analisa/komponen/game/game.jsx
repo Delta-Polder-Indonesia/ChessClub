@@ -143,14 +143,26 @@ function Game({ wadah }) {
   useEffect(() => {
     tabRef.current = tab;
   }, [tab]);
+  // Ref membaca nilai TERBARU dari state di dalam interval tanpa harus
+  // menambahkan state ke dependensi effect. Dependensi yang longgar akan
+  // membuat effect dibersihkan & dibuat ulang tiap langkah, yang akan
+  // memanggil nextMove2() segera pada setiap re-run (karena nextMove2()
+  // dipanggil sekali di luar interval saat effect mulai) — inilah yang
+  // membuat langkah berjalan terlalu cepat. Ref berikut selalu sinkron
+  // dengan render terbaru.
+  const playingEndCheckRef = useRef({ moveNumber, gameLen: game.length, customLine, move2 });
+  useEffect(() => {
+    playingEndCheckRef.current = { moveNumber, gameLen: game.length, customLine, move2 };
+  }, [moveNumber, game.length, customLine, move2]);
   useEffect(() => {
     clearInterval(intervalRef.current);
     if (playing) {
       const atEndOfLine = () => {
-        if (customLine.moveNumber >= 0) {
-          return customLine.moveNumber >= customLine.moves.length - 1 && Boolean(getCustomResult(move2));
+        const s = playingEndCheckRef.current;
+        if (s.customLine.moveNumber >= 0) {
+          return s.customLine.moveNumber >= s.customLine.moves.length - 1 && Boolean(getCustomResult(s.move2));
         }
-        return moveNumber >= game.length - 1;
+        return s.moveNumber >= s.gameLen - 1;
       };
       const nextMove2 = function() {
         if (atEndOfLine()) {
@@ -171,7 +183,7 @@ function Game({ wadah }) {
       clearInterval(intervalRef.current);
     }
     return () => clearInterval(intervalRef.current);
-  }, [playing, gameController, moveNumber, game.length, customLine.moveNumber, customLine.moves.length, move2, setPlaying]);
+  }, [playing, gameController, setPlaying]);
   const cleanCurrentArrows = useCallback(() => {
     if (customLine.moveNumber < 0) {
       setArrows((prev) => {
