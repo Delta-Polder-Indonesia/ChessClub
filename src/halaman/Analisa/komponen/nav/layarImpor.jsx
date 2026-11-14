@@ -212,7 +212,11 @@ export default function LayarImpor({ onTutup, onImpor }) {
         </div>
       ) : tipe === "online" ? (
         <div className="mt-4">
+          <label htmlFor="impor-online" className="mb-1.5 block text-xs font-bold text-foregroundGrey">
+            GAME URL (lichess or chess.com)
+          </label>
           <input
+            id="impor-online"
             type="url"
             value={tautan}
             disabled={memuat}
@@ -224,9 +228,8 @@ export default function LayarImpor({ onTutup, onImpor }) {
               }
             }}
             data-uji="impor-online"
-            placeholder="GAME URL (lichess or chess.com)"
             aria-label={t("analisa.impor.onlineLabel")}
-            className="w-full rounded-borderRoundness border border-border bg-backgroundBoxBox px-3 py-2 font-mono text-xs text-foreground outline-none transition-colors placeholder:text-foregroundGrey hover:border-borderHighlighted focus:border-borderHighlighted"
+            className="w-full rounded-borderRoundness border border-border bg-backgroundBoxBox px-3 py-2 font-mono text-xs text-foreground outline-none transition-colors hover:border-borderHighlighted focus:border-borderHighlighted"
           />
         </div>
       ) : (
