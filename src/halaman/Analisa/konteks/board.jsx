@@ -49,6 +49,11 @@ export function BoardProvider({ children }) {
    * `analyze.jsx` dibaca kunci "kci-analisa-depth" yang tidak pernah ditulis
    * siapa pun, jadi pilihan pengguna selalu kembali ke 13 setiap kali
    * halaman dibuka.
+   *
+   * Default papan Analisa tetap 13 (cukup dalam untuk analisis serius
+   * di perangkat desktop); layar Deteksi Engine memakai
+   * KEDALAMAN_AGGREGAT=8 yang terpisah (lebih ringan untuk agregat
+   * banyak partai) dan tidak menyentuh state ini.
    */
   const [depth, setDepth] = useState(() => {
     const tersimpan = bacaAngka("kedalaman", 13);

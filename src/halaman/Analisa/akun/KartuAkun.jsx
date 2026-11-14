@@ -1,13 +1,17 @@
 /*
- * Kartu akun (kolom kiri layar akun) — meniru AccountCard.tsx pada
- * En Croissant: kartu ber-border dengan header (logo situs + nama + aksi
- * muat ulang/hapus), baris statistik Bullet/Blitz/Rapid, lalu bar "Games
- * terunduh / total" + progress + "Pembaruan terakhir". Kartu dapat di-klik
- * untuk memilih akun yang statistiknya ditampilkan di kanan.
+ * Kartu akun (kolom kiri layar akun) — kartu ber-border dengan header
+ * (avatar + nama + aksi hapus), baris statistik Bullet/Blitz/Rapid,
+ * lalu bar "Games terunduh / total" + progress + "Pembaruan terakhir".
+ * Kartu dapat di-klik untuk memilih akun yang statistiknya ditampilkan
+ * di kanan.
  *
- * UPDATE: tombol "Tarik data" (Download) dihapus dari daftar akun sesuai
- * permintaan — daftar akun hanya menampilkan info profile. Tarik data
- * dipindah ke layar Database dengan filter periode.
+ * UPDATE (2026-11): logo platform (Chess.com/Lichess) di kanan header
+ * dan tombol refresh "Perbaharui statistik" dihapus. Logo tidak memberi
+ * informasi yang tidak sudah terwakili avatar/warna latar; refresh
+ * redundan karena pembaruan statistik sudah ditangani otomatis di
+ * layar Wawasan/Database (muatUlangRef di nav/layarDatabase.jsx yang
+ * dipicu otomatis saat basis data berubah). Tersisa tombol hapus
+ * untuk mengeluarkan akun dari daftar.
  */
 import { useEffect, useState } from "react";
 import { useI18n } from "../../../lib/i18n.jsx";
@@ -15,9 +19,6 @@ import { useKartuPemain } from "../../../lib/pemainCatur.js";
 import { ambilDaftarPartai, bacaRevisiBasis } from "../basisData.js";
 import Profile from "../komponen/svg/profile.jsx";
 import Trash from "../komponen/svg/trash.jsx";
-import Refresh from "../komponen/svg/refresh.jsx";
-import LichessLogo from "../komponen/svg/LichessLogo.jsx";
-import ChessComLogo from "../komponen/svg/ChessComLogo.jsx";
 
 const BIRU = "#4a9dd9";
 
@@ -38,10 +39,6 @@ function formatRating(x) {
   return x == null ? "—" : String(x);
 }
 
-function Logo({ platform, className }) {
-  return platform === "lichessOrg" ? <LichessLogo className={className} /> : <ChessComLogo className={className} />;
-}
-
 export default function KartuAkun({ platform, username, aktif = false, onPilih, onHapus }) {
   const { t, bahasa: locale } = useI18n();
   const user = String(username || "").trim();
@@ -52,7 +49,6 @@ export default function KartuAkun({ platform, username, aktif = false, onPilih, 
     return e ? { games: e.games, lastUpdate: e.lastUpdate, galat: false } : { games: 0, lastUpdate: null, galat: false };
   });
   const [totalTersimpan, setTotalTersimpan] = useState(() => cacheValid(cacheTotal, koleksiId)?.total ?? 0);
-  const [token, setToken] = useState(0);
 
   useEffect(() => {
     let hidup = true;
@@ -73,7 +69,7 @@ export default function KartuAkun({ platform, username, aktif = false, onPilih, 
     return () => {
       hidup = false;
     };
-  }, [koleksiId, token]);
+  }, [koleksiId]);
 
   // Simpan `total` (dari kartu profil) ke cache modul supaya penyebut bar
   // tidak kembali ke 0 sesaat saat kartu di-mount ulang.
@@ -114,7 +110,9 @@ export default function KartuAkun({ platform, username, aktif = false, onPilih, 
         aktif ? "border-[var(--analisa-backgroundBoxBoxHighlighted)] ring-1 ring-[var(--analisa-backgroundBoxBoxHighlighted)]" : "border-border hover:border-borderHighlighted"
       }`}
     >
-      {/* Header: logo situs + nama + aksi (hanya refresh lokal + hapus, tanpa tarik) */}
+      {/* Header: avatar + nama + aksi hapus (logo platform & tombol refresh
+          dihapus — logo tidak memberi informasi tambahan, refresh redundan
+          karena pembaruan statistik ditangani otomatis di Wawasan/Database). */}
       <div className="flex items-center gap-2 sm:gap-3 border-b border-border px-2.5 sm:px-3 py-2 sm:py-2.5">
         <span className={`grid h-7 w-7 shrink-0 place-items-center overflow-hidden rounded-md ${platform === "chessCom" ? "bg-backgroundProfileWhite" : "bg-backgroundProfileBlack"}`}>
           {kartu?.avatar ? (
@@ -124,31 +122,17 @@ export default function KartuAkun({ platform, username, aktif = false, onPilih, 
           )}
         </span>
         <span className="min-w-0 flex-1 truncate text-sm font-bold text-foreground">{user}</span>
-        <Logo platform={platform} className="h-[32px] w-[32px] sm:h-[50px] sm:w-[50px] shrink-0 fill-current text-foregroundGrey" />
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            title={t("analisa.statistik.refresh")}
-            onClick={(e) => {
-              e.stopPropagation();
-              setToken((x) => x + 1);
-            }}
-            className="grid h-6 w-6 cursor-pointer place-items-center rounded-borderRoundness text-foregroundGrey transition-colors hover:bg-backgroundBoxBoxHover hover:text-foregroundHighlighted"
-          >
-            <Refresh className="h-[15px] w-[15px]" />
-          </button>
-          <button
-            type="button"
-            title={t("analisa.akun.batal")}
-            onClick={(e) => {
-              e.stopPropagation();
-              onHapus?.();
-            }}
-            className="grid h-6 w-6 cursor-pointer place-items-center rounded-borderRoundness text-foregroundGrey transition-colors hover:bg-backgroundBoxBoxHover hover:text-lossRed"
-          >
-            <Trash className="h-[15px] w-[15px]" />
-          </button>
-        </div>
+        <button
+          type="button"
+          title={t("analisa.akun.batal")}
+          onClick={(e) => {
+            e.stopPropagation();
+            onHapus?.();
+          }}
+          className="grid h-6 w-6 cursor-pointer place-items-center rounded-borderRoundness text-foregroundGrey transition-colors hover:bg-backgroundBoxBoxHover hover:text-lossRed"
+        >
+          <Trash className="h-[15px] w-[15px]" />
+        </button>
       </div>
 
       {/* Baris statistik Bullet/Blitz/Rapid */}
