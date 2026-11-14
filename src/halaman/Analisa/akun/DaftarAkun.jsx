@@ -52,9 +52,12 @@ export default function DaftarAkun({ daftar, aktif, revisi = 0, onPilih, onHapus
             <p className="text-sm font-bold text-foreground">{t("analisa.akun.daftar")}</p>
             <div className="mt-2 w-full border-b border-border" />
           </div>
-          <div className="flex min-h-0 flex-1 flex-col sm:flex-wrap sm:flex-row content-start justify-start gap-2 sm:gap-3 overflow-y-auto pb-1">
+          {/* Dua kolom di sm+, satu kolom di ponsel. Grid otomatis membagi
+              lebar sama rata sehingga kartu tidak lagi tumpuk ke kiri
+              menyisakan ruang kosong di kanan. */}
+          <div className="grid min-h-0 flex-1 grid-cols-1 sm:grid-cols-2 content-start gap-2 sm:gap-3 overflow-y-auto pb-1">
             {list.map((a) => (
-              <div key={`${a.platform}:${a.username}:${revisi}`} className="min-w-0 w-full sm:max-w-[300px]">
+              <div key={`${a.platform}:${a.username}:${revisi}`} className="min-w-0">
                 <KartuAkun
                   platform={a.platform}
                   username={a.username}

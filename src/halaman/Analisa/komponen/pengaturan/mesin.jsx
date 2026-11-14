@@ -1,5 +1,5 @@
 /* Bagian pengaturan fitur Analisa — ditulis untuk ChessClub (bukan port). */
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useI18n } from "../../../../lib/i18n.jsx";
 import { DAFTAR_ENGINE, cariEngine } from "../../../../lib/engineCatur.js";
 import { gambar } from "../../../../lib/asets.js";
@@ -27,14 +27,6 @@ import Gambar from "../Gambar.jsx";
  * pengguna menekan tombol atau benar-benar membutuhkan analisis.
  */
 
-/** Jepit angka ke rentang [min, max]; kosong/bukan angka dibiarkan (batal). */
-function terapkanAngka(teks, min, max, simpan) {
-  if (String(teks).trim() === "") return;
-  const n = Math.round(Number(teks));
-  if (!Number.isFinite(n)) return;
-  simpan(Math.min(max, Math.max(min, n)));
-}
-
 function PengaturanMesin() {
   const { t } = useI18n();
   const { idEngine, gantiEngine, status, galat, siapkan, setop, didukung } = useMesin();
@@ -47,6 +39,27 @@ function PengaturanMesin() {
   const versiMesin = /\d+/.exec(labelMesin)?.[0] ?? "-";
   const namaBerkas = aktif?.url.split("/").pop() ?? "-";
 
+  /* State string lokal untuk input angka. Masalah sebelumnya:
+     - `terapkanAngka` menolak teks kosong (return), jadi Backspace tidak
+       pernah mengosongkan field — value React tetap 6, input tidak bisa
+       dihapus.
+     - Mengetik '8' saat field masih '6' menghasilkan '68' yang di-clamp
+       ke 20, bukannya mengganti.
+     Solusinya: simpan mentah sebagai string saat pengguna mengetik,
+     izinkan kosong agar Backspace bekerja, baru parse+simpan+clamp
+     saat angka valid terbentuk; saat blur nilai yang tidak valid
+     dikembalikan ke depth terakhir yang sah. */
+  const MIN_D = 6;
+  const MAX_D = 20;
+  const [depthMentah, setDepthMentah] = useState(String(depth));
+  useEffect(() => setDepthMentah(String(depth)), [depth]);
+
+  function simpanKedalaman(angka) {
+    const n = Math.min(MAX_D, Math.max(MIN_D, Math.round(Number(angka))));
+    setDepth(n);
+    tulis("kedalaman", n);
+  }
+
   function pilihEngine(id) {
     if (id === idEngine) return;
     // Ganti engine = batalkan analisis yang sedang berjalan. Kalau tidak,
@@ -57,11 +70,6 @@ function PengaturanMesin() {
     setKontrol(new AbortController());
     setop();
     gantiEngine(id);
-  }
-
-  function pilihKedalaman(ply) {
-    setDepth(ply);
-    tulis("kedalaman", ply);
   }
 
   return (
@@ -153,10 +161,43 @@ function PengaturanMesin() {
                 <input
                   id="mesin-depth"
                   type="number"
-                  min={6}
-                  max={20}
-                  value={depth}
-                  onChange={(e) => terapkanAngka(e.target.value, 6, 20, pilihKedalaman)}
+                  min={MIN_D}
+                  max={MAX_D}
+                  value={depthMentah}
+                  onChange={(e) => {
+                    const teks = e.target.value;
+                    setDepthMentah(teks);
+                    // Izinkan kosong (untuk Backspace) dan biarkan user
+                    // mengetik; hanya simpan bila teks berupa angka
+                    // finite dalam rentang. Angka di luar rentang
+                    // sengaja tidak di-clamp saat mengetik (mis. '2'
+                    // yang ingin jadi '20') — clamp dilakukan saat
+                    // blur / saat nilai sudah final.
+                    if (teks.trim() === "") return;
+                    const n = Number(teks);
+                    if (!Number.isFinite(n)) return;
+                    if (n >= MIN_D && n <= MAX_D && String(Math.round(n)) === teks.trim()) {
+                      simpanKedalaman(n);
+                    }
+                  }}
+                  onBlur={() => {
+                    // Saat keluar dari field, pastikan value yang
+                    // tampil = angka tersimpan yang sah (rentang
+                    // [MIN_D..MAX_D]). Jika pengguna menutup dengan
+                    // teks kosong atau angka tak valid, kembalikan ke
+                    // depth terakhir. Jika angka di luar batas (mis.
+                    // '200'), clamp ke MAX_D/MIN_D.
+                    const teks = depthMentah.trim();
+                    if (teks === "") {
+                      setDepthMentah(String(depth));
+                      return;
+                    }
+                    let n = Math.round(Number(teks));
+                    if (!Number.isFinite(n)) n = depth;
+                    n = Math.min(MAX_D, Math.max(MIN_D, n));
+                    if (n !== depth) simpanKedalaman(n);
+                    else setDepthMentah(String(n));
+                  }}
                   className="rounded-borderRoundness border border-border bg-[#272727] px-2 py-1 text-sm text-foreground outline-none"
                 />
               </div>

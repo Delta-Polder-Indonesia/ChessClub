@@ -41,9 +41,14 @@ function KartuTipe({ aktif, ikon, label, tanpaLabel, disabled = false, onClick }
 
 function GambarIkon({ ikon }) {
   if (ikon === "pgn") {
+    // Ikon dokumen berlabel "PGN" — isi dokumen fill currentColor
+    // (mengikuti warna tombol: abu saat non-aktif, foreground saat aktif),
+    // label "PGN" memakai warna latar kartu (bg-backgroundBox) agar
+    // kontras seperti efek "terpotong" dari dokumen.
     return (
-      <svg viewBox="0 0 16 16" className="h-6 w-6 fill-current" aria-hidden="true">
-        <path d="M8.01005 0.858582L6.01005 14.8586L7.98995 15.1414L9.98995 1.14142L8.01005 0.858582ZM12.5 11.5L11.0858 10.0858L13.1716 8L11.0858 5.91422L12.5 4.5L16 8L12.5 11.5ZM2.82843 8L4.91421 10.0858L3.5 11.5L0 8L3.5 4.5L4.91421 5.91422L2.82843 8Z" />
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-6 w-6 fill-current" aria-hidden="true">
+        <path d="M6 22q-.82 0-1.41-.59T4 20V4q0-.83.59-1.41T6 2h8l6 6v12q0 .82-.59 1.41T18 22zm7-13V4H6v16h12V9zM6 4v5zv16z" />
+        <text x="12" y="16" fontFamily="Arial, sans-serif" fontSize="5" fontWeight="bold" textAnchor="middle" className="fill-backgroundBoxBox">PGN</text>
       </svg>
     );
   }
@@ -56,18 +61,12 @@ function GambarIkon({ ikon }) {
       </div>
     );
   }
+  // Ikon pensil/edit untuk FEN (mengganti ikon dokumen), fill
+  // currentColor agar mengikuti warna tombol (abu non-aktif, highlight
+  // saat aktif).
   return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="h-6 w-6"
-      aria-hidden="true"
-    >
-      <path d="M18.5708 20C19.8328 20 20.8568 18.977 20.8568 17.714V13.143L21.9998 12L20.8568 10.857V6.286C20.8568 5.023 19.8338 4 18.5708 4M5.429 4C4.166 4 3.143 5.023 3.143 6.286V10.857L2 12L3.143 13.143V17.714C3.143 18.977 4.166 20 5.429 20M7.5 12H7.51M12 12H12.01M16.5 12H16.51" />
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-6 w-6 fill-current" aria-hidden="true">
+      <path d="M10.05,21l2-2H22v2H10.05ZM5,19H6.43L16.2,9.23L14.78,7.8L5,17.58V19ZM3,21V16.75L16.2,3.57q0.28-0.28 0.65-0.43T17.63,3q0.4,0 0.76,0.16T19.05,3.6L20.43,5q0.28,0.3 0.43,0.66T21,6.4q0,0.4-0.14,0.76T20.43,7.82L7.25,21H3Z" />
     </svg>
   );
 }
@@ -197,20 +196,27 @@ export default function LayarImpor({ onTutup, onImpor }) {
 
       {tipe === "pgn" ? (
         <div className="mt-4">
+          <label htmlFor="impor-pgn" className="mb-1.5 block text-xs font-bold text-foregroundGrey">
+            PGN GAMES
+          </label>
           <textarea
+            id="impor-pgn"
             spellCheck={false}
             rows={8}
             value={pgn}
             onChange={(e) => setPgn(e.currentTarget.value)}
             data-uji="impor-pgn"
-            placeholder={t("analisa.form.tempelPgn")}
             aria-label="PGN"
-            className="w-full resize-y rounded-borderRoundness border border-border bg-backgroundBoxBox px-3 py-2 font-mono text-xs leading-5 text-foreground outline-none transition-colors placeholder:text-foregroundGrey hover:border-borderHighlighted focus:border-borderHighlighted"
+            className="w-full resize-y rounded-borderRoundness border border-border bg-backgroundBoxBox px-3 py-2 font-mono text-xs leading-5 text-foreground outline-none transition-colors hover:border-borderHighlighted focus:border-borderHighlighted"
           />
         </div>
       ) : tipe === "online" ? (
         <div className="mt-4">
+          <label htmlFor="impor-online" className="mb-1.5 block text-xs font-bold text-foregroundGrey">
+            GAME URL (lichess or chess.com)
+          </label>
           <input
+            id="impor-online"
             type="url"
             value={tautan}
             disabled={memuat}
@@ -222,17 +228,17 @@ export default function LayarImpor({ onTutup, onImpor }) {
               }
             }}
             data-uji="impor-online"
-            placeholder={t("analisa.impor.onlinePlaceholder")}
             aria-label={t("analisa.impor.onlineLabel")}
-            className="w-full rounded-borderRoundness border border-border bg-backgroundBoxBox px-3 py-2 font-mono text-xs text-foreground outline-none transition-colors placeholder:text-foregroundGrey hover:border-borderHighlighted focus:border-borderHighlighted"
+            className="w-full rounded-borderRoundness border border-border bg-backgroundBoxBox px-3 py-2 font-mono text-xs text-foreground outline-none transition-colors hover:border-borderHighlighted focus:border-borderHighlighted"
           />
-          <p className="mt-1.5 text-[11px] leading-4 text-foregroundGrey">
-            {t("analisa.impor.onlineBantu")}
-          </p>
         </div>
       ) : (
         <div className="mt-4">
+          <label htmlFor="impor-fen" className="mb-1.5 block text-xs font-bold text-foregroundGrey">
+            FEN
+          </label>
           <textarea
+            id="impor-fen"
             spellCheck={false}
             rows={2}
             value={fen}
@@ -244,9 +250,8 @@ export default function LayarImpor({ onTutup, onImpor }) {
               }
             }}
             data-uji="impor-fen"
-            placeholder={t("analisa.form.tempelFen")}
             aria-label="FEN"
-            className="w-full resize-none rounded-borderRoundness border border-border bg-backgroundBoxBox px-3 py-2 font-mono text-xs leading-5 text-foreground outline-none transition-colors placeholder:text-foregroundGrey hover:border-borderHighlighted focus:border-borderHighlighted"
+            className="w-full resize-none rounded-borderRoundness border border-border bg-backgroundBoxBox px-3 py-2 font-mono text-xs leading-5 text-foreground outline-none transition-colors hover:border-borderHighlighted focus:border-borderHighlighted"
           />
         </div>
       )}
