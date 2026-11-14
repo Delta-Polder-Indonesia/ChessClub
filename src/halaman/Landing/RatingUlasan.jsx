@@ -23,9 +23,24 @@
  */
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "../../components/ui/button.jsx";
-import { Progress, ProgressTrack, ProgressIndicator } from "../../components/ui/progress.jsx";
 import { Textarea } from "../../components/ui/textarea.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
+
+/**
+ * Batang distribusi rating inline (tidak pakai komponen Progress shadcn
+ * yang otomatis menambah track+indicator sendiri, sebab sebelumnya
+ * menyebabkan bar ter-render ganda). Track = abu, indicator = kuning.
+ */
+function BarDistribusi({ persen }) {
+  return (
+    <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-grey-200">
+      <div
+        className="h-full rounded-full bg-yellow-400 transition-[width] duration-300"
+        style={{ width: `${Math.max(0, Math.min(100, persen))}%` }}
+      />
+    </div>
+  );
+}
 
 const KUNCI_SIMPAN = "kci-ulasan-tamu";
 
@@ -267,17 +282,13 @@ function Ringkasan({ ulasan, locale }) {
       </div>
 
       {/* kanan: bar distribusi */}
-      <div className="flex-1 space-y-1.5">
+      <div className="flex-1 space-y-2">
         {distribusi.map((row) => (
           <div key={row.bintang} className="flex items-center gap-2.5">
-            <span className="w-3 text-right font-sans text-xs text-foregroundGrey">
+            <span className="w-3 text-right font-sans text-sm text-foregroundGrey">
               {row.bintang}
             </span>
-            <Progress value={row.percentage} className="flex-1 items-center">
-              <ProgressTrack className="h-1.5 flex-1 overflow-hidden rounded-full bg-grey-200 border-0">
-                <ProgressIndicator className="h-full rounded-full bg-yellow-400" />
-              </ProgressTrack>
-            </Progress>
+            <BarDistribusi persen={row.percentage} />
           </div>
         ))}
       </div>
