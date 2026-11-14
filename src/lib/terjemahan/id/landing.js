@@ -184,7 +184,11 @@ export const landing = {
       terpilih: "Anda memilih {n} dari 5 bintang.",
       tulisUlasan: "Tulis ulasan",
       lihatSemua: "Lihat semua ulasan",
+      lihatSemuaUlasan: "Lihat semua {n} ulasan",
       lainnya: "Menu lainnya",
+      kembali: "Kembali",
+      sebelumnya: "Sebelumnya",
+      berikutnya: "Berikutnya",
       verifikasi:
         "Rating diverifikasi dari pengunjung yang telah mencoba fitur di perangkat yang sama dengan Anda. Ulasan Anda disimpan secara lokal di perangkat ini.",
       beriBintang: "Beri bintang untuk aplikasi ini",

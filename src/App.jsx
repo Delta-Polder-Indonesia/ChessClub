@@ -181,6 +181,11 @@ const Atribusi = lazy(() => import("./halaman/Atribusi/Atribusi.jsx"));
 // Landing (Beranda utama "/") — hero, akses cepat, sorotan, berita terkini.
 const Landing = lazy(() => import("./halaman/Landing/Landing.jsx"));
 
+// Rating & Ulasan — halaman khusus (bukan dalam PageLayout? tetap pakai
+// PageLayout karena butuh header/footer utama).
+const TulisUlasan = lazy(() => import("./halaman/RatingUlasan/TulisUlasan.jsx"));
+const SemuaUlasan = lazy(() => import("./halaman/RatingUlasan/SemuaUlasan.jsx"));
+
 // Area Beranda — satu berkas per item sidebar.
 const Beranda = lazy(() => import("./halaman/Beranda/Beranda.jsx"));
 const DaftarJuara = lazy(() => import("./halaman/Beranda/DaftarJuara.jsx"));
@@ -210,6 +215,8 @@ const RUTE_BERANDA = [
  *  "/" adalah halaman Landing — halaman pertama yang dilihat pengunjung. */
 const RUTE_HALAMAN = [
   ["/", Landing],
+  ["/tulis-ulasan", TulisUlasan],
+  ["/rating-ulasan", SemuaUlasan],
 
   ["/tentang-kami", TentangKami],
   ["/tentang-kami/struktur-grup-catur", StrukturGrupCatur],

@@ -184,7 +184,11 @@ export const landing = {
       terpilih: "You chose {n} out of 5 stars.",
       tulisUlasan: "Write a review",
       lihatSemua: "See all reviews",
+      lihatSemuaUlasan: "See all {n} reviews",
       lainnya: "More options",
+      kembali: "Back",
+      sebelumnya: "Previous",
+      berikutnya: "Next",
       verifikasi:
         "Ratings are verified from visitors who tried features on the same kind of device you are using. Your review is stored locally on this device.",
       beriBintang: "Rate this app",

@@ -113,6 +113,8 @@ export const RUTE_PUBLIK = [
   "/beranda/peringkat",
   "/karir",
   "/program-kami/ebook-panduan",
+  "/tulis-ulasan",
+  "/rating-ulasan",
 ];
 
 const AKHIR_KORPORAT = " | Komunitas Catur Indonesia";
@@ -385,6 +387,16 @@ export const META_RUTE = {
     akhir: AKHIR_KORPORAT,
   },
   "/karir": { judulKey: "karir.judul", deskripsiKey: "karir.deskripsi", akhir: AKHIR_KORPORAT },
+  "/tulis-ulasan": {
+    judulKey: "landing.rating.tulisUlasan",
+    deskripsiKey: "landing.rating.ajakSub",
+    akhir: AKHIR_KORPORAT,
+  },
+  "/rating-ulasan": {
+    judulKey: "landing.rating.judul",
+    deskripsiKey: "landing.rating.subJudul",
+    akhir: AKHIR_KORPORAT,
+  },
   "/beranda": {
     judul: "Beranda",
     deskripsi: "Jadwal turnamen, daftar juara, peringkat, dan sumber belajar komunitas.",
