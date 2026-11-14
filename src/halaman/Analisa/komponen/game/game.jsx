@@ -146,16 +146,32 @@ function Game({ wadah }) {
   useEffect(() => {
     clearInterval(intervalRef.current);
     if (playing) {
-      let nextMove2 = function() {
+      const atEndOfLine = () => {
+        if (customLine.moveNumber >= 0) {
+          return customLine.moveNumber >= customLine.moves.length - 1 && Boolean(getCustomResult(move2));
+        }
+        return moveNumber >= game.length - 1;
+      };
+      const nextMove2 = function() {
+        if (atEndOfLine()) {
+          setPlaying(false);
+          return;
+        }
         gameController.forward();
       };
-      nextMove2();
-      intervalRef.current = setInterval(nextMove2, 1e3);
+      // Kalau sudah di ujung partai (cekmate/stalemate/akhir) saat Play
+      // ditekan, jangan mulai timer sama sekali — langsung berhenti.
+      if (atEndOfLine()) {
+        setPlaying(false);
+      } else {
+        nextMove2();
+        intervalRef.current = setInterval(nextMove2, 1e3);
+      }
     } else {
       clearInterval(intervalRef.current);
     }
     return () => clearInterval(intervalRef.current);
-  }, [playing, gameController]);
+  }, [playing, gameController, moveNumber, game.length, customLine.moveNumber, customLine.moves.length, move2, setPlaying]);
   const cleanCurrentArrows = useCallback(() => {
     if (customLine.moveNumber < 0) {
       setArrows((prev) => {
