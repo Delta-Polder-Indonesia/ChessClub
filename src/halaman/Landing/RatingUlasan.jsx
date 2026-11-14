@@ -83,10 +83,17 @@ function Inisial({ nama }) {
 function DeretBintang({ nilai, ukuran = "md", onPilih, bisaUbah = false }) {
   const max = 5;
   const ukuranCls =
-    ukuran === "sm" ? "size-4" : ukuran === "lg" ? "size-7" : "size-5";
+    ukuran === "sm"
+      ? "size-4"
+      : ukuran === "lg"
+        ? "size-7"
+        : ukuran === "xl"
+          ? "size-10"
+          : "size-5";
+  const gapCls = bisaUbah ? (ukuran === "xl" ? "gap-2" : "gap-1") : "gap-0.5";
   return (
     <div
-      className={`inline-flex items-center ${bisaUbah ? "gap-1" : "gap-0.5"} text-yellow-400`}
+      className={`inline-flex items-center ${gapCls} text-yellow-400`}
       role={bisaUbah ? "radiogroup" : "img"}
       aria-label={`${nilai} dari 5 bintang`}
     >
@@ -203,13 +210,28 @@ function tanggalPanjang(ts, locale) {
 }
 
 /* ---------- form tulis ulasan ---------- */
-function FormUlasan({ t, onKirim, onBatal }) {
-  const [bintang, setBintang] = useState(0);
-  const [emoji, setEmoji] = useState(null);
+function FormUlasan({ t, bintangAwal = 0, onKirim, onBatal }) {
+  const [bintang, setBintang] = useState(bintangAwal);
+  const [emoji, setEmoji] = useState(bintangAwal > 0 ? bintangAwal : null);
   const [nama, setNama] = useState("");
   const [pesan, setPesan] = useState("");
   const [error, setError] = useState(null);
   const daftarEmoji = EMOJI_LIST(t);
+
+  // Sinkronkan bintang jika pengguna memilih/berubah bintang di hero
+  // (blok "Beri rating website ini") saat form sudah terbuka.
+  useEffect(() => {
+    if (bintangAwal > 0) {
+      setBintang(bintangAwal);
+      setEmoji(bintangAwal);
+    }
+  }, [bintangAwal]);
+
+  const pilihBintang = useCallback((n) => {
+    setBintang(n);
+    setEmoji(n);
+    setError(null);
+  }, []);
 
   const kirim = useCallback(
     (e) => {
@@ -252,11 +274,7 @@ function FormUlasan({ t, onKirim, onBatal }) {
           nilai={bintang}
           ukuran="lg"
           bisaUbah
-          onPilih={(n) => {
-            setBintang(n);
-            setEmoji(n);
-            setError(null);
-          }}
+          onPilih={pilihBintang}
         />
       </div>
 
@@ -270,11 +288,7 @@ function FormUlasan({ t, onKirim, onBatal }) {
             <button
               key={item.value}
               type="button"
-              onClick={() => {
-                setEmoji(item.value);
-                setBintang(item.value);
-                setError(null);
-              }}
+              onClick={() => pilihBintang(item.value)}
               className={`flex size-11 items-center justify-center rounded-lg border-2 text-2xl transition-all ${
                 (emoji ?? bintang) === item.value
                   ? "scale-110 border-border bg-backgroundBox"
@@ -536,6 +550,24 @@ export default function RatingUlasan() {
   const [ulasan, setUlasan] = useState(() => bacaUlasan(seed));
   const [formTerbuka, setFormTerbuka] = useState(false);
   const [toast, setToast] = useState(null);
+  const [bintangHero, setBintangHero] = useState(0);
+
+  const pilihBintangHero = useCallback(
+    (n) => {
+      setBintangHero(n);
+      setToast(t("landing.rating.terpilih", { n }));
+    },
+    [t]
+  );
+
+  const bukaForm = useCallback(() => {
+    setFormTerbuka(true);
+    // Gulung (scroll) pelan ke form agar user melihat kolom pesan.
+    requestAnimationFrame(() => {
+      const el = document.getElementById("form-ulasan");
+      el?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }, []);
 
   // Saat seed berganti (ganti bahasa) dan user belum pernah menambah ulasan,
   // refresh ulasan seed supaya teks tampil dalam bahasa yang dipilih.
@@ -555,6 +587,7 @@ export default function RatingUlasan() {
     (u) => {
       setUlasan((prev) => [u, ...prev]);
       setFormTerbuka(false);
+      setBintangHero(0);
       setToast(t("landing.rating.terkirim", { n: u.bintang }));
     },
     [t]
@@ -604,21 +637,46 @@ export default function RatingUlasan() {
           </p>
         </div>
 
+        {/* Hero CTA: "Beri rating website ini — sampaikan pendapat Anda"
+            Pola c-rating-4: bintang interaktif besar langsung di halaman,
+            tanpa harus buka form dulu. Tombol "Tulis pesan" baru muncul
+            setelah minimal 1 bintang dipilih, membuka form + scroll ke sana. */}
+        <div className="mt-8 flex flex-col items-center gap-4 rounded-lg border-2 border-border bg-backgroundBox p-6 text-center md:p-8">
+          <p className="font-sans text-lg font-semibold text-foreground md:text-xl">
+            {t("landing.rating.ajakJudul")}
+          </p>
+          <p className="max-w-md font-sans text-sm text-foregroundGrey md:text-base">
+            {t("landing.rating.ajakSub")}
+          </p>
+          <div className="flex items-center gap-2">
+            <DeretBintang
+              nilai={bintangHero}
+              ukuran="xl"
+              bisaUbah
+              onPilih={pilihBintangHero}
+            />
+            {bintangHero > 0 ? (
+              <span className="ml-2 font-sans text-sm font-semibold text-foreground tabular-nums">
+                {bintangHero}/5
+              </span>
+            ) : null}
+          </div>
+          {bintangHero > 0 && !formTerbuka ? (
+            <Button
+              onClick={bukaForm}
+              variant="default"
+              size="lg"
+              className="mt-1 border-primary bg-primary text-white hover:bg-primary/90 hover:text-white"
+            >
+              {t("landing.rating.tulisPesanTombol")}
+            </Button>
+          ) : null}
+        </div>
+
         <div className="mt-8 grid grid-cols-1 gap-8 md:grid-cols-[minmax(260px,320px)_1fr] md:gap-10">
-          {/* kolom kiri: agregat + CTA */}
+          {/* kolom kiri: agregat + info */}
           <div className="flex flex-col gap-4">
             <Ringkasan t={t} ulasan={ulasan} />
-
-            {!formTerbuka ? (
-              <Button
-                onClick={() => setFormTerbuka(true)}
-                variant="default"
-                size="lg"
-                className="w-full border-primary bg-primary text-white hover:bg-primary/90 hover:text-white"
-              >
-                {t("landing.rating.tulisUlasan")}
-              </Button>
-            ) : null}
 
             <p className="font-sans text-xs leading-relaxed text-foregroundGrey">
               {t("landing.rating.verifikasi")}
@@ -626,10 +684,11 @@ export default function RatingUlasan() {
           </div>
 
           {/* kolom kanan: form / daftar ulasan */}
-          <div className="flex flex-col gap-4">
+          <div id="form-ulasan" className="flex flex-col gap-4">
             {formTerbuka ? (
               <FormUlasan
                 t={t}
+                bintangAwal={bintangHero}
                 onKirim={kirimUlasan}
                 onBatal={() => setFormTerbuka(false)}
               />

@@ -178,7 +178,11 @@ export const landing = {
       judul: "Rating dan Ulasan",
       subJudul:
         "Rating dan ulasan diverifikasi dan berasal dari orang yang menggunakan jenis perangkat yang sama dengan yang Anda gunakan.",
+      ajakJudul: "Beri rating website ini",
+      ajakSub:
+        "Sampaikan pendapat Anda. Klik bintang di bawah untuk menilai, lalu tulis pesan singkat pengalaman Anda.",
       berdasarkan: "Berdasarkan {n} ulasan",
+      terpilih: "Anda memilih {n} dari 5 bintang.",
       tulisUlasan: "Tulis ulasan",
       verifikasi:
         "Rating diverifikasi dari pengunjung yang telah mencoba fitur di perangkat yang sama dengan Anda. Ulasan Anda disimpan secara lokal di perangkat ini.",
@@ -198,6 +202,7 @@ export const landing = {
       kirim: "Kirim ulasan",
       terkirim: "Terima kasih! Anda memberi {n} dari 5 bintang.",
       pilihBintang: "Silakan pilih bintang terlebih dahulu.",
+      tulisPesanTombol: "Tulis pesan",
       tulisPesan: "Silakan tulis pesan ulasan Anda.",
       apakahMembantu: "Apakah ulasan ini membantu?",
       suka: "Bermanfaat",

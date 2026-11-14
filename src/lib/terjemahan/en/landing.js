@@ -178,7 +178,11 @@ export const landing = {
       judul: "Ratings & Reviews",
       subJudul:
         "Ratings and reviews are verified and come from people using the same kind of device you are on.",
+      ajakJudul: "Rate this website",
+      ajakSub:
+        "Share your opinion. Click a star below to rate, then write a short message about your experience.",
       berdasarkan: "Based on {n} reviews",
+      terpilih: "You chose {n} out of 5 stars.",
       tulisUlasan: "Write a review",
       verifikasi:
         "Ratings are verified from visitors who tried features on the same kind of device you are using. Your review is stored locally on this device.",
@@ -198,6 +202,7 @@ export const landing = {
       kirim: "Submit review",
       terkirim: "Thanks! You rated it {n} out of 5.",
       pilihBintang: "Please choose a star rating first.",
+      tulisPesanTombol: "Write a message",
       tulisPesan: "Please write a review message.",
       apakahMembantu: "Was this review helpful?",
       suka: "Helpful",
