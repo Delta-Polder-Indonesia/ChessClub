@@ -321,7 +321,7 @@ export function FormUlasan({ t, bintangAwal = 0, onKirim, onBatal }) {
         </label>
         <input id="ulasan-nama" type="text" value={nama} onChange={(e) => setNama(e.target.value)} maxLength={40}
           placeholder={t("landing.rating.namaPlaceholder")}
-          className="w-full rounded-lg border border-input bg-transparent px-3 py-2 font-sans text-sm outline-none placeholder:text-foregroundGrey focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50" />
+          className="w-full rounded-lg border-2 border-grey-400 bg-transparent px-3 py-2 font-sans text-sm outline-none placeholder:text-foregroundGrey transition-colors focus-visible:border-primary focus-visible:ring-0" />
       </div>
       <div className="space-y-1.5">
         <label htmlFor="ulasan-pesan" className="block font-sans text-sm font-semibold text-foreground">
@@ -329,7 +329,8 @@ export function FormUlasan({ t, bintangAwal = 0, onKirim, onBatal }) {
         </label>
         <Textarea id="ulasan-pesan" value={pesan}
           onChange={(e) => { setPesan(e.target.value); setError(null); }}
-          rows={5} maxLength={600} placeholder={t("landing.rating.pesanPlaceholder")} />
+          rows={5} maxLength={600} placeholder={t("landing.rating.pesanPlaceholder")}
+          className="rounded-lg border-2 border-grey-400 bg-transparent px-3 py-2 font-sans text-sm outline-none placeholder:text-foregroundGrey transition-colors focus-visible:border-primary focus-visible:ring-0" />
         <p className="text-right font-sans text-xs text-foregroundGrey">{pesan.length}/600</p>
       </div>
       {error ? (

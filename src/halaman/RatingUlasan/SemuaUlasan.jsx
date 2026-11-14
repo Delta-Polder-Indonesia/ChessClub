@@ -30,16 +30,17 @@ export default function SemuaUlasan() {
         title={t("landing.rating.judul")}
         description={t("landing.rating.subJudul")}
       />
-      <div className="mx-auto w-full max-w-3xl px-6 py-10 md:px-8 md:py-14">
-        <button
-          type="button"
-          onClick={kembali}
-          aria-label={t("landing.rating.kembali")}
-          className="mb-6 inline-flex items-center gap-2 rounded-full px-3 py-2 font-sans text-sm font-medium text-foreground transition-colors hover:bg-backgroundBox"
-        >
-          <PanahKiri className="size-5" />
-          <span>{t("landing.rating.kembali")}</span>
-        </button>
+      <div className="min-h-screen bg-paper">
+        <div className="mx-auto w-full max-w-3xl px-6 pt-6 pb-14 md:px-8 md:pt-8 md:pb-20">
+          <button
+            type="button"
+            onClick={kembali}
+            aria-label={t("landing.rating.kembali")}
+            className="-ml-3 mb-6 inline-flex items-center gap-2 rounded-full px-3 py-2 font-sans text-sm font-medium text-foreground transition-colors hover:bg-backgroundBox"
+          >
+            <PanahKiri className="size-5" />
+            <span>{t("landing.rating.kembali")}</span>
+          </button>
 
         <h1 className="font-sans text-2xl font-semibold text-foreground md:text-3xl">
           {t("landing.rating.judul")}
@@ -53,6 +54,7 @@ export default function SemuaUlasan() {
           {urut.map((u) => (
             <KartuUlasan key={u.id} t={t} ulasan={u} padaVote={vote} />
           ))}
+        </div>
         </div>
       </div>
     </>

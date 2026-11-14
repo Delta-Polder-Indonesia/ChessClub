@@ -59,32 +59,37 @@ export default function TulisUlasan() {
         title={t("landing.rating.tulisUlasan")}
         description={t("landing.rating.ajakSub")}
       />
-      <div className="mx-auto w-full max-w-2xl px-6 py-10 md:px-8 md:py-14">
-        <button
-          type="button"
-          onClick={kembali}
-          aria-label={t("landing.rating.kembali")}
-          className="mb-6 inline-flex items-center gap-2 rounded-full px-3 py-2 font-sans text-sm font-medium text-foreground transition-colors hover:bg-backgroundBox"
-        >
-          <PanahKiri className="size-5" />
-          <span>{t("landing.rating.kembali")}</span>
-        </button>
+      {/* Halaman immersive (tanpa Header/Footer): tombol Kembali menempel di
+          tepi atas, konten di bawahnya, padding konsisten dengan layar
+          penuh lain di situs. */}
+      <div className="min-h-screen bg-paper">
+        <div className="mx-auto w-full max-w-2xl px-6 pt-6 pb-14 md:px-8 md:pt-8 md:pb-20">
+          <button
+            type="button"
+            onClick={kembali}
+            aria-label={t("landing.rating.kembali")}
+            className="-ml-3 mb-6 inline-flex items-center gap-2 rounded-full px-3 py-2 font-sans text-sm font-medium text-foreground transition-colors hover:bg-backgroundBox"
+          >
+            <PanahKiri className="size-5" />
+            <span>{t("landing.rating.kembali")}</span>
+          </button>
 
-        <div className="mb-6 flex flex-col items-start gap-2">
-          <h1 className="font-sans text-2xl font-semibold text-foreground md:text-3xl">
-            {t("landing.rating.ajakJudul")}
-          </h1>
-          <p className="font-sans text-base text-foregroundGrey">
-            {t("landing.rating.ajakSub")}
-          </p>
+          <div className="mb-6 flex flex-col items-start gap-2">
+            <h1 className="font-sans text-2xl font-semibold text-foreground md:text-3xl">
+              {t("landing.rating.ajakJudul")}
+            </h1>
+            <p className="font-sans text-base text-foregroundGrey">
+              {t("landing.rating.ajakSub")}
+            </p>
+          </div>
+
+          <FormUlasan
+            t={t}
+            bintangAwal={bintangAwal}
+            onKirim={kirim}
+            onBatal={kembali}
+          />
         </div>
-
-        <FormUlasan
-          t={t}
-          bintangAwal={bintangAwal}
-          onKirim={kirim}
-          onBatal={kembali}
-        />
       </div>
     </>
   );
