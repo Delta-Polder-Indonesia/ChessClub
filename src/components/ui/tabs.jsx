@@ -16,7 +16,7 @@ export function TabsTrigger({ className, ...props }) {
   return (
     <TabsPrimitive.Trigger
       className={cn(
-        "inline-flex flex-1 items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-white transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0B2F9F] disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm",
+        "inline-flex flex-1 items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-white transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm",
         className,
       )}
       {...props}
@@ -27,7 +27,7 @@ export function TabsTrigger({ className, ...props }) {
 export function TabsContent({ className, ...props }) {
   return (
     <TabsPrimitive.Content
-      className={cn("mt-2 ring-offset-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0B2F9F]", className)}
+      className={cn("mt-2 ring-offset-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary", className)}
       {...props}
     />
   );

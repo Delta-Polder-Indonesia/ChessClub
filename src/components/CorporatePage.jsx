@@ -117,7 +117,7 @@ export function CorporateSidebar({ title, items }) {
             aria-expanded={open}
             className="w-full flex items-center justify-between py-3 text-sm bg-white"
           >
-            <span className="font-medium text-[#0B2F9F] border-l-[#0B2F9F] border-l-4 pl-4 py-1">
+            <span className="font-medium text-primary border-l-primary border-l-4 pl-4 py-1">
               {current?.label || title}
             </span>
             <MenuIcon className="w-5 h-5 text-slate-600" />
@@ -154,8 +154,8 @@ function SidebarItem({ item, aktif, onPilih, desktop = false }) {
   const kelasMobile =
     "flex w-full py-2 pr-1 pl-4 transition-all duration-300 ease-in-out";
   const kelasAktif = aktif
-    ? "text-[#0B2F9F] after:w-1 after:h-full after:bg-[#0B2F9F] after:absolute after:left-[-1px] after:top-0 after:z-1 font-bold"
-    : "text-[#5b6b83] hover:text-slate-700";
+    ? "text-primary after:w-1 after:h-full after:bg-primary after:absolute after:left-[-1px] after:top-0 after:z-1 font-bold"
+    : "text-grey-600 hover:text-grey-800";
   const className = `${desktop ? kelasDesktop : kelasMobile} ${kelasAktif}`;
 
   if (internal) {
@@ -213,7 +213,7 @@ function PdfIcon() {
 
 export function DocumentCard({ title, href = "#", description = "Unduh dokumen" }) {
   return (
-    <div className="flex gap-4 p-4 border border-[#E2E8F0] rounded-lg bg-white" role="region" aria-label={`Bagian unduh ${title}`}>
+    <div className="flex gap-4 p-4 border border-grey-200 rounded-lg bg-white" role="region" aria-label={`Bagian unduh ${title}`}>
       <div className="flex-shrink-0"><PdfIcon /></div>
       <div className="flex flex-col flex-grow gap-2 min-w-0">
         <h3 className="text-sm text-slate-900 break-words">{title}</h3>

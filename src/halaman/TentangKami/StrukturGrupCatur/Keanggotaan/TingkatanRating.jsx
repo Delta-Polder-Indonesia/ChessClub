@@ -41,7 +41,7 @@ export default function TingkatanRating() {
               <tbody>
                 {TINGKATAN_RATING.map((tingkat) => (
                   <tr key={tingkat.id}>
-                    <td className="whitespace-nowrap font-semibold text-[#0B2F9F]">{tingkat.range}</td>
+                    <td className="whitespace-nowrap font-semibold text-primary">{tingkat.range}</td>
                     <td className="min-w-[190px] font-semibold text-slate-900">
                       {t(`keanggotaan.tingkatan.${tingkat.id}.label`)}
                     </td>

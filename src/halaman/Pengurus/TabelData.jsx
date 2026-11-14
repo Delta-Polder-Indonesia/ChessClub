@@ -105,7 +105,7 @@ function MenuKolom({ tabel }) {
                   type="checkbox"
                   checked={c.getIsVisible()}
                   onChange={c.getToggleVisibilityHandler()}
-                  className="size-3.5 accent-[#0B2F9F]"
+                  className="size-3.5 accent-primary"
                 />
                 <span>{typeof c.columnDef.header === "string" ? c.columnDef.header : c.id}</span>
               </label>

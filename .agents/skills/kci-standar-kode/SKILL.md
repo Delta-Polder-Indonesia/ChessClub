@@ -1,6 +1,6 @@
 ---
 name: kci-standar-kode
-description: Standar kualitas kode KCI (anti "AI slop") - pola yang dilarang (duplikasi logika catur, fungsi raksasa, komentar redundan, impor mati, eror yang ditelan), pemisahan logika inti catur dari UI dan jaringan, batas kinerja render serta engine worker, validasi masukan di sisi server, dan alur review lewat pull request (PR-only, paritas Lighthouse, bersih-bersih sebelum merge). Use when writing or reviewing code in any area, or before a change is declared ready.
+description: Standar kualitas kode KCI (anti "AI slop") - pola yang dilarang (duplikasi logika catur, fungsi raksasa, komentar redundan, impor mati, eror yang ditelan), pemisahan logika inti catur dari UI dan jaringan, batas kinerja render serta engine worker, dan validasi masukan di sisi server. Untuk metodologi peninjauan (pin-down scope, verifikasi temuan, tingkat keparahan, format laporan) dan daftar pola bug spesifik proyek, gunakan kci-review. Use when writing code in any area or before a change is declared ready.
 metadata:
   project: chessclub-kci
   area: quality
@@ -51,6 +51,59 @@ Tiga lapis, jangan dicampur:
 - Fungsi bantu yang dipakai lintas halaman ditaruh di rumah bersama (`src/lib/`), bukan disalin
   per halaman.
 
+#### Rumah data, konten, aset, dan konfigurasi
+
+Jangan buat folder baru (`src/services/`, `src/constants/`, `src/config/`, `src/layouts/`,
+`src/components/common/`) tanpa persetujuan; rumah-rumah itu sudah ada dengan nama yang
+berbeda. Ikuti pembagian berikut:
+
+| Jenis isi | Rumah di repo ini | Catatan |
+| --- | --- | --- |
+| Peta menu/navigasi | `src/menu.js` | `MENU_UTAMA`, `MENU_ATAS`, `semuaHalaman()` dipakai Header, StickyMenu, pencarian, dan sitemap. Jangan buat `navigation.js` kedua. |
+| Konten editorial JSX | Komponen halaman di `src/halaman/<Halaman>/` atau `src/components/konten/` | Jangan pindahkan teks/copy/JSX ke `src/data/*.js`; itu memaksa konten kembali jadi string dan menghilangkan struktur JSX/`.prose-kci`. |
+| Data terstruktur hasil skrip (ukuran gambar, peta eBook, konstanta bersama) | `src/data/` (hasil `scripts/optimumkan-gambar.mjs` dan sejenisnya) atau `src/lib/` (konstanta dipakai bersama browser+server). | File di `src/data/` adalah artefak skrip, bukan tempat menulis konten editorial tangan. |
+| Terjemahan (ID/EN) | `src/lib/terjemahan/{id,en}/*.js` | Semua teks antarmuka yang diterjemahkan lewat `t(...)`; jangan hardcode salinan bahasa di komponen. |
+| Klien API internal KCI | `src/lib/api/` (bukan `src/services/`) | `anggota.js`, `ebook.js`, `konten.js`, `pengurus.js`, dll. Setiap endpoint backend lewat sini; CSRF token dan header umum ditangani bersama. |
+| Hook | `src/lib/gunakan*.js` (konvensi Bahasa Indonesia `gunakan*`) atau berdampingan dengan komponen yang memakainya; hook dari Radix/shadcn boleh memakai `use*` dan diletakkan sesuai sumbernya. | Ekstrak ke hook **ketika** logic dipakai ≥2 tempat atau sudah terbukti kompleks; jangan ekstrak spekulatif. |
+| Helper/pustaka lintas halaman (non-React, non-API) | `src/lib/` | `engineCatur.js`, `pgnRingan.js`, `skakmat.js`, `identsitas.js`, `waktu.js`, `utils.js`, `assets.js`, dll. |
+| Helper aset (URL gambar, PDF, srcset) | `src/lib/asets.js` + `src/data/ukur-gambar.js` | Pakai `gambar()`, `berkasPublik()`, `sumberGambar()`; jangan menulis `/images/x.webp` mentah di JSX. Path aset baru harus lolos `npm run uji:gambar`. |
+| Warna dan token desain | CSS variables di `src/index.css` blok `@theme` (`--color-primary`, `--color-grey-*`, `--color-paper`, `--color-hero`, `--chart-*`, `--shadow-*`). | Jangan menulis hex brand (`#0B2F9F`, `#4D7CF5`, `#021624`) di kelas Tailwind arbitrary atau di string JS; pakai `text-primary`, `bg-primary`, `border-primary`, `accent-primary`, `ring-primary`, atau `var(--color-primary)`. `npm run uji:desain` mendeteksi pelanggaran ini di seluruh `src/`. Warna dalam ikon SVG (atribut `fill`/`stroke`/`<path>`) diizinkan bila memang bagian dari ikon; warna state success/error/warning di objek JS (mis. spinner) boleh memakai hex fungsional selama bukan token brand. |
+| Kerangka tata letak | `src/components/PageLayout.jsx` (Header + Footer + Outlet + daftar `TANPA_KERANGKA`); area beranda memakai `src/halaman/Beranda/TataLetakBeranda.jsx`; halaman konten memakai `src/components/PageBagian.jsx` (`HalamanIsi`, `PageArtikel`). | Jangan buat `MainLayout.jsx` kedua atau `components/common/Section.jsx` generik; kerangka generik akan menambah sistem komponen kedua yang dilarang `DESIGN.md §12`. |
+| UI primitives (Radix + shadcn-style) | `src/components/ui/` dan `src/components/Tombol.jsx` (tombol primer KCI). | Jangan membuat tombol, input, dialog, atau varian Radix baru di dalam berkas halaman. |
+| Visual catur (papan, bidak, jam, evaluasi, ikon catur) | `src/halaman/Analisa/komponen/` | Semua mode catur (Papan Interaktif, Teka-teki, Teka-Teki Harian, Rush, Quiz, Manusia vs Mesin, Hand & Brain, Turing, Latihan Repertoar) mengambil visual catur dari rumah ini; mode masing-masing hanya menyimpan orkestrasi, state, dan logika mode. Jangan menyalin komponen papan/bidak ke folder mode. |
+| Ikon non-catur | `lucide-react` + `src/components/icons.jsx` | Ikon catur tetap dari `src/halaman/Analisa/komponen/svg/`. |
+| Konfigurasi server | `server/src/konfigurasi.js` | Satu-satunya modul yang membaca `process.env`; modul lain mengimpor dari sini. |
+
+#### Protokol "cari reuse dulu"
+
+Sebelum membuat komponen, hook, atau file baru:
+
+1. Cari komponen serupa di `src/components/`, `src/components/konten/`, `src/components/ui/`,
+   dan `src/halaman/Analisa/komponen/`.
+2. Cari hook serupa di `src/lib/gunakan*.js` atau hook yang berdampingan dengan komponen yang
+   sudah memakai pola yang sama.
+3. Cari konstanta/konfigurasi serupa di `src/lib/` atau `src/data/`.
+4. Cari helper/data serupa di `src/lib/api/` (API) atau `src/lib/asets.js` (aset).
+5. Pakai yang ada terlebih dahulu. Bila reuse ada, dilarang membuat file baru dengan nama
+   berbeda tanpa alasan yang bisa dibuktikan.
+
+#### Batas ukuran file
+
+Tidak ada batas jumlah baris yang kaku. Ukuran file yang besar (1.500–2.000+ baris) pada
+berkas orkestrasi mode catur bukan tanda masalah dengan sendirinya. Sebaliknya, **pecah**
+ketika:
+
+- Satu fungsi sudah punya `if` bersarang lebih dari dua tingkat.
+- Nama fungsi/komponen membutuhkan kata sambung ("dan", "lalu", "serta") untuk menjelaskan
+  apa yang dilakukannya.
+- Satu komponen mengurusi dua tanggung jawab yang tidak berkaitan (mis. orkestrasi papan
+  sekaligus menggambar ikon SVG rating 1.200 baris — yang terakhir dipindah ke komponen
+  ikon sendiri).
+
+Sebaliknya, jangan memecah berkas hanya demi "lebih kecil" ketika pecahan-pecahan itu
+selalu dipakai bersama dan tidak punya makna sendiri (file SVG path ikon yang panjang
+misalnya tetap satu kesatuan).
+
 ### B. Kinerja render dan engine
 
 - Aturan teknisnya tinggal di satu tempat: `kci-frontend` (bagian "Komponen, state, dan render" serta
@@ -75,7 +128,7 @@ Tiga lapis, jangan dicampur:
 - **Permukaan jaringan adalah allowlist.** Domain baru untuk API/gambar/font wajib didaftarkan di
   CSP `connect-src` `vercel.json` (daftar yang diizinkan ada di `kci-frontend`).
 
-## 3. Alur review
+## 3. Menyatakan perubahan siap
 
 1. **Lewat pull request.** Perubahan tidak di-commit langsung ke `main`; kerjakan di cabang
    (sesi agen memakai cabang sesi) lalu ajukan PR dari cabang itu sesuai permintaan pengguna.
@@ -92,6 +145,12 @@ Tiga lapis, jangan dicampur:
    bukan pengganti jejak audit.
 4. **Verifikasi.** Jalankan uji minimum area terkait (`kci-pengujian`) dan pastikan cermin
    `.agents` ⇄ `.opencode` tetap identik bila skill ikut tersentuh.
+
+Untuk **metodologi peninjauan** yang runut (menentukan lingkup diff, membaca melampaui
+hunk, membuktikan setiap temuan, matriks tingkat keparahan, pola bug spesifik KCI, dan
+format laporan), gunakan skill **`kci-review`**. Bagian di atas adalah kewajiban sebelum
+mengajukan perubahan; `kci-review` adalah cara meninjau perubahan orang lain atau
+memeriksa kesiapan sebelum merge.
 
 ## Bukti yang menyertai PR
 

@@ -214,7 +214,7 @@ function PopupProfil({ a, tutup, bahasa }) {
                     href={a.url}
                     target="_blank"
                     rel="noreferrer noopener"
-                    className="text-[#0B2F9F] underline underline-offset-2 hover:text-primary"
+                    className="text-primary underline underline-offset-2 hover:text-primary"
                   >
                     {a.username}
                   </a>
@@ -233,7 +233,7 @@ function PopupProfil({ a, tutup, bahasa }) {
               href={a.urlKlub}
               target="_blank"
               rel="noreferrer noopener"
-              className="font-semibold text-[#0B2F9F] underline underline-offset-2"
+              className="font-semibold text-primary underline underline-offset-2"
             >
               {namaKlub(a.klubChess)}
             </a>
@@ -441,7 +441,7 @@ export default function DaftarAnggota() {
                 href={sumberKlub.urlKlub}
                 target="_blank"
                 rel="noreferrer noopener"
-                className="font-semibold text-[#0B2F9F] underline underline-offset-2"
+                className="font-semibold text-primary underline underline-offset-2"
               >
                 {namaKlub(sumberKlub.klubChess)}
               </a>
