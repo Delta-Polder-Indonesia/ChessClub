@@ -143,14 +143,26 @@ function Game({ wadah }) {
   useEffect(() => {
     tabRef.current = tab;
   }, [tab]);
+  // Ref membaca nilai TERBARU dari state di dalam interval tanpa harus
+  // menambahkan state ke dependensi effect. Dependensi yang longgar akan
+  // membuat effect dibersihkan & dibuat ulang tiap langkah, yang akan
+  // memanggil nextMove2() segera pada setiap re-run (karena nextMove2()
+  // dipanggil sekali di luar interval saat effect mulai) — inilah yang
+  // membuat langkah berjalan terlalu cepat. Ref berikut selalu sinkron
+  // dengan render terbaru.
+  const playingEndCheckRef = useRef({ moveNumber, gameLen: game.length, customLine, move2 });
+  useEffect(() => {
+    playingEndCheckRef.current = { moveNumber, gameLen: game.length, customLine, move2 };
+  }, [moveNumber, game.length, customLine, move2]);
   useEffect(() => {
     clearInterval(intervalRef.current);
     if (playing) {
       const atEndOfLine = () => {
-        if (customLine.moveNumber >= 0) {
-          return customLine.moveNumber >= customLine.moves.length - 1 && Boolean(getCustomResult(move2));
+        const s = playingEndCheckRef.current;
+        if (s.customLine.moveNumber >= 0) {
+          return s.customLine.moveNumber >= s.customLine.moves.length - 1 && Boolean(getCustomResult(s.move2));
         }
-        return moveNumber >= game.length - 1;
+        return s.moveNumber >= s.gameLen - 1;
       };
       const nextMove2 = function() {
         if (atEndOfLine()) {
@@ -164,14 +176,33 @@ function Game({ wadah }) {
       if (atEndOfLine()) {
         setPlaying(false);
       } else {
-        nextMove2();
+        // Langkah PERTAMA ditunda satu requestAnimationFrame. Tanpa
+        // penundaan, forward() dipanggil sinkron di tengah commit React
+        // SEBELUM browser sempat me-paint frame awal (posisi saat play
+        // ditekan, semua bidak di kotak asal). Akibatnya animasi WAAPI
+        // di board.jsx menggerakkan elemen yang sudah di-mount di posisi
+        // tujuan baru; bidak yang tertangkap belum sempat hilang dari
+        // frame pertama dan meluncur dari kotak yang salah — terlihat
+        // seperti "ada dua bidak" terutama saat menangkap atau dua
+        // langkah berurutan. Satu rAF memberi browser satu paint frame
+        // untuk melukiskan posisi awal, sehingga animasi 300ms dimulai
+        // dari keadaan papan yang benar. Interval 1000ms tetap dimulai
+        // segera agar langkah-langkah BERIKUTNYA berjarak 1 detik
+        // terhitung sejak saat tombol ditekan (bukan sejak akhir tunda).
+        const rafId = requestAnimationFrame(() => {
+          nextMove2();
+        });
         intervalRef.current = setInterval(nextMove2, 1e3);
+        return () => {
+          cancelAnimationFrame(rafId);
+          clearInterval(intervalRef.current);
+        };
       }
     } else {
       clearInterval(intervalRef.current);
     }
     return () => clearInterval(intervalRef.current);
-  }, [playing, gameController, moveNumber, game.length, customLine.moveNumber, customLine.moves.length, move2, setPlaying]);
+  }, [playing, gameController, setPlaying]);
   const cleanCurrentArrows = useCallback(() => {
     if (customLine.moveNumber < 0) {
       setArrows((prev) => {
