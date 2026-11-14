@@ -172,4 +172,49 @@ export const landing = {
     arahContohCta: "Lihat klub di Chess.com",
     arahContohBuka: "Susunan pengurus",
     arahContohKasus: "Keanggotaan",
+
+    // Rating & ulasan
+    rating: {
+      judul: "Rating dan Ulasan",
+      subJudul:
+        "Rating dan ulasan diverifikasi dan berasal dari orang yang menggunakan jenis perangkat yang sama dengan yang Anda gunakan.",
+      berdasarkan: "Berdasarkan {n} ulasan",
+      tulisUlasan: "Tulis ulasan",
+      verifikasi:
+        "Rating diverifikasi dari pengunjung yang telah mencoba fitur di perangkat yang sama dengan Anda. Ulasan Anda disimpan secara lokal di perangkat ini.",
+      beriBintang: "Beri bintang untuk aplikasi ini",
+      bagaimanaPengalaman: "Bagaimana pengalaman Anda?",
+      emoji1: "Buruk sekali",
+      emoji2: "Buruk",
+      emoji3: "Biasa saja",
+      emoji4: "Bagus",
+      emoji5: "Luar biasa",
+      namaLabel: "Nama Anda",
+      opsional: "opsional",
+      namaPlaceholder: "Nama yang ditampilkan (kosong = Tamu)",
+      pesanLabel: "Ulasan Anda",
+      pesanPlaceholder: "Ceritakan pengalaman Anda menggunakan aplikasi ini…",
+      batal: "Batal",
+      kirim: "Kirim ulasan",
+      terkirim: "Terima kasih! Anda memberi {n} dari 5 bintang.",
+      pilihBintang: "Silakan pilih bintang terlebih dahulu.",
+      tulisPesan: "Silakan tulis pesan ulasan Anda.",
+      apakahMembantu: "Apakah ulasan ini membantu?",
+      suka: "Bermanfaat",
+      tidakSuka: "Tidak bermanfaat",
+      tamu: "Tamu",
+      baruSaja: "baru saja",
+      yangLalu: "{n} {satuan} yang lalu",
+      menit: "menit",
+      jam: "jam",
+      hari: "hari",
+      bulan: "bulan",
+      tahun: "tahun",
+      seed4:
+        "Analisa papan-nya bikin latihan jauh lebih terarah. Panah evaluasi dan penjelasan blunder benar-benar bikin paham kesalahan di mana.",
+      seed5:
+        "Koleksi teka-teki harian dan eBook gratisnya lengkap banget, cocok buat pemula yang mau latihan rutin. Antarmukanya juga rapi, tidak bikin mata lelah.",
+      seed6:
+        "Dapat kirim partai langsung dari Chess.com itu game changer. Riwayat akun keluar semua tanpa ribet salin-tempel PGN.",
+    },
 }

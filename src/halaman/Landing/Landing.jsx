@@ -41,7 +41,7 @@ import { KartuAlatLatihan } from "./KartuAlatLatihan.jsx";
 const TekaTekiHarianLanding = lazy(() => import("./TekaTekiHarianLanding.jsx"));
 import MaestroEdision from "./MaestroEdision.jsx";
 import KerangkaTekaTekiHarian from "./KerangkaTekaTekiHarian.jsx";
-import Testimoni from "./Testimoni.jsx";
+import RatingUlasan from "./RatingUlasan.jsx";
 import {
   JUDUL_SEKSI,
   JUDUL_SEKSI_TERANG,
@@ -677,7 +677,7 @@ export default function Landing() {
       <Suspense fallback={<KerangkaTekaTekiHarian />}>
         <TekaTekiHarianLanding />
       </Suspense>
-      <Testimoni />
+      <RatingUlasan />
 
       {/* `bg-white` dihapus: seksi ini satu-satunya yang berlatar putih murni,
           sedangkan seksi lain tidak punya kelas latar dan mewarisi

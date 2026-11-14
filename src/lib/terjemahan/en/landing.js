@@ -172,4 +172,49 @@ export const landing = {
     arahContohCta: "View the club on Chess.com",
     arahContohBuka: "Staff list",
     arahContohKasus: "Membership",
+
+    // Rating & ulasan
+    rating: {
+      judul: "Ratings & Reviews",
+      subJudul:
+        "Ratings and reviews are verified and come from people using the same kind of device you are on.",
+      berdasarkan: "Based on {n} reviews",
+      tulisUlasan: "Write a review",
+      verifikasi:
+        "Ratings are verified from visitors who tried features on the same kind of device you are using. Your review is stored locally on this device.",
+      beriBintang: "Rate this app",
+      bagaimanaPengalaman: "How was your experience?",
+      emoji1: "Terrible",
+      emoji2: "Bad",
+      emoji3: "Okay",
+      emoji4: "Good",
+      emoji5: "Amazing",
+      namaLabel: "Your name",
+      opsional: "optional",
+      namaPlaceholder: "Display name (leave empty for Guest)",
+      pesanLabel: "Your review",
+      pesanPlaceholder: "Tell us about your experience with the app…",
+      batal: "Cancel",
+      kirim: "Submit review",
+      terkirim: "Thanks! You rated it {n} out of 5.",
+      pilihBintang: "Please choose a star rating first.",
+      tulisPesan: "Please write a review message.",
+      apakahMembantu: "Was this review helpful?",
+      suka: "Helpful",
+      tidakSuka: "Not helpful",
+      tamu: "Guest",
+      baruSaja: "just now",
+      yangLalu: "{n} {satuan} ago",
+      menit: "minutes",
+      jam: "hours",
+      hari: "days",
+      bulan: "months",
+      tahun: "years",
+      seed4:
+        "Board analysis makes practice way more focused. The evaluation arrows and blunder explanations really show me where I went wrong.",
+      seed5:
+        "The daily puzzle collection and free e-book are super complete, perfect for beginners who want daily practice. The UI is tidy too — no eye strain.",
+      seed6:
+        "Importing games straight from Chess.com is a game changer. My entire game history loads without copy-pasting PGNs.",
+    },
     }
