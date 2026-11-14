@@ -56,8 +56,7 @@ export default function TulisUlasan() {
         title={t("landing.rating.tulisUlasan")}
         description={t("landing.rating.ajakSub")}
       />
-      <div className="min-h-screen bg-paper">
-        <div className="mx-auto w-full max-w-2xl px-6 pt-10 pb-14 md:px-8 md:pt-14 md:pb-20">
+      <div className="mx-auto w-full max-w-2xl px-6 pt-6 pb-14 md:px-8 md:pt-8 md:pb-20">
           <div className="mb-6 flex flex-col items-start gap-2">
             <h1 className="font-sans text-2xl font-semibold text-foreground md:text-3xl">
               {t("landing.rating.ajakJudul")}
@@ -73,7 +72,6 @@ export default function TulisUlasan() {
             onKirim={kirim}
             onBatal={batal}
           />
-        </div>
       </div>
     </>
   );

@@ -21,8 +21,7 @@ export default function SemuaUlasan() {
         title={t("landing.rating.judul")}
         description={t("landing.rating.subJudul")}
       />
-      <div className="min-h-screen bg-paper">
-        <div className="mx-auto w-full max-w-3xl px-6 pt-10 pb-14 md:px-8 md:pt-14 md:pb-20">
+      <div className="mx-auto w-full max-w-3xl px-6 pt-6 pb-14 md:px-8 md:pt-8 md:pb-20">
         <h1 className="font-sans text-2xl font-semibold text-foreground md:text-3xl">
           {t("landing.rating.judul")}
         </h1>
@@ -35,7 +34,6 @@ export default function SemuaUlasan() {
           {urut.map((u) => (
             <KartuUlasan key={u.id} t={t} ulasan={u} padaVote={vote} />
           ))}
-        </div>
         </div>
       </div>
     </>
