@@ -314,27 +314,41 @@ function CardCarousel({ index, setIndex, t }) {
     desk: b.kategori,
   }));
   const n = kartu.length;
-  const tripled = [...kartu, ...kartu, ...kartu];
   const mid = n;
   const [noAnim, setNoAnim] = useState(false);
-  // 320px kartu + 14px gap = 334px langkah. Jendela 4 x 334 = 1336px -> 4 kartu
-  // terlihat penuh; kartu pada `i === index` selalu berada di tepi kiri dan
-  // utuh, jadi penanda biru jatuh pada kartu pertama yang tidak terpotong.
   // 320px kartu + 14px gap = 334px langkah. Jendela 2 kartu penuh +
   // 160px (= separuh kartu ketiga) = 828px: muat di kolom kanan yang
   // lebarnya sekitar 940px pada layar 1440px, dan separuh kartu ketiga
-  // sekaligus memberi tanda masih ada kelanjutannya. 3 kartu utuh
-  // (988px) tidak muat di lebar itu sehingga kartu ketiga terpotong penuh.
+  // sekaligus memberi tanda masih ada kelanjutannya.
   const CARD_W = 334;
   const JENDELA = 828;
+  // VIRTUALISASI: jangan render seluruh 3×n=96 kartu (960-an node DOM,
+  // ~60% dari total DOM landing). Hanya render jendela 6 kartu di
+  // sekitar posisi aktif: 1 kartu buffer ke kiri (untuk animasi keluar
+  // saat klik "mundur") + 3 kartu terlihat (2 penuh + 1 separuh) +
+  // 2 kartu buffer ke kanan (animasi masuk saat klik "maju"). Sisanya
+  // digantikan spacer kiri dengan lebar `index * CARD_W` yang
+  // mendorong window render ke offset yang benar, sehingga
+  // `translateX(-index*CARD_W)` tetap mendarat pada posisi yang
+  // persis sama seperti versi 96 kartu. Catatan: index bergerak dalam
+  // rentang [0..3n) untuk seamless-loop, jadi kartu ke-i di track
+  // virtual = kartu[(i) mod n] (bukan kartu[i] seperti tripled lama).
+  const WINDOW_KIRI_BUFFER = 1;
+  const WINDOW_KANAN_BUFFER = 2;
+  const WINDOW_TERLIHAT = 4;
+  const start = Math.max(0, index - WINDOW_KIRI_BUFFER);
+  const end = Math.min(3 * n, index + WINDOW_TERLIHAT + WINDOW_KANAN_BUFFER);
+  const virtualKartu = [];
+  for (let i = start; i < end; i += 1) {
+    virtualKartu.push({ ...kartu[i % n], i });
+  }
 
-  // Karusel tak berujung: salinan tengah, dari mid sampai dua kali mid,
-  // yang tampil. Setelah transisi selesai, bila index keluar dari rentang
-  // itu, lompat diam-diam ke posisi yang SETARA (kartu yang sama, index
-  // digeser mid) tanpa animasi. Rumus index digeser mid — bukan selalu
-  // kembali ke mid seperti versi lama — memastikan klik cepat yang
-  // melewati batas tetap mendarat pada kartu yang sama; versi lama
-  // melompat ke kartu salah.
+  // Karusel tak berujung: setelah transisi selesai, bila index keluar
+  // dari rentang [n..2n), lompat diam-diam ke posisi yang SETARA
+  // (kartu yang sama, index digeser n) tanpa animasi. Dalam jendela
+  // virtual lompatan ini seketika merender kartu yang benar pada
+  // posisi start baru, dan `noAnim` mencegah transition sehingga
+  // pengguna tidak melihat perubahan.
   const handleEnd = (e) => {
     if (e.propertyName !== "transform") return;
     if (index >= mid * 2) {
@@ -350,8 +364,6 @@ function CardCarousel({ index, setIndex, t }) {
     if (!noAnim) return undefined;
     // DUA requestAnimationFrame: frame pertama menjamin lompatan tanpa
     // animasi sempat DIGAMBAR dulu sebelum kelas transisi dipasang lagi.
-    // Dengan satu frame saja kedua pembaruan bisa menyatu dalam satu
-    // paint, sehingga lompatan malah tampak sebagai geseran mundur.
     let id2 = 0;
     const id1 = requestAnimationFrame(() => {
       id2 = requestAnimationFrame(() => setNoAnim(false));
@@ -367,36 +379,27 @@ function CardCarousel({ index, setIndex, t }) {
       <div className="overflow-hidden max-w-full mx-auto" style={{ maxWidth: `${JENDELA}px` }}>
         <div
           // Jarak antar kartu WAJIB 14px — nilai ini harus cocok dengan CARD_W (320+14).
-          // Kalau hanya kartu yang diubah jadi `gap-[14px]` tetapi track tetap
-          // `gap-5`, langkah sebenarnya 340px sementara transform menggeser
-          // 334px: kartu aktif bergeser 6px ke kanan tiap langkah dan kartu
-          // sebelumnya menyingkap dari tepi kiri.
           className={`flex gap-[14px] ${noAnim ? "" : "transition-transform duration-500 ease-in-out"}`}
           style={{ transform: `translateX(-${index * CARD_W}px)` }}
           onTransitionEnd={handleEnd}
         >
-          {tripled.map((k, i) => {
-            const isActive = i === index;
-            const terlihat = i >= index && i <= index + 2;
-            // Kartu kecil TIDAK memakai transisi warna sama sekali.
-            // Alasannya: `isActive` berubah seketika ketika tombol diklik,
-            // sementara posisinya masih bergeser 500 ms. Bila warna ikut
-            // bertransisi 150 ms, kartu yang baru menjadi aktif masih WHITE
-            // selama 500 ms pertama dan kartu yang keluar masih biru, lalu
-            // garisnya memudar putih → hitam setelah penanda biru pindah —
-            // terlihat seperti garis nyasar. Warna aktif kini berubah
-            // seketika, jadi tidak ada yang bisa "tinggal". Yang tetap
-            // dianimasikan hanya pergeseran track (lihat kelas di track).
+          {/* Spacer kiri mengisi ruang kartu yang tidak dirender di kiri
+              window. Flex gap tidak termasuk di spacer karena hanya muncul
+              di antara elemen flex yang benar-benar dirender — jadi
+              spacer lebarnya `start * CARD_W` (kartu 320px + gap 14px
+              berikutnya) dan kartu pertama di window mulai di posisi
+              yang benar. */}
+          {start > 0 && <div aria-hidden="true" style={{ width: `${start * CARD_W}px`, flex: "none" }} />}
+          {virtualKartu.map((k) => {
+            const isActive = k.i === index;
+            const terlihat = k.i >= index && k.i <= index + 2;
             return (
               <Link
-                key={`${k.judul}-${i}`}
+                key={`${k.judul}-${k.i}`}
                 to={k.to}
                 title={k.judul}
                 tabIndex={terlihat ? undefined : -1}
                 aria-hidden={!terlihat || undefined}
-                // Kartu 320x168, padding 18/18/14, jarak 14 — nilai `.t-card--plinth`
-                // di `index.duybiyfa.css`. Judul memakai skala `.t-card-quote`
-                // (.94rem/1.5, clamp 4) dan kategori skala `.t-name` (.82rem).
                 className={`flex-none w-[320px] h-[168px] pt-[18px] px-[18px] pb-[14px] rounded-lg border gap-[14px] flex flex-col justify-between relative cursor-pointer ${
                   isActive
                     ? "bg-primary border-primary text-white"
@@ -408,16 +411,7 @@ function CardCarousel({ index, setIndex, t }) {
                 >
                   {k.judul}
                 </h3>
-                {/* Garis horizontal penuh menggantikan bar aksen pendek `w-6`:
-                    kini membentang di atas baris kategori + panah, dengan
-                    kategori di kiri dan panah miring di kanan. */}
                 <div className="flex flex-col gap-[10px]">
-                  {/* Garis hitam pada kartu biasa; pada kartu yang sedang aktif (biru
-                    penuh) garis ikut putih agar kontras. `group-hover:bg-white`
-                    dan `transition-colors` keduanya sudah dihapus: yang
-                    pertama membuat garis ikut putih pada kartu yang kebetulan
-                    lewat di bawah kursor, yang kedua membuat garis putih pada
-                    kartu keluar memudar terlambat setelah penanda biru pindah. */}
                   <div className={`h-[2px] w-full rounded-sm ${isActive ? "bg-white" : "bg-grey-800"}`} />
                   <div className="flex items-end justify-between gap-3">
                     <p className={`font-mono text-[0.82rem] leading-[1.2] tracking-[0.01em] truncate ${isActive ? "text-white/90" : "text-grey-600 group-hover:text-white"}`}>
