@@ -41,9 +41,14 @@ function KartuTipe({ aktif, ikon, label, tanpaLabel, disabled = false, onClick }
 
 function GambarIkon({ ikon }) {
   if (ikon === "pgn") {
+    // Ikon dokumen berlabel "PGN" — isi dokumen fill currentColor
+    // (mengikuti warna tombol: abu saat non-aktif, foreground saat aktif),
+    // label "PGN" memakai warna latar kartu (bg-backgroundBox) agar
+    // kontras seperti efek "terpotong" dari dokumen.
     return (
-      <svg viewBox="0 0 16 16" className="h-6 w-6 fill-current" aria-hidden="true">
-        <path d="M8.01005 0.858582L6.01005 14.8586L7.98995 15.1414L9.98995 1.14142L8.01005 0.858582ZM12.5 11.5L11.0858 10.0858L13.1716 8L11.0858 5.91422L12.5 4.5L16 8L12.5 11.5ZM2.82843 8L4.91421 10.0858L3.5 11.5L0 8L3.5 4.5L4.91421 5.91422L2.82843 8Z" />
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-6 w-6 fill-current" aria-hidden="true">
+        <path d="M6 22q-.82 0-1.41-.59T4 20V4q0-.83.59-1.41T6 2h8l6 6v12q0 .82-.59 1.41T18 22zm7-13V4H6v16h12V9zM6 4v5zv16z" />
+        <text x="12" y="16" fontFamily="Arial, sans-serif" fontSize="5" fontWeight="bold" textAnchor="middle" className="fill-backgroundBoxBox">PGN</text>
       </svg>
     );
   }
@@ -56,18 +61,12 @@ function GambarIkon({ ikon }) {
       </div>
     );
   }
+  // Ikon dokumen berlabel "FEN" — xmlns diperbaiki dari "http://w3.org"
+  // (salah ketik) menjadi "http://www.w3.org/2000/svg" agar valid.
   return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="h-6 w-6"
-      aria-hidden="true"
-    >
-      <path d="M18.5708 20C19.8328 20 20.8568 18.977 20.8568 17.714V13.143L21.9998 12L20.8568 10.857V6.286C20.8568 5.023 19.8338 4 18.5708 4M5.429 4C4.166 4 3.143 5.023 3.143 6.286V10.857L2 12L3.143 13.143V17.714C3.143 18.977 4.166 20 5.429 20M7.5 12H7.51M12 12H12.01M16.5 12H16.51" />
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-6 w-6 fill-current" aria-hidden="true">
+      <path d="M6 22q-.82 0-1.41-.59T4 20V4q0-.83.59-1.41T6 2h8l6 6v12q0 .82-.59 1.41T18 22zm7-13V4H6v16h12V9zM6 4v5zv16z" />
+      <text x="12" y="16" fontFamily="Arial, sans-serif" fontSize="5.2" fontWeight="bold" textAnchor="middle" className="fill-backgroundBoxBox">FEN</text>
     </svg>
   );
 }
