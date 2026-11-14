@@ -175,15 +175,16 @@ export const landing = {
 
     // Rating & ulasan
     rating: {
-      judul: "Ratings & Reviews",
+      judul: "Ratings and reviews",
       subJudul:
-        "Ratings and reviews are verified and come from people using the same kind of device you are on.",
-      ajakJudul: "Rate this website",
-      ajakSub:
-        "Share your opinion. Click a star below to rate, then write a short message about your experience.",
-      berdasarkan: "Based on {n} reviews",
+        "Ratings and reviews are verified and come from people using the same kind of device you are on",
+      ajakJudul: "Rate this app",
+      ajakSub: "Share your opinion",
+      berdasarkan: "{n} reviews",
       terpilih: "You chose {n} out of 5 stars.",
       tulisUlasan: "Write a review",
+      lihatSemua: "See all reviews",
+      lainnya: "More options",
       verifikasi:
         "Ratings are verified from visitors who tried features on the same kind of device you are using. Your review is stored locally on this device.",
       beriBintang: "Rate this app",
@@ -213,10 +214,11 @@ export const landing = {
       menit: "minutes",
       jam: "hours",
       hari: "days",
+      minggu: "weeks",
       bulan: "months",
       tahun: "years",
       seed4:
-        "Board analysis makes practice way more focused. The evaluation arrows and blunder explanations really show me where I went wrong.",
+        "At first I was overwhelmed by how many practice options there are; I started with the interactive opening module, but once I tried Board Analysis it clicked — it's exactly what I needed to go over my mistakes and study games. I've ended up coming back every day, and I've been dissecting my own games and my friends' for about 4-5 months now.",
       seed5:
         "The daily puzzle collection and free e-book are super complete, perfect for beginners who want daily practice. The UI is tidy too — no eye strain.",
       seed6:

@@ -1,178 +1,217 @@
 /**
- * Rating & Ulasan — agregat bintang, tombol "tulis ulasan" yang membuka
- * form emoji + teks, dan daftar kartu ulasan (avatar/nama/bintang/tanggal/
- * pesan/tombol bermanfaat).
+ * Rating & Ulasan — tata letak meniru blok "Beri rating aplikasi ini"
+ * Google Play Store (versi ringan, disesuaikan token desain KCI):
  *
- * Dirancang untuk user TAMU di Landing — tidak perlu login. Ulasan yang
- * ditulis disimpan di localStorage (kunci `kci-ulasan`) agar tetap ada
- * saat halaman dibuka ulang; seed data 3 ulasan awal (dari Testimoni lama)
- * supaya blok tidak kosong saat kunjungan pertama.
+ *   1. Hero polos (tanpa kotak): judul "Beri rating aplikasi ini" + sub
+ *      "Sampaikan pendapat Anda" + bintang interaktif besar (outline
+ *      default, terisi kuning saat dipilih) + tautan teks "Tulis ulasan".
+ *   2. Kepala seksi "Rating dan ulasan" dengan tombol panah-kanan
+ *      (bundar) + paragraf verifikasi dengan ikon ⓘ.
+ *   3. Ringkasan mendatar: kiri = skor besar (4,8) + deret bintang
+ *      (dukung bintang pecahan untuk skor rata-rata) + jumlah ulasan
+ *      terformat ribuan; kanan = baris distribusi 5→1 dengan progress
+ *      bar (tanpa angka hitung di kanan, sesuai referensi).
+ *   4. Daftar kartu ulasan penuh-lebar: avatar isi berwarna (tak berbingkai,
+ *      putih di atas warna primer/acak), nama + menu ⋮, bintang + tanggal
+ *      DD/MM/YY + pil "n minggu yang lalu", pesan (line-clamp), dan bar
+ *      "Apakah ulasan ini membantu?" dengan jempol-naik+angka dan
+ *      jempol-turun ikon polos (tanpa angka).
  *
- * Pola interaksi mengikuti c-rating-4 (bintang interaktif), c-rating-9
- * (pilih emoji pengalaman), dan c-rating-6 (ringkasan distribusi +
- * progress bar) tapi disesuaikan ke token desain KCI (border-2, rounded-lg,
- * bg-paper/-backgroundBox, warna primary, tanpa lib tambahan).
+ * Penyimpanan: localStorage (`kci-ulasan-tamu`) — ulasan tamu + status vote
+ * persisten per perangkat. Seed awal 6 ulasan (3 dari Testimoni lama + 3
+ * tambahan) agar distribusi tak kosong saat kunjungan pertama.
  */
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "../../components/ui/button.jsx";
 import { Progress, ProgressTrack, ProgressIndicator } from "../../components/ui/progress.jsx";
-import { Separator } from "../../components/ui/separator.jsx";
 import { Textarea } from "../../components/ui/textarea.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
-import { JUDUL_SEKSI, KEPALA_SEKSI } from "./gayaTeks.jsx";
 
 const KUNCI_SIMPAN = "kci-ulasan-tamu";
 
-/* ---------- ikon bintang (padat & kosong) ---------- */
-function Bintang({ padat = false, className = "" }) {
+/* ---------- ikon-ikon kecil ---------- */
+function BintangOutline({ className = "" }) {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-      className={className}
-      fill={padat ? "currentColor" : "none"}
-      stroke="currentColor"
-      strokeWidth={padat ? 0 : 1.8}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={className}
+      fill="none" stroke="currentColor" strokeWidth={1.6}
+      strokeLinecap="round" strokeLinejoin="round">
       <path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.8l-5.9 2.8 1.3-6.6L2.5 9.4l6.6-.8L12 2.5z" />
     </svg>
   );
 }
-
-/* ---------- ikon jempol (naik & turun) ---------- */
+function BintangPadat({ className = "" }) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={className}
+      fill="currentColor">
+      <path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.8l-5.9 2.8 1.3-6.6L2.5 9.4l6.6-.8L12 2.5z" />
+    </svg>
+  );
+}
+/** Ikon info ⓘ (lingkaran dengan huruf i) */
+function IkonInfo({ className = "" }) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={className}
+      fill="none" stroke="currentColor" strokeWidth={1.8}
+      strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 11v5" />
+      <circle cx="12" cy="8" r="0.6" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+/** Panah kanan (bundar) */
+function PanahKanan({ className = "" }) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={className}
+      fill="none" stroke="currentColor" strokeWidth={2}
+      strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 6l6 6-6 6" />
+    </svg>
+  );
+}
+/** Tiga titik vertikal (menu lainnya) */
+function TigaTitik({ className = "" }) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={className}
+      fill="currentColor">
+      <circle cx="12" cy="5" r="1.6" />
+      <circle cx="12" cy="12" r="1.6" />
+      <circle cx="12" cy="19" r="1.6" />
+    </svg>
+  );
+}
 function Jempol({ arah = "naik", aktif = false, className = "" }) {
   const rotasi = arah === "turun" ? "rotate-180" : "";
   return (
-    <svg
-      viewBox="0 0 24 24"
-      aria-hidden="true"
+    <svg viewBox="0 0 24 24" aria-hidden="true"
       className={`${rotasi} ${className}`}
       fill={aktif ? "currentColor" : "none"}
-      stroke="currentColor"
-      strokeWidth={1.8}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
+      stroke="currentColor" strokeWidth={1.8}
+      strokeLinecap="round" strokeLinejoin="round">
       <path d="m7 9 4-7h3l-1 7h9l-2 13H7zM2 9h5v13H2z" />
     </svg>
   );
 }
 
-/* ---------- inisial avatar (lingkaran huruf) ---------- */
-function Inisial({ nama }) {
+/* ---------- angka dengan pemisah ribuan gaya Indonesia ---------- */
+function formatRibuan(n, locale) {
+  try {
+    return new Intl.NumberFormat(locale === "id" ? "id-ID" : "en-US").format(n);
+  } catch {
+    return String(n);
+  }
+}
+/** Tanggal DD/MM/YY (contoh: 05/11/26) */
+function formatTanggalSingkat(ts) {
+  const d = new Date(ts);
+  const dd = String(d.getDate()).padStart(2, "0");
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const yy = String(d.getFullYear()).slice(-2);
+  return `${dd}/${mm}/${yy}`;
+}
+
+/* ---------- palet warna avatar (dipilih deterministik dari nama) ---------- */
+const WARNA_AVATAR = [
+  "bg-purple-600 text-white",
+  "bg-emerald-600 text-white",
+  "bg-rose-600 text-white",
+  "bg-amber-500 text-white",
+  "bg-sky-600 text-white",
+  "bg-indigo-600 text-white",
+  "bg-teal-600 text-white",
+  "bg-pink-600 text-white",
+];
+function warnaUntuk(nama) {
+  let hash = 0;
+  for (let i = 0; i < (nama || "").length; i++) {
+    hash = (hash * 31 + nama.charCodeAt(i)) >>> 0;
+  }
+  return WARNA_AVATAR[hash % WARNA_AVATAR.length];
+}
+
+/* ---------- avatar lingkaran isi berwarna (tanpa bingkai) ---------- */
+function Avatar({ nama }) {
   const huruf = (nama || "?")
     .split(/\s+/)
     .filter(Boolean)
     .map((p) => p[0])
     .join("")
-    .slice(0, 2)
+    .slice(0, 1)
     .toUpperCase();
   return (
     <span
       aria-hidden="true"
-      className="flex size-10 flex-none items-center justify-center rounded-full border-2 border-primary bg-background font-sans text-sm font-semibold text-primary"
+      className={`flex size-11 flex-none items-center justify-center rounded-full font-sans text-base font-semibold ${warnaUntuk(nama)}`}
     >
       {huruf}
     </span>
   );
 }
 
-/* ---------- bintang statis / interaktif ---------- */
+/* ---------- deret bintang (dukung nilai pecahan untuk ringkasan) ---------- */
+/**
+ * @param {number} nilai - nilai 0..5 (bisa pecahan untuk ringkasan)
+ * @param {boolean} bisaUbah - jadikan radio button interaktif (nilai dianggap bulat)
+ * @param {'sm'|'md'|'lg'|'xl'} ukuran
+ */
 function DeretBintang({ nilai, ukuran = "md", onPilih, bisaUbah = false }) {
-  const max = 5;
   const ukuranCls =
-    ukuran === "sm"
-      ? "size-4"
-      : ukuran === "lg"
-        ? "size-7"
-        : ukuran === "xl"
-          ? "size-10"
+    ukuran === "sm" ? "size-4"
+      : ukuran === "lg" ? "size-6"
+        : ukuran === "xl" ? "size-11"
           : "size-5";
-  const gapCls = bisaUbah ? (ukuran === "xl" ? "gap-2" : "gap-1") : "gap-0.5";
-  return (
-    <div
-      className={`inline-flex items-center ${gapCls} text-yellow-400`}
-      role={bisaUbah ? "radiogroup" : "img"}
-      aria-label={`${nilai} dari 5 bintang`}
-    >
-      {Array.from({ length: max }, (_, i) => {
-        const bintangKe = i + 1;
-        const padat = bintangKe <= Math.round(nilai);
-        if (!bisaUbah) {
-          return <Bintang key={bintangKe} padat={padat} className={ukuranCls} />;
-        }
-        return (
+  const gapCls = bisaUbah ? (ukuran === "xl" ? "gap-1.5" : "gap-0.5") : "gap-0.5";
+
+  if (bisaUbah) {
+    const bulat = Math.round(nilai);
+    return (
+      <div className={`inline-flex items-center ${gapCls} text-yellow-400`}
+        role="radiogroup" aria-label={`${bulat} dari 5 bintang`}>
+        {[1, 2, 3, 4, 5].map((n) => (
           <button
-            key={bintangKe}
+            key={n}
             type="button"
             role="radio"
-            aria-checked={nilai === bintangKe}
-            aria-label={`${bintangKe} bintang`}
-            onClick={() => onPilih?.(bintangKe)}
-            className={`rounded p-0.5 transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50`}
+            aria-checked={bulat === n}
+            aria-label={`${n} bintang`}
+            onClick={() => onPilih?.(n)}
+            className="rounded p-0.5 transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400/50"
           >
-            <Bintang padat={bintangKe <= nilai} className={ukuranCls} />
+            {n <= nilai
+              ? <BintangPadat className={ukuranCls} />
+              : <BintangOutline className={ukuranCls} />}
           </button>
+        ))}
+      </div>
+    );
+  }
+
+  // Statis: dukung pecahan — render bintang berlapis: outline selalu ada,
+  // lalu bintang padat di dalam wadah dengan clip-path lebar = persen isi.
+  const mak = Math.max(0, Math.min(5, nilai));
+  return (
+    <div className={`inline-flex items-center ${gapCls} text-yellow-400`}
+      role="img" aria-label={`${nilai.toFixed(1)} dari 5 bintang`}>
+      {[1, 2, 3, 4, 5].map((n) => {
+        const isi = Math.max(0, Math.min(1, mak - (n - 1)));
+        return (
+          <span key={n} className="relative inline-block">
+            <BintangOutline className={ukuranCls} />
+            {isi > 0 && (
+              <span className="pointer-events-none absolute inset-0 overflow-hidden"
+                style={{ width: `${isi * 100}%` }}>
+                <BintangPadat className={`${ukuranCls} shrink-0`}
+                  style={{ width: "1em", height: "1em" }} />
+              </span>
+            )}
+          </span>
         );
       })}
     </div>
   );
 }
 
-/* ---------- ringkasan agregat (skor besar + distribusi) ---------- */
-function Ringkasan({ t, ulasan }) {
-  const total = ulasan.length;
-  const rata = total
-    ? ulasan.reduce((a, u) => a + u.bintang, 0) / total
-    : 0;
-  const distribusi = useMemo(() => {
-    const baris = [5, 4, 3, 2, 1].map((b) => {
-      const hitung = ulasan.filter((u) => u.bintang === b).length;
-      const persen = total ? Math.round((hitung / total) * 100) : 0;
-      return { bintang: b, count: hitung, percentage: persen };
-    });
-    return baris;
-  }, [ulasan, total]);
-
-  return (
-    <div className="rounded-lg border-2 border-border bg-backgroundBox p-5 md:p-6">
-      <div className="flex flex-col items-center gap-2">
-        <span className="font-sans text-3xl font-semibold text-foreground">
-          {rata.toFixed(1)}
-        </span>
-        <DeretBintang nilai={rata} ukuran="sm" />
-        <span className="font-sans text-xs text-foregroundGrey">
-          {t("landing.rating.berdasarkan", { n: total })}
-        </span>
-      </div>
-      <Separator className="my-4" />
-      <div className="space-y-2">
-        {distribusi.map((row) => (
-          <div key={row.bintang} className="flex items-center gap-3 text-sm">
-            <span className="w-3 text-right font-sans text-xs text-foregroundGrey">
-              {row.bintang}
-            </span>
-            <Progress
-              value={row.percentage}
-              className="flex-1 items-center"
-            >
-              <ProgressTrack className="h-1.5 flex-1 rounded border-0 bg-grey-200">
-                <ProgressIndicator className="bg-yellow-400" />
-              </ProgressTrack>
-            </Progress>
-            <span className="w-7 text-right font-sans text-xs text-foregroundGrey tabular-nums">
-              {row.count}
-            </span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-/* ---------- emoji picker (c-rating-9) ---------- */
+/* ---------- emoji picker ---------- */
 const EMOJI_LIST = (t) => [
   { value: 1, emoji: "😞", label: t("landing.rating.emoji1") },
   { value: 2, emoji: "😕", label: t("landing.rating.emoji2") },
@@ -181,7 +220,7 @@ const EMOJI_LIST = (t) => [
   { value: 5, emoji: "🤩", label: t("landing.rating.emoji5") },
 ];
 
-/* ---------- format waktu relatif ---------- */
+/* ---------- waktu relatif ---------- */
 function waktuRelatif(ts, t) {
   const detik = Math.max(1, Math.floor((Date.now() - ts) / 1000));
   if (detik < 60) return t("landing.rating.baruSaja");
@@ -190,23 +229,60 @@ function waktuRelatif(ts, t) {
   const jam = Math.floor(menit / 60);
   if (jam < 24) return t("landing.rating.yangLalu", { n: jam, satuan: t("landing.rating.jam") });
   const hari = Math.floor(jam / 24);
-  if (hari < 30) return t("landing.rating.yangLalu", { n: hari, satuan: t("landing.rating.hari") });
+  if (hari < 7) return t("landing.rating.yangLalu", { n: hari, satuan: t("landing.rating.hari") });
+  const minggu = Math.floor(hari / 7);
+  if (minggu < 5) return t("landing.rating.yangLalu", { n: minggu, satuan: t("landing.rating.minggu") });
   const bulan = Math.floor(hari / 30);
   if (bulan < 12) return t("landing.rating.yangLalu", { n: bulan, satuan: t("landing.rating.bulan") });
   const tahun = Math.floor(bulan / 12);
   return t("landing.rating.yangLalu", { n: tahun, satuan: t("landing.rating.tahun") });
 }
 
-function tanggalPanjang(ts, locale) {
-  try {
-    return new Date(ts).toLocaleDateString(locale, {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
+/* ---------- ringkasan agregat (skor + distribusi mendatar) ---------- */
+function Ringkasan({ ulasan, locale }) {
+  const total = ulasan.length;
+  const rata = total ? ulasan.reduce((a, u) => a + u.bintang, 0) / total : 0;
+  const distribusi = useMemo(() => {
+    return [5, 4, 3, 2, 1].map((b) => {
+      const hitung = ulasan.filter((u) => u.bintang === b).length;
+      const persen = total ? Math.round((hitung / total) * 100) : 0;
+      return { bintang: b, percentage: persen };
     });
-  } catch {
-    return new Date(ts).toISOString().slice(0, 10);
-  }
+  }, [ulasan, total]);
+
+  // Angka desimal pakai koma untuk Indonesia, titik untuk Inggris
+  const rataTeks = rata.toFixed(1).replace(".", locale === "id" ? "," : ".");
+
+  return (
+    <div className="flex flex-col gap-5 md:flex-row md:items-center md:gap-8">
+      {/* kiri: skor besar + bintang + jumlah */}
+      <div className="flex flex-col items-center gap-1 md:min-w-[140px] md:items-start">
+        <span className="font-sans text-5xl font-semibold leading-none text-foreground md:text-6xl">
+          {rataTeks}
+        </span>
+        <DeretBintang nilai={rata} ukuran="md" />
+        <span className="mt-0.5 font-sans text-sm text-foregroundGrey">
+          {formatRibuan(total, locale)}
+        </span>
+      </div>
+
+      {/* kanan: bar distribusi */}
+      <div className="flex-1 space-y-1.5">
+        {distribusi.map((row) => (
+          <div key={row.bintang} className="flex items-center gap-2.5">
+            <span className="w-3 text-right font-sans text-xs text-foregroundGrey">
+              {row.bintang}
+            </span>
+            <Progress value={row.percentage} className="flex-1 items-center">
+              <ProgressTrack className="h-1.5 flex-1 overflow-hidden rounded-full bg-grey-200 border-0">
+                <ProgressIndicator className="h-full rounded-full bg-yellow-400" />
+              </ProgressTrack>
+            </Progress>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 /* ---------- form tulis ulasan ---------- */
@@ -218,8 +294,6 @@ function FormUlasan({ t, bintangAwal = 0, onKirim, onBatal }) {
   const [error, setError] = useState(null);
   const daftarEmoji = EMOJI_LIST(t);
 
-  // Sinkronkan bintang jika pengguna memilih/berubah bintang di hero
-  // (blok "Beri rating website ini") saat form sudah terbuka.
   useEffect(() => {
     if (bintangAwal > 0) {
       setBintang(bintangAwal);
@@ -263,22 +337,18 @@ function FormUlasan({ t, bintangAwal = 0, onKirim, onBatal }) {
   return (
     <form
       onSubmit={kirim}
-      className="space-y-5 rounded-lg border-2 border-border bg-paper p-5 md:p-6"
+      className="space-y-5 rounded-2xl bg-paper p-5 md:p-6"
+      id="form-ulasan"
     >
       {/* langkah 1: bintang */}
       <div className="space-y-2">
         <label className="block font-sans text-sm font-semibold text-foreground">
           {t("landing.rating.beriBintang")}
         </label>
-        <DeretBintang
-          nilai={bintang}
-          ukuran="lg"
-          bisaUbah
-          onPilih={pilihBintang}
-        />
+        <DeretBintang nilai={bintang} ukuran="lg" bisaUbah onPilih={pilihBintang} />
       </div>
 
-      {/* langkah 2: emoji pengalaman */}
+      {/* langkah 2: emoji */}
       <div className="space-y-2">
         <p className="font-sans text-sm font-medium text-foreground">
           {t("landing.rating.bagaimanaPengalaman")}
@@ -289,10 +359,10 @@ function FormUlasan({ t, bintangAwal = 0, onKirim, onBatal }) {
               key={item.value}
               type="button"
               onClick={() => pilihBintang(item.value)}
-              className={`flex size-11 items-center justify-center rounded-lg border-2 text-2xl transition-all ${
+              className={`flex size-11 items-center justify-center rounded-lg text-2xl transition-all ${
                 (emoji ?? bintang) === item.value
-                  ? "scale-110 border-border bg-backgroundBox"
-                  : "border-transparent hover:bg-backgroundBox"
+                  ? "scale-110 bg-backgroundBox"
+                  : "hover:bg-backgroundBox"
               }`}
               aria-label={item.label}
               title={item.label}
@@ -308,7 +378,7 @@ function FormUlasan({ t, bintangAwal = 0, onKirim, onBatal }) {
         ) : null}
       </div>
 
-      {/* langkah 3: nama (opsional) */}
+      {/* langkah 3: nama */}
       <div className="space-y-1.5">
         <label htmlFor="ulasan-nama" className="block font-sans text-sm font-semibold text-foreground">
           {t("landing.rating.namaLabel")}{" "}
@@ -323,7 +393,7 @@ function FormUlasan({ t, bintangAwal = 0, onKirim, onBatal }) {
           onChange={(e) => setNama(e.target.value)}
           maxLength={40}
           placeholder={t("landing.rating.namaPlaceholder")}
-          className="w-full rounded-lg border-2 border-input bg-transparent px-3 py-2 font-sans text-sm outline-none placeholder:text-foregroundGrey focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+          className="w-full rounded-lg border border-input bg-transparent px-3 py-2 font-sans text-sm outline-none placeholder:text-foregroundGrey focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
         />
       </div>
 
@@ -335,10 +405,7 @@ function FormUlasan({ t, bintangAwal = 0, onKirim, onBatal }) {
         <Textarea
           id="ulasan-pesan"
           value={pesan}
-          onChange={(e) => {
-            setPesan(e.target.value);
-            setError(null);
-          }}
+          onChange={(e) => { setPesan(e.target.value); setError(null); }}
           rows={4}
           maxLength={600}
           placeholder={t("landing.rating.pesanPlaceholder")}
@@ -349,7 +416,7 @@ function FormUlasan({ t, bintangAwal = 0, onKirim, onBatal }) {
       </div>
 
       {error ? (
-        <p role="alert" className="rounded border-2 border-destructive/40 bg-destructive/10 px-3 py-2 font-sans text-sm text-destructive">
+        <p role="alert" className="rounded border border-destructive/40 bg-destructive/10 px-3 py-2 font-sans text-sm text-destructive">
           {error}
         </p>
       ) : null}
@@ -366,79 +433,86 @@ function FormUlasan({ t, bintangAwal = 0, onKirim, onBatal }) {
   );
 }
 
-/* ---------- kartu ulasan satu per satu ---------- */
-function KartuUlasan({ t, locale, ulasan: u, padaVote }) {
-  const emojiFor = EMOJI_LIST(t).find((e) => e.value === (u.emoji ?? u.bintang));
+/* ---------- kartu ulasan tunggal ---------- */
+function KartuUlasan({ t, ulasan: u, padaVote }) {
   return (
-    <article className="flex flex-col gap-3 rounded-lg border-2 border-border bg-paper p-5">
+    <article className="flex flex-col gap-3 rounded-2xl bg-paper p-5">
       <header className="flex items-start gap-3">
-        <Inisial nama={u.nama} />
+        <Avatar nama={u.nama} />
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <span className="font-sans text-sm font-semibold text-foreground">
+          <div className="flex items-start justify-between gap-2">
+            <span className="truncate font-sans text-base font-semibold text-foreground">
               {u.nama}
             </span>
-            {emojiFor ? <span aria-hidden="true">{emojiFor.emoji}</span> : null}
+            <button
+              type="button"
+              aria-label={t("landing.rating.lainnya")}
+              className="-mr-1 -mt-0.5 flex size-8 items-center justify-center rounded-full text-foregroundGrey transition-colors hover:bg-backgroundBox hover:text-foreground"
+            >
+              <TigaTitik className="size-5" />
+            </button>
           </div>
-          <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5">
+          <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
             <DeretBintang nilai={u.bintang} ukuran="sm" />
+            <span className="font-sans text-xs text-foregroundGrey" aria-hidden="true">•</span>
             <time
               dateTime={new Date(u.ts).toISOString()}
-              title={tanggalPanjang(u.ts, locale)}
               className="font-sans text-xs text-foregroundGrey"
             >
-              {waktuRelatif(u.ts, t)}
+              {formatTanggalSingkat(u.ts)}
             </time>
+            <span className="rounded-full bg-grey-200 px-2 py-0.5 font-sans text-[11px] text-foregroundGrey">
+              {waktuRelatif(u.ts, t)}
+            </span>
           </div>
         </div>
       </header>
 
-      <p className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-foreground">
+      <p className="line-clamp-4 whitespace-pre-wrap font-sans text-sm leading-relaxed text-foreground">
         {u.pesan}
       </p>
 
-      <footer className="flex items-center gap-2 border-t border-border pt-3">
-        <span className="mr-auto font-sans text-xs text-foregroundGrey">
+      <footer className="flex items-center gap-3 pt-1">
+        <span className="mr-auto font-sans text-sm text-foregroundGrey">
           {t("landing.rating.apakahMembantu")}
         </span>
         <button
           type="button"
           onClick={() => padaVote(u.id, "naik")}
           aria-pressed={u.sayaSuka === true}
-          className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-1 font-sans text-xs transition-colors ${
-            u.sayaSuka
-              ? "border-primary bg-primary/10 text-primary"
-              : "border-border text-foregroundGrey hover:bg-backgroundBox"
-          }`}
           aria-label={t("landing.rating.suka")}
+          className={`inline-flex items-center gap-1.5 rounded-full px-2 py-1 font-sans text-sm transition-colors ${
+            u.sayaSuka
+              ? "bg-primary/10 text-primary"
+              : "text-foregroundGrey hover:bg-backgroundBox"
+          }`}
         >
-          <Jempol arah="naik" aktif={u.sayaSuka} className="size-4" />
+          <Jempol arah="naik" aktif={u.sayaSuka} className="size-5" />
           <span className="tabular-nums">{u.suka}</span>
         </button>
         <button
           type="button"
           onClick={() => padaVote(u.id, "turun")}
           aria-pressed={u.sayaSuka === false}
-          className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-1 font-sans text-xs transition-colors ${
-            u.sayaSuka === false
-              ? "border-destructive bg-destructive/10 text-destructive"
-              : "border-border text-foregroundGrey hover:bg-backgroundBox"
-          }`}
           aria-label={t("landing.rating.tidakSuka")}
+          className={`flex size-8 items-center justify-center rounded-full transition-colors ${
+            u.sayaSuka === false
+              ? "bg-destructive/10 text-destructive"
+              : "text-foregroundGrey hover:bg-backgroundBox"
+          }`}
         >
-          <Jempol arah="turun" aktif={u.sayaSuka === false} className="size-4" />
-          <span className="tabular-nums">{u.tidakSuka}</span>
+          <Jempol arah="turun" aktif={u.sayaSuka === false} className="size-5" />
         </button>
       </footer>
     </article>
   );
 }
 
-/* ---------- data seed dari 3 testimoni lama + beberapa rating agar distribusi hidup ---------- */
+/* ---------- seed data awal ---------- */
 function dataAwal(t) {
   const now = Date.now();
   const hr = 3600 * 1000;
-  const hri = 24 * hr;
+  const mgg = 7 * 24 * hr;
   return [
     {
       id: "seed-1",
@@ -446,38 +520,38 @@ function dataAwal(t) {
       bintang: 5,
       emoji: 5,
       pesan: t("landing.testimoniLeadKutip"),
-      ts: now - 6 * hri,
-      suka: 14,
+      ts: now - 12 * mgg - 2 * hr,
+      suka: 20,
       tidakSuka: 0,
     },
     {
       id: "seed-2",
       nama: t("landing.testimoniKutip1Nama"),
-      bintang: 5,
-      emoji: 5,
+      bintang: 4,
+      emoji: 4,
       pesan: t("landing.testimoniKutip1Kutip"),
-      ts: now - 2 * hri,
+      ts: now - 3 * mgg - 5 * hr,
       suka: 9,
       tidakSuka: 1,
     },
     {
       id: "seed-3",
       nama: t("landing.testimoniKutip2Nama"),
-      bintang: 4,
-      emoji: 4,
+      bintang: 5,
+      emoji: 5,
       pesan: t("landing.testimoniKutip2Kutip"),
-      ts: now - 12 * hri,
+      ts: now - 1 * mgg - 12 * hr,
       suka: 7,
       tidakSuka: 0,
     },
     {
       id: "seed-4",
-      nama: "Dimas P.",
-      bintang: 5,
-      emoji: 5,
+      nama: "Dandy Chawnima",
+      bintang: 4,
+      emoji: 4,
       pesan: t("landing.rating.seed4"),
-      ts: now - 3 * hri,
-      suka: 4,
+      ts: now - 1 * mgg - 3 * hr,
+      suka: 20,
       tidakSuka: 0,
     },
     {
@@ -486,7 +560,7 @@ function dataAwal(t) {
       bintang: 4,
       emoji: 4,
       pesan: t("landing.rating.seed5"),
-      ts: now - 5 * hri,
+      ts: now - 5 * 24 * hr,
       suka: 2,
       tidakSuka: 0,
     },
@@ -496,14 +570,14 @@ function dataAwal(t) {
       bintang: 5,
       emoji: 5,
       pesan: t("landing.rating.seed6"),
-      ts: now - 1 * hri,
+      ts: now - 2 * 24 * hr - 1 * hr,
       suka: 3,
       tidakSuka: 0,
     },
   ];
 }
 
-/* ---------- baca tulis localStorage (aman saat SSR/privat) ---------- */
+/* ---------- localStorage ---------- */
 function bacaUlasan(seed) {
   try {
     const mentah = globalThis.localStorage?.getItem(KUNCI_SIMPAN);
@@ -511,33 +585,25 @@ function bacaUlasan(seed) {
       const data = JSON.parse(mentah);
       if (Array.isArray(data)) return data;
     }
-  } catch {
-    /* rusak / tak tersedia — pakai seed */
-  }
+  } catch { /* rusak — pakai seed */ }
   return seed;
 }
 function simpanUlasan(daftar) {
-  try {
-    globalThis.localStorage?.setItem(KUNCI_SIMPAN, JSON.stringify(daftar));
-  } catch {
-    /* kuota penuh atau privat mode — abaikan */
-  }
+  try { globalThis.localStorage?.setItem(KUNCI_SIMPAN, JSON.stringify(daftar)); }
+  catch { /* kuota — abaikan */ }
 }
 
-/* ---------- toast ringan (tanpa lib) ---------- */
+/* ---------- toast ---------- */
 function Toast({ terbuka, pesan, onTutup }) {
   useEffect(() => {
     if (!terbuka) return;
-    const id = setTimeout(onTutup, 2600);
+    const id = setTimeout(onTutup, 2400);
     return () => clearTimeout(id);
   }, [terbuka, onTutup]);
   if (!terbuka) return null;
   return (
-    <div
-      role="status"
-      aria-live="polite"
-      className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-lg border-2 border-primary bg-primary px-4 py-2 font-sans text-sm font-medium text-white shadow-lg"
-    >
+    <div role="status" aria-live="polite"
+      className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-lg bg-foreground px-4 py-2 font-sans text-sm font-medium text-paper shadow-lg">
       {pesan}
     </div>
   );
@@ -552,166 +618,128 @@ export default function RatingUlasan() {
   const [toast, setToast] = useState(null);
   const [bintangHero, setBintangHero] = useState(0);
 
-  const pilihBintangHero = useCallback(
-    (n) => {
-      setBintangHero(n);
-      setToast(t("landing.rating.terpilih", { n }));
-    },
-    [t]
-  );
+  const pilihBintangHero = useCallback((n) => {
+    setBintangHero((prev) => (prev === n ? 0 : n)); // klik ulang = batal
+  }, []);
 
   const bukaForm = useCallback(() => {
     setFormTerbuka(true);
-    // Gulung (scroll) pelan ke form agar user melihat kolom pesan.
     requestAnimationFrame(() => {
-      const el = document.getElementById("form-ulasan");
-      el?.scrollIntoView({ behavior: "smooth", block: "start" });
+      document.getElementById("form-ulasan")?.scrollIntoView({ behavior: "smooth", block: "start" });
     });
   }, []);
 
-  // Saat seed berganti (ganti bahasa) dan user belum pernah menambah ulasan,
-  // refresh ulasan seed supaya teks tampil dalam bahasa yang dipilih.
   useEffect(() => {
-    setUlasan((prev) => {
-      const punyaUlasanTamu = prev.some((u) => u.tamu);
-      if (punyaUlasanTamu) return prev;
-      return seed;
-    });
+    setUlasan((prev) => (prev.some((u) => u.tamu) ? prev : seed));
   }, [seed]);
+  useEffect(() => { simpanUlasan(ulasan); }, [ulasan]);
 
-  useEffect(() => {
-    simpanUlasan(ulasan);
-  }, [ulasan]);
-
-  const kirimUlasan = useCallback(
-    (u) => {
-      setUlasan((prev) => [u, ...prev]);
-      setFormTerbuka(false);
-      setBintangHero(0);
-      setToast(t("landing.rating.terkirim", { n: u.bintang }));
-    },
-    [t]
-  );
+  const kirimUlasan = useCallback((u) => {
+    setUlasan((prev) => [u, ...prev]);
+    setFormTerbuka(false);
+    setBintangHero(0);
+    setToast(t("landing.rating.terkirim", { n: u.bintang }));
+  }, [t]);
 
   const vote = useCallback((id, arah) => {
-    setUlasan((prev) =>
-      prev.map((u) => {
-        if (u.id !== id) return u;
-        const sebelumnya = u.sayaSuka; // true/ false / undefined
-        let suka = u.suka;
-        let tidakSuka = u.tidakSuka;
-        let sayaSuka;
-        if (arah === "naik") {
-          sayaSuka = sebelumnya === true ? undefined : true;
-        } else {
-          sayaSuka = sebelumnya === false ? undefined : false;
-        }
-        // sesuaikan hitungan
-        if (sebelumnya === true) suka -= 1;
-        if (sebelumnya === false) tidakSuka -= 1;
-        if (sayaSuka === true) suka += 1;
-        if (sayaSuka === false) tidakSuka += 1;
-        return { ...u, suka: Math.max(0, suka), tidakSuka: Math.max(0, tidakSuka), sayaSuka };
-      })
-    );
+    setUlasan((prev) => prev.map((u) => {
+      if (u.id !== id) return u;
+      const sebelumnya = u.sayaSuka;
+      let suka = u.suka, tidakSuka = u.tidakSuka, sayaSuka;
+      if (arah === "naik") sayaSuka = sebelumnya === true ? undefined : true;
+      else sayaSuka = sebelumnya === false ? undefined : false;
+      if (sebelumnya === true) suka -= 1;
+      if (sebelumnya === false) tidakSuka -= 1;
+      if (sayaSuka === true) suka += 1;
+      if (sayaSuka === false) tidakSuka += 1;
+      return { ...u, suka: Math.max(0, suka), tidakSuka: Math.max(0, tidakSuka), sayaSuka };
+    }));
   }, []);
 
-  const urut = useMemo(
-    () =>
-      [...ulasan].sort((a, b) => {
-        // ulasan tamu (yang baru ditulis pengguna) paling atas, lalu terbaru
-        if (a.tamu && !b.tamu) return -1;
-        if (!a.tamu && b.tamu) return 1;
-        return b.ts - a.ts;
-      }),
-    [ulasan]
-  );
+  const urut = useMemo(() => {
+    return [...ulasan].sort((a, b) => {
+      if (a.tamu && !b.tamu) return -1;
+      if (!a.tamu && b.tamu) return 1;
+      return b.ts - a.ts;
+    });
+  }, [ulasan]);
 
   return (
-    <section className="w-full px-6 md:px-8 xl:px-0 py-16 overflow-hidden">
+    <section className="w-full px-6 md:px-8 xl:px-0 py-16">
       <div className="mx-auto max-w-[1080px] xl:max-w-7xl">
-        <div className={KEPALA_SEKSI}>
-          <h2 className={JUDUL_SEKSI}>{t("landing.rating.judul")}</h2>
-          <p className="max-w-xl font-sans text-sm leading-relaxed text-foregroundGrey md:text-base">
-            {t("landing.rating.subJudul")}
-          </p>
-        </div>
 
-        {/* Hero CTA: "Beri rating website ini — sampaikan pendapat Anda"
-            Pola c-rating-4: bintang interaktif besar langsung di halaman,
-            tanpa harus buka form dulu. Tombol "Tulis pesan" baru muncul
-            setelah minimal 1 bintang dipilih, membuka form + scroll ke sana. */}
-        <div className="mt-8 flex flex-col items-center gap-4 rounded-lg border-2 border-border bg-backgroundBox p-6 text-center md:p-8">
-          <p className="font-sans text-lg font-semibold text-foreground md:text-xl">
+        {/* 1. Hero polos: "Beri rating aplikasi ini" + bintang + "Tulis ulasan" */}
+        <div className="flex flex-col items-start gap-3">
+          <h3 className="font-sans text-xl font-semibold text-foreground md:text-2xl">
             {t("landing.rating.ajakJudul")}
-          </p>
-          <p className="max-w-md font-sans text-sm text-foregroundGrey md:text-base">
+          </h3>
+          <p className="font-sans text-base text-foregroundGrey">
             {t("landing.rating.ajakSub")}
           </p>
-          <div className="flex items-center gap-2">
-            <DeretBintang
-              nilai={bintangHero}
-              ukuran="xl"
-              bisaUbah
-              onPilih={pilihBintangHero}
-            />
-            {bintangHero > 0 ? (
-              <span className="ml-2 font-sans text-sm font-semibold text-foreground tabular-nums">
-                {bintangHero}/5
-              </span>
-            ) : null}
-          </div>
-          {bintangHero > 0 && !formTerbuka ? (
-            <Button
-              onClick={bukaForm}
-              variant="default"
-              size="lg"
-              className="mt-1 border-primary bg-primary text-white hover:bg-primary/90 hover:text-white"
-            >
-              {t("landing.rating.tulisPesanTombol")}
-            </Button>
-          ) : null}
+          <DeretBintang
+            nilai={bintangHero}
+            ukuran="xl"
+            bisaUbah
+            onPilih={pilihBintangHero}
+          />
+          <button
+            type="button"
+            onClick={bukaForm}
+            className="font-sans text-base font-medium text-primary transition-colors hover:text-primary/80 hover:underline focus-visible:outline-none focus-visible:underline"
+          >
+            {t("landing.rating.tulisUlasan")}
+          </button>
         </div>
 
-        <div className="mt-8 grid grid-cols-1 gap-8 md:grid-cols-[minmax(260px,320px)_1fr] md:gap-10">
-          {/* kolom kiri: agregat + info */}
-          <div className="flex flex-col gap-4">
-            <Ringkasan t={t} ulasan={ulasan} />
+        {/* 2. Kepala "Rating dan ulasan" + panah-kanan + paragraf verifikasi */}
+        <div className="mt-10 flex items-center justify-between gap-3">
+          <h2 className="font-sans text-xl font-semibold text-foreground md:text-2xl">
+            {t("landing.rating.judul")}
+          </h2>
+          <button
+            type="button"
+            aria-label={t("landing.rating.lihatSemua")}
+            className="flex size-10 items-center justify-center rounded-full bg-grey-200 text-foregroundGrey transition-colors hover:bg-grey-300 hover:text-foreground"
+            onClick={() => {
+              document.getElementById("daftar-ulasan")?.scrollIntoView({ behavior: "smooth", block: "start" });
+            }}
+          >
+            <PanahKanan className="size-5" />
+          </button>
+        </div>
+        <p className="mt-2 flex items-start gap-1.5 font-sans text-sm text-foregroundGrey">
+          <IkonInfo className="mt-0.5 size-4 flex-none" />
+          <span>{t("landing.rating.subJudul")}</span>
+        </p>
 
-            <p className="font-sans text-xs leading-relaxed text-foregroundGrey">
-              {t("landing.rating.verifikasi")}
-            </p>
-          </div>
+        {/* 3. Ringkasan mendatar */}
+        <div className="mt-5">
+          <Ringkasan t={t} ulasan={ulasan} locale={locale} />
+        </div>
 
-          {/* kolom kanan: form / daftar ulasan */}
-          <div id="form-ulasan" className="flex flex-col gap-4">
-            {formTerbuka ? (
-              <FormUlasan
-                t={t}
-                bintangAwal={bintangHero}
-                onKirim={kirimUlasan}
-                onBatal={() => setFormTerbuka(false)}
-              />
-            ) : null}
+        {/* 4. Form (jika terbuka) + daftar kartu ulasan */}
+        <div id="daftar-ulasan" className="mt-6 flex flex-col gap-4">
+          {formTerbuka ? (
+            <FormUlasan
+              t={t}
+              bintangAwal={bintangHero}
+              onKirim={kirimUlasan}
+              onBatal={() => setFormTerbuka(false)}
+            />
+          ) : null}
             {urut.map((u) => (
               <KartuUlasan
                 key={u.id}
                 t={t}
-                locale={locale}
                 ulasan={u}
                 padaVote={vote}
               />
             ))}
-          </div>
         </div>
       </div>
 
       <Suspense fallback={null}>
-        <Toast
-          terbuka={!!toast}
-          pesan={toast || ""}
-          onTutup={() => setToast(null)}
-        />
+        <Toast terbuka={!!toast} pesan={toast || ""} onTutup={() => setToast(null)} />
       </Suspense>
     </section>
   );

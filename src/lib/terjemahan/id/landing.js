@@ -175,15 +175,16 @@ export const landing = {
 
     // Rating & ulasan
     rating: {
-      judul: "Rating dan Ulasan",
+      judul: "Rating dan ulasan",
       subJudul:
-        "Rating dan ulasan diverifikasi dan berasal dari orang yang menggunakan jenis perangkat yang sama dengan yang Anda gunakan.",
-      ajakJudul: "Beri rating website ini",
-      ajakSub:
-        "Sampaikan pendapat Anda. Klik bintang di bawah untuk menilai, lalu tulis pesan singkat pengalaman Anda.",
-      berdasarkan: "Berdasarkan {n} ulasan",
+        "Rating dan ulasan diverifikasi dan berasal dari orang yang menggunakan jenis perangkat yang sama dengan yang Anda gunakan",
+      ajakJudul: "Beri rating aplikasi ini",
+      ajakSub: "Sampaikan pendapat Anda",
+      berdasarkan: "{n} ulasan",
       terpilih: "Anda memilih {n} dari 5 bintang.",
       tulisUlasan: "Tulis ulasan",
+      lihatSemua: "Lihat semua ulasan",
+      lainnya: "Menu lainnya",
       verifikasi:
         "Rating diverifikasi dari pengunjung yang telah mencoba fitur di perangkat yang sama dengan Anda. Ulasan Anda disimpan secara lokal di perangkat ini.",
       beriBintang: "Beri bintang untuk aplikasi ini",
@@ -213,10 +214,11 @@ export const landing = {
       menit: "menit",
       jam: "jam",
       hari: "hari",
+      minggu: "minggu",
       bulan: "bulan",
       tahun: "tahun",
       seed4:
-        "Analisa papan-nya bikin latihan jauh lebih terarah. Panah evaluasi dan penjelasan blunder benar-benar bikin paham kesalahan di mana.",
+        "Saya awal main ini bingung kan karena banyak pilihan latihan, yang awal saya mainkan yaitu modul pembukaan interaktif, tetapi sejak saya lihat ada modul Analisa Papan dan ternyata itu fitur yang cocok dengan saya yang suka menelusuri kesalahan langkah dan memiliki hobi membedah partai, dan pada akhirnya saya sering main setiap hari dan sudah berjalan selama 4-5 bulan hanya untuk bedah partai sendiri dan teman.",
       seed5:
         "Koleksi teka-teki harian dan eBook gratisnya lengkap banget, cocok buat pemula yang mau latihan rutin. Antarmukanya juga rapi, tidak bikin mata lelah.",
       seed6:
