@@ -61,12 +61,12 @@ function GambarIkon({ ikon }) {
       </div>
     );
   }
-  // Ikon dokumen berlabel "FEN" — xmlns diperbaiki dari "http://w3.org"
-  // (salah ketik) menjadi "http://www.w3.org/2000/svg" agar valid.
+  // Ikon pensil/edit untuk FEN (mengganti ikon dokumen), fill
+  // currentColor agar mengikuti warna tombol (abu non-aktif, highlight
+  // saat aktif).
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-6 w-6 fill-current" aria-hidden="true">
-      <path d="M6 22q-.82 0-1.41-.59T4 20V4q0-.83.59-1.41T6 2h8l6 6v12q0 .82-.59 1.41T18 22zm7-13V4H6v16h12V9zM6 4v5zv16z" />
-      <text x="12" y="16" fontFamily="Arial, sans-serif" fontSize="5.2" fontWeight="bold" textAnchor="middle" className="fill-backgroundBoxBox">FEN</text>
+      <path d="M10.05,21l2-2H22v2H10.05ZM5,19H6.43L16.2,9.23L14.78,7.8L5,17.58V19ZM3,21V16.75L16.2,3.57q0.28-0.28 0.65-0.43T17.63,3q0.4,0 0.76,0.16T19.05,3.6L20.43,5q0.28,0.3 0.43,0.66T21,6.4q0,0.4-0.14,0.76T20.43,7.82L7.25,21H3Z" />
     </svg>
   );
 }
@@ -196,15 +196,18 @@ export default function LayarImpor({ onTutup, onImpor }) {
 
       {tipe === "pgn" ? (
         <div className="mt-4">
+          <label htmlFor="impor-pgn" className="mb-1.5 block text-xs font-bold text-foregroundGrey">
+            PGN GAMES
+          </label>
           <textarea
+            id="impor-pgn"
             spellCheck={false}
             rows={8}
             value={pgn}
             onChange={(e) => setPgn(e.currentTarget.value)}
             data-uji="impor-pgn"
-            placeholder={t("analisa.form.tempelPgn")}
             aria-label="PGN"
-            className="w-full resize-y rounded-borderRoundness border border-border bg-backgroundBoxBox px-3 py-2 font-mono text-xs leading-5 text-foreground outline-none transition-colors placeholder:text-foregroundGrey hover:border-borderHighlighted focus:border-borderHighlighted"
+            className="w-full resize-y rounded-borderRoundness border border-border bg-backgroundBoxBox px-3 py-2 font-mono text-xs leading-5 text-foreground outline-none transition-colors hover:border-borderHighlighted focus:border-borderHighlighted"
           />
         </div>
       ) : tipe === "online" ? (
@@ -221,17 +224,18 @@ export default function LayarImpor({ onTutup, onImpor }) {
               }
             }}
             data-uji="impor-online"
-            placeholder={t("analisa.impor.onlinePlaceholder")}
+            placeholder="GAME URL (lichess or chess.com)"
             aria-label={t("analisa.impor.onlineLabel")}
             className="w-full rounded-borderRoundness border border-border bg-backgroundBoxBox px-3 py-2 font-mono text-xs text-foreground outline-none transition-colors placeholder:text-foregroundGrey hover:border-borderHighlighted focus:border-borderHighlighted"
           />
-          <p className="mt-1.5 text-[11px] leading-4 text-foregroundGrey">
-            {t("analisa.impor.onlineBantu")}
-          </p>
         </div>
       ) : (
         <div className="mt-4">
+          <label htmlFor="impor-fen" className="mb-1.5 block text-xs font-bold text-foregroundGrey">
+            FEN
+          </label>
           <textarea
+            id="impor-fen"
             spellCheck={false}
             rows={2}
             value={fen}
@@ -243,9 +247,8 @@ export default function LayarImpor({ onTutup, onImpor }) {
               }
             }}
             data-uji="impor-fen"
-            placeholder={t("analisa.form.tempelFen")}
             aria-label="FEN"
-            className="w-full resize-none rounded-borderRoundness border border-border bg-backgroundBoxBox px-3 py-2 font-mono text-xs leading-5 text-foreground outline-none transition-colors placeholder:text-foregroundGrey hover:border-borderHighlighted focus:border-borderHighlighted"
+            className="w-full resize-none rounded-borderRoundness border border-border bg-backgroundBoxBox px-3 py-2 font-mono text-xs leading-5 text-foreground outline-none transition-colors hover:border-borderHighlighted focus:border-borderHighlighted"
           />
         </div>
       )}
