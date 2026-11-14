@@ -176,8 +176,27 @@ function Game({ wadah }) {
       if (atEndOfLine()) {
         setPlaying(false);
       } else {
-        nextMove2();
+        // Langkah PERTAMA ditunda satu requestAnimationFrame. Tanpa
+        // penundaan, forward() dipanggil sinkron di tengah commit React
+        // SEBELUM browser sempat me-paint frame awal (posisi saat play
+        // ditekan, semua bidak di kotak asal). Akibatnya animasi WAAPI
+        // di board.jsx menggerakkan elemen yang sudah di-mount di posisi
+        // tujuan baru; bidak yang tertangkap belum sempat hilang dari
+        // frame pertama dan meluncur dari kotak yang salah — terlihat
+        // seperti "ada dua bidak" terutama saat menangkap atau dua
+        // langkah berurutan. Satu rAF memberi browser satu paint frame
+        // untuk melukiskan posisi awal, sehingga animasi 300ms dimulai
+        // dari keadaan papan yang benar. Interval 1000ms tetap dimulai
+        // segera agar langkah-langkah BERIKUTNYA berjarak 1 detik
+        // terhitung sejak saat tombol ditekan (bukan sejak akhir tunda).
+        const rafId = requestAnimationFrame(() => {
+          nextMove2();
+        });
         intervalRef.current = setInterval(nextMove2, 1e3);
+        return () => {
+          cancelAnimationFrame(rafId);
+          clearInterval(intervalRef.current);
+        };
       }
     } else {
       clearInterval(intervalRef.current);
