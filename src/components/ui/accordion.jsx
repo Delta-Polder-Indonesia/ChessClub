@@ -48,8 +48,8 @@ export const AccordionTrigger = forwardRef(function AccordionTrigger(
         ref={ref}
         data-slot="accordion-trigger"
         className={cn(
-          "flex flex-1 items-center justify-between gap-3 rounded-[6px] bg-[#0B2F9F] p-4 text-left text-base font-bold text-white transition-all",
-          "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0B2F9F]",
+          "flex flex-1 items-center justify-between gap-3 rounded-[6px] bg-primary p-4 text-left text-base font-bold text-white transition-all",
+          "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
           "disabled:pointer-events-none disabled:opacity-50",
           "data-[state=open]:rounded-b-none data-[state=open]:border-b-2 data-[state=open]:border-black",
           "[&[data-state=open]>svg]:rotate-180",

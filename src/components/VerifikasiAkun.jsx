@@ -389,7 +389,7 @@ export default function VerifikasiAkun({
 
         {/* Status */}
         {(status === MEMBUAT || status === MEMERIKSA) && (
-          <p className="flex items-center gap-2 text-xs font-medium text-[#0B2F9F]">
+          <p className="flex items-center gap-2 text-xs font-medium text-primary">
             <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
             {status === MEMERIKSA
               ? t("verifikasi.menghubungi", { username: terikat })
@@ -495,7 +495,7 @@ export default function VerifikasiAkun({
                 rows={2}
                 maxLength={500}
                 placeholder={t("verifikasi.phCatatanPengajuan")}
-                className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-grey-800 focus:border-[#0B2F9F] focus:outline-none focus:ring-1 focus:ring-[#0B2F9F]"
+                className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-grey-800 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-1"
               />
             </label>
             <div className="flex items-center justify-end gap-3">

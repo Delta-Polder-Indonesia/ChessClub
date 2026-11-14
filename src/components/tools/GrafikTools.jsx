@@ -74,7 +74,7 @@ function BingkaiGrafik({
       )}
     >
       {(judul || deskripsi) && (
-        <div className="space-y-1 border-b-2 border-black bg-[#0B2F9F] px-4 py-3 text-white">
+        <div className="space-y-1 border-b-2 border-black bg-primary px-4 py-3 text-white">
           {judul && <h3 className="m-0 text-base font-bold">{judul}</h3>}
           {deskripsi && <p className="m-0 text-xs text-white/80">{deskripsi}</p>}
         </div>
