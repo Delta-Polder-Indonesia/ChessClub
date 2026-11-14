@@ -49,10 +49,16 @@ export function BoardProvider({ children }) {
    * `analyze.jsx` dibaca kunci "kci-analisa-depth" yang tidak pernah ditulis
    * siapa pun, jadi pilihan pengguna selalu kembali ke 13 setiap kali
    * halaman dibuka.
+   *
+   * Default untuk pengguna BARU adalah 8 (bukan 13/20) — analisa depth
+   * tinggi (20) memakan CPU/detik yang terasa berat di perangkat
+   * pengguna awam, padahal banyak yang baru mencoba dan belum tahu
+   * mereka bisa ubah. Pengguna yang sudah menyimpan pilihan tetap
+   * memakai nilai simpanan mereka.
    */
   const [depth, setDepth] = useState(() => {
-    const tersimpan = bacaAngka("kedalaman", 13);
-    return tersimpan >= 1 ? tersimpan : 13;
+    const tersimpan = bacaAngka("kedalaman", 8);
+    return tersimpan >= 1 ? tersimpan : 8;
   });
   const [tampilan, setTampilan] = useState(TAMPILAN_ANALISA.AKUN);
   const moveNumberRef = useRef(moveNumber);
