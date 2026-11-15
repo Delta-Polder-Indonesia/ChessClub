@@ -154,7 +154,7 @@ export function DeretBintang({ nilai, ukuran = "md", onPilih, bisaUbah = false, 
 /* ==================== Bar distribusi ==================== */
 export function BarDistribusi({ persen }) {
   return (
-    <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-grey-200">
+    <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-grey-200">
       <div className="h-full rounded-full bg-yellow-400 transition-[width] duration-300"
         style={{ width: `${Math.max(0, Math.min(100, persen))}%` }} />
     </div>
