@@ -101,7 +101,7 @@ export function Avatar({ nama, size = "md" }) {
  * @param {boolean} bisaUbah jadikan radio interaktif (nilai dibulatkan)
  * @param {'sm'|'md'|'lg'|'xl'} ukuran
  */
-export function DeretBintang({ nilai, ukuran = "md", onPilih, bisaUbah = false, className = "", ariaLabel }) {
+export function DeretBintang({ nilai, ukuran = "md", onPilih, bisaUbah = false, className = "", ariaLabel, ariaInvalid, ariaDescribedby }) {
   const ukuranCls =
     ukuran === "sm" ? "size-4"
       : ukuran === "lg" ? "size-10"
@@ -116,7 +116,10 @@ export function DeretBintang({ nilai, ukuran = "md", onPilih, bisaUbah = false, 
     const bulat = Math.round(nilai);
     return (
       <div className={`inline-flex items-center ${gapCls} text-yellow-400 ${className}`}
-        role="radiogroup" aria-label={ariaLabel || `${bulat} dari 5 bintang`}>
+        role="radiogroup"
+        aria-label={ariaLabel || `${bulat} dari 5 bintang`}
+        aria-invalid={ariaInvalid || undefined}
+        aria-describedby={ariaDescribedby || undefined}>
         {[1, 2, 3, 4, 5].map((n) => (
           <button key={n} type="button" role="radio" aria-checked={bulat === n}
             aria-label={`${n} bintang`}
@@ -321,14 +324,15 @@ export function FormUlasan({ t, bintangAwal = 0, onKirim, onBatal }) {
 
   const pilihBintang = useCallback((n) => {
     setBintang(n);
-    setError(null);
+    setError((sebelumnya) => sebelumnya?.field === "bintang" ? null : sebelumnya);
   }, []);
 
   const kirim = useCallback(
     (e) => {
       e.preventDefault();
-      if (bintang < 1) { setError(t("landing.rating.pilihBintang")); return; }
-      if (!pesan.trim()) { setError(t("landing.rating.tulisPesan")); return; }
+      if (bintang < 1) { setError({ field: "bintang", key: "landing.rating.pilihBintang" }); return; }
+      if (!pesan.trim()) { setError({ field: "pesan", key: "landing.rating.tulisPesan" }); return; }
+      setError(null);
       onKirim({
         nama: nama.trim() || t("landing.rating.tamu"),
         bintang,
@@ -353,14 +357,25 @@ export function FormUlasan({ t, bintangAwal = 0, onKirim, onBatal }) {
             {t("landing.rating.ajakSub")}
           </p>
         </header>
-        <DeretBintang
-          nilai={bintang}
-          ukuran="lg"
-          bisaUbah
-          onPilih={pilihBintang}
-          ariaLabel={t("landing.rating.beriBintang")}
-          className="w-full justify-between"
-        />
+        <div className="space-y-1.5">
+          <DeretBintang
+            nilai={bintang}
+            ukuran="lg"
+            bisaUbah
+            onPilih={pilihBintang}
+            ariaLabel={t("landing.rating.beriBintang")}
+            ariaInvalid={error?.field === "bintang"}
+            ariaDescribedby={error?.field === "bintang" ? "ulasan-error-bintang" : undefined}
+            className="w-full justify-between"
+          />
+          <div className="min-h-5">
+            {error?.field === "bintang" ? (
+              <p id="ulasan-error-bintang" role="alert" className="font-sans text-sm text-destructive">
+                {t(error.key)}
+              </p>
+            ) : null}
+          </div>
+        </div>
         <div className="space-y-1.5">
           <label htmlFor="ulasan-nama" className="block font-sans text-sm font-semibold text-foreground">
             {t("landing.rating.namaLabel")}{" "}
@@ -371,18 +386,28 @@ export function FormUlasan({ t, bintangAwal = 0, onKirim, onBatal }) {
             className="w-full rounded-lg border-2 border-grey-400 bg-transparent px-3 py-2 font-sans text-sm outline-none placeholder:text-foregroundGrey transition-colors focus-visible:border-primary focus-visible:ring-0" />
         </div>
         <div className="space-y-1.5">
-          <label htmlFor="ulasan-pesan" className="block font-sans text-sm font-semibold text-foreground">
+          <label htmlFor="ulasan-pesan" className={`block font-sans text-sm font-semibold ${error?.field === "pesan" ? "text-destructive" : "text-foreground"}`}>
             {t("landing.rating.pesanLabel")}
           </label>
           <Textarea id="ulasan-pesan" value={pesan}
-            onChange={(e) => { setPesan(e.target.value); setError(null); }}
+            onChange={(e) => {
+              const nilai = e.target.value;
+              setPesan(nilai);
+              if (nilai.trim()) setError((sebelumnya) => sebelumnya?.field === "pesan" ? null : sebelumnya);
+            }}
+            aria-invalid={error?.field === "pesan" || undefined}
+            aria-describedby={error?.field === "pesan" ? "ulasan-error-pesan" : undefined}
             rows={5} maxLength={600} placeholder={t("landing.rating.pesanPlaceholder")}
-            className="rounded-lg border-2 border-grey-400 bg-transparent px-3 py-2 font-sans text-sm outline-none placeholder:text-foregroundGrey transition-colors focus-visible:border-primary focus-visible:ring-0" />
-          <p className="text-right font-sans text-xs text-foregroundGrey">{pesan.length}/600</p>
+            className={`rounded-lg border-2 bg-transparent px-3 py-2 font-sans text-sm outline-none placeholder:text-foregroundGrey transition-colors focus-visible:ring-0 ${error?.field === "pesan" ? "border-destructive bg-destructive/5 focus-visible:border-destructive" : "border-grey-400 focus-visible:border-primary"}`} />
+          <div className="flex min-h-5 items-start justify-between gap-3">
+            {error?.field === "pesan" ? (
+              <p id="ulasan-error-pesan" role="alert" className="font-sans text-sm text-destructive">
+                {t(error.key)}
+              </p>
+            ) : <span aria-hidden="true" />}
+            <p className="shrink-0 text-right font-sans text-xs text-foregroundGrey">{pesan.length}/600</p>
+          </div>
         </div>
-        {error ? (
-          <p role="alert" className="rounded border border-destructive/40 bg-destructive/10 px-3 py-2 font-sans text-sm text-destructive">{error}</p>
-        ) : null}
         <div className="flex flex-wrap items-center justify-end gap-2">
           {onBatal ? (
             <Button type="button" variant="ghost" onClick={onBatal}>{t("landing.rating.batal")}</Button>

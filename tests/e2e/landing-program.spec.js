@@ -166,6 +166,27 @@ test("regresi Landing: meta/title i18n, tombol hero, CincinKemajuan, dan tabInde
   expect(galat, galat.join("\n")).toEqual([]);
 });
 
+test("form ulasan: validasi tampil dekat dengan field tanpa banner terpisah", async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem("kci-bahasa", "id"));
+  await page.goto("/tulis-ulasan", { waitUntil: "domcontentloaded" });
+
+  const kirim = page.getByRole("button", { name: "Kirim ulasan" });
+  const bintang = page.getByRole("radiogroup", { name: "Beri bintang untuk aplikasi ini" });
+  const pesan = page.locator("#ulasan-pesan");
+
+  await kirim.click();
+  await expect(bintang).toHaveAttribute("aria-invalid", "true");
+  await expect(page.locator("#ulasan-error-bintang")).toBeVisible();
+  await expect(page.locator("#ulasan-error-pesan")).toHaveCount(0);
+
+  await bintang.getByRole("radio", { name: "5 bintang" }).click();
+  await kirim.click();
+  await expect(pesan).toHaveAttribute("aria-invalid", "true");
+  await expect(page.locator("#ulasan-error-pesan")).toBeVisible();
+  await expect(page.locator("#ulasan-error-bintang")).toHaveCount(0);
+  await expect(page.locator('form > p[role="alert"]')).toHaveCount(0);
+});
+
 test("regresi ProgramKami: alt gambar terlokalisasi, sizes RushTekaTeki, dan dialog PDF EbookPanduan", async ({ page }) => {
   test.setTimeout(90_000);
   const galat = [];
