@@ -93,7 +93,7 @@ export const landing = {
     ajakanDeskripsi:
       "Lengkapi data diri Anda dan mulailah mengikuti turnamen rutin, kelas pembinaan, serta sesi latihan papan interaktif bersama Komunitas Catur Indonesia.",
     ajakanTombol: "Daftar Sekarang",
-    alatLatihanJudul: "Semua yang Anda perlukan untuk memahami sebuah posisi",
+    alatLatihanJudul: "Alat Latihan",
     alatTekaTekiJudul: "Teka-teki Catur",
     alatTekaTekiDesk:
       "5.486 soal skakmat satu sampai tiga langkah dari basis data puzzle Lichess, tiap soal berlabel rating, tema, dan pemain asalnya.",
