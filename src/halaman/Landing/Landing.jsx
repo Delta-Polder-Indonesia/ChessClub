@@ -387,7 +387,7 @@ function CardCarousel({ index, setIndex, t }) {
         ))}
       </div>
 
-      <div className="hidden w-full order-2 mt-8 overflow-hidden md:block">
+      <div data-testid="ebook-carousel-desktop" className="hidden w-full order-2 mt-8 overflow-hidden md:block">
       <div className="overflow-hidden max-w-full mx-auto" style={{ maxWidth: `${JENDELA}px` }}>
         <div
           // Jarak antar kartu WAJIB 14px — nilai ini harus cocok dengan CARD_W (320+14).
@@ -396,12 +396,16 @@ function CardCarousel({ index, setIndex, t }) {
         >
           {kartu.map((k, i) => {
             const isActive = i === aktif;
+            const posisiKartu = i * CARD_W - geser;
+            const terlihat = posisiKartu < JENDELA && posisiKartu + 320 > 0;
             if (k.penghujung) {
               return (
                 <Link
                   key="lihat-semua-ebook"
                   to={k.to}
                   title={k.judul}
+                  tabIndex={terlihat ? undefined : -1}
+                  aria-hidden={!terlihat || undefined}
                   className="flex-none w-[320px] h-[168px] pt-[18px] px-[18px] pb-[14px] rounded-lg border gap-[14px] flex flex-col items-center justify-center text-center relative cursor-pointer bg-primary border-primary text-white hover:bg-primary/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                 >
                   <h3 className="font-sans text-[1.0625rem] font-semibold leading-[1.35] text-balance text-white">
@@ -419,6 +423,8 @@ function CardCarousel({ index, setIndex, t }) {
                 key={`${k.judul}-${i}`}
                 to={k.to}
                 title={k.judul}
+                tabIndex={terlihat ? undefined : -1}
+                aria-hidden={!terlihat || undefined}
                 className={`flex-none w-[320px] h-[168px] pt-[18px] px-[18px] pb-[14px] rounded-lg border gap-[14px] flex flex-col justify-between relative cursor-pointer ${
                   isActive
                     ? "bg-primary border-primary text-white"

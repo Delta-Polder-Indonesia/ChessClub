@@ -154,8 +154,9 @@ test("regresi Landing: meta/title i18n, tombol hero, CincinKemajuan, dan tabInde
   await expect(page.locator('[data-tanda-petak]')).toHaveCount(0);
   await expect(page.locator('svg polygon[data-arrow]')).toHaveCount(0);
 
-  // CardCarousel menonaktifkan tautan di luar 3 kartu aktif agar Tab tidak terjebak di duplikat off-screen.
-  const tautanCarousel = page.locator('a[href^="/program-kami/ebook-panduan/"]');
+  // Desktop carousel mengecualikan tautan di luar viewport dari urutan Tab.
+  // Gunakan container desktop agar grid katalog mobile yang tersembunyi tidak ikut dihitung.
+  const tautanCarousel = page.getByTestId("ebook-carousel-desktop").locator('a[href^="/program-kami/ebook-panduan/"]');
   await expect(tautanCarousel.first()).toBeAttached();
   const tabbableCount = await tautanCarousel.evaluateAll(
     (els) => els.filter((el) => el.getAttribute("tabindex") !== "-1").length

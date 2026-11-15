@@ -278,7 +278,7 @@ function KartuPertanyaanSurvei({ id, pertanyaan, nilai, opsi, onPilih }) {
                 onChange={() => onPilih(item.value)}
                 className="peer sr-only"
               />
-              <span className="inline-flex min-h-10 min-w-[76px] items-center justify-center rounded-lg border border-grey-300 bg-white px-3 font-sans text-xs font-medium text-grey-700 transition-colors hover:border-primary/50 peer-checked:border-primary peer-checked:bg-primary/10 peer-checked:text-primary peer-focus-visible:ring-2 peer-focus-visible:ring-primary peer-focus-visible:ring-offset-2">
+              <span className="inline-flex min-h-10 min-w-[76px] items-center justify-center rounded-md border border-black bg-transparent px-3 font-sans text-xs font-semibold text-black transition-colors hover:bg-grey-100 peer-checked:border-2 peer-checked:border-black peer-checked:bg-grey-100 peer-checked:text-black peer-focus-visible:ring-2 peer-focus-visible:ring-black peer-focus-visible:ring-offset-2">
                 {item.label}
               </span>
             </label>
