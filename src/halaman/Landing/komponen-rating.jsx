@@ -12,7 +12,6 @@ import { Textarea } from "../../components/ui/textarea.jsx";
 import {
   formatRibuan,
   formatTanggalSingkat,
-  emojiList as EMOJI_LIST,
   warnaUntuk,
   waktuRelatif,
 } from "./format-rating.js";
@@ -102,7 +101,7 @@ export function Avatar({ nama, size = "md" }) {
  * @param {boolean} bisaUbah jadikan radio interaktif (nilai dibulatkan)
  * @param {'sm'|'md'|'lg'|'xl'} ukuran
  */
-export function DeretBintang({ nilai, ukuran = "md", onPilih, bisaUbah = false, className = "" }) {
+export function DeretBintang({ nilai, ukuran = "md", onPilih, bisaUbah = false, className = "", ariaLabel }) {
   const ukuranCls =
     ukuran === "sm" ? "size-4"
       : ukuran === "lg" ? "size-6"
@@ -114,7 +113,7 @@ export function DeretBintang({ nilai, ukuran = "md", onPilih, bisaUbah = false, 
     const bulat = Math.round(nilai);
     return (
       <div className={`inline-flex items-center ${gapCls} text-yellow-400 ${className}`}
-        role="radiogroup" aria-label={`${bulat} dari 5 bintang`}>
+        role="radiogroup" aria-label={ariaLabel || `${bulat} dari 5 bintang`}>
         {[1, 2, 3, 4, 5].map((n) => (
           <button key={n} type="button" role="radio" aria-checked={bulat === n}
             aria-label={`${n} bintang`}
@@ -260,18 +259,17 @@ export function KartuUlasan({ t, ulasan: u, padaVote, padat }) {
  */
 export function FormUlasan({ t, bintangAwal = 0, onKirim, onBatal }) {
   const [bintang, setBintang] = useState(bintangAwal);
-  const [emoji, setEmoji] = useState(bintangAwal > 0 ? bintangAwal : null);
   const [nama, setNama] = useState("");
   const [pesan, setPesan] = useState("");
   const [error, setError] = useState(null);
-  const daftarEmoji = EMOJI_LIST(t);
 
   useEffect(() => {
-    if (bintangAwal > 0) { setBintang(bintangAwal); setEmoji(bintangAwal); }
+    if (bintangAwal > 0) setBintang(bintangAwal);
   }, [bintangAwal]);
 
   const pilihBintang = useCallback((n) => {
-    setBintang(n); setEmoji(n); setError(null);
+    setBintang(n);
+    setError(null);
   }, []);
 
   const kirim = useCallback(
@@ -282,34 +280,26 @@ export function FormUlasan({ t, bintangAwal = 0, onKirim, onBatal }) {
       onKirim({
         nama: nama.trim() || t("landing.rating.tamu"),
         bintang,
-        emoji: emoji ?? bintang,
+        // Data ulasan lama menyimpan emoji sebagai nilai 1–5. Tanpa kontrol
+        // emoji terpisah, pertahankan kompatibilitas dari nilai bintang.
+        emoji: bintang,
         pesan: pesan.trim(),
       });
     },
-    [bintang, emoji, nama, pesan, onKirim, t]
+    [bintang, nama, pesan, onKirim, t]
   );
 
   return (
     <form onSubmit={kirim} className="space-y-5 rounded-2xl bg-paper p-5 md:p-6">
-      <div className="space-y-2">
-        <label className="block font-sans text-sm font-semibold text-foreground">{t("landing.rating.beriBintang")}</label>
-        <DeretBintang nilai={bintang} ukuran="lg" bisaUbah onPilih={pilihBintang} />
-      </div>
-      <div className="space-y-2">
-        <p className="font-sans text-sm font-medium text-foreground">{t("landing.rating.bagaimanaPengalaman")}</p>
-        <div className="flex flex-wrap gap-2">
-          {daftarEmoji.map((item) => (
-            <button key={item.value} type="button" onClick={() => pilihBintang(item.value)}
-              className={`flex size-11 items-center justify-center rounded-lg text-2xl transition-all ${
-                (emoji ?? bintang) === item.value ? "scale-110 bg-backgroundBox" : "hover:bg-backgroundBox"
-              }`}
-              aria-label={item.label}
-              aria-pressed={(emoji ?? bintang) === item.value}
-              title={item.label}>
-              {item.emoji}
-            </button>
-          ))}
-        </div>
+      <div>
+        <DeretBintang
+          nilai={bintang}
+          ukuran="lg"
+          bisaUbah
+          onPilih={pilihBintang}
+          ariaLabel={t("landing.rating.beriBintang")}
+          className="w-full justify-between"
+        />
       </div>
       <div className="space-y-1.5">
         <label htmlFor="ulasan-nama" className="block font-sans text-sm font-semibold text-foreground">

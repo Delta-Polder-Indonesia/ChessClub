@@ -2,7 +2,7 @@
  * Halaman /tulis-ulasan — halaman sendiri untuk menulis ulasan rating.
  *
  * - Menampilkan hero "Beri rating aplikasi ini" + bintang + form ulasan
- *   penuh (emoji, nama, pesan).
+ *   (nama dan pesan).
  * - Bintang awal diambil dari sessionStorage (dipilih di hero Landing),
  *   jika ada.
  * - Tombol Kembali (panah kiri) di pojok kiri atas.
