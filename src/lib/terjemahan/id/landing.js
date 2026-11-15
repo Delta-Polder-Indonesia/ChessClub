@@ -11,6 +11,10 @@ export const landing = {
   harianDesk:
     "Lima teka-teki terbaru Chess.com bisa langsung kamu mainkan di papan ini — tanpa akun, tanpa unduhan. Selesaikan kelimanya, lalu lanjutkan latihanmu bersama Blunder Skuad.",
   harianEdisi: "Edisi {tanggal}",
+  harianCta: "Buka halaman teka-teki",
+  harianSumber: "Lihat di Chess.com",
+  harianGiliranPutih: "Putih melangkah — temukan langkah terbaiknya.",
+  harianGiliranHitam: "Hitam melangkah — temukan langkah terbaiknya.",
   harianKemajuan: "{n}/{total} soal dimainkan hari ini",
   harianKartuJudulMulai: "Mulai dari soal pertama",
   harianKartuJudulLanjut: "Ayo lanjut!",

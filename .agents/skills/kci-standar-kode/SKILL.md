@@ -31,36 +31,9 @@ isi skill lain ke sini — tunjuk berkasnya.
 | **Impor dan dependensi berlebih** | Hapus impor yang tidak terpakai sebelum PR. Jangan menambah dependensi npm tanpa persetujuan pengguna: server hanya boleh mengimpor `bcryptjs`, `jsonwebtoken`, `zod`, `@supabase/supabase-js` dan modul bawaan Node (lihat `kci-backend`); frontend memakai `lucide-react`, `react-helmet-async`, `pdfjs-dist`, `chess.js`, `zod` (lihat `kci-frontend`). Pustaka besar untuk satu fungsi kecil tidak diterima. |
 | **Eror ditelan** | `try-catch` tanpa penanganan logis dilarang. Pilih satu: teruskan galat (`throw`), balas galat yang bermakna lewat kelas yang sudah ada (`GalatAplikasi`, `GalatChess`, `GalatAwan`, `GalatVerifikasi` — masing-masing dengan status dan keterangan), atau catat jejak aksi penting di `server/src/audit.js`/`riwayat-masuk.js`. Bila galat memang boleh diabaikan, kembalikan nilai netral yang eksplisit dan tulis alasannya di komentar. Server tetap fail-closed sesuai `periksaProduksi()`; jangan menutup galat konfigurasi agar server "tetap jalan". |
 
-## 2. Prinsip kode yang berkelanjutan
+## 2. Tiga pilar
 
-Tujuannya bukan mengejar abstraksi atau pola populer, tetapi membuat perubahan berikutnya lebih mudah dipahami, diuji, dan dilakukan dengan aman.
-
-### A. Keterbacaan dan kebersihan
-
-- Ikuti konvensi repo yang sudah ada, terutama penamaan Bahasa Indonesia, struktur folder, format, dan pola error. Jangan menambahkan style guide eksternal (mis. Airbnb/Google) sebagai aturan baru tanpa persetujuan.
-- Pilih nama yang menjelaskan peran dan maksud; susun fungsi agar alur utamanya mudah dibaca. Komentar menjelaskan **mengapa** ada keputusan atau batasan, bukan mengulang apa yang sudah jelas dari kode.
-- Hapus impor, variabel, kode mati, dan diagnostik sementara yang ditambahkan oleh perubahan. Jangan merapikan area lain yang tidak terkait tanpa persetujuan.
-- Pecah fungsi/modul ketika tanggung jawab atau alur memang sulit dipahami atau diuji; jangan memecah hanya untuk mengejar jumlah baris tertentu. Terapkan aturan ukuran dan modularitas di bagian 2A di bawah.
-
-### B. Efisiensi yang dibuktikan
-
-- Dahulukan correctness dan kejelasan. Hindari duplikasi kerja yang nyata, tetapi jangan menambah cache, memoization, struktur data rumit, dependensi, atau lapisan abstraksi sekadar berjaga-jaga.
-- Bila mengklaim perubahan lebih cepat atau lebih hemat sumber daya, ukur baseline dan hasilnya dengan alat yang sesuai; detail optimasi frontend ada di `kci-frontend` dan `.agents/skills/kci-frontend/references/standar-performa.md`.
-- Operasi jaringan atau I/O harus tetap non-blocking sesuai pola runtime yang sudah dipakai. Jangan mengubah arsitektur atau menambah layanan (mis. Redis, worker, serverless) tanpa bottleneck terukur dan persetujuan cakupan.
-
-### C. Penggunaan ulang yang tepat
-
-- Cari rumah dan komponen yang ada sebelum membuat yang baru (ikuti protokol **"cari reuse dulu"** di bagian 2A dan batas domain di `DESIGN.md`). Abstraksikan hanya ketika ada pola stabil yang benar-benar berulang atau kompleksitas lokal yang sudah terbukti.
-- Hindari duplikasi aturan bisnis, validasi, dan sumber kebenaran; jangan memaksa dua alur berbeda ke satu komponen hanya karena tampak serupa.
-- Gunakan pola desain atau prinsip arsitektur (Factory, Singleton, Observer, Open/Closed, dan sejenisnya) hanya bila menyelesaikan kebutuhan konkret dan tetap sederhana untuk cara proyek berjalan. Bukan daftar wajib.
-
-### D. Verifikasi dan perawatan
-
-- Perubahan perilaku perlu tes regresi yang sesuai; pilih perintah uji menurut area dari `kci-pengujian`. Jalankan build bila perubahan menyentuh bundel, dan jangan menyatakan lulus tes yang belum dijalankan.
-- Refactor secara bertahap, dengan cakupan sekecil mungkin dan perilaku terjaga. Pisahkan refactor luas dari perubahan fitur bila itu membuat diff dan review lebih aman.
-- Gunakan Git untuk membuat perubahan dapat ditinjau: diff fokus, pesan perubahan jelas, serta bukti uji yang benar-benar dijalankan (lihat bagian 3 dan **Bukti yang menyertai PR**).
-
-### E. Modularitas dan pemisahan tanggung jawab
+### A. Modularitas dan pemisahan tanggung jawab
 
 Tiga lapis, jangan dicampur:
 
@@ -131,7 +104,7 @@ Sebaliknya, jangan memecah berkas hanya demi "lebih kecil" ketika pecahan-pecaha
 selalu dipakai bersama dan tidak punya makna sendiri (file SVG path ikon yang panjang
 misalnya tetap satu kesatuan).
 
-### F. Kinerja render dan engine
+### B. Kinerja render dan engine
 
 - Aturan teknisnya tinggal di satu tempat: `kci-frontend` (bagian "Komponen, state, dan render" serta
   "Performa"), dan `kci-papan-interaktif` untuk siklus hidup worker per mode. Jangan diduplikasi di sini.
@@ -140,7 +113,7 @@ misalnya tetap satu kesatuan).
 - Menambah engine, aset besar, atau dependensi runtime demi kenyamanan pengembangan tidak diterima tanpa
   persetujuan pengguna.
 
-### G. Keamanan dan validasi masukan
+### C. Keamanan dan validasi masukan
 
 - **Masukan klien tidak pernah dipercaya.** Endpoint baru: kontrak zod di `server/src/skema.js`,
   daftarkan di `server/src/rute.js`, dan aksi pengurus lewat `pastikanAdmin`/`pastikanMaster`.

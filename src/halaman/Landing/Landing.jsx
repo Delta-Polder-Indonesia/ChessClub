@@ -667,14 +667,10 @@ export default function Landing() {
           disediakan tersembunyi untuk pembaca layar & mesin pencari. */}
       <h1 className="sr-only font-serif">{t("common.namaKomunitas")}</h1>
       <LandingHero t={t} />
-      <section className="w-full px-6 py-12 md:px-8 xl:py-16">
-        <div className="mx-auto grid w-full max-w-7xl gap-12 xl:grid-cols-2 xl:items-start">
-          <RatingUlasan tertanam />
-          <Suspense fallback={<KerangkaTekaTekiHarian />}>
-            <TekaTekiHarianLanding tertanam />
-          </Suspense>
-        </div>
-      </section>
+      <Suspense fallback={<KerangkaTekaTekiHarian />}>
+        <TekaTekiHarianLanding />
+      </Suspense>
+      <RatingUlasan />
 
       {/* `bg-white` dihapus: seksi ini satu-satunya yang berlatar putih murni,
           sedangkan seksi lain tidak punya kelas latar dan mewarisi

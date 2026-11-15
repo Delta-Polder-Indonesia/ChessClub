@@ -829,10 +829,6 @@ async function selesaikanSoalWidget(catatan) {
   uji("widget tidak memanggil API sama sekali", permintaanApi.length === 0);
   uji("judul seksi dari kamus tampil", teksHalaman().includes(kamusLanding.harianJudul));
   uji(
-    "instruksi giliran default tidak ditampilkan",
-    !teksHalaman().includes("Putih melangkah — temukan langkah terbaiknya.")
-  );
-  uji(
     "edisi menyebut tanggal soal terbaru",
     teksHalaman().includes(daftarWidget[0].tanggal)
   );
@@ -864,28 +860,13 @@ async function selesaikanSoalWidget(catatan) {
     isianTrack()
   );
   uji(
-    "track menyebut sisa jatah",
+    "track menyebut nomor soal dan sisa jatah",
     (kartuHarian?.textContent || "").includes(
       kamusLanding.harianTrackSisa.replace("{n}", "5")
-    )
-  );
-  const petakAwalWidget = dok.querySelector("[data-petak]");
-  const tombolPetunjukWidget = [...dok.querySelectorAll("button")].find((b) =>
-    (b.textContent || "").includes(kamusLanding.harianPetunjuk)
-  );
-  const tombolUlangiWidget = [...dok.querySelectorAll("button")].find((b) =>
-    (b.textContent || "").includes(kamusLanding.harianUlangi)
-  );
-  const metadataWidget = [...dok.querySelectorAll("p")].find((p) =>
-    (p.textContent || "").includes(daftarWidget[0].tanggal)
-  );
-  uji(
-    "kontrol petunjuk dan ulangi serta metadata berada di bawah papan",
-    Boolean(
-      petakAwalWidget && tombolPetunjukWidget && tombolUlangiWidget && metadataWidget &&
-      petakAwalWidget.compareDocumentPosition(tombolPetunjukWidget) & window.Node.DOCUMENT_POSITION_FOLLOWING &&
-      tombolPetunjukWidget.compareDocumentPosition(metadataWidget) & window.Node.DOCUMENT_POSITION_FOLLOWING
-    )
+    ) &&
+      (kartuHarian?.textContent || "").includes(
+        kamusLanding.harianNomorSoal.replace("{n}", "1").replace("{total}", "5")
+      )
   );
   uji(
     "angka besar jatah 0 / 5 tampil di samping track",
@@ -931,10 +912,10 @@ async function selesaikanSoalWidget(catatan) {
     busurAwal?.getAttribute("stroke-dasharray")
   );
   const tautan = [...dok.querySelectorAll("a")].map((a) => a.getAttribute("href"));
-  uji("tautan halaman teka-teki tidak tampil pada widget", !tautan.includes("/teka-teki-harian"));
+  uji("ada tautan ke halaman teka-teki harian", tautan.includes("/teka-teki-harian"));
   uji(
-    "tautan Chess.com tidak tampil pada widget",
-    !tautan.some((h) => h && h.includes("chess.com/daily-chess-puzzle"))
+    "ada tautan ke halaman asli Chess.com",
+    tautan.some((h) => h && h.includes("chess.com/daily-chess-puzzle"))
   );
 
   /* D2 — langkah salah lalu langkah benar */
