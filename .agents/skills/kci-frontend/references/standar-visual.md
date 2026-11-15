@@ -8,8 +8,7 @@ Dokumen ini melengkapi `standar-markup.md`. Tujuannya bukan membuat design syste
 2. Utamakan keterbacaan, hierarki informasi, whitespace, dan konsistensi.
 3. Tampilan harus terasa tenang, profesional, informatif, dan berwibawa.
 4. Jangan mengejar tren visual yang tidak punya padanan di kode KCI.
-5. Jika pola visual belum ada di KCI, cari padanan pada repo referensi yang ditunjuk pengguna (`DESIGN.md` §14); jika belum ada contoh yang relevan di kedua sumber, berhenti dan konfirmasi sebelum menciptakan pola baru.
-6. Untuk halaman baru dengan referensi eksternal, telaah komponen sumber beserta markup, CSS, perilaku, dan responsivitasnya; susun urutan konten dahulu, lalu adaptasikan pola yang relevan ke primitif dan token KCI—jangan styling berdasarkan tebakan.
+5. Jika pola visual yang dibutuhkan belum punya contoh existing, berhenti pada tahap analisis dan tanyakan pengguna sebelum menciptakan pola baru.
 
 ## Warna
 
