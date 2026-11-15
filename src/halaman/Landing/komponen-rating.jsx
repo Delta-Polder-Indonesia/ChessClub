@@ -7,6 +7,7 @@
  * tempat.
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { Star } from "lucide-react";
 import { Button } from "../../components/ui/button.jsx";
 import { Textarea } from "../../components/ui/textarea.jsx";
 import {
@@ -18,21 +19,10 @@ import {
 
 /* ==================== ikon-ikon ==================== */
 export function BintangOutline({ className = "" }) {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className={className}
-      fill="none" stroke="currentColor" strokeWidth={1.6}
-      strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.8l-5.9 2.8 1.3-6.6L2.5 9.4l6.6-.8L12 2.5z" />
-    </svg>
-  );
+  return <Star aria-hidden="true" className={className} strokeWidth={1.6} />;
 }
 export function BintangPadat({ className = "", style }) {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className={className} style={style}
-      fill="currentColor">
-      <path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.8l-5.9 2.8 1.3-6.6L2.5 9.4l6.6-.8L12 2.5z" />
-    </svg>
-  );
+  return <Star aria-hidden="true" className={className} style={style} fill="currentColor" strokeWidth={1.6} />;
 }
 export function IkonInfo({ className = "" }) {
   return (
@@ -95,44 +85,75 @@ export function Avatar({ nama, size = "md" }) {
   );
 }
 
-/* ==================== deret bintang (statis + interaktif, dukung pecahan) ==================== */
+/* ==================== pemilih bintang interaktif ==================== */
+/**
+ * Satu-satunya pemilih bintang yang bisa diklik. Dipakai hero Landing dan
+ * form ulasan supaya markup serta bentuk bintangnya identik.
+ *
+ * @param {number} nilai 0..5
+ * @param {'lg'|'xl'} ukuran
+ * @param {(n:number)=>string} [labelSatuan] aria-label tiap tombol
+ * @param {(n:number)=>string} [labelUntuk] teks di samping bintang (menerima nilai sorotan)
+ */
+export function PemilihBintang({
+  nilai = 0,
+  ukuran = "lg",
+  onPilih,
+  className = "",
+  ariaLabel,
+  ariaInvalid,
+  ariaDescribedby,
+  labelSatuan,
+  labelUntuk,
+}) {
+  const [disorot, setDisorot] = useState(0);
+  const bulat = Math.round(nilai);
+  const tampil = disorot || bulat;
+  const ukuranCls = ukuran === "xl" ? "size-10 sm:size-12" : "size-10";
+  const gapCls = ukuran === "xl" ? "gap-1 sm:gap-3" : "gap-0.5";
+
+  return (
+    <div className={`flex flex-wrap items-center ${gapCls} ${className}`}
+      role="radiogroup"
+      aria-label={ariaLabel || `${bulat} dari 5 bintang`}
+      aria-invalid={ariaInvalid || undefined}
+      aria-describedby={ariaDescribedby || undefined}
+      onMouseLeave={() => setDisorot(0)}>
+      <div className="flex w-full flex-1 items-center justify-between">
+        {[1, 2, 3, 4, 5].map((n) => (
+          <button key={n} type="button" role="radio" aria-checked={bulat === n}
+            aria-label={labelSatuan ? labelSatuan(n) : `${n} bintang`}
+            onMouseEnter={() => setDisorot(n)}
+            onFocus={() => setDisorot(n)}
+            onBlur={() => setDisorot(0)}
+            onClick={() => onPilih?.(n)}
+            className="rounded p-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400/50">
+            <BintangPadat className={`${ukuranCls} ${tampil >= n ? "text-yellow-400" : "text-grey-300"}`} />
+          </button>
+        ))}
+      </div>
+      {labelUntuk ? (
+        <span className="mt-1 w-full text-left font-sans text-sm font-medium text-foregroundGrey sm:mt-0 sm:w-32 sm:flex-none">
+          {labelUntuk(tampil)}
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
+/* ==================== deret bintang statis (dukung pecahan) ==================== */
 /**
  * @param {number} nilai 0..5 (bisa pecahan untuk ringkasan)
- * @param {boolean} bisaUbah jadikan radio interaktif (nilai dibulatkan)
  * @param {'sm'|'md'|'lg'|'xl'} ukuran
  */
-export function DeretBintang({ nilai, ukuran = "md", onPilih, bisaUbah = false, className = "", ariaLabel, ariaInvalid, ariaDescribedby }) {
+export function DeretBintang({ nilai, ukuran = "md", className = "" }) {
   const ukuranCls =
     ukuran === "sm" ? "size-4"
       : ukuran === "lg" ? "size-10"
         : ukuran === "md" ? "size-6"
           : ukuran === "xl" ? "size-11"
             : "size-5";
-  const gapCls = bisaUbah
-    ? (ukuran === "xl" ? "gap-1.5" : "gap-0.5")
-    : ukuran === "md" ? "gap-1" : "gap-0.5";
-
-  if (bisaUbah) {
-    const bulat = Math.round(nilai);
-    return (
-      <div className={`inline-flex items-center ${gapCls} text-yellow-400 ${className}`}
-        role="radiogroup"
-        aria-label={ariaLabel || `${bulat} dari 5 bintang`}
-        aria-invalid={ariaInvalid || undefined}
-        aria-describedby={ariaDescribedby || undefined}>
-        {[1, 2, 3, 4, 5].map((n) => (
-          <button key={n} type="button" role="radio" aria-checked={bulat === n}
-            aria-label={`${n} bintang`}
-            onClick={() => onPilih?.(n)}
-            className="rounded p-0.5 transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400/50">
-            {n <= nilai
-              ? <BintangPadat className={ukuranCls} />
-              : <BintangOutline className={ukuranCls} />}
-          </button>
-        ))}
-      </div>
-    );
-  }
+  const gapCls = ukuran === "md" ? "gap-1" : "gap-0.5";
 
   const mak = Math.max(0, Math.min(5, nilai));
   return (
@@ -347,7 +368,7 @@ export function FormUlasan({ t, bintangAwal = 0, onKirim, onBatal }) {
   );
 
   return (
-    <form onSubmit={kirim} className="grid grid-cols-1 gap-8 rounded-2xl bg-paper p-5 md:p-6 lg:grid-cols-2 lg:gap-10 lg:p-8">
+    <form onSubmit={kirim} className="grid grid-cols-1 gap-8 rounded-2xl bg-paper p-5 md:p-6 lg:grid-cols-2 lg:gap-[12.5%] lg:px-0 lg:py-8">
       <div className="space-y-5">
         <header className="flex flex-col items-start gap-2">
           <h1 className="font-sans text-2xl font-semibold text-foreground md:text-3xl">
@@ -358,10 +379,9 @@ export function FormUlasan({ t, bintangAwal = 0, onKirim, onBatal }) {
           </p>
         </header>
         <div className="space-y-1.5">
-          <DeretBintang
+          <PemilihBintang
             nilai={bintang}
             ukuran="lg"
-            bisaUbah
             onPilih={pilihBintang}
             ariaLabel={t("landing.rating.beriBintang")}
             ariaInvalid={error?.field === "bintang"}

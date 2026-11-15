@@ -25,11 +25,11 @@ import useEmblaCarousel from "embla-carousel-react";
 import { useI18n } from "../../lib/i18n.jsx";
 import { useUlasan } from "./gunakanUlasan.js";
 import {
-  BintangPadat,
   IkonInfo,
   KartuUlasan,
   PanahKanan,
   PanahKiri,
+  PemilihBintang,
   Ringkasan,
 } from "./komponen-rating.jsx";
 
@@ -149,7 +149,6 @@ export default function RatingUlasan() {
       return Number(globalThis.sessionStorage?.getItem(KUNCI_BINTANG_HERO)) || 0;
     } catch { return 0; }
   });
-  const [bintangDisorot, setBintangDisorot] = useState(0);
 
   useEffect(() => {
     try {
@@ -167,10 +166,14 @@ export default function RatingUlasan() {
     }
   }, [location, t]);
 
+  // Klik bintang langsung membuka halaman tulis ulasan dengan nilai terpilih.
   const pilihBintangHero = useCallback((n) => {
     setBintangHero(n);
-  }, []);
-  const nilaiBintangHero = bintangDisorot || bintangHero;
+    try {
+      globalThis.sessionStorage?.setItem(KUNCI_BINTANG_HERO, String(n));
+    } catch { /* abaikan */ }
+    navigate("/tulis-ulasan", { state: { bintang: n } });
+  }, [navigate]);
 
   const bukaHalamanTulis = useCallback(() => {
     navigate("/tulis-ulasan");
@@ -192,36 +195,17 @@ export default function RatingUlasan() {
           <p className="mt-1.5 font-sans text-base text-foregroundGrey">
             {t("landing.rating.ajakSub")}
           </p>
-          <div
-            className="mt-6 flex flex-wrap items-center gap-1 sm:gap-3"
-            role="radiogroup"
-            aria-label={t("landing.rating.beriBintang")}
-            onMouseLeave={() => setBintangDisorot(0)}
-          >
-            {[1, 2, 3, 4, 5].map((n) => (
-              <button
-                key={n}
-                type="button"
-                role="radio"
-                aria-checked={bintangHero === n}
-                aria-label={t("landing.rating.skalaBintang", { n })}
-                onMouseEnter={() => setBintangDisorot(n)}
-                onFocus={() => setBintangDisorot(n)}
-                onBlur={() => setBintangDisorot(0)}
-                onClick={() => pilihBintangHero(n)}
-                className="rounded p-0 text-grey-300 transition-transform duration-150 ease-out hover:scale-110 hover:text-yellow-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 sm:p-1"
-              >
-                <BintangPadat className={`size-10 sm:size-12 ${
-                  nilaiBintangHero >= n ? "text-yellow-400" : "text-grey-300"
-                }`} />
-              </button>
-            ))}
-            <span className="ml-1 font-sans text-sm font-medium text-foregroundGrey">
-              {nilaiBintangHero > 0
-                ? t(`landing.rating.labelBintang${nilaiBintangHero}`)
-                : t("landing.rating.pilihBintangPrompt")}
-            </span>
-          </div>
+          <PemilihBintang
+            nilai={bintangHero}
+            ukuran="xl"
+            onPilih={pilihBintangHero}
+            ariaLabel={t("landing.rating.beriBintang")}
+            labelSatuan={(n) => t("landing.rating.skalaBintang", { n })}
+            labelUntuk={(n) => (n > 0
+              ? t(`landing.rating.labelBintang${n}`)
+              : t("landing.rating.pilihBintangPrompt"))}
+            className="mt-6 w-full"
+          />
           <div className="mt-7 flex w-full items-center justify-between border-t border-grey-200 pt-4">
             <button
               type="button"
