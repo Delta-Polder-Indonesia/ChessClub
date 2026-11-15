@@ -226,3 +226,22 @@ Aturan:
 - Komponen lintas domain boleh berbagi perilaku aksesibel, tetapi keluarga domain menentukan bentuk visualnya.
 - Jangan memindahkan ikon atau komponen catur ke komponen halaman umum hanya demi menyatukan rupa.
 - Kode lama dimigrasikan per domain; keberadaan pola lama bukan izin menambah variasi baru.
+
+---
+
+## 14. Rujukan Sistem Desain dan Alur Pembuatan Halaman
+
+Untuk halaman konten publik atau landing page baru, gunakan sistem desain publik yang diberikan pengguna sebagai **buku pola komponen**—bukan sebagai alasan untuk menebak tata letak dari screenshot. Rujukan yang sudah dipilih pengguna:
+
+- [AEGov Design System](https://github.com/TDRA-ae/aegov-dls) — komponen, CSS, markup, dan perilaku interaktif. Contoh: `src/components/tooltip.css` beserta implementasinya di `js/src/components/tooltip/index.ts`.
+
+### Cara memakai rujukan
+
+1. Tetapkan tujuan halaman, audiens, konten yang tersedia, dan satu aksi utama. Jangan mengarang klaim, angka, testimoni, atau materi yang belum diberikan.
+2. Buat **kerangka urutan seksi terlebih dahulu** (mis. hero → pengenalan/masalah → fitur atau manfaat → bukti/proses bila ada → aksi utama). Pilih hanya seksi yang benar-benar didukung konten; jangan mengisi halaman dengan blok generik.
+3. Untuk setiap pola yang dibutuhkan, periksa implementasi sumbernya: markup, CSS, perilaku JavaScript, posisi responsif, aksesibilitas, dan state—bukan screenshot atau CSS terpisah saja. Bila pengguna menunjuk repo tertentu, dahulukan repo itu daripada pola tebakan.
+4. Petakan pola tersebut ke rumah komponen KCI di §13. Gunakan komponen lokal bila sudah ada; jika belum, buat primitif reusable di domain konten (`src/components/konten/`) hanya bila memang dapat dipakai ulang. Halaman baru disusun dari primitif itu, bukan dari tumpukan class ad-hoc.
+5. Ambil **struktur, proporsi, ritme spasi, dan perilaku** yang relevan, tetapi sesuaikan warna, tipografi, radius, dan token dengan identitas KCI di dokumen ini. Jangan mengimpor seluruh CSS sistem eksternal secara global: variabel, reset, utilitas, dan JavaScript-nya dapat bertabrakan dengan token serta alur aplikasi.
+6. Setelah implementasi, periksa halaman dengan konten nyata pada desktop dan ponsel: hirarki, panjang teks, pemenggalan, posisi aksi, whitespace, serta state hover/focus/disabled. Perbaiki dari pola sumber dan komponen bersama sebelum membuat variasi visual baru.
+
+AEGov DLS berlisensi MIT. Jika menyalin kode CSS/JavaScript secara langsung dalam jumlah substansial, sertakan pemberitahuan hak cipta dan lisensi sesuai `LICENSE` upstream. Untuk pola yang hanya dijadikan inspirasi lalu ditulis ulang mengikuti KCI, jangan mengklaimnya sebagai kode upstream.
