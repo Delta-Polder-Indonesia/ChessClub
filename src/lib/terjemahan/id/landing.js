@@ -184,7 +184,12 @@ export const landing = {
       ajakSub:
         "Sampaikan pendapat Anda untuk membantu kami mengembangkan ekosistem catur digital di Indonesia.",
       ajakCatatan: "Masukan Anda sangat berarti bagi kami",
-      pilihBintangPrompt: "Pilih bintang",
+      skalaBintang: "{n} bintang",
+      labelBintang1: "Sangat kurang",
+      labelBintang2: "Kurang",
+      labelBintang3: "Cukup",
+      labelBintang4: "Bagus",
+      labelBintang5: "Sangat bagus!",
       berdasarkan: "{n} ulasan",
       terpilih: "Anda memilih {n} dari 5 bintang.",
       tulisUlasan: "Tulis ulasan",

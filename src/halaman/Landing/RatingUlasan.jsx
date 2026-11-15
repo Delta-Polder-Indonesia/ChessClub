@@ -25,7 +25,8 @@ import useEmblaCarousel from "embla-carousel-react";
 import { useI18n } from "../../lib/i18n.jsx";
 import { useUlasan } from "./gunakanUlasan.js";
 import {
-  DeretBintang,
+  BintangOutline,
+  BintangPadat,
   IkonInfo,
   KartuUlasan,
   PanahKanan,
@@ -167,7 +168,7 @@ export default function RatingUlasan() {
   }, [location, t]);
 
   const pilihBintangHero = useCallback((n) => {
-    setBintangHero((prev) => (prev === n ? 0 : n));
+    setBintangHero(n);
   }, []);
 
   const bukaHalamanTulis = useCallback(() => {
@@ -183,20 +184,37 @@ export default function RatingUlasan() {
       <div className="mx-auto max-w-[1080px] xl:max-w-7xl">
 
         {/* 1. Hero "Beri rating aplikasi ini" */}
-        <div className="flex w-full flex-col items-start rounded-lg border border-grey-200 bg-paper p-6 sm:p-8 md:max-w-[52%]">
+        <div className="flex w-full flex-col items-start rounded-lg border border-grey-200 bg-white p-6 sm:p-8 md:max-w-[52%]">
           <h3 className="font-sans text-xl font-semibold text-foreground">
             {t("landing.rating.ajakJudul")}
           </h3>
           <p className="mt-1.5 font-sans text-base text-foregroundGrey">
             {t("landing.rating.ajakSub")}
           </p>
-          <div className="mt-6 flex flex-wrap items-center gap-2 sm:gap-3">
-            <DeretBintang nilai={bintangHero} ukuran="xl" bisaUbah onPilih={pilihBintangHero} />
-            <span className="font-sans text-sm text-foregroundGrey">
-              {bintangHero > 0
-                ? t("landing.rating.terpilih", { n: bintangHero })
-                : t("landing.rating.pilihBintangPrompt")}
-            </span>
+          <div className="mt-6 grid w-full grid-cols-5 gap-1 sm:gap-2" role="radiogroup" aria-label={t("landing.rating.beriBintang")}>
+            {[1, 2, 3, 4, 5].map((n) => {
+              const terpilih = bintangHero >= n;
+              const label = t(`landing.rating.labelBintang${n}`);
+              return (
+                <button
+                  key={n}
+                  type="button"
+                  role="radio"
+                  aria-checked={bintangHero === n}
+                  aria-label={`${n}: ${label}`}
+                  onClick={() => pilihBintangHero(n)}
+                  className="flex min-w-0 flex-col items-center gap-1 rounded-md px-0.5 py-1 text-center text-grey-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                >
+                  {terpilih
+                    ? <BintangPadat className="size-8 text-yellow-400" />
+                    : <BintangOutline className="size-8 text-grey-300" />}
+                  <span className="font-sans text-xs font-medium">
+                    {t("landing.rating.skalaBintang", { n })}
+                  </span>
+                  <span className="font-sans text-xs leading-snug">{label}</span>
+                </button>
+              );
+            })}
           </div>
           <div className="mt-7 flex w-full flex-col gap-3 border-t border-grey-200 pt-4 sm:flex-row sm:items-center sm:justify-between">
             <button
