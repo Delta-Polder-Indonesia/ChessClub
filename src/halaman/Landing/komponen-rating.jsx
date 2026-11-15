@@ -218,7 +218,7 @@ export function KartuUlasan({ t, ulasan: u, padaVote, padat }) {
               className="hidden font-sans text-xs text-foregroundGrey md:inline">
               {formatTanggalSingkat(u.ts)}
             </time>
-            <span className="rounded-full bg-grey-200 px-2 py-0.5 font-sans text-[11px] text-foregroundGrey">
+            <span className="font-sans text-[11px] text-foregroundGrey">
               {waktuRelatif(u.ts, t)}
             </span>
           </div>
@@ -236,16 +236,16 @@ export function KartuUlasan({ t, ulasan: u, padaVote, padat }) {
         </span>
         <button type="button" onClick={() => padaVote?.(u.id, "naik")}
           aria-pressed={u.sayaSuka === true} aria-label={t("landing.rating.suka")}
-          className={`inline-flex items-center gap-1.5 rounded-full px-2 py-1 font-sans text-sm transition-colors ${
-            u.sayaSuka ? "bg-primary/10 text-primary" : "text-foregroundGrey hover:bg-backgroundBox"
+          className={`inline-flex items-center gap-1.5 rounded px-2 py-1 font-sans text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${
+            u.sayaSuka === true ? "text-primary" : "text-foregroundGrey hover:text-primary"
           }`}>
-          <Jempol arah="naik" aktif={u.sayaSuka} className="size-5" />
+          <Jempol arah="naik" aktif={u.sayaSuka === true} className="size-5" />
           <span className="tabular-nums">{u.suka}</span>
         </button>
         <button type="button" onClick={() => padaVote?.(u.id, "turun")}
           aria-pressed={u.sayaSuka === false} aria-label={t("landing.rating.tidakSuka")}
-          className={`flex size-8 items-center justify-center rounded-full transition-colors ${
-            u.sayaSuka === false ? "bg-destructive/10 text-destructive" : "text-foregroundGrey hover:bg-backgroundBox"
+          className={`flex size-8 items-center justify-center rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/50 ${
+            u.sayaSuka === false ? "text-destructive" : "text-foregroundGrey hover:text-destructive"
           }`}>
           <Jempol arah="turun" aktif={u.sayaSuka === false} className="size-5" />
         </button>
