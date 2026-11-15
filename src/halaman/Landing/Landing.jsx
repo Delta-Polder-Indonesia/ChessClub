@@ -258,7 +258,7 @@ function CardGambar({ index, t }) {
   };
 
   return (
-    <div className="relative w-full max-w-60 md:max-w-72 lg:max-w-80 xl:max-w-[340px] mx-auto md:mx-0 shrink-0 aspect-[2/3] overflow-hidden bg-black">
+    <div className="relative hidden w-full max-w-60 shrink-0 aspect-[2/3] overflow-hidden bg-black md:block md:max-w-72 lg:max-w-80 xl:max-w-[340px]">
       {/* LAPISAN DASAR: Selalu stabil dan terlihat di bawah */}
       <img
         key={`base-${KARTU_GAMBAR[currentImg].id}`}
@@ -305,10 +305,11 @@ function CardGambar({ index, t }) {
  *  ujungnya, tidak berputar tak berujung seperti versi sebelumnya. */
 function CardCarousel({ index, setIndex, t }) {
   const kartu = [
-    ...DAFTAR_EBOOK.slice(0, 4).map((b) => ({
+    ...DAFTAR_EBOOK.slice(0, 4).map((b, i) => ({
       to: `/program-kami/ebook-panduan/${b.id}`,
       judul: b.judul,
       desk: b.kategori,
+      sumber: KARTU_GAMBAR[i].sumber,
       penghujung: false,
     })),
     {
@@ -332,7 +333,61 @@ function CardCarousel({ index, setIndex, t }) {
   const geser = Math.min(aktif * CARD_W, GESER_MAKS);
 
   return (
-    <div className="w-full order-2 mt-8 px-6 md:px-0 overflow-hidden">
+    <>
+      {/* Di ponsel, gunakan pola katalog buku: grid dua kolom dengan sampul
+          dan metadata. Ini menggantikan kartu 320px yang terpotong di jendela
+          carousel desktop. Terinspirasi tata letak produk Book Hub, bukan
+          menyalin markup atau asetnya. */}
+      <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-4 md:hidden">
+        {kartu.map((k, i) => (
+          k.penghujung ? (
+            <Link
+              key="lihat-semua-ebook-mobile"
+              to={k.to}
+              className="col-span-2 flex min-h-[112px] items-center justify-between gap-4 rounded-xl bg-primary px-5 py-4 text-white shadow-sm transition-transform active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            >
+              <span className="min-w-0">
+                <span className="block font-sans text-lg font-semibold leading-tight">{k.judul}</span>
+                <span className="mt-1 block font-serif text-sm leading-snug text-white/80">{k.desk}</span>
+              </span>
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-white/15">
+                <ArrowRightIcon className="size-5 text-white" />
+              </span>
+            </Link>
+          ) : (
+            <Link
+              key={`ebook-mobile-${i}`}
+              to={k.to}
+              title={k.judul}
+              className="group flex min-w-0 flex-col overflow-hidden rounded-xl border border-grey-200 bg-white shadow-sm transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            >
+              <div className="relative aspect-[4/5] overflow-hidden bg-grey-100 p-2.5">
+                <img
+                  {...k.sumber}
+                  sizes="(max-width: 639px) 44vw, 220px"
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                  className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-[1.03]"
+                />
+              </div>
+              <div className="flex min-h-[112px] flex-1 flex-col p-3">
+                <span className="mb-1.5 font-mono text-[0.68rem] font-medium uppercase tracking-[0.08em] text-primary">
+                  {k.desk}
+                </span>
+                <h3 className="line-clamp-3 font-sans text-sm font-semibold leading-snug text-grey-800">
+                  {k.judul}
+                </h3>
+                <span className="mt-auto flex items-center justify-end pt-2 text-grey-500 group-hover:text-primary" aria-hidden="true">
+                  <ArrowRightIcon className="size-4 -rotate-45" />
+                </span>
+              </div>
+            </Link>
+          )
+        ))}
+      </div>
+
+      <div className="hidden w-full order-2 mt-8 overflow-hidden md:block">
       <div className="overflow-hidden max-w-full mx-auto" style={{ maxWidth: `${JENDELA}px` }}>
         <div
           // Jarak antar kartu WAJIB 14px — nilai ini harus cocok dengan CARD_W (320+14).
@@ -409,58 +464,31 @@ function CardCarousel({ index, setIndex, t }) {
           <ArrowRightIcon className="size-6 text-grey-600 group-hover:text-white transition-colors" />
         </button>
       </div>
-    </div>
+      </div>
+    </>
   );
 }
 
 function BagianGambarKartu({ t }) {
   const [index, setIndex] = useState(0);
   return (
-    <section className="w-full relative py-16 overflow-hidden">
-      <div className="w-full max-w-[1500px] mx-auto px-[clamp(22px,4vw,56px)] relative flex flex-col md:flex-row md:items-center gap-8 md:gap-12">
+    <section className="relative w-full overflow-hidden py-10 md:py-16">
+      <div className="relative mx-auto flex w-full max-w-[1500px] flex-col gap-8 px-4 sm:px-6 md:flex-row md:items-center md:gap-12 md:px-[clamp(22px,4vw,56px)]">
         <CardGambar index={index} t={t} />
-        <div className="w-full flex flex-col">
-            {/* Kepala seksi disusun vertikal: judul → deskripsi.
-                Label "Perpustakaan" beserta titiknya dihapus dari kartu besar
-                dan dari kolom ini, jadi yang tersisa hanya judul dan
-                deskripsi. Kunci terjemahan `pustakaLabel` juga dibuang karena
-                tidak lagi terpakai di mana pun.
-                Jarak antarbaris: 32px di bawah judul, supaya hierarkinya
-                terbaca. Batas lebar `md:max-w-[620px]` milik `.hero-left`
-                sumber dilepas: kartu besar di kiri hanya 340px, jadi kolom
-                620px menyisakan ruang kosong besar di kanan halaman. */}
-            {/* Judul dipaksa satu baris (`whitespace-nowrap`) sesuai permintaan: dengan
-                lebar 620px, ukuran display sumber `clamp(3rem,9vw,4.5rem)`
-                membuat "Pustaka & Modul Catur" membelah dan naik-turunnya
-                terbaca sebagai teks menumpuk. Ukuran diturunkan ke
-                `clamp(1.5rem,4.4vw,3.25rem)` — batas atas 52px sudah muat
-                satu baris di kolom 620px, batas bawah 24px agar tetap muat di
-                layar 320px setelah padding `clamp(22px,4vw,56px)`.
-                Lebar 620px dianggap sebagai batas keras: kalau di layar sempit
-                judul meluber, turunkan `whitespace-nowrap`. */}
-            <h2 className="font-serif font-extralight text-[clamp(1.5rem,4.4vw,3.25rem)] leading-[1.1] tracking-[0em] text-grey-800 whitespace-nowrap">
-              {t("landing.pustakaHeading")}
-            </h2>
-            {/* `.hero-body` sumber: 1rem / 300 / 1.6 / `text-wrap: pretty`.
-                Batas `max-width: 56ch` milik sumber dinaikkan ke 72ch karena
-                kolom kini jauh lebih lebar; 56ch akan menyisakan ruang kosong
-                besar di kanan. 72ch masih di bawah ambang keterbacaan satu
-                baris (sekitar 90–100ch). */}
-            <p className="mt-8 font-serif text-[1rem] font-light leading-[1.6] text-grey-600 max-w-[72ch] text-pretty">
-              {t("landing.pustakaKeterangan")}
-            </p>
-            {/* Baris syarat katalog e-book. Tombol "Lihat kurikulum" yang
-                dulu ada di sini dihapus — digantikan kartu penutup
-                "Lihat Semua Ebook" di ujung karusel (CardCarousel),
-                yang menuju /program-kami/ebook-panduan. */}
-            <p className="mt-6 font-serif text-[0.8125rem] text-grey-600">
-              {t("landing.tigaJalanAkademiTerms")}
-            </p>
-            {/* Deretan kartu kecil pindah ke bawah deskripsi, di dalam kolom
-                kanan. Sebelumnya ikut_flow penuh di bawah kartu besar, sehingga
-                seksi setinggi kartu besar + carousel. Sekarang ruang kosong di
-                sebelah kanan kartu besar ikut terpakai. */}
-            <CardCarousel index={index} setIndex={setIndex} t={t} />
+        <div className="flex w-full flex-col">
+        <p className="mb-2 font-mono text-xs font-medium uppercase tracking-[0.14em] text-primary md:hidden">
+          {t("landing.pustakaJudul")}
+        </p>
+        <h2 className="font-serif font-extralight text-[clamp(1.65rem,7.5vw,2.5rem)] leading-[1.08] tracking-normal text-grey-800 lg:text-[clamp(1.5rem,4.4vw,3.25rem)] lg:whitespace-nowrap">
+          {t("landing.pustakaHeading")}
+        </h2>
+        <p className="mt-4 max-w-[72ch] font-serif text-base font-light leading-[1.65] text-grey-600 text-pretty md:mt-8">
+          {t("landing.pustakaKeterangan")}
+        </p>
+        <p className="mt-4 font-serif text-[0.8125rem] text-grey-600 md:mt-6">
+          {t("landing.tigaJalanAkademiTerms")}
+        </p>
+        <CardCarousel index={index} setIndex={setIndex} t={t} />
           </div>
       </div>
     </section>
