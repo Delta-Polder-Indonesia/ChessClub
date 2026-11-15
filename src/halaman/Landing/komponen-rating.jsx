@@ -252,6 +252,37 @@ export function KartuUlasan({ t, ulasan: u, padaVote, padat }) {
 }
 
 /* ==================== Form tulis ulasan ==================== */
+function KartuPertanyaanSurvei({ id, pertanyaan, nilai, opsi, onPilih }) {
+  return (
+    <fieldset className="w-[80%] max-w-[280px] shrink-0 snap-start rounded-xl border border-grey-300 bg-white p-4 md:w-0 md:flex-1">
+      <legend className="min-h-[4.5rem] font-sans text-sm font-semibold leading-snug text-foreground">
+        {pertanyaan}
+      </legend>
+      <div className="mt-4 flex flex-wrap gap-2">
+        {opsi.map((item) => {
+          const inputId = `${id}-${item.value}`;
+          return (
+            <label key={item.value} htmlFor={inputId} className="cursor-pointer">
+              <input
+                id={inputId}
+                type="radio"
+                name={id}
+                value={item.value}
+                checked={nilai === item.value}
+                onChange={() => onPilih(item.value)}
+                className="peer sr-only"
+              />
+              <span className="inline-flex min-h-9 items-center rounded-full border border-grey-300 px-3 font-sans text-xs font-medium text-grey-700 transition-colors peer-checked:border-primary peer-checked:bg-primary peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-primary peer-focus-visible:ring-offset-2">
+                {item.label}
+              </span>
+            </label>
+          );
+        })}
+      </div>
+    </fieldset>
+  );
+}
+
 /**
  * @param {number} bintangAwal nilai awal bintang (dipilih dari hero)
  * @param {function} onKirim(ulasan) dipanggil saat terkirim (object ulasan tanpa id/ts/suka)
@@ -262,6 +293,21 @@ export function FormUlasan({ t, bintangAwal = 0, onKirim, onBatal }) {
   const [nama, setNama] = useState("");
   const [pesan, setPesan] = useState("");
   const [error, setError] = useState(null);
+  const [jawabanSurvei, setJawabanSurvei] = useState({
+    kerjaTim: "",
+    tampilanPonsel: "",
+    iklanJudi: "",
+  });
+  const pertanyaanSurvei = [
+    { id: "kerjaTim", teks: t("landing.rating.surveiKerjaTim") },
+    { id: "tampilanPonsel", teks: t("landing.rating.surveiTampilanPonsel") },
+    { id: "iklanJudi", teks: t("landing.rating.surveiIklanJudi") },
+  ];
+  const opsiSurvei = [
+    { value: "tidak", label: t("landing.rating.surveiTidak") },
+    { value: "tidak-yakin", label: t("landing.rating.surveiTidakYakin") },
+    { value: "ya", label: t("landing.rating.surveiYa") },
+  ];
 
   useEffect(() => {
     if (bintangAwal > 0) setBintang(bintangAwal);
@@ -280,17 +326,38 @@ export function FormUlasan({ t, bintangAwal = 0, onKirim, onBatal }) {
       onKirim({
         nama: nama.trim() || t("landing.rating.tamu"),
         bintang,
-        // Data ulasan lama menyimpan emoji sebagai nilai 1–5. Tanpa kontrol
-        // emoji terpisah, pertahankan kompatibilitas dari nilai bintang.
+        // Field emoji di data lama memakai nilai bintang; tetap diisi
+        // dengan skor bintang supaya bentuk data ulasan tidak berubah.
         emoji: bintang,
+        survei: jawabanSurvei,
         pesan: pesan.trim(),
       });
     },
-    [bintang, nama, pesan, onKirim, t]
+    [bintang, jawabanSurvei, nama, pesan, onKirim, t]
   );
 
   return (
     <form onSubmit={kirim} className="space-y-5 rounded-2xl bg-paper p-5 md:p-6">
+      <section aria-labelledby="ulasan-survei-judul">
+        <h2 id="ulasan-survei-judul" className="font-sans text-base font-semibold text-foreground">
+          {t("landing.rating.beriTahuSelengkapnya")}
+        </h2>
+        <div className="no-scrollbar mt-3 flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 md:overflow-visible md:pb-0">
+          {pertanyaanSurvei.map((pertanyaan) => (
+            <KartuPertanyaanSurvei
+              key={pertanyaan.id}
+              id={pertanyaan.id}
+              pertanyaan={pertanyaan.teks}
+              nilai={jawabanSurvei[pertanyaan.id]}
+              opsi={opsiSurvei}
+              onPilih={(nilai) => setJawabanSurvei((sebelumnya) => ({
+                ...sebelumnya,
+                [pertanyaan.id]: nilai,
+              }))}
+            />
+          ))}
+        </div>
+      </section>
       <div>
         <DeretBintang
           nilai={bintang}
