@@ -65,6 +65,7 @@ Dokumen ini adalah sumber kebenaran (*single source of truth*) untuk token desai
 - **Batas (Border):** Garis tegas `1px` (`border border-slate-200` atau `border-slate-300`).
 - **Radius:** `rounded` (4px) atau `rounded-lg` (8px). Hindari bentuk pill raksasa atau `rounded-3xl` yang kekanak-kanakan.
 - **Elevasi & Bayangan:** Gunakan bayangan netral tipis (`shadow-sm`) atau cukup border `1px` datar (*flat restrained*).
+- **Rating & ulasan — aturan khusus:** Kartu ulasan harus datar tanpa efek mengambang/bayangan. Waktu relatif (mis. “2 hari yang lalu”) tampil sebagai teks polos, bukan badge/chip/pill atau latar berwarna. Tombol suka/tidak suka tidak memakai latar kapsul/kartu, termasuk saat hover/aktif; state aktif hanya mengubah warna ikon jempol dan angka. Indikator fokus keyboard tetap dipertahankan.
 
 ---
 

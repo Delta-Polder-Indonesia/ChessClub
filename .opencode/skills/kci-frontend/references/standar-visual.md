@@ -74,6 +74,12 @@ Halaman konten tidak memakai card operasional dari `components/ui`. Gunakan sect
 - Hindari `shadow-*` untuk section/blok konten biasa.
 - Card khusus fitur tetap berada di domain fitur dan tidak menjadi contoh artikel.
 
+### Rating & ulasan
+
+- Kartu ulasan bergaya datar: tanpa `shadow-*` atau efek mengambang.
+- Waktu relatif (contoh: “2 hari yang lalu”) adalah teks biasa, bukan badge/chip/pill dan tanpa latar khusus.
+- Tombol suka/tidak suka tidak memakai latar kapsul/kartu pada state normal, hover, maupun aktif. State aktif ditunjukkan lewat warna ikon jempol dan angka; ring fokus keyboard tetap boleh digunakan.
+
 ## Form
 
 Form mengikuti keluarga alurnya, bukan standar artikel. Halaman konten biasa tidak membuat form dekoratif. Program non-catur, pendaftaran, dan Pengurus mempertahankan komponen domainnya; kontrol catur reusable berasal dari `Analisa/komponen/`.
