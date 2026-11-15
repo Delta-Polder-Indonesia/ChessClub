@@ -60,6 +60,7 @@ Sebelum membuat atau mengubah UI:
 - buka `references/standar-markup.md`, `references/standar-visual.md`, dan contoh source terdekat;
 - gunakan kerangka halaman serta primitif bersama yang sudah ada;
 - muat `kci-anti-slop` dan jalankan checklist-nya sebelum selesai;
+- pada setiap perubahan halaman, audit notifikasi/toast/alert di halaman itu: jangan biarkan kemunculannya menggeser atau menutupi layout; perbaiki gangguan lokal yang aman, dan laporkan sebelum perubahan lintas halaman;
 - gunakan Bahasa Indonesia untuk identifier dan copy sesuai konvensi proyek.
 
 Larangan ringkas: tanpa emoji, gradien dekoratif, glow, glassmorphism, card bertumpuk,

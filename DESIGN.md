@@ -154,6 +154,14 @@ Rincian teknis berada di `.agents/skills/kci-frontend/references/standar-media.m
 - Motion menghormati `prefers-reduced-motion`; konten tetap terlihat ketika animasi gagal atau dimatikan.
 - Semua teks memenuhi WCAG AA.
 
+### Penempatan notifikasi
+
+- Toast/notifikasi sementara tidak boleh menambah tinggi alur dokumen, menggeser konten, atau menutupi kontrol penting. Gunakan pola notifikasi bersama yang sudah ada; tampilkan pada area overlay yang konsisten dan tidak bertumpuk dengan header, navigasi, CTA, atau kontrol mengambang.
+- Pesan validasi yang memang terkait langsung dengan field tetap diletakkan dekat field-nya, tetapi jangan menimpa input atau menyebabkan perubahan tata letak mendadak; sediakan ruang/status slot yang stabil bila pesan muncul dinamis.
+- Pastikan notifikasi tetap terlihat dan dapat digunakan pada layar kecil, tidak keluar viewport, dan punya semantik aksesibel (`role`/`aria-live` sesuai jenis pesan).
+- Dilarang meletakkan notifikasi secara acak hanya karena ada ruang kosong. Pilih lokasi dengan hierarki dan whitespace yang rapi, konsisten, dan profesional.
+- Pada setiap perubahan halaman, audit notifikasi yang tampil di halaman tersebut. Perbaiki notifikasi yang jelas menggeser, menutupi, atau merusak layout bila perbaikannya aman dan lokal. Jika perbaikan membutuhkan perubahan lintas halaman atau mengubah alur yang tidak terkait, laporkan temuan dan dampaknya kepada pengguna sebelum memperluas cakupan.
+
 ---
 
 ## 11. Pengecualian Halaman Khusus

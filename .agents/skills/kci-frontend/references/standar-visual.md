@@ -84,6 +84,14 @@ Halaman konten tidak memakai card operasional dari `components/ui`. Gunakan sect
 
 Form mengikuti keluarga alurnya, bukan standar artikel. Halaman konten biasa tidak membuat form dekoratif. Program non-catur, pendaftaran, dan Pengurus mempertahankan komponen domainnya; kontrol catur reusable berasal dari `Analisa/komponen/`.
 
+## Notifikasi dan status
+
+- Sebelum menambah toast/notifikasi, gunakan pola atau primitive bersama yang sudah ada; jangan menempatkannya secara acak di alur konten.
+- Notifikasi sementara harus berada pada lapisan overlay yang konsisten dan tidak mengubah tinggi/posisi layout, menutupi header, CTA, navigasi, atau kontrol penting.
+- Pesan validasi inline tetap dekat dengan field terkait; siapkan slot stabil bila kemunculannya dinamis agar formulir tidak meloncat. Jangan menaruh teks di atas input.
+- Uji posisi pada viewport desktop dan ponsel; notifikasi tidak boleh keluar layar atau menimbulkan overflow. Gunakan semantik aksesibel dan `aria-live`/role yang sesuai.
+- Saat memodifikasi halaman, periksa notifikasi yang ada. Perbaiki gangguan layout yang jelas dan lokal; jika perlu perubahan lintas halaman atau berisiko mengubah alur di luar tugas, laporkan temuan dan dampaknya sebelum memperluas cakupan.
+
 ## Tabel dan data
 
 Artikel memakai keluarga `TabelKonten` dari `src/components/konten/TabelKonten.jsx`. Dashboard dan fitur memakai tabel domainnya sendiri. Jangan mengganti tabel informatif menjadi card grid hanya untuk alasan estetika.
