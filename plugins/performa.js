@@ -389,7 +389,8 @@ export const META_RUTE = {
   "/karir": { judulKey: "karir.judul", deskripsiKey: "karir.deskripsi", akhir: AKHIR_KORPORAT },
   "/tulis-ulasan": {
     judulKey: "landing.rating.tulisUlasan",
-    deskripsiKey: "landing.rating.ajakSub",
+    deskripsi:
+      "Formulir untuk memberi rating dan menulis ulasan tentang pengalaman memakai situs Komunitas Catur Indonesia.",
     akhir: AKHIR_KORPORAT,
   },
   "/rating-ulasan": {

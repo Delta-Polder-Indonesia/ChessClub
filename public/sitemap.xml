@@ -250,4 +250,14 @@
     <lastmod>%%LASTMOD%%</lastmod>
     <changefreq>weekly</changefreq>
 </url>
+<url>
+    <loc>%%SITE_URL%%rating-ulasan</loc>
+    <lastmod>%%LASTMOD%%</lastmod>
+    <changefreq>weekly</changefreq>
+</url>
+<url>
+    <loc>%%SITE_URL%%tulis-ulasan</loc>
+    <lastmod>%%LASTMOD%%</lastmod>
+    <changefreq>weekly</changefreq>
+</url>
 </urlset>
