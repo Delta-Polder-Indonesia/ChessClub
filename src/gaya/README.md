@@ -15,6 +15,7 @@
 - `analisa-theme.css` — token tema khusus Analisa dan layer dasar shadcn. Untuk aturan UI spesifik Analisa, gunakan `src/halaman/Analisa/analisa.css`.
 - `pendaftaran.css` — animasi khusus alur pendaftaran.
 - `papan-cg.css` — elemen papan `cg-*` dan pengecualian tombol di dalam prose.
+- `tooltip.css` — tampilan tooltip bersama berbasis Radix: permukaan gelap netral dan panah.
 - `shadcn-tailwind.css` — salinan vendor; jangan diedit manual, ikuti header di file tersebut.
 
 Tambahkan aturan baru ke modul yang sesuai dengan domainnya, bukan kembali menumpuk semuanya di `src/index.css`. CSS yang hanya dipakai satu komponen/fitur sebaiknya tetap dekat dengan fitur itu. Pertahankan referensi aset relatif terhadap file CSS pemakainya dan verifikasi `npm run build` setelah memindahkan aturan.
