@@ -20,7 +20,7 @@
  */
 import { Suspense, useCallback, useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { ArrowRight, PenSquare, Sparkles } from "lucide-react";
+import { PenSquare } from "lucide-react";
 import useEmblaCarousel from "embla-carousel-react";
 import { useI18n } from "../../lib/i18n.jsx";
 import { useUlasan } from "./gunakanUlasan.js";
@@ -183,33 +183,25 @@ export default function RatingUlasan() {
       <div className="mx-auto max-w-[1080px] xl:max-w-7xl">
 
         {/* 1. Kartu hero "Beri rating website ini" */}
-        <div className="flex w-full flex-col items-start rounded-2xl border border-grey-200 bg-white p-6 shadow-sm sm:p-8 md:max-w-[52%]">
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-            <Sparkles className="size-3.5" aria-hidden="true" />
-            {t("landing.rating.ajakBadge")}
-          </div>
-          <h3 className="mt-4 font-sans text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+        <div className="flex w-full flex-col items-start rounded-lg border border-grey-200 bg-paper p-6 sm:p-8 md:max-w-[52%]">
+          <h3 className="font-serif text-xl font-semibold text-grey-800">
             {t("landing.rating.ajakJudul")}
           </h3>
-          <p className="mt-1.5 font-sans text-sm text-foregroundGrey sm:text-base">
+          <p className="mt-2 font-serif text-base text-grey-600">
             {t("landing.rating.ajakSub")}
           </p>
           <div className="mt-6">
             <DeretBintang nilai={bintangHero} ukuran="xl" bisaUbah onPilih={pilihBintangHero} />
           </div>
-          <div className="mt-7 flex w-full items-center justify-between gap-3 border-t border-grey-200 pt-4">
+          <div className="mt-7 w-full border-t border-grey-200 pt-4">
             <button
               type="button"
               onClick={bukaHalamanTulis}
-              className="group inline-flex items-center gap-2 font-sans text-sm font-semibold text-primary transition-colors hover:text-primary/80 sm:text-base"
+              className="inline-flex items-center gap-2 font-sans text-base font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
             >
               <PenSquare className="size-4" aria-hidden="true" />
-              <span>{t("landing.rating.tulisUlasan")}</span>
-              <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
+              {t("landing.rating.tulisUlasan")}
             </button>
-            <span className="hidden text-xs text-foregroundGrey sm:inline">
-              {t("landing.rating.ajakCatatan")}
-            </span>
           </div>
         </div>
 

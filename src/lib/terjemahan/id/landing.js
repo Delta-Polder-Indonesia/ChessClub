@@ -181,10 +181,7 @@ export const landing = {
       subJudul:
         "Rating dan ulasan diverifikasi dan berasal dari orang yang menggunakan jenis perangkat yang sama dengan yang Anda gunakan",
       ajakJudul: "Beri rating website ini",
-      ajakBadge: "Komunitas & Website Resmi",
-      ajakSub:
-        "Sampaikan pendapat Anda untuk membantu kami mengembangkan pengalaman catur digital bagi komunitas Indonesia.",
-      ajakCatatan: "Masukan Anda sangat berarti bagi kami",
+      ajakSub: "Sampaikan pendapat Anda untuk membantu kami meningkatkan website ini.",
       berdasarkan: "{n} ulasan",
       terpilih: "Anda memilih {n} dari 5 bintang.",
       tulisUlasan: "Tulis ulasan",

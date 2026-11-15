@@ -181,10 +181,7 @@ export const landing = {
       subJudul:
         "Ratings and reviews are verified and come from people using the same kind of device you are on",
       ajakJudul: "Rate this website",
-      ajakBadge: "Official Community Website",
-      ajakSub:
-        "Share your feedback to help us improve the digital chess experience for our community.",
-      ajakCatatan: "Your feedback means a lot to us",
+      ajakSub: "Share your feedback to help us improve this website.",
       berdasarkan: "{n} reviews",
       terpilih: "You chose {n} out of 5 stars.",
       tulisUlasan: "Write a review",
