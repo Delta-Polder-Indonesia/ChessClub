@@ -180,8 +180,11 @@ export const landing = {
       judul: "Ratings and reviews",
       subJudul:
         "Ratings and reviews are verified and come from people using the same kind of device you are on",
-      ajakJudul: "Rate this app",
-      ajakSub: "Share your opinion",
+      ajakJudul: "Rate this website",
+      ajakBadge: "Official Community Website",
+      ajakSub:
+        "Share your feedback to help us improve the digital chess experience for our community.",
+      ajakCatatan: "Your feedback means a lot to us",
       berdasarkan: "{n} reviews",
       terpilih: "You chose {n} out of 5 stars.",
       tulisUlasan: "Write a review",
@@ -200,7 +203,7 @@ export const landing = {
       surveiTidak: "No",
       surveiTidakYakin: "Not sure",
       surveiYa: "Yes",
-      beriBintang: "Rate this app",
+      beriBintang: "Rate this website",
       namaLabel: "Your name",
       opsional: "optional",
       namaPlaceholder: "Display name (leave empty for Guest)",
