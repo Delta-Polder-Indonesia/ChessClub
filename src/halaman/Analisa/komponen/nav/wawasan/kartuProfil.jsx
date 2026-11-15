@@ -9,6 +9,7 @@ import { segarkanKartuPemain, useKartuPemain } from "../../../../../lib/pemainCa
 import LencanaGelar from "../../LencanaGelar.jsx";
 import Refresh from "../../svg/refresh.jsx";
 import { KELAS_RATING } from "./opsiWawasan.js";
+import { TooltipLabel } from "../../../../../components/ui/tooltip.jsx";
 
 const BENDERA = import.meta.glob("../../flags/*.svg", {
   eager: true,
@@ -125,18 +126,19 @@ function KartuProfilWawasan({ username, platform, t, locale }) {
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={muatUlang}
-          disabled={memuat}
-          aria-label={t("analisa.wawasan.profilMuatUlang")}
-          title={memuat ? t("analisa.wawasan.profilMemuat") : t("analisa.wawasan.profilMuatUlang")}
-          aria-busy={memuat}
-          data-uji="wawasan-profil-refresh"
-          className="ml-auto grid h-8 w-8 shrink-0 cursor-pointer place-items-center rounded-borderRoundness border border-border text-foregroundGrey transition-colors hover:border-borderHighlighted hover:text-foregroundHighlighted disabled:cursor-wait disabled:opacity-60"
-        >
-          <Refresh className={`h-4 w-4 ${memuat ? "animate-spin" : ""}`} />
-        </button>
+        <TooltipLabel label={memuat ? t("analisa.wawasan.profilMemuat") : t("analisa.wawasan.profilMuatUlang")}>
+          <button
+            type="button"
+            onClick={muatUlang}
+            disabled={memuat}
+            aria-label={t("analisa.wawasan.profilMuatUlang")}
+            aria-busy={memuat}
+            data-uji="wawasan-profil-refresh"
+            className="ml-auto grid h-8 w-8 shrink-0 cursor-pointer place-items-center rounded-borderRoundness border border-border text-foregroundGrey transition-colors hover:border-borderHighlighted hover:text-foregroundHighlighted disabled:cursor-wait disabled:opacity-60"
+          >
+            <Refresh className={`h-4 w-4 ${memuat ? "animate-spin" : ""}`} />
+          </button>
+        </TooltipLabel>
       </div>
 
       <div

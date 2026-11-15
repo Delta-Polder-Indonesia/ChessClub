@@ -56,6 +56,7 @@ import { Settings, BarChart3 } from "lucide-react";
 import { MagnifierCheckerIcon } from "../../../../components/icons.jsx";import { TAMPILAN_ANALISA } from "../../konteks/analyzeKonteks.js";
 import { useBoard } from "../../konteks/boardKonteks.js";
 import { useI18n } from "../../../../lib/i18n.jsx";
+import { TooltipLabel } from "../../../../components/ui/tooltip.jsx";
 
 /** Repo upstream pemilik desain UI ini (atribusi MIT). */
 export const URL_REPO = "https://delta-polder-indonesia.github.io/BintangToba/";
@@ -212,19 +213,20 @@ export default function Nav() {
             habis saat bilah menciut, jadi tidak ada teks terpotong.
           */}
           <div className="flex flex-row items-center gap-1 navTop:w-full navTop:py-1">
-            <button
-              type="button"
-              data-uji="nav-tutup"
-              onClick={() => setNavTerbuka((t) => !t)}
-              title={navTerbuka ? t("analisa.nav.tutupBilah") : t("analisa.nav.bukaBilah")}
-              aria-label={navTerbuka ? t("analisa.nav.tutupBilah") : t("analisa.nav.bukaBilah")}
-              aria-expanded={navTerbuka}
-              className="hidden navTop:flex navTop:shrink-0 items-center justify-center w-8 h-8 navTop:px-2 group hover:bg-backgroundBoxHover text-foregroundGrey hover:text-foregroundHighlighted transition-colors cursor-pointer"
-            >
-              <svg className="h-[18px] w-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
+            <TooltipLabel label={navTerbuka ? t("analisa.nav.tutupBilah") : t("analisa.nav.bukaBilah")} side="right">
+              <button
+                type="button"
+                data-uji="nav-tutup"
+                onClick={() => setNavTerbuka((t) => !t)}
+                aria-label={navTerbuka ? t("analisa.nav.tutupBilah") : t("analisa.nav.bukaBilah")}
+                aria-expanded={navTerbuka}
+                className="hidden navTop:flex navTop:shrink-0 items-center justify-center w-8 h-8 navTop:px-2 group hover:bg-backgroundBoxHover text-foregroundGrey hover:text-foregroundHighlighted transition-colors cursor-pointer"
+              >
+                <svg className="h-[18px] w-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+            </TooltipLabel>
             <Link
               draggable={false}
               to="/"
@@ -258,27 +260,27 @@ export default function Nav() {
               const aksi =
                 item.kunci === "play" ? kePapan : () => setTampilan(item.tampilan);
               return (
-                <button
-                  key={item.kunci}
-                  type="button"
-                  data-uji={`nav-${item.kunci}`}
-                  title={keterangan}
-                  aria-label={keterangan}
-                  aria-current={aktif ? "true" : undefined}
-                  onClick={aksi}
-                  className={`${kelasTombol}${aktif ? " bg-backgroundBoxHover text-foregroundHighlighted" : ""}`}
-                >
-                  {/*
-                    Ikon dibungkus span `shrink-0`: UA stylesheet menyetel
-                    `overflow: hidden` pada svg, sehingga menurut spesifikasi
-                    flexbox ia kehilangan min-width:auto dan BISA menyusut
-                    di bawah 18px saat ruang tombol sempit (rail menciut).
-                  */}
-                  <span className="flex shrink-0">
-                    {item.icon({ className: `transition-colors group-hover:fill-foregroundHighlighted ${aktif ? "fill-foregroundHighlighted" : "fill-foregroundGrey"}` })}
-                  </span>
-                  <span className={kelasLabelNav}>{item.label}</span>
-                </button>
+                <TooltipLabel key={item.kunci} label={keterangan} side="right">
+                  <button
+                    type="button"
+                    data-uji={`nav-${item.kunci}`}
+                    aria-label={keterangan}
+                    aria-current={aktif ? "true" : undefined}
+                    onClick={aksi}
+                    className={`${kelasTombol}${aktif ? " bg-backgroundBoxHover text-foregroundHighlighted" : ""}`}
+                  >
+                    {/*
+                      Ikon dibungkus span `shrink-0`: UA stylesheet menyetel
+                      `overflow: hidden` pada svg, sehingga menurut spesifikasi
+                      flexbox ia kehilangan min-width:auto dan BISA menyusut
+                      di bawah 18px saat ruang tombol sempit (rail menciut).
+                    */}
+                    <span className="flex shrink-0">
+                      {item.icon({ className: `transition-colors group-hover:fill-foregroundHighlighted ${aktif ? "fill-foregroundHighlighted" : "fill-foregroundGrey"}` })}
+                    </span>
+                    <span className={kelasLabelNav}>{item.label}</span>
+                  </button>
+                </TooltipLabel>
               );
             })}
           </div>
@@ -293,19 +295,23 @@ export default function Nav() {
               // supaya tautan tetap bernama bagi pembaca layar (audit
               // Lighthouse "links do not have a discernible name").
               return link.to ? (
-                <Link draggable={false} key={i} to={link.to} aria-label={link.label} className={kelas}>
-                  <span className="flex shrink-0">
-                    {link.icon({ className: "fill-foregroundGrey transition-colors group-hover:fill-foregroundHighlighted" })}
-                  </span>
-                  <span className={kelasLabelNav}>{link.label}</span>
-                </Link>
+                <TooltipLabel key={i} label={link.label} side="right">
+                  <Link draggable={false} to={link.to} aria-label={link.label} className={kelas}>
+                    <span className="flex shrink-0">
+                      {link.icon({ className: "fill-foregroundGrey transition-colors group-hover:fill-foregroundHighlighted" })}
+                    </span>
+                    <span className={kelasLabelNav}>{link.label}</span>
+                  </Link>
+                </TooltipLabel>
               ) : (
-                <a draggable={false} key={i} target="_blank" rel="noreferrer noopener" href={link.href} aria-label={link.label} className={kelas}>
-                  <span className="flex shrink-0">
-                    {link.icon({ className: "fill-foregroundGrey transition-colors group-hover:fill-foregroundHighlighted" })}
-                  </span>
-                  <span className={kelasLabelNav}>{link.label}</span>
-                </a>
+                <TooltipLabel key={i} label={link.label} side="right">
+                  <a draggable={false} target="_blank" rel="noreferrer noopener" href={link.href} aria-label={link.label} className={kelas}>
+                    <span className="flex shrink-0">
+                      {link.icon({ className: "fill-foregroundGrey transition-colors group-hover:fill-foregroundHighlighted" })}
+                    </span>
+                    <span className={kelasLabelNav}>{link.label}</span>
+                  </a>
+                </TooltipLabel>
               );
             })}
           </div>

@@ -8,6 +8,7 @@ import { GamesUI, Loading } from "./selectChessCom.jsx";
 import { API_BLOCKING_ERROR, GAMES_ERROR, getMonthName, USER_ERROR } from "./selectChessComData.js";
 import { ErrorsContext } from "../../../konteks/errorsKonteks.js";
 import { useI18n } from "../../../../../lib/i18n.jsx";
+import { TooltipLabel } from "../../../../../components/ui/tooltip.jsx";
 import { simpanBanyakPartai } from "../../../basisData.js";
 const PLAYER_URL = "https://lichess.org/@/";
 const PLATFORM = "Lichess.org";
@@ -144,7 +145,9 @@ function SelectLichessOrgGame(props) {
   return <div className={`overflow-x-hidden overflow-y-auto ${loading ? " flex flex-col justify-center flex-grow" : ""}`}>
             <div style={{ display: loading ? "none" : "" }} className="py-3 px-8 sticky top-0 bg-backgroundBox z-10 flex flex-row items-center justify-between gap-3">
               <h1 className="text-lg text-foreground min-w-0"><a target="_blank" href={`${PLAYER_URL}${username}`} className="hover:underline text-foregroundHighlighted text-xl font-bold">{username}</a> <span className="text-foregroundGrey">&middot; {t("analisa.partai.judul", { platform: PLATFORM })}</span></h1>
-              <button type="button" onClick={stopSelecting} title={t("analisa.partai.kembali")} aria-label={t("analisa.partai.kembali")} className="grid h-7 w-7 shrink-0 cursor-pointer place-items-center rounded-borderRoundness text-foregroundGrey transition-colors hover:bg-backgroundBoxBoxHover hover:text-foregroundHighlighted">✕</button>
+              <TooltipLabel label={t("analisa.partai.kembali")}>
+                <button type="button" onClick={stopSelecting} aria-label={t("analisa.partai.kembali")} className="grid h-7 w-7 shrink-0 cursor-pointer place-items-center rounded-borderRoundness text-foregroundGrey transition-colors hover:bg-backgroundBoxBoxHover hover:text-foregroundHighlighted">✕</button>
+              </TooltipLabel>
             </div>
             <hr style={{ display: loading ? "none" : "" }} className="border-border" />
             <div className="flex flex-col w-full">

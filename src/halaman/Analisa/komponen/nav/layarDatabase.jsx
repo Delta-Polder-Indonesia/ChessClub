@@ -11,6 +11,7 @@ import PanelLayar from "./PanelLayar.jsx";
 import Database from "../svg/database.jsx";
 import Back from "../svg/back.jsx";
 import { Alert, Alertjudul } from "../../../../components/ui/alert.jsx";
+import { TooltipLabel } from "../../../../components/ui/tooltip.jsx";
 import { useI18n } from "../../../../lib/i18n.jsx";
 import { ambilDaftarPartai, ambilPartai, ambilSemuaKoleksi, bacaRevisiBasis, bersihkanBasisData, eksporPgnKoleksi, hapusKoleksi, hapusPartai, hitungStatistikBasisData, hitungStatistikKoleksiRingan, langgananRevisi, pastikanKoleksi } from "../../basisData.js";
 import { bacaDaftarAkun } from "../../akun/daftarAkun.js";
@@ -715,15 +716,16 @@ export default function LayarDatabase({
       judul={
         mode === "tabel" ? (
           <span className="flex min-w-0 items-center gap-3">
-            <button
-              type="button"
-              onClick={() => setMode("data")}
-              title={t("analisa.basisData.kembaliKeData")}
-              aria-label={t("analisa.basisData.kembaliKeData")}
-              className="flex h-8 shrink-0 cursor-pointer items-center rounded-borderRoundness text-foregroundGrey transition-colors hover:bg-backgroundBoxBoxHover hover:text-foregroundHighlighted px-1"
-            >
-              <Back className="h-6 w-10" />
-            </button>
+            <TooltipLabel label={t("analisa.basisData.kembaliKeData")}>
+              <button
+                type="button"
+                onClick={() => setMode("data")}
+                aria-label={t("analisa.basisData.kembaliKeData")}
+                className="flex h-8 shrink-0 cursor-pointer items-center rounded-borderRoundness text-foregroundGrey transition-colors hover:bg-backgroundBoxBoxHover hover:text-foregroundHighlighted px-1"
+              >
+                <Back className="h-6 w-10" />
+              </button>
+            </TooltipLabel>
             <span className="min-w-0 truncate text-lg sm:text-2xl leading-6 sm:leading-8 font-extrabold text-foreground">
               {koleksi && koleksi.username
                 ? `${koleksi.username} ${koleksi.platform === "chessCom" ? "Chess.com" : koleksi.platform === "lichessOrg" ? "Lichess.org" : koleksi.platform}`
