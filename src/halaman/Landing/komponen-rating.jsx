@@ -254,8 +254,8 @@ export function KartuUlasan({ t, ulasan: u, padaVote, padat }) {
 /* ==================== Form tulis ulasan ==================== */
 function KartuPertanyaanSurvei({ id, pertanyaan, nilai, opsi, onPilih }) {
   return (
-    <fieldset className="w-[80%] max-w-[280px] shrink-0 snap-start rounded-xl border border-grey-300 bg-white p-4 md:w-0 md:flex-1">
-      <legend className="min-h-[4.5rem] font-sans text-sm font-semibold leading-snug text-foreground">
+    <fieldset className="w-full rounded-xl border border-grey-300 bg-white p-4">
+      <legend className="font-sans text-sm font-semibold leading-snug text-foreground">
         {pertanyaan}
       </legend>
       <div className="mt-4 flex flex-wrap gap-2">
@@ -337,12 +337,59 @@ export function FormUlasan({ t, bintangAwal = 0, onKirim, onBatal }) {
   );
 
   return (
-    <form onSubmit={kirim} className="space-y-5 rounded-2xl bg-paper p-5 md:p-6">
-      <section aria-labelledby="ulasan-survei-judul">
+    <form onSubmit={kirim} className="grid grid-cols-1 gap-8 rounded-2xl bg-paper p-5 md:p-6 lg:grid-cols-2 lg:gap-10 lg:p-8">
+      <div className="space-y-5">
+        <header className="flex flex-col items-start gap-2">
+          <h1 className="font-sans text-2xl font-semibold text-foreground md:text-3xl">
+            {t("landing.rating.ajakJudul")}
+          </h1>
+          <p className="font-sans text-base text-foregroundGrey">
+            {t("landing.rating.ajakSub")}
+          </p>
+        </header>
+        <DeretBintang
+          nilai={bintang}
+          ukuran="lg"
+          bisaUbah
+          onPilih={pilihBintang}
+          ariaLabel={t("landing.rating.beriBintang")}
+          className="w-full justify-between"
+        />
+        <div className="space-y-1.5">
+          <label htmlFor="ulasan-nama" className="block font-sans text-sm font-semibold text-foreground">
+            {t("landing.rating.namaLabel")}{" "}
+            <span className="font-normal text-foregroundGrey">({t("landing.rating.opsional")})</span>
+          </label>
+          <input id="ulasan-nama" type="text" value={nama} onChange={(e) => setNama(e.target.value)} maxLength={40}
+            placeholder={t("landing.rating.namaPlaceholder")}
+            className="w-full rounded-lg border-2 border-grey-400 bg-transparent px-3 py-2 font-sans text-sm outline-none placeholder:text-foregroundGrey transition-colors focus-visible:border-primary focus-visible:ring-0" />
+        </div>
+        <div className="space-y-1.5">
+          <label htmlFor="ulasan-pesan" className="block font-sans text-sm font-semibold text-foreground">
+            {t("landing.rating.pesanLabel")}
+          </label>
+          <Textarea id="ulasan-pesan" value={pesan}
+            onChange={(e) => { setPesan(e.target.value); setError(null); }}
+            rows={5} maxLength={600} placeholder={t("landing.rating.pesanPlaceholder")}
+            className="rounded-lg border-2 border-grey-400 bg-transparent px-3 py-2 font-sans text-sm outline-none placeholder:text-foregroundGrey transition-colors focus-visible:border-primary focus-visible:ring-0" />
+          <p className="text-right font-sans text-xs text-foregroundGrey">{pesan.length}/600</p>
+        </div>
+        {error ? (
+          <p role="alert" className="rounded border border-destructive/40 bg-destructive/10 px-3 py-2 font-sans text-sm text-destructive">{error}</p>
+        ) : null}
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          {onBatal ? (
+            <Button type="button" variant="ghost" onClick={onBatal}>{t("landing.rating.batal")}</Button>
+          ) : null}
+          <Button type="submit" variant="default">{t("landing.rating.kirim")}</Button>
+        </div>
+      </div>
+
+      <section aria-labelledby="ulasan-survei-judul" className="space-y-3">
         <h2 id="ulasan-survei-judul" className="font-sans text-base font-semibold text-foreground">
           {t("landing.rating.beriTahuSelengkapnya")}
         </h2>
-        <div className="no-scrollbar mt-3 flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 md:overflow-visible md:pb-0">
+        <div className="space-y-3">
           {pertanyaanSurvei.map((pertanyaan) => (
             <KartuPertanyaanSurvei
               key={pertanyaan.id}
@@ -358,44 +405,6 @@ export function FormUlasan({ t, bintangAwal = 0, onKirim, onBatal }) {
           ))}
         </div>
       </section>
-      <div>
-        <DeretBintang
-          nilai={bintang}
-          ukuran="lg"
-          bisaUbah
-          onPilih={pilihBintang}
-          ariaLabel={t("landing.rating.beriBintang")}
-          className="w-full justify-between"
-        />
-      </div>
-      <div className="space-y-1.5">
-        <label htmlFor="ulasan-nama" className="block font-sans text-sm font-semibold text-foreground">
-          {t("landing.rating.namaLabel")}{" "}
-          <span className="font-normal text-foregroundGrey">({t("landing.rating.opsional")})</span>
-        </label>
-        <input id="ulasan-nama" type="text" value={nama} onChange={(e) => setNama(e.target.value)} maxLength={40}
-          placeholder={t("landing.rating.namaPlaceholder")}
-          className="w-full rounded-lg border-2 border-grey-400 bg-transparent px-3 py-2 font-sans text-sm outline-none placeholder:text-foregroundGrey transition-colors focus-visible:border-primary focus-visible:ring-0" />
-      </div>
-      <div className="space-y-1.5">
-        <label htmlFor="ulasan-pesan" className="block font-sans text-sm font-semibold text-foreground">
-          {t("landing.rating.pesanLabel")}
-        </label>
-        <Textarea id="ulasan-pesan" value={pesan}
-          onChange={(e) => { setPesan(e.target.value); setError(null); }}
-          rows={5} maxLength={600} placeholder={t("landing.rating.pesanPlaceholder")}
-          className="rounded-lg border-2 border-grey-400 bg-transparent px-3 py-2 font-sans text-sm outline-none placeholder:text-foregroundGrey transition-colors focus-visible:border-primary focus-visible:ring-0" />
-        <p className="text-right font-sans text-xs text-foregroundGrey">{pesan.length}/600</p>
-      </div>
-      {error ? (
-        <p role="alert" className="rounded border border-destructive/40 bg-destructive/10 px-3 py-2 font-sans text-sm text-destructive">{error}</p>
-      ) : null}
-      <div className="flex flex-wrap items-center justify-end gap-2">
-        {onBatal ? (
-          <Button type="button" variant="ghost" onClick={onBatal}>{t("landing.rating.batal")}</Button>
-        ) : null}
-        <Button type="submit" variant="default">{t("landing.rating.kirim")}</Button>
-      </div>
     </form>
   );
 }

@@ -56,22 +56,13 @@ export default function TulisUlasan() {
         title={t("landing.rating.tulisUlasan")}
         description={t("landing.rating.ajakSub")}
       />
-      <div className="mx-auto w-full max-w-2xl px-6 pt-6 pb-6 md:px-8 md:pt-8 md:pb-8">
-          <div className="mb-6 flex flex-col items-start gap-2">
-            <h1 className="font-sans text-2xl font-semibold text-foreground md:text-3xl">
-              {t("landing.rating.ajakJudul")}
-            </h1>
-            <p className="font-sans text-base text-foregroundGrey">
-              {t("landing.rating.ajakSub")}
-            </p>
-          </div>
-
-          <FormUlasan
-            t={t}
-            bintangAwal={bintangAwal}
-            onKirim={kirim}
-            onBatal={batal}
-          />
+      <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 md:px-8 md:py-8">
+        <FormUlasan
+          t={t}
+          bintangAwal={bintangAwal}
+          onKirim={kirim}
+          onBatal={batal}
+        />
       </div>
     </>
   );
