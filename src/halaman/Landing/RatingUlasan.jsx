@@ -20,12 +20,11 @@
  */
 import { Suspense, useCallback, useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { PenSquare } from "lucide-react";
+import { ArrowRight, PenSquare } from "lucide-react";
 import useEmblaCarousel from "embla-carousel-react";
 import { useI18n } from "../../lib/i18n.jsx";
 import { useUlasan } from "./gunakanUlasan.js";
 import {
-  BintangOutline,
   BintangPadat,
   IkonInfo,
   KartuUlasan,
@@ -150,6 +149,7 @@ export default function RatingUlasan() {
       return Number(globalThis.sessionStorage?.getItem(KUNCI_BINTANG_HERO)) || 0;
     } catch { return 0; }
   });
+  const [bintangDisorot, setBintangDisorot] = useState(0);
 
   useEffect(() => {
     try {
@@ -170,6 +170,7 @@ export default function RatingUlasan() {
   const pilihBintangHero = useCallback((n) => {
     setBintangHero(n);
   }, []);
+  const nilaiBintangHero = bintangDisorot || bintangHero;
 
   const bukaHalamanTulis = useCallback(() => {
     navigate("/tulis-ulasan");
@@ -185,47 +186,53 @@ export default function RatingUlasan() {
 
         {/* 1. Hero "Beri rating aplikasi ini" */}
         <div className="flex w-full flex-col items-start rounded-lg border border-grey-200 bg-white p-6 sm:p-8 md:max-w-[52%]">
-          <h3 className="font-sans text-xl font-semibold text-foreground">
+          <h3 className="font-sans text-2xl font-bold tracking-tight text-grey-800 sm:text-3xl">
             {t("landing.rating.ajakJudul")}
           </h3>
           <p className="mt-1.5 font-sans text-base text-foregroundGrey">
             {t("landing.rating.ajakSub")}
           </p>
-          <div className="mt-6 grid w-full grid-cols-5 gap-1 sm:gap-2" role="radiogroup" aria-label={t("landing.rating.beriBintang")}>
-            {[1, 2, 3, 4, 5].map((n) => {
-              const terpilih = bintangHero >= n;
-              const label = t(`landing.rating.labelBintang${n}`);
-              return (
-                <button
-                  key={n}
-                  type="button"
-                  role="radio"
-                  aria-checked={bintangHero === n}
-                  aria-label={`${n}: ${label}`}
-                  onClick={() => pilihBintangHero(n)}
-                  className="flex min-w-0 flex-col items-center gap-1 rounded-md px-0.5 py-1 text-center text-grey-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
-                >
-                  {terpilih
-                    ? <BintangPadat className="size-8 text-yellow-400" />
-                    : <BintangOutline className="size-8 text-grey-300" />}
-                  <span className="font-sans text-xs font-medium">
-                    {t("landing.rating.skalaBintang", { n })}
-                  </span>
-                  <span className="font-sans text-xs leading-snug">{label}</span>
-                </button>
-              );
-            })}
+          <div
+            className="mt-6 flex flex-wrap items-center gap-1 sm:gap-2"
+            role="radiogroup"
+            aria-label={t("landing.rating.beriBintang")}
+            onMouseLeave={() => setBintangDisorot(0)}
+          >
+            {[1, 2, 3, 4, 5].map((n) => (
+              <button
+                key={n}
+                type="button"
+                role="radio"
+                aria-checked={bintangHero === n}
+                aria-label={t("landing.rating.skalaBintang", { n })}
+                onMouseEnter={() => setBintangDisorot(n)}
+                onFocus={() => setBintangDisorot(n)}
+                onBlur={() => setBintangDisorot(0)}
+                onClick={() => pilihBintangHero(n)}
+                className="rounded p-1 text-grey-300 transition-transform duration-150 ease-out hover:scale-110 hover:text-yellow-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+              >
+                <BintangPadat className={`size-8 sm:size-10 md:size-12 ${
+                  nilaiBintangHero >= n ? "text-yellow-400" : "text-grey-300"
+                }`} />
+              </button>
+            ))}
+            <span className="ml-1 font-sans text-sm font-medium text-foregroundGrey">
+              {nilaiBintangHero > 0
+                ? t(`landing.rating.labelBintang${nilaiBintangHero}`)
+                : t("landing.rating.pilihBintangPrompt")}
+            </span>
           </div>
-          <div className="mt-7 flex w-full flex-col gap-3 border-t border-grey-200 pt-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="mt-7 flex w-full items-center justify-between border-t border-grey-200 pt-4">
             <button
               type="button"
               onClick={bukaHalamanTulis}
-              className="inline-flex items-center gap-2 font-sans text-base font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+              className="group inline-flex items-center gap-2 font-sans text-sm font-semibold text-primary transition sm:text-base"
             >
               <PenSquare className="size-4" aria-hidden="true" />
-              {t("landing.rating.tulisUlasan")}
+              <span>{t("landing.rating.tulisUlasan")}</span>
+              <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
             </button>
-            <span className="font-sans text-xs text-foregroundGrey sm:text-right">
+            <span className="hidden font-sans text-xs text-foregroundGrey sm:inline">
               {t("landing.rating.ajakCatatan")}
             </span>
           </div>

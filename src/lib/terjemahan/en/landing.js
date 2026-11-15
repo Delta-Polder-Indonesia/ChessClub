@@ -184,6 +184,7 @@ export const landing = {
       ajakSub:
         "Share your feedback to help us grow the digital chess community in Indonesia.",
       ajakCatatan: "Your feedback means a lot to us",
+      pilihBintangPrompt: "Choose a rating",
       skalaBintang: "{n} stars",
       labelBintang1: "Very poor",
       labelBintang2: "Poor",
