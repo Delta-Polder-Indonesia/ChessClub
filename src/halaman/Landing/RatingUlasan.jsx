@@ -218,7 +218,7 @@ export default function RatingUlasan() {
         </p>
 
         {/* 3. Ringkasan */}
-        <div className="mt-5">
+        <div className="mt-5 w-full md:max-w-[52%]">
           <Ringkasan ulasan={urut} locale={locale} />
         </div>
 
