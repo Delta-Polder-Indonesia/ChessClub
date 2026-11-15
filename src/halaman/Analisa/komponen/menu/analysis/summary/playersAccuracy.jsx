@@ -126,7 +126,7 @@ function PlayersAccuracy(props) {
             </div>
             <div className="flex flex-row w-full justify-between items-center">
                 <TooltipLabel label={t("analisa.ringkasan.akurasiMetode")}>
-                  <span tabIndex={0} className="text-sm font-semibold text-foregroundGrey">{t("analisa.ringkasan.akurasi")}</span>
+                  <span title={t("analisa.ringkasan.akurasiMetode")} tabIndex={0} className="text-sm font-semibold text-foregroundGrey">{t("analisa.ringkasan.akurasi")}</span>
                 </TooltipLabel>
                 <div className="flex flex-row reduceSummary:w-[262px] w-[160px] justify-between">
                     <RatingBox fontSize={props.reducedSummary ? 18 : void 0} width={props.reducedSummary ? 64 : void 0} paddingY={props.reducedSummary ? 4 : void 0} white>{formatAkurasi(accuracy.w)}</RatingBox>
