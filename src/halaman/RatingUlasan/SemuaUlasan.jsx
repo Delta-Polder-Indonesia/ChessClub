@@ -21,7 +21,7 @@ export default function SemuaUlasan() {
         title={t("landing.rating.judul")}
         description={t("landing.rating.subJudul")}
       />
-      <div className="mx-auto w-full max-w-3xl px-6 pt-6 pb-14 md:px-8 md:pt-8 md:pb-20">
+      <div className="mx-auto w-full max-w-3xl px-6 pt-6 pb-6 md:px-8 md:pt-8 md:pb-8">
         <h1 className="font-sans text-2xl font-semibold text-foreground md:text-3xl">
           {t("landing.rating.judul")}
         </h1>
