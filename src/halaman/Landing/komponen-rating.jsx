@@ -197,7 +197,7 @@ export function Ringkasan({ ulasan, locale }) {
 export function KartuUlasan({ t, ulasan: u, padaVote, padat }) {
   return (
     <article
-      className={`flex flex-col gap-3 bg-paper ${padat ? "rounded-2xl p-5" : "rounded-2xl p-5 h-full"}`}
+      className={`flex flex-col gap-3 rounded-2xl border border-grey-200 bg-white p-5 ${padat ? "" : "h-full"}`}
     >
       <header className="flex items-start gap-3">
         <Avatar nama={u.nama} size={padat ? "sm" : "md"} />
