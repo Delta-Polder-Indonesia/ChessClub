@@ -132,7 +132,15 @@ function siapkanGlobal(window) {
   globalThis.IntersectionObserver = PengamatPalsu;
   globalThis.requestAnimationFrame = window.requestAnimationFrame;
   globalThis.cancelAnimationFrame = window.cancelAnimationFrame;
-  for (const nama of ["HTMLElement", "Element", "Node", "Event", "MouseEvent", "KeyboardEvent"]) {
+  for (const nama of [
+    "HTMLElement",
+    "Element",
+    "Node",
+    "Event",
+    "MouseEvent",
+    "KeyboardEvent",
+    "MutationObserver",
+  ]) {
     if (window[nama]) globalThis[nama] = window[nama];
   }
   globalThis.fetch = window.fetch;
