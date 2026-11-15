@@ -252,12 +252,18 @@ export function KartuUlasan({ t, ulasan: u, padaVote, padat }) {
 }
 
 /* ==================== Form tulis ulasan ==================== */
-function KartuPertanyaanSurvei({ id, pertanyaan, nilai, opsi, onPilih }) {
+function KartuPertanyaanSurvei({ id, urutan, pertanyaan, nilai, opsi, onPilih }) {
   return (
-    <fieldset className="w-full rounded-xl border border-grey-300 bg-white p-4">
-      <legend className="font-sans text-sm font-semibold leading-snug text-foreground">
-        {pertanyaan}
-      </legend>
+    <fieldset className="w-full rounded-xl border border-grey-200 bg-white p-4 shadow-sm md:p-5">
+      <legend className="sr-only">{pertanyaan}</legend>
+      <div className="flex min-h-[2.5rem] items-start gap-3">
+        <span aria-hidden="true" className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/10 font-mono text-xs font-semibold text-primary">
+          {String(urutan).padStart(2, "0")}
+        </span>
+        <p aria-hidden="true" className="min-w-0 pt-0.5 font-sans text-sm font-semibold leading-5 text-foreground">
+          {pertanyaan}
+        </p>
+      </div>
       <div className="mt-4 flex flex-wrap gap-2">
         {opsi.map((item) => {
           const inputId = `${id}-${item.value}`;
@@ -272,7 +278,7 @@ function KartuPertanyaanSurvei({ id, pertanyaan, nilai, opsi, onPilih }) {
                 onChange={() => onPilih(item.value)}
                 className="peer sr-only"
               />
-              <span className="inline-flex min-h-9 items-center rounded-full border border-grey-300 px-3 font-sans text-xs font-medium text-grey-700 transition-colors peer-checked:border-primary peer-checked:bg-primary peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-primary peer-focus-visible:ring-offset-2">
+              <span className="inline-flex min-h-10 min-w-[76px] items-center justify-center rounded-lg border border-grey-300 bg-white px-3 font-sans text-xs font-medium text-grey-700 transition-colors hover:border-primary/50 peer-checked:border-primary peer-checked:bg-primary/10 peer-checked:text-primary peer-focus-visible:ring-2 peer-focus-visible:ring-primary peer-focus-visible:ring-offset-2">
                 {item.label}
               </span>
             </label>
@@ -385,15 +391,16 @@ export function FormUlasan({ t, bintangAwal = 0, onKirim, onBatal }) {
         </div>
       </div>
 
-      <section aria-labelledby="ulasan-survei-judul" className="space-y-3">
+      <section aria-labelledby="ulasan-survei-judul" className="space-y-4 lg:pt-1">
         <h2 id="ulasan-survei-judul" className="font-sans text-base font-semibold text-foreground">
           {t("landing.rating.beriTahuSelengkapnya")}
         </h2>
-        <div className="space-y-3">
-          {pertanyaanSurvei.map((pertanyaan) => (
+        <div className="space-y-4">
+          {pertanyaanSurvei.map((pertanyaan, index) => (
             <KartuPertanyaanSurvei
               key={pertanyaan.id}
               id={pertanyaan.id}
+              urutan={index + 1}
               pertanyaan={pertanyaan.teks}
               nilai={jawabanSurvei[pertanyaan.id]}
               opsi={opsiSurvei}
