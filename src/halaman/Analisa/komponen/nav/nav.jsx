@@ -260,7 +260,7 @@ export default function Nav() {
               const aksi =
                 item.kunci === "play" ? kePapan : () => setTampilan(item.tampilan);
               return (
-                <TooltipLabel key={item.kunci} label={keterangan} side="right">
+                <TooltipLabel key={item.kunci} label={navTerbuka ? undefined : keterangan} side="right">
                   <button
                     type="button"
                     data-uji={`nav-${item.kunci}`}
@@ -295,7 +295,7 @@ export default function Nav() {
               // supaya tautan tetap bernama bagi pembaca layar (audit
               // Lighthouse "links do not have a discernible name").
               return link.to ? (
-                <TooltipLabel key={i} label={link.label} side="right">
+                <TooltipLabel key={i} label={navTerbuka ? undefined : link.label} side="right">
                   <Link draggable={false} to={link.to} aria-label={link.label} className={kelas}>
                     <span className="flex shrink-0">
                       {link.icon({ className: "fill-foregroundGrey transition-colors group-hover:fill-foregroundHighlighted" })}
@@ -304,7 +304,7 @@ export default function Nav() {
                   </Link>
                 </TooltipLabel>
               ) : (
-                <TooltipLabel key={i} label={link.label} side="right">
+                <TooltipLabel key={i} label={navTerbuka ? undefined : link.label} side="right">
                   <a draggable={false} target="_blank" rel="noreferrer noopener" href={link.href} aria-label={link.label} className={kelas}>
                     <span className="flex shrink-0">
                       {link.icon({ className: "fill-foregroundGrey transition-colors group-hover:fill-foregroundHighlighted" })}
