@@ -181,7 +181,10 @@ export const landing = {
       subJudul:
         "Ratings and reviews are verified and come from people using the same kind of device you are on",
       ajakJudul: "Rate this app",
-      ajakSub: "Share your opinion",
+      ajakSub:
+        "Share your feedback to help us grow the digital chess community in Indonesia.",
+      ajakCatatan: "Your feedback means a lot to us",
+      pilihBintangPrompt: "Choose a rating",
       berdasarkan: "{n} reviews",
       terpilih: "You chose {n} out of 5 stars.",
       tulisUlasan: "Write a review",

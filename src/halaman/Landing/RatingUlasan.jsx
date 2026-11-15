@@ -20,6 +20,7 @@
  */
 import { Suspense, useCallback, useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { PenSquare } from "lucide-react";
 import useEmblaCarousel from "embla-carousel-react";
 import { useI18n } from "../../lib/i18n.jsx";
 import { useUlasan } from "./gunakanUlasan.js";
@@ -182,21 +183,34 @@ export default function RatingUlasan() {
       <div className="mx-auto max-w-[1080px] xl:max-w-7xl">
 
         {/* 1. Hero "Beri rating aplikasi ini" */}
-        <div className="flex w-full flex-col items-start gap-3 rounded-lg border border-grey-200 bg-paper p-6 sm:p-8 md:max-w-[52%]">
-          <h3 className="font-sans text-xl font-semibold text-foreground md:text-2xl">
+        <div className="flex w-full flex-col items-start rounded-lg border border-grey-200 bg-paper p-6 sm:p-8 md:max-w-[52%]">
+          <h3 className="font-sans text-xl font-semibold text-foreground">
             {t("landing.rating.ajakJudul")}
           </h3>
-          <p className="font-sans text-base text-foregroundGrey">
+          <p className="mt-1.5 font-sans text-base text-foregroundGrey">
             {t("landing.rating.ajakSub")}
           </p>
-          <DeretBintang nilai={bintangHero} ukuran="xl" bisaUbah onPilih={pilihBintangHero} />
-          <button
-            type="button"
-            onClick={bukaHalamanTulis}
-            className="font-sans text-base font-medium text-primary transition-colors hover:text-primary/80 hover:underline focus-visible:outline-none focus-visible:underline"
-          >
-            {t("landing.rating.tulisUlasan")}
-          </button>
+          <div className="mt-6 flex flex-wrap items-center gap-2 sm:gap-3">
+            <DeretBintang nilai={bintangHero} ukuran="xl" bisaUbah onPilih={pilihBintangHero} />
+            <span className="font-sans text-sm text-foregroundGrey">
+              {bintangHero > 0
+                ? t("landing.rating.terpilih", { n: bintangHero })
+                : t("landing.rating.pilihBintangPrompt")}
+            </span>
+          </div>
+          <div className="mt-7 flex w-full flex-col gap-3 border-t border-grey-200 pt-4 sm:flex-row sm:items-center sm:justify-between">
+            <button
+              type="button"
+              onClick={bukaHalamanTulis}
+              className="inline-flex items-center gap-2 font-sans text-base font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+            >
+              <PenSquare className="size-4" aria-hidden="true" />
+              {t("landing.rating.tulisUlasan")}
+            </button>
+            <span className="font-sans text-xs text-foregroundGrey sm:text-right">
+              {t("landing.rating.ajakCatatan")}
+            </span>
+          </div>
         </div>
 
         {/* 2. Kepala "Rating dan ulasan" + panah ke halaman daftar */}
