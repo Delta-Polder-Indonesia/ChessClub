@@ -104,7 +104,7 @@ export function Avatar({ nama, size = "md" }) {
 export function DeretBintang({ nilai, ukuran = "md", onPilih, bisaUbah = false, className = "", ariaLabel }) {
   const ukuranCls =
     ukuran === "sm" ? "size-4"
-      : ukuran === "lg" ? "size-6"
+      : ukuran === "lg" ? "size-7"
         : ukuran === "xl" ? "size-11"
           : "size-5";
   const gapCls = bisaUbah ? (ukuran === "xl" ? "gap-1.5" : "gap-0.5") : "gap-0.5";
