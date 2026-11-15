@@ -20,15 +20,16 @@
  */
 import { Suspense, useCallback, useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { ArrowRight, PenSquare } from "lucide-react";
 import useEmblaCarousel from "embla-carousel-react";
 import { useI18n } from "../../lib/i18n.jsx";
 import { useUlasan } from "./gunakanUlasan.js";
 import {
-  DeretBintang,
   IkonInfo,
   KartuUlasan,
   PanahKanan,
   PanahKiri,
+  PemilihBintang,
   Ringkasan,
 } from "./komponen-rating.jsx";
 
@@ -165,9 +166,14 @@ export default function RatingUlasan() {
     }
   }, [location, t]);
 
+  // Klik bintang langsung membuka halaman tulis ulasan dengan nilai terpilih.
   const pilihBintangHero = useCallback((n) => {
-    setBintangHero((prev) => (prev === n ? 0 : n));
-  }, []);
+    setBintangHero(n);
+    try {
+      globalThis.sessionStorage?.setItem(KUNCI_BINTANG_HERO, String(n));
+    } catch { /* abaikan */ }
+    navigate("/tulis-ulasan", { state: { bintang: n } });
+  }, [navigate]);
 
   const bukaHalamanTulis = useCallback(() => {
     navigate("/tulis-ulasan");
@@ -182,25 +188,42 @@ export default function RatingUlasan() {
       <div className="mx-auto max-w-[1080px] xl:max-w-7xl">
 
         {/* 1. Hero "Beri rating aplikasi ini" */}
-        <div className="flex flex-col items-start gap-3">
-          <h3 className="font-sans text-xl font-semibold text-foreground md:text-2xl">
+        <div className="flex w-full flex-col items-start rounded-lg border border-grey-200 bg-white p-6 sm:p-8 md:max-w-[52%]">
+          <h3 className="font-sans text-2xl font-bold tracking-tight text-grey-800 sm:text-3xl">
             {t("landing.rating.ajakJudul")}
           </h3>
-          <p className="font-sans text-base text-foregroundGrey">
+          <p className="mt-1.5 font-sans text-base text-foregroundGrey">
             {t("landing.rating.ajakSub")}
           </p>
-          <DeretBintang nilai={bintangHero} ukuran="xl" bisaUbah onPilih={pilihBintangHero} />
-          <button
-            type="button"
-            onClick={bukaHalamanTulis}
-            className="font-sans text-base font-medium text-primary transition-colors hover:text-primary/80 hover:underline focus-visible:outline-none focus-visible:underline"
-          >
-            {t("landing.rating.tulisUlasan")}
-          </button>
+          <PemilihBintang
+            nilai={bintangHero}
+            ukuran="xl"
+            onPilih={pilihBintangHero}
+            ariaLabel={t("landing.rating.beriBintang")}
+            labelSatuan={(n) => t("landing.rating.skalaBintang", { n })}
+            labelUntuk={(n) => (n > 0
+              ? t(`landing.rating.labelBintang${n}`)
+              : t("landing.rating.pilihBintangPrompt"))}
+            className="mt-6 w-full"
+          />
+          <div className="mt-7 flex w-full items-center justify-between border-t border-grey-200 pt-4">
+            <button
+              type="button"
+              onClick={bukaHalamanTulis}
+              className="group inline-flex items-center gap-2 font-sans text-sm font-semibold text-primary transition sm:text-base"
+            >
+              <PenSquare className="size-4" aria-hidden="true" />
+              <span>{t("landing.rating.tulisUlasan")}</span>
+              <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
+            </button>
+            <span className="hidden font-sans text-xs text-foregroundGrey sm:inline">
+              {t("landing.rating.ajakCatatan")}
+            </span>
+          </div>
         </div>
 
         {/* 2. Kepala "Rating dan ulasan" + panah ke halaman daftar */}
-        <div className="mt-10 flex items-center justify-between gap-3">
+        <div className="mt-10 flex w-full items-center justify-between gap-3 md:max-w-[52%]">
           <h2 className="font-sans text-xl font-semibold text-foreground md:text-2xl">
             {t("landing.rating.judul")}
           </h2>
@@ -212,13 +235,13 @@ export default function RatingUlasan() {
             <PanahKanan className="size-5" />
           </Link>
         </div>
-        <p className="mt-2 flex items-start gap-1.5 font-sans text-sm text-foregroundGrey">
+        <p className="mt-2 flex w-full items-start gap-1.5 font-sans text-sm text-foregroundGrey md:max-w-[52%]">
           <IkonInfo className="mt-0.5 size-4 flex-none" />
           <span>{t("landing.rating.subJudul")}</span>
         </p>
 
         {/* 3. Ringkasan */}
-        <div className="mt-5">
+        <div className="mt-5 w-full md:max-w-[52%]">
           <Ringkasan ulasan={urut} locale={locale} />
         </div>
 

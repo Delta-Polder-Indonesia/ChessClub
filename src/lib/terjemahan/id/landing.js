@@ -181,7 +181,16 @@ export const landing = {
       subJudul:
         "Rating dan ulasan diverifikasi dan berasal dari orang yang menggunakan jenis perangkat yang sama dengan yang Anda gunakan",
       ajakJudul: "Beri rating aplikasi ini",
-      ajakSub: "Sampaikan pendapat Anda",
+      ajakSub:
+        "Sampaikan pendapat Anda untuk membantu kami mengembangkan ekosistem catur digital di Indonesia.",
+      ajakCatatan: "Masukan Anda sangat berarti bagi kami",
+      pilihBintangPrompt: "Pilih bintang",
+      skalaBintang: "{n} bintang",
+      labelBintang1: "Sangat Kurang",
+      labelBintang2: "Kurang",
+      labelBintang3: "Cukup",
+      labelBintang4: "Bagus",
+      labelBintang5: "Sangat Bagus!",
       berdasarkan: "{n} ulasan",
       terpilih: "Anda memilih {n} dari 5 bintang.",
       tulisUlasan: "Tulis ulasan",
