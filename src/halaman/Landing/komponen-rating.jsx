@@ -252,14 +252,11 @@ export function KartuUlasan({ t, ulasan: u, padaVote, padat }) {
 }
 
 /* ==================== Form tulis ulasan ==================== */
-function KartuPertanyaanSurvei({ id, urutan, pertanyaan, nilai, opsi, onPilih }) {
+function KartuPertanyaanSurvei({ id, pertanyaan, nilai, opsi, onPilih }) {
   return (
-    <fieldset className="w-full rounded-xl border border-grey-200 bg-white p-4 shadow-sm md:p-5">
+    <fieldset className="w-full rounded-xl border border-grey-200 bg-transparent p-4 md:p-5">
       <legend className="sr-only">{pertanyaan}</legend>
-      <div className="flex min-h-[2.5rem] items-start gap-3">
-        <span aria-hidden="true" className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/10 font-mono text-xs font-semibold text-primary">
-          {String(urutan).padStart(2, "0")}
-        </span>
+      <div className="min-h-[2.5rem]">
         <p aria-hidden="true" className="min-w-0 pt-0.5 font-sans text-sm font-semibold leading-5 text-foreground">
           {pertanyaan}
         </p>
@@ -396,11 +393,10 @@ export function FormUlasan({ t, bintangAwal = 0, onKirim, onBatal }) {
           {t("landing.rating.beriTahuSelengkapnya")}
         </h2>
         <div className="space-y-4">
-          {pertanyaanSurvei.map((pertanyaan, index) => (
+          {pertanyaanSurvei.map((pertanyaan) => (
             <KartuPertanyaanSurvei
               key={pertanyaan.id}
               id={pertanyaan.id}
-              urutan={index + 1}
               pertanyaan={pertanyaan.teks}
               nilai={jawabanSurvei[pertanyaan.id]}
               opsi={opsiSurvei}
