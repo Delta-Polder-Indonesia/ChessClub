@@ -21,6 +21,7 @@ import SquareFillMinus from "../../svg/square-fill-minus.jsx";
 import SquareFillPlus from "../../svg/square-fill-plus.jsx";
 import { ErrorsContext } from "../../../konteks/errorsKonteks.js";
 import { useI18n } from "../../../../../lib/i18n.jsx";
+import { TooltipLabel } from "../../../../../components/ui/tooltip.jsx";
 import { ambilDaftarPartai, simpanBanyakPartai } from "../../../basisData.js";
 import {
   GAMES_ERROR,
@@ -225,8 +226,9 @@ function GamesUI(props) {
     const kelasWaktu = t("analisa.partai.kontrolWaktu") + ": " + t(`analisa.partai.kelas.${timeClass ?? "unknown"}`);
     const eloPutih = Number(whiteElo) > 0 ? `(${whiteElo})` : "";
     const eloHitam = Number(blackElo) > 0 ? `(${blackElo})` : "";
-    return <tr title={kelasWaktu} onClick={() => setData({ format: "pgn", string: pgn })} className="cursor-pointer select-none border-b border-border transition-colors hover:bg-backgroundBoxHover" key={i}>
-                                    <td className="py-2 pl-8 pr-2 w-[36%] min-w-52 overflow-hidden">
+    return <tr onClick={() => setData({ format: "pgn", string: pgn })} className="cursor-pointer select-none border-b border-border transition-colors hover:bg-backgroundBoxHover" key={i}>
+                                    <TooltipLabel label={kelasWaktu}>
+                                    <td tabIndex={0} aria-label={kelasWaktu} className="py-2 pl-8 pr-2 w-[36%] min-w-52 overflow-hidden">
                                         <div className="flex flex-row items-center gap-2 text-[13px] leading-5">
                                             <div className={`h-3.5 min-h-3.5 w-3.5 min-w-3.5 shrink-0 bg-evaluationBarWhite rounded-sm ${whiteWon ? "border-[3px] border-winGreen" : ""}`} />
                                             <span className="truncate">{whiteName}</span>
@@ -238,6 +240,7 @@ function GamesUI(props) {
                                             <span className="text-foregroundGrey">{eloHitam}</span>
                                         </div>
                                     </td>
+                                    </TooltipLabel>
                                     <td className="py-2 px-3">
                                         <div className="flex flex-row items-center gap-2">
                                             <div className="flex w-4 flex-col text-foregroundGrey font-semibold text-[11px] leading-4"><span>{whiteWon ? 1 : blackWon ? 0 : <>&#189;</>}</span><span>{blackWon ? 1 : whiteWon ? 0 : <>&#189;</>}</span></div>
@@ -450,7 +453,9 @@ function SelectChessComGame(props) {
   return <div className="overflow-y-auto flex flex-col flex-grow">
             <div className="py-3 px-8 sticky top-0 bg-backgroundBox z-10 flex flex-row items-center justify-between gap-3">
               <h1 className="text-lg text-foreground min-w-0"><a target="_blank" rel="noreferrer" href={`${PLAYER_URL}${username}`} className="hover:underline text-foregroundHighlighted text-xl font-bold">{username}</a> <span className="text-foregroundGrey">&middot; {t("analisa.partai.judul", { platform: PLATFORM })}</span></h1>
-              <button type="button" onClick={stopSelecting} title={t("analisa.partai.kembali")} aria-label={t("analisa.partai.kembali")} data-uji="tutup-tabel" className="grid h-7 w-7 shrink-0 cursor-pointer place-items-center rounded-borderRoundness text-foregroundGrey transition-colors hover:bg-backgroundBoxBoxHover hover:text-foregroundHighlighted">✕</button>
+              <TooltipLabel label={t("analisa.partai.kembali")}>
+                <button type="button" onClick={stopSelecting} aria-label={t("analisa.partai.kembali")} data-uji="tutup-tabel" className="grid h-7 w-7 shrink-0 cursor-pointer place-items-center rounded-borderRoundness text-foregroundGrey transition-colors hover:bg-backgroundBoxBoxHover hover:text-foregroundHighlighted">✕</button>
+              </TooltipLabel>
             </div>
             <hr className="border-border" />
             {memuat ? <Loading whatIsLoading={t("analisa.tab.pilihPartai")} abort={stopSelecting} progres={progresTeks} /> : null}

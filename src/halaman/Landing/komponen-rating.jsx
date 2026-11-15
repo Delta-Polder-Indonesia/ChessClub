@@ -12,7 +12,6 @@ import { Textarea } from "../../components/ui/textarea.jsx";
 import {
   formatRibuan,
   formatTanggalSingkat,
-  emojiList as EMOJI_LIST,
   warnaUntuk,
   waktuRelatif,
 } from "./format-rating.js";
@@ -102,19 +101,25 @@ export function Avatar({ nama, size = "md" }) {
  * @param {boolean} bisaUbah jadikan radio interaktif (nilai dibulatkan)
  * @param {'sm'|'md'|'lg'|'xl'} ukuran
  */
-export function DeretBintang({ nilai, ukuran = "md", onPilih, bisaUbah = false, className = "" }) {
+export function DeretBintang({ nilai, ukuran = "md", onPilih, bisaUbah = false, className = "", ariaLabel, ariaInvalid, ariaDescribedby }) {
   const ukuranCls =
     ukuran === "sm" ? "size-4"
-      : ukuran === "lg" ? "size-6"
-        : ukuran === "xl" ? "size-11"
-          : "size-5";
-  const gapCls = bisaUbah ? (ukuran === "xl" ? "gap-1.5" : "gap-0.5") : "gap-0.5";
+      : ukuran === "lg" ? "size-10"
+        : ukuran === "md" ? "size-6"
+          : ukuran === "xl" ? "size-11"
+            : "size-5";
+  const gapCls = bisaUbah
+    ? (ukuran === "xl" ? "gap-1.5" : "gap-0.5")
+    : ukuran === "md" ? "gap-1" : "gap-0.5";
 
   if (bisaUbah) {
     const bulat = Math.round(nilai);
     return (
       <div className={`inline-flex items-center ${gapCls} text-yellow-400 ${className}`}
-        role="radiogroup" aria-label={`${bulat} dari 5 bintang`}>
+        role="radiogroup"
+        aria-label={ariaLabel || `${bulat} dari 5 bintang`}
+        aria-invalid={ariaInvalid || undefined}
+        aria-describedby={ariaDescribedby || undefined}>
         {[1, 2, 3, 4, 5].map((n) => (
           <button key={n} type="button" role="radio" aria-checked={bulat === n}
             aria-label={`${n} bintang`}
@@ -141,7 +146,7 @@ export function DeretBintang({ nilai, ukuran = "md", onPilih, bisaUbah = false, 
             {isi > 0 && (
               <span className="pointer-events-none absolute inset-0 overflow-hidden"
                 style={{ width: `${isi * 100}%` }}>
-                <BintangPadat className={ukuranCls} style={{ width: "1em", height: "1em" }} />
+                <BintangPadat className={ukuranCls} />
               </span>
             )}
           </span>
@@ -154,7 +159,7 @@ export function DeretBintang({ nilai, ukuran = "md", onPilih, bisaUbah = false, 
 /* ==================== Bar distribusi ==================== */
 export function BarDistribusi({ persen }) {
   return (
-    <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-grey-200">
+    <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-grey-200">
       <div className="h-full rounded-full bg-yellow-400 transition-[width] duration-300"
         style={{ width: `${Math.max(0, Math.min(100, persen))}%` }} />
     </div>
@@ -176,7 +181,7 @@ export function Ringkasan({ ulasan, locale }) {
 
   return (
     <div className="flex flex-col gap-5 md:flex-row md:items-center md:gap-8">
-      <div className="flex flex-col items-center gap-1 md:min-w-[140px] md:items-start">
+      <div className="flex flex-col items-center gap-1 md:min-w-[160px]">
         <span className="font-sans text-5xl font-semibold leading-none text-foreground md:text-6xl">{rataTeks}</span>
         <DeretBintang nilai={rata} ukuran="md" />
         <span className="mt-0.5 font-sans text-sm text-foregroundGrey">{formatRibuan(total, locale)}</span>
@@ -216,7 +221,7 @@ export function KartuUlasan({ t, ulasan: u, padaVote, padat }) {
               className="hidden font-sans text-xs text-foregroundGrey md:inline">
               {formatTanggalSingkat(u.ts)}
             </time>
-            <span className="rounded-full bg-grey-200 px-2 py-0.5 font-sans text-[11px] text-foregroundGrey">
+            <span className="font-sans text-[11px] text-foregroundGrey">
               {waktuRelatif(u.ts, t)}
             </span>
           </div>
@@ -234,16 +239,16 @@ export function KartuUlasan({ t, ulasan: u, padaVote, padat }) {
         </span>
         <button type="button" onClick={() => padaVote?.(u.id, "naik")}
           aria-pressed={u.sayaSuka === true} aria-label={t("landing.rating.suka")}
-          className={`inline-flex items-center gap-1.5 rounded-full px-2 py-1 font-sans text-sm transition-colors ${
-            u.sayaSuka ? "bg-primary/10 text-primary" : "text-foregroundGrey hover:bg-backgroundBox"
+          className={`inline-flex items-center gap-1.5 rounded px-2 py-1 font-sans text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${
+            u.sayaSuka === true ? "text-primary" : "text-foregroundGrey hover:text-primary"
           }`}>
-          <Jempol arah="naik" aktif={u.sayaSuka} className="size-5" />
+          <Jempol arah="naik" aktif={u.sayaSuka === true} className="size-5" />
           <span className="tabular-nums">{u.suka}</span>
         </button>
         <button type="button" onClick={() => padaVote?.(u.id, "turun")}
           aria-pressed={u.sayaSuka === false} aria-label={t("landing.rating.tidakSuka")}
-          className={`flex size-8 items-center justify-center rounded-full transition-colors ${
-            u.sayaSuka === false ? "bg-destructive/10 text-destructive" : "text-foregroundGrey hover:bg-backgroundBox"
+          className={`flex size-8 items-center justify-center rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/50 ${
+            u.sayaSuka === false ? "text-destructive" : "text-foregroundGrey hover:text-destructive"
           }`}>
           <Jempol arah="turun" aktif={u.sayaSuka === false} className="size-5" />
         </button>
@@ -253,6 +258,40 @@ export function KartuUlasan({ t, ulasan: u, padaVote, padat }) {
 }
 
 /* ==================== Form tulis ulasan ==================== */
+function KartuPertanyaanSurvei({ id, pertanyaan, nilai, opsi, onPilih }) {
+  return (
+    <fieldset className="w-full rounded-xl border border-grey-200 bg-white p-4 md:p-5">
+      <legend className="sr-only">{pertanyaan}</legend>
+      <div className="min-h-[2.5rem]">
+        <p aria-hidden="true" className="min-w-0 pt-0.5 font-sans text-sm font-semibold leading-5 text-foreground">
+          {pertanyaan}
+        </p>
+      </div>
+      <div className="mt-4 flex flex-wrap gap-2">
+        {opsi.map((item) => {
+          const inputId = `${id}-${item.value}`;
+          return (
+            <label key={item.value} htmlFor={inputId} className="cursor-pointer">
+              <input
+                id={inputId}
+                type="radio"
+                name={id}
+                value={item.value}
+                checked={nilai === item.value}
+                onChange={() => onPilih(item.value)}
+                className="peer sr-only"
+              />
+              <span className="inline-flex min-h-10 min-w-[76px] items-center justify-center rounded-md border border-black bg-transparent px-3 font-sans text-xs font-semibold text-black transition-colors hover:bg-grey-100 peer-checked:border-2 peer-checked:border-black peer-checked:bg-grey-100 peer-checked:text-black peer-focus-visible:ring-2 peer-focus-visible:ring-black peer-focus-visible:ring-offset-2">
+                {item.label}
+              </span>
+            </label>
+          );
+        })}
+      </div>
+    </fieldset>
+  );
+}
+
 /**
  * @param {number} bintangAwal nilai awal bintang (dipilih dari hero)
  * @param {function} onKirim(ulasan) dipanggil saat terkirim (object ulasan tanpa id/ts/suka)
@@ -260,88 +299,143 @@ export function KartuUlasan({ t, ulasan: u, padaVote, padat }) {
  */
 export function FormUlasan({ t, bintangAwal = 0, onKirim, onBatal }) {
   const [bintang, setBintang] = useState(bintangAwal);
-  const [emoji, setEmoji] = useState(bintangAwal > 0 ? bintangAwal : null);
   const [nama, setNama] = useState("");
   const [pesan, setPesan] = useState("");
   const [error, setError] = useState(null);
-  const daftarEmoji = EMOJI_LIST(t);
+  const [jawabanSurvei, setJawabanSurvei] = useState({
+    kerjaTim: "",
+    tampilanPonsel: "",
+    iklanJudi: "",
+  });
+  const pertanyaanSurvei = [
+    { id: "kerjaTim", teks: t("landing.rating.surveiKerjaTim") },
+    { id: "tampilanPonsel", teks: t("landing.rating.surveiTampilanPonsel") },
+    { id: "iklanJudi", teks: t("landing.rating.surveiIklanJudi") },
+  ];
+  const opsiSurvei = [
+    { value: "tidak", label: t("landing.rating.surveiTidak") },
+    { value: "tidak-yakin", label: t("landing.rating.surveiTidakYakin") },
+    { value: "ya", label: t("landing.rating.surveiYa") },
+  ];
 
   useEffect(() => {
-    if (bintangAwal > 0) { setBintang(bintangAwal); setEmoji(bintangAwal); }
+    if (bintangAwal > 0) setBintang(bintangAwal);
   }, [bintangAwal]);
 
   const pilihBintang = useCallback((n) => {
-    setBintang(n); setEmoji(n); setError(null);
+    setBintang(n);
+    setError((sebelumnya) => sebelumnya?.field === "bintang" ? null : sebelumnya);
   }, []);
 
   const kirim = useCallback(
     (e) => {
       e.preventDefault();
-      if (bintang < 1) { setError(t("landing.rating.pilihBintang")); return; }
-      if (!pesan.trim()) { setError(t("landing.rating.tulisPesan")); return; }
+      if (bintang < 1) { setError({ field: "bintang", key: "landing.rating.pilihBintang" }); return; }
+      if (!pesan.trim()) { setError({ field: "pesan", key: "landing.rating.tulisPesan" }); return; }
+      setError(null);
       onKirim({
         nama: nama.trim() || t("landing.rating.tamu"),
         bintang,
-        emoji: emoji ?? bintang,
+        // Field emoji di data lama memakai nilai bintang; tetap diisi
+        // dengan skor bintang supaya bentuk data ulasan tidak berubah.
+        emoji: bintang,
+        survei: jawabanSurvei,
         pesan: pesan.trim(),
       });
     },
-    [bintang, emoji, nama, pesan, onKirim, t]
+    [bintang, jawabanSurvei, nama, pesan, onKirim, t]
   );
 
   return (
-    <form onSubmit={kirim} className="space-y-5 rounded-2xl bg-paper p-5 md:p-6">
-      <div className="space-y-2">
-        <label className="block font-sans text-sm font-semibold text-foreground">{t("landing.rating.beriBintang")}</label>
-        <DeretBintang nilai={bintang} ukuran="lg" bisaUbah onPilih={pilihBintang} />
+    <form onSubmit={kirim} className="grid grid-cols-1 gap-8 rounded-2xl bg-paper p-5 md:p-6 lg:grid-cols-2 lg:gap-10 lg:p-8">
+      <div className="space-y-5">
+        <header className="flex flex-col items-start gap-2">
+          <h1 className="font-sans text-2xl font-semibold text-foreground md:text-3xl">
+            {t("landing.rating.ajakJudul")}
+          </h1>
+          <p className="font-sans text-base text-foregroundGrey">
+            {t("landing.rating.ajakSub")}
+          </p>
+        </header>
+        <div className="space-y-1.5">
+          <DeretBintang
+            nilai={bintang}
+            ukuran="lg"
+            bisaUbah
+            onPilih={pilihBintang}
+            ariaLabel={t("landing.rating.beriBintang")}
+            ariaInvalid={error?.field === "bintang"}
+            ariaDescribedby={error?.field === "bintang" ? "ulasan-error-bintang" : undefined}
+            className="w-full justify-between"
+          />
+          <div className="min-h-5">
+            {error?.field === "bintang" ? (
+              <p id="ulasan-error-bintang" role="alert" className="font-sans text-sm text-destructive">
+                {t(error.key)}
+              </p>
+            ) : null}
+          </div>
+        </div>
+        <div className="space-y-1.5">
+          <label htmlFor="ulasan-nama" className="block font-sans text-sm font-semibold text-foreground">
+            {t("landing.rating.namaLabel")}{" "}
+            <span className="font-normal text-foregroundGrey">({t("landing.rating.opsional")})</span>
+          </label>
+          <input id="ulasan-nama" type="text" value={nama} onChange={(e) => setNama(e.target.value)} maxLength={40}
+            placeholder={t("landing.rating.namaPlaceholder")}
+            className="w-full rounded-lg border-2 border-grey-400 bg-transparent px-3 py-2 font-sans text-sm outline-none placeholder:text-foregroundGrey transition-colors focus-visible:border-primary focus-visible:ring-0" />
+        </div>
+        <div className="space-y-1.5">
+          <label htmlFor="ulasan-pesan" className={`block font-sans text-sm font-semibold ${error?.field === "pesan" ? "text-destructive" : "text-foreground"}`}>
+            {t("landing.rating.pesanLabel")}
+          </label>
+          <Textarea id="ulasan-pesan" value={pesan}
+            onChange={(e) => {
+              const nilai = e.target.value;
+              setPesan(nilai);
+              if (nilai.trim()) setError((sebelumnya) => sebelumnya?.field === "pesan" ? null : sebelumnya);
+            }}
+            aria-invalid={error?.field === "pesan" || undefined}
+            aria-describedby={error?.field === "pesan" ? "ulasan-error-pesan" : undefined}
+            rows={5} maxLength={600} placeholder={t("landing.rating.pesanPlaceholder")}
+            className={`rounded-lg border-2 bg-transparent px-3 py-2 font-sans text-sm outline-none placeholder:text-foregroundGrey transition-colors focus-visible:ring-0 ${error?.field === "pesan" ? "border-destructive bg-destructive/5 focus-visible:border-destructive" : "border-grey-400 focus-visible:border-primary"}`} />
+          <div className="flex min-h-5 items-start justify-between gap-3">
+            {error?.field === "pesan" ? (
+              <p id="ulasan-error-pesan" role="alert" className="font-sans text-sm text-destructive">
+                {t(error.key)}
+              </p>
+            ) : <span aria-hidden="true" />}
+            <p className="shrink-0 text-right font-sans text-xs text-foregroundGrey">{pesan.length}/600</p>
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          {onBatal ? (
+            <Button type="button" variant="ghost" onClick={onBatal}>{t("landing.rating.batal")}</Button>
+          ) : null}
+          <Button type="submit" variant="default">{t("landing.rating.kirim")}</Button>
+        </div>
       </div>
-      <div className="space-y-2">
-        <p className="font-sans text-sm font-medium text-foreground">{t("landing.rating.bagaimanaPengalaman")}</p>
-        <div className="flex flex-wrap gap-2">
-          {daftarEmoji.map((item) => (
-            <button key={item.value} type="button" onClick={() => pilihBintang(item.value)}
-              className={`flex size-11 items-center justify-center rounded-lg text-2xl transition-all ${
-                (emoji ?? bintang) === item.value ? "scale-110 bg-backgroundBox" : "hover:bg-backgroundBox"
-              }`}
-              aria-label={item.label} title={item.label}>
-              {item.emoji}
-            </button>
+
+      <section aria-labelledby="ulasan-survei-judul" className="space-y-4 lg:pt-1">
+        <h2 id="ulasan-survei-judul" className="font-sans text-base font-semibold text-foreground">
+          {t("landing.rating.beriTahuSelengkapnya")}
+        </h2>
+        <div className="space-y-4">
+          {pertanyaanSurvei.map((pertanyaan) => (
+            <KartuPertanyaanSurvei
+              key={pertanyaan.id}
+              id={pertanyaan.id}
+              pertanyaan={pertanyaan.teks}
+              nilai={jawabanSurvei[pertanyaan.id]}
+              opsi={opsiSurvei}
+              onPilih={(nilai) => setJawabanSurvei((sebelumnya) => ({
+                ...sebelumnya,
+                [pertanyaan.id]: nilai,
+              }))}
+            />
           ))}
         </div>
-        {emoji ? (
-          <p className="font-sans text-sm text-foregroundGrey">
-            {daftarEmoji.find((e) => e.value === emoji)?.label}
-          </p>
-        ) : null}
-      </div>
-      <div className="space-y-1.5">
-        <label htmlFor="ulasan-nama" className="block font-sans text-sm font-semibold text-foreground">
-          {t("landing.rating.namaLabel")}{" "}
-          <span className="font-normal text-foregroundGrey">({t("landing.rating.opsional")})</span>
-        </label>
-        <input id="ulasan-nama" type="text" value={nama} onChange={(e) => setNama(e.target.value)} maxLength={40}
-          placeholder={t("landing.rating.namaPlaceholder")}
-          className="w-full rounded-lg border-2 border-grey-400 bg-transparent px-3 py-2 font-sans text-sm outline-none placeholder:text-foregroundGrey transition-colors focus-visible:border-primary focus-visible:ring-0" />
-      </div>
-      <div className="space-y-1.5">
-        <label htmlFor="ulasan-pesan" className="block font-sans text-sm font-semibold text-foreground">
-          {t("landing.rating.pesanLabel")}
-        </label>
-        <Textarea id="ulasan-pesan" value={pesan}
-          onChange={(e) => { setPesan(e.target.value); setError(null); }}
-          rows={5} maxLength={600} placeholder={t("landing.rating.pesanPlaceholder")}
-          className="rounded-lg border-2 border-grey-400 bg-transparent px-3 py-2 font-sans text-sm outline-none placeholder:text-foregroundGrey transition-colors focus-visible:border-primary focus-visible:ring-0" />
-        <p className="text-right font-sans text-xs text-foregroundGrey">{pesan.length}/600</p>
-      </div>
-      {error ? (
-        <p role="alert" className="rounded border border-destructive/40 bg-destructive/10 px-3 py-2 font-sans text-sm text-destructive">{error}</p>
-      ) : null}
-      <div className="flex flex-wrap items-center justify-end gap-2">
-        {onBatal ? (
-          <Button type="button" variant="ghost" onClick={onBatal}>{t("landing.rating.batal")}</Button>
-        ) : null}
-        <Button type="submit" variant="default">{t("landing.rating.kirim")}</Button>
-      </div>
+      </section>
     </form>
   );
 }

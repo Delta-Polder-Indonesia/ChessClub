@@ -6,6 +6,7 @@
  */
 import { useId, useMemo, useRef, useState } from "react";
 import { useI18n } from "../../../../../lib/i18n.jsx";
+import { TooltipLabel } from "../../../../../components/ui/tooltip.jsx";
 import { akurasiMove, kerugianMove, pemainDariEntri, rataHarmonik, cpBaku, nilaiGrafikCp } from "../../../mesin/akurasi.js";
 
 function KartuAkurasiPartai({ moves, players }) {
@@ -185,14 +186,17 @@ function KartuAkurasiPartai({ moves, players }) {
         <div className="flex items-center justify-between border-b border-white/10 px-3 py-2">
           <div className="inline-flex items-center gap-0.5 rounded bg-black/40 p-0.5" role="group" aria-label={t("analisa.wawasan.grafikAkurasi.jenisEvaluasi")}>
             <button type="button" aria-pressed={mode === "cp"} onClick={() => setMode("cp")} className={`rounded px-2 py-1 text-[11px] font-semibold ${mode === "cp" ? "bg-[#383a3d] text-white" : "text-white/55 hover:text-white"}`}>CP</button>
-            <button
-              type="button"
-              aria-pressed={mode === "wdl"}
-              disabled={!wdlTersedia}
-              title={t(wdlTersedia ? "analisa.wawasan.grafikAkurasi.tersediaWdl" : "analisa.wawasan.grafikAkurasi.belumWdl")}
-              onClick={() => setMode("wdl")}
-              className={`rounded px-2 py-1 text-[11px] font-semibold ${mode === "wdl" ? "bg-[#383a3d] text-white" : wdlTersedia ? "text-white/55 hover:text-white" : "cursor-not-allowed text-white/30"}`}
-            >WDL</button>
+            <TooltipLabel label={t(wdlTersedia ? "analisa.wawasan.grafikAkurasi.tersediaWdl" : "analisa.wawasan.grafikAkurasi.belumWdl")}>
+              <span tabIndex={0} role="group" aria-label={t(wdlTersedia ? "analisa.wawasan.grafikAkurasi.tersediaWdl" : "analisa.wawasan.grafikAkurasi.belumWdl")} className="inline-flex">
+                <button
+                  type="button"
+                  aria-pressed={mode === "wdl"}
+                  disabled={!wdlTersedia}
+                  onClick={() => setMode("wdl")}
+                  className={`rounded px-2 py-1 text-[11px] font-semibold ${mode === "wdl" ? "bg-[#383a3d] text-white" : wdlTersedia ? "text-white/55 hover:text-white" : "cursor-not-allowed text-white/30"}`}
+                >WDL</button>
+              </span>
+            </TooltipLabel>
           </div>
           <span className="text-[10px] tabular-nums text-white/45">
             {mode === "wdl"
@@ -238,9 +242,7 @@ function KartuAkurasiPartai({ moves, players }) {
                 onMouseLeave={() => setHoverIndex(null)}
                 onFocus={() => setHoverIndex(p.index)}
                 onBlur={() => setHoverIndex(null)}
-              >
-                <title>{`${judulTitik(p)} · ${mode === "wdl" ? wdlTitik(p) : t("analisa.wawasan.grafikAkurasi.tooltipKeunggulan", { skor: skorTitik(p) })}`}</title>
-              </circle>
+              />
             ))}
           </svg>
         ) : (
@@ -249,7 +251,7 @@ function KartuAkurasiPartai({ moves, players }) {
           </div>
         )}
         {titikAktif && (
-          <div role="tooltip" className="pointer-events-none absolute left-3 top-12 z-20 max-w-[calc(100%-1.5rem)] rounded-md border border-white/15 bg-[#111315]/95 px-3 py-2 text-xs text-white shadow-lg">
+          <div role="tooltip" className="aegov-tooltip pointer-events-none absolute left-3 top-12 z-20 max-w-[calc(100%-1.5rem)]">
             <div className="font-semibold">{judulTitik(titikAktif)}</div>
             <div className="mt-1 whitespace-pre-line text-white/75">
               {mode === "wdl"

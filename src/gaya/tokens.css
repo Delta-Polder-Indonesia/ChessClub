@@ -1,0 +1,97 @@
+/* Sumber pindai Tailwind: relatif terhadap file ini (src/gaya/). */
+@source "../";
+@source "../../index.html";
+
+@custom-variant dark (&:is(.dark *));
+
+/* Design tokens globales: tipografía, colores, elevación y animaciones de interfaz. */
+
+@theme {
+  /* Font UI/kontrol (navigasi, tombol, badge, tabel) — DESIGN.md §2.
+     Satu-satunya definisi --font-sans di berkas ini; jangan mendefinisikan
+     ulang di blok @theme lain (dulu ditimpa diam-diam oleh blok Analisa
+     di bagian bawah, membuat font @font-face di atasnya tak pernah
+     terpakai). Teks bacaan memakai serif (kelas font-serif). */
+  --font-sans: "Geist Variable", system-ui, sans-serif;
+  --color-primary: #0b2f9f;
+  --color-blue-400: #4d7cf5;
+  /* Ramp netral situs — langkah 50–500 melengkapi 200/600/800 agar kelas
+     grey-* yang dipakai komponen (border-grey-300, bg-grey-100, dst.)
+     benar-benar menghasilkan gaya. Nilainya = ramp slate Tailwind,
+     konsisten dengan grey-200/600/800 yang sudah ada. */
+  --color-grey-50: #f8fafc;
+  --color-grey-100: #f1f5f9;
+  --color-grey-200: #e2e8f0;
+  --color-grey-300: #cbd5e1;
+  --color-grey-500: #64748b;
+  --color-grey-600: #475569;
+  --color-grey-800: #1e293b;
+  /* Kanvas utama & permukaan kartu (DESIGN.md §1: --color-paper).
+     Nilai diselaraskan ke halaman sumber: `--ks-paper: oklch(97.8% 0 0)`
+     pada `kinpaku_tokens.czfxn__5.css` ≈ #f8f8f8. Sebelumnya #ffffff,
+     membuat kanvas KCI ~7% lebih terang dari sumber. */
+  --color-paper: #f8f8f8;
+  --color-hero: #021624;
+
+  /* Elevasi netral untuk permukaan foto galeri: lempeng tanpa border 1px
+     memakai shadow-lift sebagai satu-satunya penanda tepi (DESIGN.md §4). */
+  --shadow-lift: 0 1px 1px rgb(0 0 0 / 0.05), 0 2px 3px rgb(0 0 0 / 0.04),
+    0 6px 12px rgb(0 0 0 / 0.05);
+  --shadow-lift-lg: 0 1px 1px rgb(0 0 0 / 0.04), 0 3px 5px rgb(0 0 0 / 0.05),
+    0 12px 20px rgb(0 0 0 / 0.06), 0 32px 48px rgb(0 0 0 / 0.07);
+
+  /* Palet grafik gaya neobrutalism — dipakai lewat var(--chart-1) dst.
+     pada `chartConfig` komponen di src/components/ui/chart.jsx. */
+  --chart-1: #0b2f9f; /* biru utama   */
+  --chart-2: #4d7cf5; /* biru terang  */
+  --chart-3: #ffdc58; /* kuning       */
+  --chart-4: #ff6b6b; /* merah        */
+  --chart-5: #7fbc8c; /* hijau        */
+
+  /* Animasi buka/tutup Accordion Radix — tinggi konten diisi otomatis
+     lewat variabel --radix-accordion-content-height. */
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+
+  @keyframes accordion-down {
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--radix-accordion-content-height);
+    }
+  }
+
+  @keyframes accordion-up {
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+    to {
+      height: 0;
+    }
+  }
+
+  /* Marquee notifikasi dashboard — dua lintasan identik yang bergeser ke
+     kiri secara kontinu (pola komponen ui/marquee). track2 memulai dari
+     translateX(100%) agar tak tampak celah saat track1 menyelesaikan siklus. */
+  --animate-marquee: marquee 25s linear infinite;
+  --animate-marquee2: marquee2 25s linear infinite;
+
+  @keyframes marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-100%);
+    }
+  }
+
+  @keyframes marquee2 {
+    from {
+      transform: translateX(100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+}

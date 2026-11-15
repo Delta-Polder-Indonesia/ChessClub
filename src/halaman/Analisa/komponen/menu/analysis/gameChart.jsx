@@ -118,7 +118,8 @@ function GameChart(props) {
         return <circle key={i} style={{ fill: `var(--${posisi.color ?? strokeColor})` }} cx={x} cy={y} r={i === moveNumber ? 4 : 3} />;
       })}
     </svg>
-    {posisiAktif && <div role="tooltip" className="pointer-events-none absolute z-10 flex flex-col rounded border border-black bg-white/90 p-1 text-sm text-[#222]" style={tooltipDiAtas ? { left: posisiTooltip, bottom: size.height + 2 } : { left: posisiTooltip, top: size.height + 2 }}>
+    {posisiAktif && <div role="tooltip" className="aegov-tooltip pointer-events-none absolute z-10 flex flex-col" style={tooltipDiAtas ? { left: posisiTooltip, bottom: size.height + 2 } : { left: posisiTooltip, top: size.height + 2 }}>
+      <span aria-hidden="true" className={`aegov-tooltip-arrow left-1/2 -translate-x-1/2 ${tooltipDiAtas ? "-bottom-1" : "-top-1"}`} />
       <span className="flex items-center gap-1">
         {posisiAktif.moveRating && <RatingSVG rating={ratingTampilan(posisiAktif)} size={18} /> }
         {teksEvaluasi(posisiAktif, hoveredMove)}

@@ -6,15 +6,6 @@
  * fungsi/konstanta yang diekspor dari file yang sama dengan komponen).
  */
 
-/* Daftar emoji pengalaman (5 tingkat), kunci dipakai komponen FormUlasan. */
-export const emojiList = (t) => [
-  { value: 1, emoji: "😞", label: t("landing.rating.emoji1") },
-  { value: 2, emoji: "😕", label: t("landing.rating.emoji2") },
-  { value: 3, emoji: "😐", label: t("landing.rating.emoji3") },
-  { value: 4, emoji: "😊", label: t("landing.rating.emoji4") },
-  { value: 5, emoji: "🤩", label: t("landing.rating.emoji5") },
-];
-
 /* Palet warna avatar (lingkaran) — dipilih deterministik dari nama. */
 export const WARNA_AVATAR = [
   "bg-purple-600 text-white",

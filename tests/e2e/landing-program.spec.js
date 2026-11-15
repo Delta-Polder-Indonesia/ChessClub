@@ -154,8 +154,9 @@ test("regresi Landing: meta/title i18n, tombol hero, CincinKemajuan, dan tabInde
   await expect(page.locator('[data-tanda-petak]')).toHaveCount(0);
   await expect(page.locator('svg polygon[data-arrow]')).toHaveCount(0);
 
-  // CardCarousel menonaktifkan tautan di luar 3 kartu aktif agar Tab tidak terjebak di duplikat off-screen.
-  const tautanCarousel = page.locator('a[href^="/program-kami/ebook-panduan/"]');
+  // Desktop carousel mengecualikan tautan di luar viewport dari urutan Tab.
+  // Gunakan container desktop agar grid katalog mobile yang tersembunyi tidak ikut dihitung.
+  const tautanCarousel = page.getByTestId("ebook-carousel-desktop").locator('a[href^="/program-kami/ebook-panduan/"]');
   await expect(tautanCarousel.first()).toBeAttached();
   const tabbableCount = await tautanCarousel.evaluateAll(
     (els) => els.filter((el) => el.getAttribute("tabindex") !== "-1").length
@@ -163,6 +164,27 @@ test("regresi Landing: meta/title i18n, tombol hero, CincinKemajuan, dan tabInde
   expect(tabbableCount).toBe(3);
 
   expect(galat, galat.join("\n")).toEqual([]);
+});
+
+test("form ulasan: validasi tampil dekat dengan field tanpa banner terpisah", async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem("kci-bahasa", "id"));
+  await page.goto("/tulis-ulasan", { waitUntil: "domcontentloaded" });
+
+  const kirim = page.getByRole("button", { name: "Kirim ulasan" });
+  const bintang = page.getByRole("radiogroup", { name: "Beri bintang untuk aplikasi ini" });
+  const pesan = page.locator("#ulasan-pesan");
+
+  await kirim.click();
+  await expect(bintang).toHaveAttribute("aria-invalid", "true");
+  await expect(page.locator("#ulasan-error-bintang")).toBeVisible();
+  await expect(page.locator("#ulasan-error-pesan")).toHaveCount(0);
+
+  await bintang.getByRole("radio", { name: "5 bintang" }).click();
+  await kirim.click();
+  await expect(pesan).toHaveAttribute("aria-invalid", "true");
+  await expect(page.locator("#ulasan-error-pesan")).toBeVisible();
+  await expect(page.locator("#ulasan-error-bintang")).toHaveCount(0);
+  await expect(page.locator('form > p[role="alert"]')).toHaveCount(0);
 });
 
 test("regresi ProgramKami: alt gambar terlokalisasi, sizes RushTekaTeki, dan dialog PDF EbookPanduan", async ({ page }) => {

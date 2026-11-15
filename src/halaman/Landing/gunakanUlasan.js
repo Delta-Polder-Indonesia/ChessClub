@@ -11,7 +11,7 @@
  * agar ulasan yang dikirim dari halaman /tulis-ulasan otomatis tampil
  * di Landing dan halaman Semua Ulasan tanpa reload.
  */
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useI18n } from "../../lib/i18n.jsx";
 
 const KUNCI_SIMPAN = "kci-ulasan-tamu";
@@ -115,6 +115,13 @@ export function useUlasan() {
   const { t } = useI18n();
   const seed = useMemo(() => dataAwal(t), [t]);
   const [ulasan, setUlasan] = useState(() => bacaDariPenyimpanan(seed));
+  // Cermin daftar terkini untuk dipakai sinkron di tambah/vote: event
+  // 'kci-ulasan-updated' didengar hook ini sendiri, jadi penyimpanan
+  // harus ditulis DULU sebelum event disiarkan — kalau tidak, pendengar
+  // membaca data lama dan menimpa perubahan yang baru saja dibuat
+  // (klik jempul/kirim ulasan tampak tidak berpengaruh).
+  const ulasanRef = useRef(ulasan);
+  ulasanRef.current = ulasan;
 
   // Refresh jika seed berubah (ganti bahasa) dan user belum menambah ulasan.
   useEffect(() => {
@@ -146,26 +153,28 @@ export function useUlasan() {
       ts: Date.now(),
       ...u,
     };
-    setUlasan((prev) => [baru, ...prev]);
+    const berikut = [baru, ...ulasanRef.current];
+    simpanKePenyimpanan(berikut);
+    setUlasan(berikut);
     siarkanPerubahan();
     return baru;
   }, []);
 
   const vote = useCallback((id, arah) => {
-    setUlasan((prev) =>
-      prev.map((u) => {
-        if (u.id !== id) return u;
-        const sebelumnya = u.sayaSuka;
-        let suka = u.suka, tidakSuka = u.tidakSuka, sayaSuka;
-        if (arah === "naik") sayaSuka = sebelumnya === true ? undefined : true;
-        else sayaSuka = sebelumnya === false ? undefined : false;
-        if (sebelumnya === true) suka -= 1;
-        if (sebelumnya === false) tidakSuka -= 1;
-        if (sayaSuka === true) suka += 1;
-        if (sayaSuka === false) tidakSuka += 1;
-        return { ...u, suka: Math.max(0, suka), tidakSuka: Math.max(0, tidakSuka), sayaSuka };
-      })
-    );
+    const berikut = ulasanRef.current.map((u) => {
+      if (u.id !== id) return u;
+      const sebelumnya = u.sayaSuka;
+      let suka = u.suka, tidakSuka = u.tidakSuka, sayaSuka;
+      if (arah === "naik") sayaSuka = sebelumnya === true ? undefined : true;
+      else sayaSuka = sebelumnya === false ? undefined : false;
+      if (sebelumnya === true) suka -= 1;
+      if (sebelumnya === false) tidakSuka -= 1;
+      if (sayaSuka === true) suka += 1;
+      if (sayaSuka === false) tidakSuka += 1;
+      return { ...u, suka: Math.max(0, suka), tidakSuka: Math.max(0, tidakSuka), sayaSuka };
+    });
+    simpanKePenyimpanan(berikut);
+    setUlasan(berikut);
     siarkanPerubahan();
   }, []);
 

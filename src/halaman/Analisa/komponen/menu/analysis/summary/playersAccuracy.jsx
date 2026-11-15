@@ -24,6 +24,7 @@ import { langkahTerpaksa } from "../../../../mesin/evaluasi.js";
  */
 import { akurasiMove, pemainDariEntri } from "../../../../mesin/akurasi.js";
 import { avg } from "./playersAccuracyData.js";
+import { TooltipLabel } from "../../../../../../components/ui/tooltip.jsx";
 
 /** Akurasi siap tampil; "-" bila belum ada langkah yang bisa dinilai. */
 function formatAkurasi(nilai) {
@@ -124,7 +125,9 @@ function PlayersAccuracy(props) {
                 </div>
             </div>
             <div className="flex flex-row w-full justify-between items-center">
-                <span className="text-sm font-semibold text-foregroundGrey" title={t("analisa.ringkasan.akurasiMetode")}>{t("analisa.ringkasan.akurasi")}</span>
+                <TooltipLabel label={t("analisa.ringkasan.akurasiMetode")}>
+                  <span tabIndex={0} className="text-sm font-semibold text-foregroundGrey">{t("analisa.ringkasan.akurasi")}</span>
+                </TooltipLabel>
                 <div className="flex flex-row reduceSummary:w-[262px] w-[160px] justify-between">
                     <RatingBox fontSize={props.reducedSummary ? 18 : void 0} width={props.reducedSummary ? 64 : void 0} paddingY={props.reducedSummary ? 4 : void 0} white>{formatAkurasi(accuracy.w)}</RatingBox>
                     <RatingBox fontSize={props.reducedSummary ? 18 : void 0} width={props.reducedSummary ? 64 : void 0} paddingY={props.reducedSummary ? 4 : void 0}>{formatAkurasi(accuracy.b)}</RatingBox>

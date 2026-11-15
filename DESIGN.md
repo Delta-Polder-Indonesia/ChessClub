@@ -65,6 +65,7 @@ Dokumen ini adalah sumber kebenaran (*single source of truth*) untuk token desai
 - **Batas (Border):** Garis tegas `1px` (`border border-slate-200` atau `border-slate-300`).
 - **Radius:** `rounded` (4px) atau `rounded-lg` (8px). Hindari bentuk pill raksasa atau `rounded-3xl` yang kekanak-kanakan.
 - **Elevasi & Bayangan:** Gunakan bayangan netral tipis (`shadow-sm`) atau cukup border `1px` datar (*flat restrained*).
+- **Rating & ulasan — aturan khusus:** Kartu ulasan harus datar tanpa efek mengambang/bayangan. Waktu relatif (mis. “2 hari yang lalu”) tampil sebagai teks polos, bukan badge/chip/pill atau latar berwarna. Tombol suka/tidak suka tidak memakai latar kapsul/kartu, termasuk saat hover/aktif; state aktif hanya mengubah warna ikon jempol dan angka. Indikator fokus keyboard tetap dipertahankan.
 
 ---
 
@@ -152,6 +153,18 @@ Rincian teknis berada di `.agents/skills/kci-frontend/references/standar-media.m
 - Form mempunyai label serta state error, success, disabled, dan loading yang jelas.
 - Motion menghormati `prefers-reduced-motion`; konten tetap terlihat ketika animasi gagal atau dimatikan.
 - Semua teks memenuhi WCAG AA.
+
+### Penempatan notifikasi dan pola validasi form
+
+- Toast/notifikasi sementara tidak boleh menambah tinggi alur dokumen, menggeser konten, atau menutupi kontrol penting. Gunakan pola notifikasi bersama yang sudah ada; tampilkan pada area overlay yang konsisten dan tidak bertumpuk dengan header, navigasi, CTA, atau kontrol mengambang.
+- **Kesalahan validasi yang berasal dari field harus ditampilkan inline pada field tersebut, bukan sebagai kartu/banner terpisah untuk seluruh form.** Jangan menampilkan kotak merah berisi kalimat seperti “Silakan pilih bintang terlebih dahulu” di antara field dan tombol submit, di bagian atas/bawah form, atau di lokasi kosong lain. Error generik yang tidak terikat ke field adalah pengecualian dan harus memakai pola status bersama, tidak meniru validasi field.
+- Pola inline yang diperbolehkan: label field yang bermasalah memakai warna error; border input/textarea atau kontrol terkait memakai warna error; untuk textarea boleh ada latar merah sangat pucat sebagai penanda halus; lalu pesan singkat berwarna error ditempatkan tepat setelah kontrol (di bawah input/textarea, atau di bawah kelompok kontrol seperti rating). Pesan berupa teks biasa—tanpa panel/kartu/banner, border kotak, bayangan, ikon dekoratif, atau latar merah yang kuat. Contoh: label “Ulasan Anda” dan tepi textarea berubah merah muda-merah, kemudian “Tulis ulasan Anda terlebih dahulu.” tampil di bawah textarea.
+- Jangan mengandalkan warna saja: pesan harus menyebut masalah dan tindakan yang diperlukan. Hubungkan teks ke kontrol dengan `aria-describedby`, tandai kontrol invalid dengan `aria-invalid="true"`, dan gunakan `role="alert"` atau live region yang sesuai agar perubahan diumumkan tanpa mengganggu. Untuk kelompok non-input seperti rating, berikan nama aksesibel pada kelompok dan asosiasikan pesan error dengannya.
+- Validasi hanya ditampilkan setelah ada aksi validasi yang sesuai (misalnya submit); hapus error field itu segera setelah nilainya valid. Jangan menghapus error field lain yang belum diperbaiki.
+- Pesan validasi tidak boleh menimpa label, input, helper text, atau penghitung karakter. Sediakan slot/ruang minimum yang stabil bila pesan muncul dinamis agar layout tidak meloncat; jika pesan panjang membungkus pada layar sempit, biarkan tinggi slot bertambah secara alami tanpa overflow horizontal.
+- Pastikan pesan tetap terlihat dan dapat digunakan pada desktop maupun ponsel, tidak keluar viewport, dan punya semantik aksesibel. Jangan menambahkan toast/banner untuk mengulang error yang sudah dijelaskan dekat field.
+- Dilarang meletakkan notifikasi secara acak hanya karena ada ruang kosong. Pilih lokasi dengan hierarki dan whitespace yang rapi, konsisten, dan profesional.
+- Pada setiap perubahan halaman, audit notifikasi yang tampil di halaman tersebut. Perbaiki notifikasi yang jelas menggeser, menutupi, atau merusak layout bila perbaikannya aman dan lokal. Jika perbaikan membutuhkan perubahan lintas halaman atau mengubah alur yang tidak terkait, laporkan temuan dan dampaknya kepada pengguna sebelum memperluas cakupan.
 
 ---
 

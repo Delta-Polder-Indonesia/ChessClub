@@ -56,6 +56,8 @@ export const landing = {
       "Materi belajar yang ditulis dan dikurasi anggota, dari fundamental opening sampai endgame teoretis. Semua gratis diunduh.",
     pustakaKeterangan:
       "Jelajahi koleksi e-book catur lengkap mulai dari materi dasar, taktik, pembukaan (opening), hingga strategi endgame. Pilih salah satu judul untuk membaca langsung di peramban, atau unduh berkasnya secara gratis untuk dipelajari kapan saja secara mandiri.",
+    lihatSemuaEbookJudul: "Lihat Semua Ebook",
+    lihatSemuaEbookDesk: "Jelajahi seluruh koleksi e-book catur",
     kartu1Judul: "Program Sekolah Catur",
     kartu1Desk: "Jelajahi program pendidikan dan pelatihan catur yang kami sediakan untuk seluruh kalangan.",
     kartu2Judul: "Turnamen Berkala",
@@ -91,7 +93,7 @@ export const landing = {
     ajakanDeskripsi:
       "Lengkapi data diri Anda dan mulailah mengikuti turnamen rutin, kelas pembinaan, serta sesi latihan papan interaktif bersama Komunitas Catur Indonesia.",
     ajakanTombol: "Daftar Sekarang",
-    alatLatihanJudul: "Semua yang Anda perlukan untuk memahami sebuah posisi",
+    alatLatihanJudul: "Alat Latihan",
     alatTekaTekiJudul: "Teka-teki Catur",
     alatTekaTekiDesk:
       "5.486 soal skakmat satu sampai tiga langkah dari basis data puzzle Lichess, tiap soal berlabel rating, tema, dan pemain asalnya.",
@@ -191,13 +193,14 @@ export const landing = {
       berikutnya: "Berikutnya",
       verifikasi:
         "Rating diverifikasi dari pengunjung yang telah mencoba fitur di perangkat yang sama dengan Anda. Ulasan Anda disimpan secara lokal di perangkat ini.",
+      beriTahuSelengkapnya: "Beri tahu selengkapnya (opsional)",
+      surveiKerjaTim: "Apakah website ini berfokus pada kerja tim dan kerja sama?",
+      surveiTampilanPonsel: "Apakah di ponsel Anda konten terasa tidak beraturan saat menggunakan website ini?",
+      surveiIklanJudi: "Apakah Anda melihat iklan judi online di website ini?",
+      surveiTidak: "Tidak",
+      surveiTidakYakin: "Tidak yakin",
+      surveiYa: "Ya",
       beriBintang: "Beri bintang untuk aplikasi ini",
-      bagaimanaPengalaman: "Bagaimana pengalaman Anda?",
-      emoji1: "Buruk sekali",
-      emoji2: "Buruk",
-      emoji3: "Biasa saja",
-      emoji4: "Bagus",
-      emoji5: "Luar biasa",
       namaLabel: "Nama Anda",
       opsional: "opsional",
       namaPlaceholder: "Nama yang ditampilkan (kosong = Tamu)",

@@ -74,9 +74,27 @@ Halaman konten tidak memakai card operasional dari `components/ui`. Gunakan sect
 - Hindari `shadow-*` untuk section/blok konten biasa.
 - Card khusus fitur tetap berada di domain fitur dan tidak menjadi contoh artikel.
 
+### Rating & ulasan
+
+- Kartu ulasan bergaya datar: tanpa `shadow-*` atau efek mengambang.
+- Waktu relatif (contoh: “2 hari yang lalu”) adalah teks biasa, bukan badge/chip/pill dan tanpa latar khusus.
+- Tombol suka/tidak suka tidak memakai latar kapsul/kartu pada state normal, hover, maupun aktif. State aktif ditunjukkan lewat warna ikon jempol dan angka; ring fokus keyboard tetap boleh digunakan.
+
 ## Form
 
 Form mengikuti keluarga alurnya, bukan standar artikel. Halaman konten biasa tidak membuat form dekoratif. Program non-catur, pendaftaran, dan Pengurus mempertahankan komponen domainnya; kontrol catur reusable berasal dari `Analisa/komponen/`.
+
+## Notifikasi dan validasi form
+
+- Sebelum menambah toast/notifikasi, gunakan pola atau primitive bersama yang sudah ada; jangan menempatkannya secara acak di alur konten.
+- Notifikasi sementara harus berada pada lapisan overlay yang konsisten dan tidak mengubah tinggi/posisi layout, menutupi header, CTA, navigasi, atau kontrol penting.
+- **Error validasi field wajib inline di samping field terkait; jangan tampilkan kartu/banner merah terpisah untuk error yang spesifik pada field.** Hindari kotak besar seperti “Silakan pilih bintang terlebih dahulu” yang disisipkan di antara field dan tombol submit atau di ruang kosong form.
+- Tampilan inline yang diperbolehkan: label field bermasalah berwarna error; border kontrol terkait berwarna error; textarea boleh memakai latar error yang sangat pucat; pesan teks error biasa berada tepat di bawah kontrol atau kelompok kontrol (misalnya di bawah baris bintang). Pesan tidak memakai panel/kartu, border kotak, shadow, ikon dekoratif, atau latar merah pekat.
+- Pesan harus menjelaskan masalah dan cara memperbaikinya; jangan mengandalkan warna saja. Hubungkan pesan ke input dengan `aria-describedby`, tandai `aria-invalid="true"`, dan pilih `role="alert"`/live region yang sesuai. Kelompok kontrol non-input harus memiliki nama aksesibel dan asosiasi pesan error.
+- Tampilkan setelah aksi validasi (mis. submit), bersihkan error hanya ketika field terkait sudah valid, dan jangan menghapus kesalahan field lain yang belum diperbaiki.
+- Sisakan slot stabil bila validasi muncul dinamis. Jangan menimpa label, input, helper, atau penghitung; teks panjang boleh menambah tinggi alami pada layar kecil tetapi tidak boleh menyebabkan overflow horizontal.
+- Jangan menggandakan validasi field sebagai toast/banner global. Error non-field yang benar-benar global harus memakai pola status bersama yang telah ditetapkan.
+- Uji desktop dan ponsel; pesan tidak boleh keluar layar atau menimbulkan overflow. Saat memodifikasi halaman, periksa notifikasi yang ada. Perbaiki gangguan lokal yang aman; jika perlu perubahan lintas halaman atau berisiko mengubah alur di luar tugas, laporkan temuan dan dampaknya sebelum memperluas cakupan.
 
 ## Tabel dan data
 
