@@ -200,7 +200,7 @@ export default function RatingUlasan() {
         </div>
 
         {/* 2. Kepala "Rating dan ulasan" + panah ke halaman daftar */}
-        <div className="mt-10 flex items-center justify-between gap-3">
+        <div className="mt-10 flex w-full items-center justify-between gap-3 md:max-w-[52%]">
           <h2 className="font-sans text-xl font-semibold text-foreground md:text-2xl">
             {t("landing.rating.judul")}
           </h2>
@@ -212,7 +212,7 @@ export default function RatingUlasan() {
             <PanahKanan className="size-5" />
           </Link>
         </div>
-        <p className="mt-2 flex items-start gap-1.5 font-sans text-sm text-foregroundGrey">
+        <p className="mt-2 flex w-full items-start gap-1.5 font-sans text-sm text-foregroundGrey md:max-w-[52%]">
           <IkonInfo className="mt-0.5 size-4 flex-none" />
           <span>{t("landing.rating.subJudul")}</span>
         </p>
