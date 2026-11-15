@@ -134,7 +134,7 @@ function KaruselUlasan({ t, ulasan, padaVote }) {
   );
 }
 
-export default function RatingUlasan() {
+export default function RatingUlasan({ tertanam = false }) {
   const { t, locale } = useI18n();
   const { urut, vote, total } = useUlasan();
   const navigate = useNavigate();
@@ -178,8 +178,8 @@ export default function RatingUlasan() {
   const untukKarusel = urut.slice(0, 10);
 
   return (
-    <section className="w-full px-6 md:px-8 xl:px-0 py-16">
-      <div className="mx-auto max-w-[1080px] xl:max-w-7xl">
+    <section className={`w-full ${tertanam ? "" : "px-6 py-16 md:px-8 xl:px-0"}`}>
+      <div className={`mx-auto w-full ${tertanam ? "" : "max-w-[1080px] xl:max-w-7xl"}`}>
 
         {/* 1. Hero "Beri rating aplikasi ini" */}
         <div className="flex flex-col items-start gap-3">

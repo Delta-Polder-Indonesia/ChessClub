@@ -11,10 +11,6 @@ export const landing = {
   harianDesk:
     "The five latest Chess.com puzzles are playable right here on this board — no account, nothing to download. Solve all five, then keep training with Blunder Skuad.",
   harianEdisi: "{tanggal} edition",
-  harianCta: "Open the puzzle page",
-  harianSumber: "View on Chess.com",
-  harianGiliranPutih: "White to move — find the best move.",
-  harianGiliranHitam: "Black to move — find the best move.",
   harianKemajuan: "{n}/{total} puzzles played today",
   harianKartuJudulMulai: "Start with the first puzzle",
   harianKartuJudulLanjut: "Keep it up!",
