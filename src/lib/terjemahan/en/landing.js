@@ -56,6 +56,8 @@ export const landing = {
       "Learning materials written and curated by members, from opening fundamentals to theoretical endgames. All free to download.",
     pustakaKeterangan:
       "Browse the complete chess e-book collection, from basic material and tactics to openings and endgames. Pick any title to read it directly in the browser, or download the file free to study on your own time.",
+    lihatSemuaEbookJudul: "See All E-Books",
+    lihatSemuaEbookDesk: "Browse the entire chess e-book collection",
     kartu1Judul: "Chess School Program",
     kartu1Desk: "Explore the chess education and training programs we provide for everyone.",
     kartu2Judul: "Regular Tournaments",

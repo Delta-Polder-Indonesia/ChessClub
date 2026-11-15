@@ -214,8 +214,10 @@ function LandingHero({ t }) {
   );
 }
 
-/** Sampul e-book untuk karusel kartu — bergantian mengikuti kartu aktif. */
-const KARTU_GAMBAR = DAFTAR_EBOOK.map((b) => ({
+/** Sampul e-book untuk karusel kartu — bergantian mengikuti kartu aktif.
+ *  Dibatasi 4 judul pertama agar selaras dengan karusel di bawahnya
+ *  (4 kartu e-book + 1 kartu penutup "Lihat Semua Ebook"). */
+const KARTU_GAMBAR = DAFTAR_EBOOK.slice(0, 4).map((b) => ({
   id: b.id,
   judul: b.judul,
   img: gambar(COVER[b.id]),
@@ -306,100 +308,72 @@ function CardGambar({ index, t }) {
   );
 }
 
-/** Karusel kartu program — kartu adalah tautan nyata ke halamannya. */
+/** Karusel kartu e-book — 4 kartu e-book + 1 kartu penutup
+ *  "Lihat Semua Ebook" di ujungnya. Kartu adalah tautan nyata ke
+ *  halamannya; kartu penutup menuju katalog /program-kami/ebook-panduan.
+ *  Karusel ini berujung (finite): tombol mundur/maju nonaktif di
+ *  ujungnya, tidak berputar tak berujung seperti versi sebelumnya. */
 function CardCarousel({ index, setIndex, t }) {
-  const kartu = DAFTAR_EBOOK.map((b) => ({
-    to: `/program-kami/ebook-panduan/${b.id}`,
-    judul: b.judul,
-    desk: b.kategori,
-  }));
+  const kartu = [
+    ...DAFTAR_EBOOK.slice(0, 4).map((b) => ({
+      to: `/program-kami/ebook-panduan/${b.id}`,
+      judul: b.judul,
+      desk: b.kategori,
+      penghujung: false,
+    })),
+    {
+      to: "/program-kami/ebook-panduan",
+      judul: t("landing.lihatSemuaEbookJudul"),
+      desk: t("landing.lihatSemuaEbookDesk"),
+      penghujung: true,
+    },
+  ];
   const n = kartu.length;
-  const mid = n;
-  const [noAnim, setNoAnim] = useState(false);
+  const aktif = Math.min(Math.max(index, 0), n - 1);
   // 320px kartu + 14px gap = 334px langkah. Jendela 2 kartu penuh +
   // 160px (= separuh kartu ketiga) = 828px: muat di kolom kanan yang
   // lebarnya sekitar 940px pada layar 1440px, dan separuh kartu ketiga
   // sekaligus memberi tanda masih ada kelanjutannya.
   const CARD_W = 334;
   const JENDELA = 828;
-  // VIRTUALISASI: jangan render seluruh 3×n=96 kartu (960-an node DOM,
-  // ~60% dari total DOM landing). Hanya render jendela 6 kartu di
-  // sekitar posisi aktif: 1 kartu buffer ke kiri (untuk animasi keluar
-  // saat klik "mundur") + 3 kartu terlihat (2 penuh + 1 separuh) +
-  // 2 kartu buffer ke kanan (animasi masuk saat klik "maju"). Sisanya
-  // digantikan spacer kiri dengan lebar `index * CARD_W` yang
-  // mendorong window render ke offset yang benar, sehingga
-  // `translateX(-index*CARD_W)` tetap mendarat pada posisi yang
-  // persis sama seperti versi 96 kartu. Catatan: index bergerak dalam
-  // rentang [0..3n) untuk seamless-loop, jadi kartu ke-i di track
-  // virtual = kartu[(i) mod n] (bukan kartu[i] seperti tripled lama).
-  const WINDOW_KIRI_BUFFER = 1;
-  const WINDOW_KANAN_BUFFER = 2;
-  const WINDOW_TERLIHAT = 4;
-  const start = Math.max(0, index - WINDOW_KIRI_BUFFER);
-  const end = Math.min(3 * n, index + WINDOW_TERLIHAT + WINDOW_KANAN_BUFFER);
-  const virtualKartu = [];
-  for (let i = start; i < end; i += 1) {
-    virtualKartu.push({ ...kartu[i % n], i });
-  }
-
-  // Karusel tak berujung: setelah transisi selesai, bila index keluar
-  // dari rentang [n..2n), lompat diam-diam ke posisi yang SETARA
-  // (kartu yang sama, index digeser n) tanpa animasi. Dalam jendela
-  // virtual lompatan ini seketika merender kartu yang benar pada
-  // posisi start baru, dan `noAnim` mencegah transition sehingga
-  // pengguna tidak melihat perubahan.
-  const handleEnd = (e) => {
-    if (e.propertyName !== "transform") return;
-    if (index >= mid * 2) {
-      setNoAnim(true);
-      setIndex(index - mid);
-    } else if (index < mid) {
-      setNoAnim(true);
-      setIndex(index + mid);
-    }
-  };
-
-  useEffect(() => {
-    if (!noAnim) return undefined;
-    // DUA requestAnimationFrame: frame pertama menjamin lompatan tanpa
-    // animasi sempat DIGAMBAR dulu sebelum kelas transisi dipasang lagi.
-    let id2 = 0;
-    const id1 = requestAnimationFrame(() => {
-      id2 = requestAnimationFrame(() => setNoAnim(false));
-    });
-    return () => {
-      cancelAnimationFrame(id1);
-      if (id2) cancelAnimationFrame(id2);
-    };
-  }, [noAnim]);
+  // Geseran maksimum supaya kartu penutup berhenti pas di tepi kanan
+  // jendela, bukan melompat jauh menyisakan ruang kosong.
+  const GESER_MAKS = Math.max(0, n * CARD_W - JENDELA);
+  const geser = Math.min(aktif * CARD_W, GESER_MAKS);
 
   return (
     <div className="w-full order-2 mt-8 px-6 md:px-0 overflow-hidden">
       <div className="overflow-hidden max-w-full mx-auto" style={{ maxWidth: `${JENDELA}px` }}>
         <div
           // Jarak antar kartu WAJIB 14px — nilai ini harus cocok dengan CARD_W (320+14).
-          className={`flex gap-[14px] ${noAnim ? "" : "transition-transform duration-500 ease-in-out"}`}
-          style={{ transform: `translateX(-${index * CARD_W}px)` }}
-          onTransitionEnd={handleEnd}
+          className="flex gap-[14px] transition-transform duration-500 ease-in-out"
+          style={{ transform: `translateX(-${geser}px)` }}
         >
-          {/* Spacer kiri mengisi ruang kartu yang tidak dirender di kiri
-              window. Flex gap tidak termasuk di spacer karena hanya muncul
-              di antara elemen flex yang benar-benar dirender — jadi
-              spacer lebarnya `start * CARD_W` (kartu 320px + gap 14px
-              berikutnya) dan kartu pertama di window mulai di posisi
-              yang benar. */}
-          {start > 0 && <div aria-hidden="true" style={{ width: `${start * CARD_W}px`, flex: "none" }} />}
-          {virtualKartu.map((k) => {
-            const isActive = k.i === index;
-            const terlihat = k.i >= index && k.i <= index + 2;
+          {kartu.map((k, i) => {
+            const isActive = i === aktif;
+            if (k.penghujung) {
+              return (
+                <Link
+                  key="lihat-semua-ebook"
+                  to={k.to}
+                  title={k.judul}
+                  className="flex-none w-[320px] h-[168px] pt-[18px] px-[18px] pb-[14px] rounded-lg border gap-[14px] flex flex-col items-center justify-center text-center relative cursor-pointer bg-primary border-primary text-white hover:bg-primary/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                >
+                  <h3 className="font-sans text-[1.0625rem] font-semibold leading-[1.35] text-balance text-white">
+                    {k.judul}
+                  </h3>
+                  <p className="font-serif text-sm leading-[1.6] text-pretty text-white/80">
+                    {k.desk}
+                  </p>
+                  <ArrowRightIcon className="size-6 shrink-0 text-white" />
+                </Link>
+              );
+            }
             return (
               <Link
-                key={`${k.judul}-${k.i}`}
+                key={`${k.judul}-${i}`}
                 to={k.to}
                 title={k.judul}
-                tabIndex={terlihat ? undefined : -1}
-                aria-hidden={!terlihat || undefined}
                 className={`flex-none w-[320px] h-[168px] pt-[18px] px-[18px] pb-[14px] rounded-lg border gap-[14px] flex flex-col justify-between relative cursor-pointer ${
                   isActive
                     ? "bg-primary border-primary text-white"
@@ -429,16 +403,18 @@ function CardCarousel({ index, setIndex, t }) {
         <button
           type="button"
           aria-label={t("landing.sebelumnya")}
-          onClick={() => setIndex((i) => i - 1)}
-          className="w-10 h-10 flex items-center justify-center bg-white border border-grey-300 rounded-lg hover:bg-primary hover:border-primary transition-colors group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          disabled={aktif <= 0}
+          onClick={() => setIndex((i) => Math.max(0, i - 1))}
+          className="w-10 h-10 flex items-center justify-center bg-white border border-grey-300 rounded-lg hover:bg-primary hover:border-primary transition-colors group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-white disabled:hover:border-grey-300"
         >
           <ArrowRightIcon className="size-6 text-grey-600 rotate-180 group-hover:text-white transition-colors" />
         </button>
         <button
           type="button"
           aria-label={t("landing.selanjutnya")}
-          onClick={() => setIndex((i) => i + 1)}
-          className="w-10 h-10 flex items-center justify-center bg-white border border-grey-300 rounded-lg hover:bg-primary hover:border-primary transition-colors group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          disabled={aktif >= n - 1}
+          onClick={() => setIndex((i) => Math.min(n - 1, i + 1))}
+          className="w-10 h-10 flex items-center justify-center bg-white border border-grey-300 rounded-lg hover:bg-primary hover:border-primary transition-colors group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-white disabled:hover:border-grey-300"
         >
           <ArrowRightIcon className="size-6 text-grey-600 group-hover:text-white transition-colors" />
         </button>
@@ -448,7 +424,7 @@ function CardCarousel({ index, setIndex, t }) {
 }
 
 function BagianGambarKartu({ t }) {
-  const [index, setIndex] = useState(4);
+  const [index, setIndex] = useState(0);
   return (
     <section className="w-full relative py-16 overflow-hidden">
       <div className="w-full max-w-[1500px] mx-auto px-[clamp(22px,4vw,56px)] relative flex flex-col md:flex-row md:items-center gap-8 md:gap-12">
@@ -483,20 +459,13 @@ function BagianGambarKartu({ t }) {
             <p className="mt-8 font-serif text-[1rem] font-light leading-[1.6] text-grey-600 max-w-[72ch] text-pretty">
               {t("landing.pustakaKeterangan")}
             </p>
-            {/* Baris syarat dan tombol "Lihat kurikulum" ikut pindah ke sini
-                dari kartu unggulan seksi TigaJalan yang sudah dihapus,
-                karena yang ditunjuk adalah
-                katalog e-book ini sendiri: posisinya langsung di bawah
-                deskripsi katalog, bukan di seksi lain. */}
+            {/* Baris syarat katalog e-book. Tombol "Lihat kurikulum" yang
+                dulu ada di sini dihapus — digantikan kartu penutup
+                "Lihat Semua Ebook" di ujung karusel (CardCarousel),
+                yang menuju /program-kami/ebook-panduan. */}
             <p className="mt-6 font-serif text-[0.8125rem] text-grey-600">
               {t("landing.tigaJalanAkademiTerms")}
             </p>
-            <div className="mt-4">
-              <Tombol to="/program-kami/ebook-panduan" variant="garis">
-                {t("landing.tigaJalanAkademiCta")}
-                <ArrowRightIcon className="size-4" />
-              </Tombol>
-            </div>
             {/* Deretan kartu kecil pindah ke bawah deskripsi, di dalam kolom
                 kanan. Sebelumnya ikut_flow penuh di bawah kartu besar, sehingga
                 seksi setinggi kartu besar + carousel. Sekarang ruang kosong di

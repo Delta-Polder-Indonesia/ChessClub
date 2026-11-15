@@ -56,6 +56,8 @@ export const landing = {
       "Materi belajar yang ditulis dan dikurasi anggota, dari fundamental opening sampai endgame teoretis. Semua gratis diunduh.",
     pustakaKeterangan:
       "Jelajahi koleksi e-book catur lengkap mulai dari materi dasar, taktik, pembukaan (opening), hingga strategi endgame. Pilih salah satu judul untuk membaca langsung di peramban, atau unduh berkasnya secara gratis untuk dipelajari kapan saja secara mandiri.",
+    lihatSemuaEbookJudul: "Lihat Semua Ebook",
+    lihatSemuaEbookDesk: "Jelajahi seluruh koleksi e-book catur",
     kartu1Judul: "Program Sekolah Catur",
     kartu1Desk: "Jelajahi program pendidikan dan pelatihan catur yang kami sediakan untuk seluruh kalangan.",
     kartu2Judul: "Turnamen Berkala",
