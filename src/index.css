@@ -1104,13 +1104,6 @@ section[id] {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .bullet-progress {
-    animation: none;
-    transform: scaleX(1);
-  }
-}
-
 /* Sampul e-book yang baru aktif bergeser menggantikan sampul sebelumnya.
    Tanpa animasi ini karusel harus menyimpan SEMUA sampul di DOM (± 1,1 MB
    gambar) hanya supaya perpindahan tidak berkedip.
