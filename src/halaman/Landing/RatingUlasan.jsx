@@ -193,7 +193,7 @@ export default function RatingUlasan() {
             {t("landing.rating.ajakSub")}
           </p>
           <div
-            className="mt-6 flex flex-wrap items-center gap-1 sm:gap-2"
+            className="mt-6 flex flex-wrap items-center gap-1 sm:gap-3"
             role="radiogroup"
             aria-label={t("landing.rating.beriBintang")}
             onMouseLeave={() => setBintangDisorot(0)}
@@ -209,9 +209,9 @@ export default function RatingUlasan() {
                 onFocus={() => setBintangDisorot(n)}
                 onBlur={() => setBintangDisorot(0)}
                 onClick={() => pilihBintangHero(n)}
-                className="rounded p-1 text-grey-300 transition-transform duration-150 ease-out hover:scale-110 hover:text-yellow-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                className="rounded p-0 text-grey-300 transition-transform duration-150 ease-out hover:scale-110 hover:text-yellow-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 sm:p-1"
               >
-                <BintangPadat className={`size-8 sm:size-10 md:size-12 ${
+                <BintangPadat className={`size-10 sm:size-12 ${
                   nilaiBintangHero >= n ? "text-yellow-400" : "text-grey-300"
                 }`} />
               </button>
