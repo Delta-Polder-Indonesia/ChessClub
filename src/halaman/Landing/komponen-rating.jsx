@@ -254,7 +254,7 @@ export function KartuUlasan({ t, ulasan: u, padaVote, padat }) {
 /* ==================== Form tulis ulasan ==================== */
 function KartuPertanyaanSurvei({ id, pertanyaan, nilai, opsi, onPilih }) {
   return (
-    <fieldset className="w-full rounded-xl border border-grey-200 bg-transparent p-4 md:p-5">
+    <fieldset className="w-full rounded-xl border border-grey-200 bg-white p-4 md:p-5">
       <legend className="sr-only">{pertanyaan}</legend>
       <div className="min-h-[2.5rem]">
         <p aria-hidden="true" className="min-w-0 pt-0.5 font-sans text-sm font-semibold leading-5 text-foreground">
