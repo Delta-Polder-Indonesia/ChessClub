@@ -1,4 +1,6 @@
 /** Grafik garis tren rating sepanjang riwayat partai. */
+import { TooltipLabel } from "../../../../../components/ui/tooltip.jsx";
+
 function GrafikTrenRating({ points, t }) {
   if (!points || points.length === 0) {
     return (
@@ -74,11 +76,22 @@ function GrafikTrenRating({ points, t }) {
           {/* Trend line */}
           <polyline points={polylinePoints} fill="none" stroke="#81b64c" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
           {/* Data points */}
-           {coords.map((c, i) => (
-             <circle key={c.point.gameId || i} cx={c.x} cy={c.y} r={points.length > 50 ? 2 : 3.5} className="wawasan-dot">
-               <title>{`${c.point.date ? new Date(c.point.date * 1000).toLocaleDateString() : ""}: ${c.point.rating} (${c.point.result})`}</title>
-             </circle>
-           ))}
+          {coords.map((c, i) => {
+            const label = `${c.point.date ? new Date(c.point.date * 1000).toLocaleDateString() : ""}: ${c.point.rating} (${c.point.result})`;
+            return (
+              <TooltipLabel key={c.point.gameId || i} label={label}>
+                <circle
+                  cx={c.x}
+                  cy={c.y}
+                  r={points.length > 50 ? 2 : 3.5}
+                  tabIndex={0}
+                  role="img"
+                  aria-label={label}
+                  className="wawasan-dot"
+                />
+              </TooltipLabel>
+            );
+          })}
          </svg>
       </div>
     </div>

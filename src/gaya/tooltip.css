@@ -4,7 +4,9 @@
   --tooltip-bg: #1f1f1f;
   --tooltip-fg: #ffffff;
 
+  max-width: min(24rem, calc(100vw - 1.5rem));
   padding: 0.625rem 1.5rem;
+  overflow-wrap: anywhere;
   border-radius: 4px;
   background-color: var(--tooltip-bg);
   color: var(--tooltip-fg);
