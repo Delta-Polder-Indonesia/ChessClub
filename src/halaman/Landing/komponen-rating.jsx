@@ -303,16 +303,13 @@ export function FormUlasan({ t, bintangAwal = 0, onKirim, onBatal }) {
               className={`flex size-11 items-center justify-center rounded-lg text-2xl transition-all ${
                 (emoji ?? bintang) === item.value ? "scale-110 bg-backgroundBox" : "hover:bg-backgroundBox"
               }`}
-              aria-label={item.label} title={item.label}>
+              aria-label={item.label}
+              aria-pressed={(emoji ?? bintang) === item.value}
+              title={item.label}>
               {item.emoji}
             </button>
           ))}
         </div>
-        {emoji ? (
-          <p className="font-sans text-sm text-foregroundGrey">
-            {daftarEmoji.find((e) => e.value === emoji)?.label}
-          </p>
-        ) : null}
       </div>
       <div className="space-y-1.5">
         <label htmlFor="ulasan-nama" className="block font-sans text-sm font-semibold text-foreground">
