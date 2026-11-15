@@ -30,6 +30,8 @@ const TANPA_KERANGKA = [
   "/quiz-catur",
   "/papan-interaktif",
   "/hubungi-kami",
+  "/tulis-ulasan",
+  "/rating-ulasan",
 ];
 
 function tanpaKerangkaPath(pathname) {
