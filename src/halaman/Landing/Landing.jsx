@@ -59,6 +59,12 @@ function LandingHero({ t }) {
   const [index, setIndex] = useState(0);
   const [terjeda, setTerjeda] = useState(false);
   const kurangiGerak = Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches);
+  // Sisa waktu slide aktif saat jeda, supaya bar progres membeku di
+  // posisi terakhir (animation-play-state) dan timer lanjut tepat di
+  // sisa yang sama — bukan melompat penuh lalu mulai ulang dari nol.
+  const mulaiRef = useRef(0);
+  const sisaRef = useRef(SLIDE_DURATION);
+  const terakhirRef = useRef(0);
 
   /* Gambar hero = elemen LCP halaman. */
   const SLIDES = useMemo(() => [
@@ -71,10 +77,23 @@ function LandingHero({ t }) {
   ], []);
 
   useEffect(() => {
-    if (terjeda || kurangiGerak) return undefined;
+    // Slide baru (otomatis atau klik) mulai dari durasi penuh.
+    if (index !== terakhirRef.current) {
+      terakhirRef.current = index;
+      sisaRef.current = SLIDE_DURATION;
+    }
+    if (terjeda || kurangiGerak) {
+      // Jeda: simpan sisa waktu slide aktif.
+      if (mulaiRef.current) {
+        sisaRef.current = Math.max(0, sisaRef.current - (Date.now() - mulaiRef.current));
+        mulaiRef.current = 0;
+      }
+      return undefined;
+    }
+    mulaiRef.current = Date.now();
     const timer = window.setTimeout(() => {
       setIndex((i) => (i + 1) % SLIDES.length);
-    }, SLIDE_DURATION);
+    }, sisaRef.current);
     return () => window.clearTimeout(timer);
   }, [index, SLIDES.length, terjeda, kurangiGerak]);
 
@@ -199,9 +218,10 @@ function LandingHero({ t }) {
                 key={active ? `progress-${index}` : undefined}
                 className="bullet-progress absolute bottom-[-3px] border-b-[3px] border-blue-400 pointer-events-none"
                 style={
-                  active && !terjeda && !kurangiGerak
+                  active && !kurangiGerak
                     ? {
                         animation: `progressbar ${SLIDE_DURATION}ms linear forwards`,
+                        animationPlayState: terjeda ? "paused" : "running",
                       }
                     : { transform: active ? "scaleX(1)" : "scaleX(0)" }
                 }
