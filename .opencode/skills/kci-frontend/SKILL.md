@@ -62,6 +62,7 @@ Sebelum membuat atau mengubah UI:
 - muat `kci-anti-slop` dan jalankan checklist-nya sebelum selesai;
 - pada setiap perubahan halaman, audit notifikasi/toast/alert di halaman itu: jangan biarkan kemunculannya menggeser atau menutupi layout; perbaiki gangguan lokal yang aman, dan laporkan sebelum perubahan lintas halaman;
 - untuk validasi form, jangan membuat kartu/banner error global bagi kesalahan field: tandai field terkait dan letakkan teks error biasa tepat di bawahnya sesuai pola di `DESIGN.md` dan `references/standar-visual.md`;
+- untuk tugas optimasi performa, baca `references/standar-performa.md`; ukur baseline dahulu dan sesuaikan saran umum dengan Vite/Vercel/server yang benar-benar dipakai proyek;
 - gunakan Bahasa Indonesia untuk identifier dan copy sesuai konvensi proyek.
 
 Larangan ringkas: tanpa emoji, gradien dekoratif, glow, glassmorphism, card bertumpuk,
