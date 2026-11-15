@@ -180,11 +180,8 @@ export const landing = {
       judul: "Rating dan ulasan",
       subJudul:
         "Rating dan ulasan diverifikasi dan berasal dari orang yang menggunakan jenis perangkat yang sama dengan yang Anda gunakan",
-      ajakJudul: "Beri rating website ini",
-      ajakBadge: "Komunitas & Website Resmi",
-      ajakSub:
-        "Sampaikan pendapat Anda untuk membantu kami mengembangkan pengalaman catur digital bagi komunitas Indonesia.",
-      ajakCatatan: "Masukan Anda sangat berarti bagi kami",
+      ajakJudul: "Beri rating aplikasi ini",
+      ajakSub: "Sampaikan pendapat Anda",
       berdasarkan: "{n} ulasan",
       terpilih: "Anda memilih {n} dari 5 bintang.",
       tulisUlasan: "Tulis ulasan",
@@ -203,7 +200,7 @@ export const landing = {
       surveiTidak: "Tidak",
       surveiTidakYakin: "Tidak yakin",
       surveiYa: "Ya",
-      beriBintang: "Beri bintang untuk website ini",
+      beriBintang: "Beri bintang untuk aplikasi ini",
       namaLabel: "Nama Anda",
       opsional: "opsional",
       namaPlaceholder: "Nama yang ditampilkan (kosong = Tamu)",
