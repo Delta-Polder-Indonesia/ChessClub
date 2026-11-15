@@ -1,0 +1,227 @@
+/* Tablas de miembros, perfiles y clasificación. */
+
+/* Tabel daftar anggota — sederhana, dokumen korporat */
+.tabel-kci {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 8px 0 20px;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--color-grey-600);
+}
+.tabel-kci th {
+  text-align: left;
+  font-weight: 600;
+  color: var(--color-grey-800);
+  border-bottom: 1px solid var(--color-grey-200);
+  padding: 8px 16px 8px 0;
+  white-space: nowrap;
+}
+.tabel-kci td {
+  border-bottom: 1px solid var(--color-grey-200);
+  padding: 8px 16px 8px 0;
+  vertical-align: top;
+}
+/* Strip isian panel Juara: tanpa garis bawah agar rapat dengan tombol Simpan. */
+.tabel-kci.tanpa-garis-bawah th {
+  border-bottom: none;
+  padding-bottom: 2px;
+}
+.tabel-kci.tanpa-garis-bawah td {
+  border-bottom: none;
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+/* Garis tebal untuk panel pengurus (tabel-kci di halaman publik tetap tipis). */
+.tabel-kci.tabel-tebal {
+  border: 2px solid var(--color-grey-200);
+}
+.tabel-kci.tabel-tebal th {
+  border-bottom: 2px solid var(--color-grey-200);
+}
+.tabel-kci.tabel-tebal td {
+  border-bottom: 2px solid var(--color-grey-200);
+}
+.tabel-kci a {
+  text-decoration: underline;
+}
+.tabel-kci .foto-anggota {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  display: block;
+}
+.tabel-kci .foto-anggota-kosong {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-grey-200);
+  color: var(--color-grey-800);
+  font-size: 14px;
+  font-weight: 600;
+}
+.tabel-kci .elo-pilih {
+  white-space: nowrap;
+}
+
+/* Avatar pada popup profil anggota (Keanggotaan). */
+.foto-anggota {
+  border-radius: 9999px;
+}
+/* Foto potret ala KTP pada popup profil: kiri, info identitas di kanan. */
+.foto-ktp {
+  width: 96px;
+  height: 128px;
+  object-fit: cover;
+  display: block;
+  flex: none;
+  border-radius: 8px;
+}
+.foto-ktp.foto-anggota-kosong {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-grey-200);
+  color: var(--color-grey-800);
+  font-size: 28px;
+  font-weight: 600;
+}
+
+/* Tabel peringkat (Beranda → Peringkat).
+   Susunan kolom:
+   #  |  PROFILE  |  Nama  |  Rating  |  W/D/L  |  Game History  |  Chess.com  */
+.tabel-peringkat {
+  font-size: 14px;
+  line-height: 22px;
+  min-width: 880px;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.tabel-peringkat th,
+.tabel-peringkat td {
+  padding: 7px 14px 7px 0;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--color-grey-200);
+}
+.tabel-peringkat thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--color-grey-100);
+  border-bottom: 2px solid var(--color-grey-300);
+  padding-left: 10px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-grey-800);
+}
+.tabel-peringkat tbody td {
+  padding-left: 10px;
+}
+.tabel-peringkat tbody tr:nth-child(even) {
+  background: var(--color-grey-50);
+}
+.tabel-peringkat tbody tr:hover {
+  background: color-mix(in srgb, var(--color-primary) 6%, white);
+}
+
+/* Kolom angka: rata kanan & lebar tetap agar sejajar seperti aslinya. */
+.tabel-peringkat .kol-no {
+  width: 64px;
+  text-align: right;
+  color: var(--color-grey-500);
+  font-variant-numeric: tabular-nums;
+}
+.tabel-peringkat .kol-profile {
+  width: 56px;
+}
+.tabel-peringkat .kol-profile img,
+.tabel-peringkat .kol-profile span {
+  border-radius: 9999px;
+}
+.tabel-peringkat .kol-rating {
+  width: 88px;
+  text-align: center;
+  font-weight: 700;
+  color: var(--color-grey-800);
+  font-variant-numeric: tabular-nums;
+}
+.tabel-peringkat .kol-nama {
+  white-space: nowrap;
+  font-weight: 500;
+  color: var(--color-grey-800);
+}
+.tabel-peringkat .kol-wdl {
+  width: 110px;
+  text-align: center;
+  white-space: nowrap;
+}
+.tabel-peringkat .kol-wdl .rekap-wdl {
+  font-size: 12px;
+  color: var(--color-grey-500);
+  font-variant-numeric: tabular-nums;
+}
+.tabel-peringkat .kol-total {
+  width: 130px;
+  text-align: center;
+  font-weight: 600;
+  color: var(--color-grey-800);
+  font-variant-numeric: tabular-nums;
+}
+.tabel-peringkat .kol-akun {
+  white-space: nowrap;
+}
+.tabel-peringkat .kol-akun a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+.tabel-peringkat .kol-akun a:hover {
+  text-decoration: underline;
+}
+
+.tabel-kci .elo-pilih select {
+  font: inherit;
+  font-size: 14px;
+  color: var(--color-grey-600);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--color-grey-200);
+  padding: 0 4px 2px 0;
+  outline: none;
+}
+
+/* Tabel tingkatan kelompok rating pada tab Keanggotaan. */
+.tingkat-rating {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--color-grey-600);
+}
+
+.tingkat-rating th {
+  padding: 14px 16px;
+  background: var(--color-grey-50);
+  border-bottom: 1px solid var(--color-grey-200);
+  color: var(--color-grey-800);
+  text-align: left;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.tingkat-rating td {
+  padding: 15px 16px;
+  border-bottom: 1px solid var(--color-grey-200);
+  vertical-align: top;
+}
+
+.tingkat-rating tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.tingkat-rating tbody tr:hover {
+  background: var(--color-grey-50);
+}
+
