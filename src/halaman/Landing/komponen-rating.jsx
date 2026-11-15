@@ -143,7 +143,7 @@ export function DeretBintang({ nilai, ukuran = "md", onPilih, bisaUbah = false, 
             {isi > 0 && (
               <span className="pointer-events-none absolute inset-0 overflow-hidden"
                 style={{ width: `${isi * 100}%` }}>
-                <BintangPadat className={ukuranCls} style={{ width: "1em", height: "1em" }} />
+                <BintangPadat className={ukuranCls} />
               </span>
             )}
           </span>
