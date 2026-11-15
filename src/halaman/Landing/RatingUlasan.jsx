@@ -182,7 +182,7 @@ export default function RatingUlasan() {
       <div className="mx-auto max-w-[1080px] xl:max-w-7xl">
 
         {/* 1. Hero "Beri rating aplikasi ini" */}
-        <div className="flex flex-col items-start gap-3">
+        <div className="flex w-full flex-col items-start gap-3 rounded-2xl border border-grey-200 bg-white p-5 md:max-w-[52%]">
           <h3 className="font-sans text-xl font-semibold text-foreground md:text-2xl">
             {t("landing.rating.ajakJudul")}
           </h3>
