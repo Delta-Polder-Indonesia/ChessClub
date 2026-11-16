@@ -178,8 +178,18 @@ export const landing = {
     // Rating & ulasan
     rating: {
       judul: "Ratings and reviews",
+      judulSeksi: "Website ratings and reviews",
       subJudul:
-        "Ratings and reviews are verified and come from people using the same kind of device you are on",
+        "This section shows built-in sample reviews and guest feedback stored on this device.",
+      filterAria: "Filter reviews by rating",
+      filterSemuaAria: "Show all reviews ({n})",
+      filterBintangAria: "Show {n}-star reviews",
+      filterSemua: "All ({n})",
+      ringkasanJudul: "Rating summary",
+      ringkasanKeterangan: "Summary includes reviews stored on this device.",
+      daftarUlasanAria: "User reviews",
+      kosongFilter: "No {n}-star reviews yet.",
+      slide: "Slide {n}",
       ajakJudul: "Rate this app",
       ajakSub:
         "Share your feedback to help us grow the digital chess community in Indonesia.",

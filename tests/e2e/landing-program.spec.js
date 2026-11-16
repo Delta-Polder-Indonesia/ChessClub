@@ -58,6 +58,29 @@ for (const { jalur, alat } of [
   });
 }
 
+test("filter ulasan Landing bekerja dan seluruh teksnya mengikuti locale", async ({ page }) => {
+  test.setTimeout(90_000);
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await page.evaluate(() => localStorage.setItem("kci-bahasa", "id"));
+  await page.reload({ waitUntil: "domcontentloaded" });
+
+  const daftarId = page.locator('section[aria-label="Daftar ulasan pengguna"]');
+  await expect(page.getByRole("heading", { name: "Rating dan Ulasan website" })).toBeVisible();
+  await expect(page.getByRole("group", { name: "Filter ulasan berdasarkan rating" })).toBeVisible();
+  await expect(daftarId.locator("article")).toHaveCount(6);
+  await page.getByRole("button", { name: "Tampilkan ulasan dengan rating 5 bintang" }).click();
+  await expect(daftarId.locator("article")).toHaveCount(3);
+
+  await page.evaluate(() => localStorage.setItem("kci-bahasa", "en"));
+  await page.reload({ waitUntil: "domcontentloaded" });
+  const daftarEn = page.locator('section[aria-label="User reviews"]');
+  await expect(page.getByRole("heading", { name: "Website ratings and reviews" })).toBeVisible();
+  await expect(page.getByRole("group", { name: "Filter reviews by rating" })).toBeVisible();
+  await expect(daftarEn.locator("article")).toHaveCount(6);
+  await page.getByRole("button", { name: "Show 5-star reviews" }).click();
+  await expect(daftarEn.locator("article")).toHaveCount(3);
+});
+
 test("semua rute Landing & Program Kami tampil tanpa overflow horizontal dan tanpa galat JS", async ({ page }) => {
   test.setTimeout(120_000);
   const galat = [];
