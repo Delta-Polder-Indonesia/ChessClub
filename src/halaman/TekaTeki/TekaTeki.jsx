@@ -531,7 +531,6 @@ export default function TekaTeki() {
         onGantiTabPanel={setTabPanelAktif}
         videoGagal={videoGagal}
         onGalatVideo={() => setVideoGagal(true)}
-        onPutarVideo={() => {}}
         onBukaKoleksiVideo={() => pilihKoleksi("video")}
         mesin={{
           engineNyala,

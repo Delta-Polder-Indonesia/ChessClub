@@ -210,6 +210,26 @@ judul("struktur & higiene kode (statis)");
   );
 }
 
+judul("hasil filter kosong & handler video");
+{
+  const shell = readFileSync(path.join(DIR_HALAMAN, "komponen", "TekaTekiShell.jsx"), "utf8");
+  const panelVideo = readFileSync(path.join(DIR_HALAMAN, "komponen", "PanelVideo.jsx"), "utf8");
+  const halaman = readFileSync(path.join(DIR_HALAMAN, "TekaTeki.jsx"), "utf8");
+  const awalCabangKosong = shell.indexOf("if (kosong) {");
+  const akhirCabangKosong = shell.indexOf("\n  return (", awalCabangKosong + 1);
+  const cabangKosong = shell.slice(awalCabangKosong, akhirCabangKosong);
+  uji(
+    "sidebar filter tetap dirender saat hasil kosong",
+    awalCabangKosong >= 0 &&
+      cabangKosong.includes("<SidebarTekaTeki kol={kol} />") &&
+      cabangKosong.includes('role="status"')
+  );
+  uji(
+    "tidak ada lagi prop handler pemutaran video kosong",
+    !/onPutarVideo/.test(halaman + shell + panelVideo)
+  );
+}
+
 /* ------------------------------------------------- tata letak: baris profil */
 
 judul("tata letak: baris profil terpisah dari papan (regresi PR #228)");
