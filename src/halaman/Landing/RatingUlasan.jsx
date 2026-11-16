@@ -24,6 +24,7 @@ import { ArrowRight, PenSquare } from "lucide-react";
 import useEmblaCarousel from "embla-carousel-react";
 import { useI18n } from "../../lib/i18n.jsx";
 import { useUlasan } from "./gunakanUlasan.js";
+import { JUDUL_SEKSI, JUDUL_KARTU, LEAD_SEKSI } from "./gayaTeks.jsx";
 import {
   IkonInfo,
   KartuUlasan,
@@ -195,10 +196,10 @@ export default function RatingUlasan() {
         <section aria-labelledby="judul-daftar-ulasan" className="mb-8">
       <div className="flex flex-col gap-4 border-b border-grey-200 pb-5 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0">
-          <h2 id="judul-daftar-ulasan" className="font-sans text-xl font-semibold text-foreground sm:text-2xl">
+          <h2 id="judul-daftar-ulasan" className={JUDUL_SEKSI}>
             Rating dan Ulasan website
           </h2>
-          <p className="mt-2 flex max-w-3xl items-start gap-1.5 font-sans text-sm leading-relaxed text-foregroundGrey">
+          <p className={`mt-3 flex max-w-3xl items-start gap-2 ${LEAD_SEKSI}`}>
             <IkonInfo className="mt-0.5 size-4 flex-none" />
             <span>Rating dan ulasan diverifikasi dan berasal dari orang yang menggunakan jenis perangkat yang sama dengan yang Anda gunakan.</span>
           </p>
@@ -237,10 +238,10 @@ export default function RatingUlasan() {
         <div className="grid grid-cols-1 items-stretch gap-8 lg:grid-cols-2">
           {/* Kolom kiri: ajakan memberi rating */}
           <div className="flex w-full min-w-0 flex-col items-start rounded-lg border border-grey-200 bg-white p-6 sm:p-8">
-            <h3 className="font-sans text-2xl font-bold tracking-tight text-grey-800 sm:text-3xl">
+            <h3 className={JUDUL_KARTU}>
               {t("landing.rating.ajakJudul")}
             </h3>
-            <p className="mt-1.5 font-sans text-base text-foregroundGrey">
+            <p className="mt-2 font-serif text-base leading-[1.65] text-grey-600 text-pretty">
               {t("landing.rating.ajakSub")}
             </p>
             <PemilihBintang
@@ -273,10 +274,10 @@ export default function RatingUlasan() {
           {/* Kolom kanan: ringkasan rating dan navigasi ke seluruh ulasan */}
           <div className="w-full min-w-0 rounded-lg border border-grey-200 bg-white p-6 sm:p-8">
             <div className="flex items-center justify-between gap-3">
-              <h2 className="font-sans text-lg font-semibold text-foreground sm:text-xl">
+              <h3 className={JUDUL_KARTU}>
                 Ringkasan Penilaian
-              </h2>
-              <span className="shrink-0 font-sans text-xs text-foregroundGrey">
+              </h3>
+              <span className="shrink-0 font-sans text-[13px] leading-[1.5] text-grey-600">
                 {urut.length} ulasan
               </span>
             </div>
