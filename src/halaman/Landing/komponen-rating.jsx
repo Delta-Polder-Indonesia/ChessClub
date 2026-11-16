@@ -194,7 +194,7 @@ export function Ringkasan({ ulasan, locale }) {
   return (
     <div className="flex flex-col gap-5 md:flex-row md:items-center md:gap-8">
       <div className="flex flex-col items-center gap-1 md:min-w-[160px]">
-        <span className="font-sans text-5xl font-semibold leading-none text-foreground md:text-6xl">{rataTeks}</span>
+        <span className="font-sans text-4xl font-semibold leading-none text-foreground sm:text-5xl md:text-6xl">{rataTeks}</span>
         <DeretBintang nilai={rata} ukuran="md" />
         <span className="mt-0.5 font-sans text-sm text-foregroundGrey">{formatRibuan(total, locale)}</span>
       </div>

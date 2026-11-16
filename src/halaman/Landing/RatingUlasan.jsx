@@ -24,7 +24,7 @@ import { ArrowRight, PenSquare } from "lucide-react";
 import useEmblaCarousel from "embla-carousel-react";
 import { useI18n } from "../../lib/i18n.jsx";
 import { useUlasan } from "./gunakanUlasan.js";
-import { JUDUL_SEKSI, JUDUL_KARTU, LEAD_SEKSI } from "./gayaTeks.jsx";
+import { JUDUL_KARTU, LEAD_SEKSI } from "./gayaTeks.jsx";
 import {
   IkonInfo,
   KartuUlasan,
@@ -189,13 +189,16 @@ export default function RatingUlasan() {
   ).slice(0, 10);
 
   return (
-    <section className="w-full px-6 md:px-8 xl:px-0 py-16">
+    <section className="w-full px-6 py-10 md:px-8 md:py-16 xl:px-0 sm:py-12">
       <div className="mx-auto max-w-[1080px] xl:max-w-7xl">
 
-        <section aria-labelledby="judul-daftar-ulasan" className="mb-8">
-      <div className="flex flex-col gap-4 border-b border-grey-200 pb-5 sm:flex-row sm:items-end sm:justify-between">
+        <section aria-labelledby="judul-daftar-ulasan" className="mb-6 sm:mb-8">
+      <div className="flex flex-col gap-3 border-b border-grey-200 pb-4 sm:flex-row sm:items-end sm:justify-between sm:gap-4 sm:pb-5">
         <div className="min-w-0">
-          <h2 id="judul-daftar-ulasan" className={JUDUL_SEKSI}>
+          <h2
+            id="judul-daftar-ulasan"
+            className="font-serif font-light text-3xl leading-[1.04] tracking-normal text-grey-800 sm:text-4xl lg:text-[clamp(2.4rem,3.6vw,3.4rem)]"
+          >
             {t("landing.rating.judulSeksi")}
           </h2>
           <p className={`mt-3 flex max-w-3xl items-start gap-2 ${LEAD_SEKSI}`}>
@@ -236,9 +239,9 @@ export default function RatingUlasan() {
       </div>
         </section>
 
-        <div className="grid grid-cols-1 items-stretch gap-8 lg:grid-cols-2">
+        <div className="grid grid-cols-1 items-stretch gap-5 sm:gap-8 lg:grid-cols-2">
           {/* Kolom kiri: ajakan memberi rating */}
-          <div className="flex w-full min-w-0 flex-col items-start rounded-lg border border-grey-200 bg-white p-6 sm:p-8">
+          <div className="flex w-full min-w-0 flex-col items-start rounded-lg border border-grey-200 bg-white p-4 sm:p-6 md:p-8">
             <h3 className={JUDUL_KARTU}>
               {t("landing.rating.ajakJudul")}
             </h3>
@@ -254,9 +257,9 @@ export default function RatingUlasan() {
               labelUntuk={(n) => (n > 0
                 ? t(`landing.rating.labelBintang${n}`)
                 : t("landing.rating.pilihBintangPrompt"))}
-              className="mt-6 w-full"
+              className="mt-5 w-full sm:mt-6"
             />
-            <div className="mt-7 flex w-full items-center justify-between border-t border-grey-200 pt-4">
+            <div className="mt-5 flex w-full items-center justify-between border-t border-grey-200 pt-4 sm:mt-7">
               <button
                 type="button"
                 onClick={bukaHalamanTulis}
@@ -273,7 +276,7 @@ export default function RatingUlasan() {
           </div>
 
           {/* Kolom kanan: ringkasan rating dan navigasi ke seluruh ulasan */}
-          <div className="w-full min-w-0 rounded-lg border border-grey-200 bg-white p-6 sm:p-8">
+          <div className="w-full min-w-0 rounded-lg border border-grey-200 bg-white p-4 sm:p-6 md:p-8">
             <div className="flex items-center justify-between gap-3">
               <h3 className={JUDUL_KARTU}>
                 {t("landing.rating.ringkasanJudul")}
@@ -282,10 +285,10 @@ export default function RatingUlasan() {
                 {t("landing.rating.berdasarkan", { n: urut.length })}
               </span>
             </div>
-            <div className="mt-6">
+            <div className="mt-4 sm:mt-6">
               <Ringkasan ulasan={urut} locale={locale} />
             </div>
-            <div className="mt-6 flex flex-wrap items-center justify-between gap-2 border-t border-grey-200 pt-4 font-sans text-xs text-foregroundGrey">
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-grey-200 pt-4 font-sans text-xs text-foregroundGrey sm:mt-6">
               <span>{t("landing.rating.ringkasanKeterangan")}</span>
               <span className="font-medium text-grey-600">
                 {t("landing.rating.berdasarkan", { n: urut.length })}
@@ -294,8 +297,8 @@ export default function RatingUlasan() {
           </div>
         </div>
 
-        <section className="mt-8" aria-label={t("landing.rating.daftarUlasanAria")}>
-          <div className="mt-6">
+        <section className="mt-6 sm:mt-8" aria-label={t("landing.rating.daftarUlasanAria")}>
+          <div className="mt-4 sm:mt-6">
             {ulasanTampil.length ? (
               <KaruselUlasan t={t} ulasan={ulasanTampil} padaVote={vote} />
             ) : (
