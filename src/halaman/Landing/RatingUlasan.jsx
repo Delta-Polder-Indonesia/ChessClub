@@ -141,6 +141,7 @@ export default function RatingUlasan() {
   const navigate = useNavigate();
   const location = useLocation();
   const [toast, setToast] = useState(null);
+  const [filterBintang, setFilterBintang] = useState(0);
 
   // Baca bintang terpilih dari sessionStorage (bertahan jika user navigasi
   // sebelum klik "Tulis ulasan", dan reset saat tab ditutup).
@@ -224,33 +225,80 @@ export default function RatingUlasan() {
           </div>
 
           {/* Kolom kanan: ringkasan rating dan navigasi ke seluruh ulasan */}
-          <div className="w-full min-w-0">
-            <div className="flex w-full items-center justify-between gap-3">
-              <h2 className="font-sans text-xl font-semibold text-foreground md:text-2xl">
-                {t("landing.rating.judul")}
+          <div className="w-full min-w-0 rounded-lg border border-grey-200 bg-white p-6 sm:p-8">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="font-sans text-lg font-semibold text-foreground sm:text-xl">
+                Ringkasan Penilaian
               </h2>
-              <Link
-                to="/rating-ulasan"
-                aria-label={t("landing.rating.lihatSemua")}
-                className="flex size-10 flex-none items-center justify-center rounded-full bg-grey-200 text-foregroundGrey transition-colors hover:bg-grey-300 hover:text-foreground"
-              >
-                <PanahKanan className="size-5" />
-              </Link>
+              <span className="shrink-0 rounded-full bg-emerald-50 px-3 py-1 font-sans text-xs font-medium text-emerald-700">
+                {urut.length ? "Terverifikasi" : "Belum ada penilaian"}
+              </span>
             </div>
-            <p className="mt-2 flex w-full items-start gap-1.5 font-sans text-sm text-foregroundGrey">
-              <IkonInfo className="mt-0.5 size-4 flex-none" />
-              <span>{t("landing.rating.subJudul")}</span>
-            </p>
-            <div className="mt-5 w-full">
+            <div className="mt-6">
               <Ringkasan ulasan={urut} locale={locale} />
+            </div>
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-2 border-t border-grey-200 pt-4 font-sans text-xs text-foregroundGrey">
+              <span>Rating berdasarkan ulasan pengguna</span>
+              <span className="font-medium text-grey-600">{urut.length} ulasan</span>
             </div>
           </div>
         </div>
 
-        {/* Carousel tetap membentang selebar container di bawah kedua kolom */}
-        <div className="mt-8">
-          <KaruselUlasan t={t} ulasan={untukKarusel} padaVote={vote} />
-        </div>
+        <section className="mt-12" aria-labelledby="judul-daftar-ulasan">
+          <div className="flex flex-col gap-4 border-b border-grey-200 pb-5 sm:flex-row sm:items-end sm:justify-between">
+            <div className="min-w-0">
+              <h2 id="judul-daftar-ulasan" className="font-sans text-xl font-semibold text-foreground sm:text-2xl">
+                Rating dan Ulasan website
+              </h2>
+              <p className="mt-2 flex max-w-3xl items-start gap-1.5 font-sans text-sm leading-relaxed text-foregroundGrey">
+                <IkonInfo className="mt-0.5 size-4 flex-none" />
+                <span>Rating dan ulasan diverifikasi dan berasal dari orang yang menggunakan jenis perangkat yang sama dengan yang Anda gunakan.</span>
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Filter ulasan berdasarkan rating">
+              {[0, 5, 4, 3, 2, 1].map((nilai) => {
+                const aktif = filterBintang === nilai;
+                const jumlah = nilai === 0 ? total : urut.filter((u) => u.bintang === nilai).length;
+                return (
+                  <button
+                    key={nilai}
+                    type="button"
+                    aria-pressed={aktif}
+                    onClick={() => setFilterBintang(nilai)}
+                    className={`inline-flex min-h-9 items-center justify-center rounded-full border px-3 font-sans text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
+                      aktif
+                        ? "border-foreground bg-foreground text-white"
+                        : "border-grey-200 bg-white text-grey-600 hover:border-grey-400 hover:text-foreground"
+                    }`}
+                  >
+                    {nilai === 0 ? `Semua (${jumlah})` : `${nilai} ★`}
+                  </button>
+                );
+              })}
+              <Link
+                to="/rating-ulasan"
+                aria-label={t("landing.rating.lihatSemua")}
+                className="ml-1 flex size-9 flex-none items-center justify-center rounded-full border border-grey-200 text-foregroundGrey transition-colors hover:border-grey-400 hover:text-foreground"
+              >
+                <PanahKanan className="size-5" />
+              </Link>
+            </div>
+          </div>
+          <div className="mt-6">
+            {(() => {
+              const ulasanTampil = filterBintang === 0
+                ? untukKarusel
+                : untukKarusel.filter((u) => u.bintang === filterBintang);
+              return ulasanTampil.length ? (
+                <KaruselUlasan t={t} ulasan={ulasanTampil} padaVote={vote} />
+              ) : (
+                <p className="py-8 text-center font-sans text-sm text-foregroundGrey">
+                  Belum ada ulasan dengan penilaian {filterBintang} bintang.
+                </p>
+              );
+            })()}
+          </div>
+        </section>
 
         {total > 10 ? (
           <div className="mt-4 text-center">
