@@ -187,66 +187,68 @@ export default function RatingUlasan() {
     <section className="w-full px-6 md:px-8 xl:px-0 py-16">
       <div className="mx-auto max-w-[1080px] xl:max-w-7xl">
 
-        {/* 1. Hero "Beri rating aplikasi ini" */}
-        <div className="flex w-full flex-col items-start rounded-lg border border-grey-200 bg-white p-6 sm:p-8 md:max-w-[52%]">
-          <h3 className="font-sans text-2xl font-bold tracking-tight text-grey-800 sm:text-3xl">
-            {t("landing.rating.ajakJudul")}
-          </h3>
-          <p className="mt-1.5 font-sans text-base text-foregroundGrey">
-            {t("landing.rating.ajakSub")}
-          </p>
-          <PemilihBintang
-            nilai={bintangHero}
-            ukuran="xl"
-            onPilih={pilihBintangHero}
-            ariaLabel={t("landing.rating.beriBintang")}
-            labelSatuan={(n) => t("landing.rating.skalaBintang", { n })}
-            labelUntuk={(n) => (n > 0
-              ? t(`landing.rating.labelBintang${n}`)
-              : t("landing.rating.pilihBintangPrompt"))}
-            className="mt-6 w-full"
-          />
-          <div className="mt-7 flex w-full items-center justify-between border-t border-grey-200 pt-4">
-            <button
-              type="button"
-              onClick={bukaHalamanTulis}
-              className="group inline-flex items-center gap-2 font-sans text-sm font-semibold text-primary transition sm:text-base"
-            >
-              <PenSquare className="size-4" aria-hidden="true" />
-              <span>{t("landing.rating.tulisUlasan")}</span>
-              <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
-            </button>
-            <span className="hidden font-sans text-xs text-foregroundGrey sm:inline">
-              {t("landing.rating.ajakCatatan")}
-            </span>
+        <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-2">
+          {/* Kolom kiri: ajakan memberi rating */}
+          <div className="flex w-full min-w-0 flex-col items-start rounded-lg border border-grey-200 bg-white p-6 sm:p-8">
+            <h3 className="font-sans text-2xl font-bold tracking-tight text-grey-800 sm:text-3xl">
+              {t("landing.rating.ajakJudul")}
+            </h3>
+            <p className="mt-1.5 font-sans text-base text-foregroundGrey">
+              {t("landing.rating.ajakSub")}
+            </p>
+            <PemilihBintang
+              nilai={bintangHero}
+              ukuran="xl"
+              onPilih={pilihBintangHero}
+              ariaLabel={t("landing.rating.beriBintang")}
+              labelSatuan={(n) => t("landing.rating.skalaBintang", { n })}
+              labelUntuk={(n) => (n > 0
+                ? t(`landing.rating.labelBintang${n}`)
+                : t("landing.rating.pilihBintangPrompt"))}
+              className="mt-6 w-full"
+            />
+            <div className="mt-7 flex w-full items-center justify-between border-t border-grey-200 pt-4">
+              <button
+                type="button"
+                onClick={bukaHalamanTulis}
+                className="group inline-flex items-center gap-2 font-sans text-sm font-semibold text-primary transition sm:text-base"
+              >
+                <PenSquare className="size-4" aria-hidden="true" />
+                <span>{t("landing.rating.tulisUlasan")}</span>
+                <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
+              </button>
+              <span className="hidden font-sans text-xs text-foregroundGrey sm:inline">
+                {t("landing.rating.ajakCatatan")}
+              </span>
+            </div>
+          </div>
+
+          {/* Kolom kanan: ringkasan rating dan navigasi ke seluruh ulasan */}
+          <div className="w-full min-w-0">
+            <div className="flex w-full items-center justify-between gap-3">
+              <h2 className="font-sans text-xl font-semibold text-foreground md:text-2xl">
+                {t("landing.rating.judul")}
+              </h2>
+              <Link
+                to="/rating-ulasan"
+                aria-label={t("landing.rating.lihatSemua")}
+                className="flex size-10 flex-none items-center justify-center rounded-full bg-grey-200 text-foregroundGrey transition-colors hover:bg-grey-300 hover:text-foreground"
+              >
+                <PanahKanan className="size-5" />
+              </Link>
+            </div>
+            <p className="mt-2 flex w-full items-start gap-1.5 font-sans text-sm text-foregroundGrey">
+              <IkonInfo className="mt-0.5 size-4 flex-none" />
+              <span>{t("landing.rating.subJudul")}</span>
+            </p>
+            <div className="mt-5 w-full">
+              <Ringkasan ulasan={urut} locale={locale} />
+            </div>
           </div>
         </div>
 
-        {/* 2. Kepala "Rating dan ulasan" + panah ke halaman daftar */}
-        <div className="mt-10 flex w-full items-center justify-between gap-3 md:max-w-[52%]">
-          <h2 className="font-sans text-xl font-semibold text-foreground md:text-2xl">
-            {t("landing.rating.judul")}
-          </h2>
-          <Link
-            to="/rating-ulasan"
-            aria-label={t("landing.rating.lihatSemua")}
-            className="flex size-10 items-center justify-center rounded-full bg-grey-200 text-foregroundGrey transition-colors hover:bg-grey-300 hover:text-foreground"
-          >
-            <PanahKanan className="size-5" />
-          </Link>
-        </div>
-        <p className="mt-2 flex w-full items-start gap-1.5 font-sans text-sm text-foregroundGrey md:max-w-[52%]">
-          <IkonInfo className="mt-0.5 size-4 flex-none" />
-          <span>{t("landing.rating.subJudul")}</span>
-        </p>
-
-        {/* 3. Ringkasan */}
-        <div className="mt-5 w-full md:max-w-[52%]">
-          <Ringkasan ulasan={urut} locale={locale} />
-        </div>
-
-        {/* 4. Carousel kartu ulasan */}
-        <div className="mt-6">
+        {/* Carousel tetap membentang selebar container di bawah kedua kolom */}
+        <div className="mt-8">
           <KaruselUlasan t={t} ulasan={untukKarusel} padaVote={vote} />
         </div>
 
