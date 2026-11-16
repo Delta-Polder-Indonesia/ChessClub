@@ -192,6 +192,48 @@ export default function RatingUlasan() {
     <section className="w-full px-6 md:px-8 xl:px-0 py-16">
       <div className="mx-auto max-w-[1080px] xl:max-w-7xl">
 
+        <section aria-labelledby="judul-daftar-ulasan" className="mb-8">
+      <div className="flex flex-col gap-4 border-b border-grey-200 pb-5 sm:flex-row sm:items-end sm:justify-between">
+        <div className="min-w-0">
+          <h2 id="judul-daftar-ulasan" className="font-sans text-xl font-semibold text-foreground sm:text-2xl">
+            Rating dan Ulasan website
+          </h2>
+          <p className="mt-2 flex max-w-3xl items-start gap-1.5 font-sans text-sm leading-relaxed text-foregroundGrey">
+            <IkonInfo className="mt-0.5 size-4 flex-none" />
+            <span>Rating dan ulasan diverifikasi dan berasal dari orang yang menggunakan jenis perangkat yang sama dengan yang Anda gunakan.</span>
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Filter ulasan berdasarkan rating">
+          {[0, 5, 4, 3, 2, 1].map((nilai) => {
+            const aktif = filterBintang === nilai;
+            const jumlah = nilai === 0 ? total : urut.filter((u) => u.bintang === nilai).length;
+            return (
+              <button
+                key={nilai}
+                type="button"
+                aria-pressed={aktif}
+                onClick={() => setFilterBintang(nilai)}
+                className={`inline-flex min-h-9 items-center justify-center rounded-full border px-3 font-sans text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
+                  aktif
+                    ? "border-foreground bg-foreground text-white"
+                    : "border-grey-200 bg-white text-grey-600 hover:border-grey-400 hover:text-foreground"
+                }`}
+              >
+                {nilai === 0 ? `Semua (${jumlah})` : `${nilai} ★`}
+              </button>
+            );
+          })}
+          <Link
+            to="/rating-ulasan"
+            aria-label={t("landing.rating.lihatSemua")}
+            className="ml-1 flex size-9 flex-none items-center justify-center rounded-full border border-grey-200 text-foregroundGrey transition-colors hover:border-grey-400 hover:text-foreground"
+          >
+            <PanahKanan className="size-5" />
+          </Link>
+        </div>
+      </div>
+        </section>
+
         <div className="grid grid-cols-1 items-stretch gap-8 lg:grid-cols-2">
           {/* Kolom kiri: ajakan memberi rating */}
           <div className="flex w-full min-w-0 flex-col items-start rounded-lg border border-grey-200 bg-white p-6 sm:p-8">
@@ -248,46 +290,6 @@ export default function RatingUlasan() {
           </div>
         </div>
 
-        <section className="mt-12" aria-labelledby="judul-daftar-ulasan">
-          <div className="flex flex-col gap-4 border-b border-grey-200 pb-5 sm:flex-row sm:items-end sm:justify-between">
-            <div className="min-w-0">
-              <h2 id="judul-daftar-ulasan" className="font-sans text-xl font-semibold text-foreground sm:text-2xl">
-                Rating dan Ulasan website
-              </h2>
-              <p className="mt-2 flex max-w-3xl items-start gap-1.5 font-sans text-sm leading-relaxed text-foregroundGrey">
-                <IkonInfo className="mt-0.5 size-4 flex-none" />
-                <span>Rating dan ulasan diverifikasi dan berasal dari orang yang menggunakan jenis perangkat yang sama dengan yang Anda gunakan.</span>
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Filter ulasan berdasarkan rating">
-              {[0, 5, 4, 3, 2, 1].map((nilai) => {
-                const aktif = filterBintang === nilai;
-                const jumlah = nilai === 0 ? total : urut.filter((u) => u.bintang === nilai).length;
-                return (
-                  <button
-                    key={nilai}
-                    type="button"
-                    aria-pressed={aktif}
-                    onClick={() => setFilterBintang(nilai)}
-                    className={`inline-flex min-h-9 items-center justify-center rounded-full border px-3 font-sans text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
-                      aktif
-                        ? "border-foreground bg-foreground text-white"
-                        : "border-grey-200 bg-white text-grey-600 hover:border-grey-400 hover:text-foreground"
-                    }`}
-                  >
-                    {nilai === 0 ? `Semua (${jumlah})` : `${nilai} ★`}
-                  </button>
-                );
-              })}
-              <Link
-                to="/rating-ulasan"
-                aria-label={t("landing.rating.lihatSemua")}
-                className="ml-1 flex size-9 flex-none items-center justify-center rounded-full border border-grey-200 text-foregroundGrey transition-colors hover:border-grey-400 hover:text-foreground"
-              >
-                <PanahKanan className="size-5" />
-              </Link>
-            </div>
-          </div>
           <div className="mt-6">
             {ulasanTampil.length ? (
               <KaruselUlasan t={t} ulasan={ulasanTampil} padaVote={vote} />
