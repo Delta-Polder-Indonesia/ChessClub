@@ -53,15 +53,6 @@ export function PanahKiri({ className = "" }) {
     </svg>
   );
 }
-export function TigaTitik({ className = "" }) {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className={className} fill="currentColor">
-      <circle cx="12" cy="5" r="1.6" />
-      <circle cx="12" cy="12" r="1.6" />
-      <circle cx="12" cy="19" r="1.6" />
-    </svg>
-  );
-}
 export function Jempol({ arah = "naik", aktif = false, className = "" }) {
   const rotasi = arah === "turun" ? "rotate-180" : "";
   return (
@@ -230,10 +221,6 @@ export function KartuUlasan({ t, ulasan: u, padaVote, padat }) {
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
             <span className="truncate font-sans text-base font-semibold text-foreground">{u.nama}</span>
-            <button type="button" aria-label={t("landing.rating.lainnya")}
-              className="-mr-1 -mt-0.5 hidden size-8 items-center justify-center rounded-full text-foregroundGrey transition-colors hover:bg-backgroundBox hover:text-foreground md:flex">
-              <TigaTitik className="size-5" />
-            </button>
           </div>
           <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
             <DeretBintang nilai={u.bintang} ukuran="sm" />

@@ -206,7 +206,6 @@ export const landing = {
       tulisUlasan: "Write a review",
       lihatSemua: "See all reviews",
       lihatSemuaUlasan: "See all {n} reviews",
-      lainnya: "More options",
       kembali: "Back",
       sebelumnya: "Previous",
       berikutnya: "Next",

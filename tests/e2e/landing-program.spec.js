@@ -68,6 +68,8 @@ test("filter ulasan Landing bekerja dan seluruh teksnya mengikuti locale", async
   await expect(page.getByRole("heading", { name: "Rating dan Ulasan website" })).toBeVisible();
   await expect(page.getByRole("group", { name: "Filter ulasan berdasarkan rating" })).toBeVisible();
   await expect(daftarId.locator("article")).toHaveCount(6);
+  await expect(daftarId.locator("article button")).toHaveCount(12);
+  await expect(daftarId.getByRole("button", { name: "Menu lainnya" })).toHaveCount(0);
   await page.getByRole("button", { name: "Tampilkan ulasan dengan rating 5 bintang" }).click();
   await expect(daftarId.locator("article")).toHaveCount(3);
 
