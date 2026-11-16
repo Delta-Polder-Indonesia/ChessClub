@@ -189,7 +189,7 @@ export default function RatingUlasan() {
   ).slice(0, 10);
 
   return (
-    <section className="w-full px-6 py-10 md:px-8 md:py-16 xl:px-0 sm:py-12">
+    <section className="w-full px-6 pt-6 pb-10 sm:pt-12 sm:pb-12 md:px-8 md:pt-16 md:pb-16 xl:px-0">
       <div className="mx-auto max-w-[1080px] xl:max-w-7xl">
 
         <section aria-labelledby="judul-daftar-ulasan" className="mb-6 sm:mb-8">
