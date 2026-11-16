@@ -479,6 +479,7 @@ export const papan = {
     panel: "Panel papan",
     salin: "Salin",
     tersalinSingkat: "Tersalin",
+    salinGagal: "Gagal menyalin",
     tutup: "Tutup",
     lainnya: "Lainnya",
     menuAksiLainnya: "Aksi papan lainnya",

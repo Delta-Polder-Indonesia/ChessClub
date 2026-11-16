@@ -49,6 +49,7 @@ import {
   skorLangkahAwan,
 } from "../../lib/basisDataAwan.js";
 import { FEN_AWAL, KUCI_NAMA_PROMOSI, PILIHAN_PROMOSI, TAB_PANEL } from "./bersama/konstanta.js";
+import { salinKeClipboard } from "./bersama/clipboard.js";
 import TombolKeAwal from "./bersama/TombolKeAwal.jsx";
 import TombolMundur from "./bersama/TombolMundur.jsx";
 import TombolMaju from "./bersama/TombolMaju.jsx";
@@ -214,6 +215,7 @@ export default function PapanInteraktif({ tertanam = false, pengaturan = null } 
     setLangkahAkhir(null);
     setGalatEditPosisi("");
     setFenTersalin(false);
+    setGalatSalinFen(false);
   }
 
   function mulaiEditPosisi() {
@@ -221,6 +223,7 @@ export default function PapanInteraktif({ tertanam = false, pengaturan = null } 
     setBidakEditTerpilih(null);
     setGalatEditPosisi("");
     setFenTersalin(false);
+    setGalatSalinFen(false);
     setModeEditPosisi(true);
     setSeleksi(SELEKSI_KOSONG);
     setPromosi(null);
@@ -284,6 +287,7 @@ export default function PapanInteraktif({ tertanam = false, pengaturan = null } 
       setBidakEditTerpilih(null);
       setGalatEditPosisi("");
       setFenTersalin(false);
+      setGalatSalinFen(false);
       setLangkahAkhir(null);
       setPilihan(-1);
       setOrientasi("w");
@@ -305,6 +309,7 @@ export default function PapanInteraktif({ tertanam = false, pengaturan = null } 
     setBidakEditTerpilih(null);
     setGalatEditPosisi("");
     setFenTersalin(false);
+    setGalatSalinFen(false);
     setSeleksi(SELEKSI_KOSONG);
   }
 
@@ -316,7 +321,9 @@ export default function PapanInteraktif({ tertanam = false, pengaturan = null } 
   const setBidak = pp.bidak;
 
   const [pgnTersalin, setPgnTersalin] = useState(false);
+  const [galatSalinPgn, setGalatSalinPgn] = useState(false);
   const [fenTersalin, setFenTersalin] = useState(false);
+  const [galatSalinFen, setGalatSalinFen] = useState(false);
   const [pilihan, setPilihan] = useState(-1); // id pembukaan terpilih di dropdown
   // Tab aktif panel kanan: "analisa" | "books" | "explorer" | "games".
   const [tabPanel, setTabPanel] = useState("analisa");
@@ -1226,30 +1233,26 @@ export default function PapanInteraktif({ tertanam = false, pengaturan = null } 
     return true;
   }
 
-  function salinPgn() {
-    if (!riwayat.length && !posisiKustom) return;
-    const teks = susunPgnDenganFen(riwayat, fenAwal);
-    const selesai = () => {
-      setPgnTersalin(true);
-      window.clearTimeout(timerSalin.current);
-      timerSalin.current = window.setTimeout(() => setPgnTersalin(false), 1500);
-    };
-    if (navigator.clipboard?.writeText) {
-      navigator.clipboard.writeText(teks).then(selesai).catch(selesai);
-    } else {
-      selesai();
-    }
+  function aturStatusSalin(berhasil, setBerhasil, setGagal, timerRef) {
+    setBerhasil(berhasil);
+    setGagal(!berhasil);
+    window.clearTimeout(timerRef.current);
+    timerRef.current = window.setTimeout(() => {
+      setBerhasil(false);
+      setGagal(false);
+    }, 1800);
   }
 
-  function salinFen() {
-    const selesai = () => {
-      setFenTersalin(true);
-      window.clearTimeout(timerSalinFen.current);
-      timerSalinFen.current = window.setTimeout(() => setFenTersalin(false), 1500);
-    };
-    if (navigator.clipboard?.writeText) {
-      navigator.clipboard.writeText(fen).then(selesai).catch(() => {});
-    }
+  async function salinPgn() {
+    if (!riwayat.length && !posisiKustom) return;
+    const teks = susunPgnDenganFen(riwayat, fenAwal);
+    const berhasil = await salinKeClipboard(teks);
+    aturStatusSalin(berhasil, setPgnTersalin, setGalatSalinPgn, timerSalin);
+  }
+
+  async function salinFen() {
+    const berhasil = await salinKeClipboard(fen);
+    aturStatusSalin(berhasil, setFenTersalin, setGalatSalinFen, timerSalinFen);
   }
 
   function saatKunciMenuAksi(e) {
@@ -1770,6 +1773,7 @@ export default function PapanInteraktif({ tertanam = false, pengaturan = null } 
                       onEditFen={() => setTampilPgn(true)}
                       onSalinFen={salinFen}
                       fenTersalin={fenTersalin}
+                      fenSalinGagal={galatSalinFen}
                       onKosongkan={() => ubahFENEdit(fenDariPeta({}, fen.split(/\s+/)[1]))}
                       onAwal={() => ubahFENEdit(FEN_AWAL)}
                       onTerapkan={terapkanEditPosisi}
@@ -2100,7 +2104,11 @@ export default function PapanInteraktif({ tertanam = false, pengaturan = null } 
                       >
                         <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
                         <span className="max-w-full truncate">
-                          {pgnTersalin ? t("papan.tersalinSingkat") : t("papan.lainnya")}
+                          {galatSalinPgn
+                            ? t("papan.salinGagal")
+                            : pgnTersalin
+                              ? t("papan.tersalinSingkat")
+                              : t("papan.lainnya")}
                         </span>
                       </button>
                       {menuAksiTerbuka && (
@@ -2147,10 +2155,23 @@ export default function PapanInteraktif({ tertanam = false, pengaturan = null } 
                             className="flex items-center gap-3 rounded px-3 py-2.5 text-left hover:bg-[#312e2b] disabled:cursor-not-allowed disabled:opacity-40"
                           >
                             <Bookmark className="h-4 w-4 shrink-0 text-gray-400" aria-hidden="true" />
-                            <span>{pgnTersalin ? t("papan.tersalinSingkat") : t("papan.salinPgn")}</span>
+                            <span>
+                              {galatSalinPgn
+                                ? t("papan.salinGagal")
+                                : pgnTersalin
+                                  ? t("papan.tersalinSingkat")
+                                  : t("papan.salinPgn")}
+                            </span>
                           </button>
                         </div>
                       )}
+                      <span role="status" aria-live="polite" className="sr-only">
+                        {galatSalinPgn
+                          ? t("papan.salinGagal")
+                          : pgnTersalin
+                            ? t("papan.tersalinSingkat")
+                            : ""}
+                      </span>
                     </div>
                   </div>
                 </div>
