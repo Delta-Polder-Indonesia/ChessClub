@@ -192,7 +192,7 @@ export default function RatingUlasan() {
     <section className="w-full px-6 md:px-8 xl:px-0 py-16">
       <div className="mx-auto max-w-[1080px] xl:max-w-7xl">
 
-        <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-2">
+        <div className="grid grid-cols-1 items-stretch gap-8 lg:grid-cols-2">
           {/* Kolom kiri: ajakan memberi rating */}
           <div className="flex w-full min-w-0 flex-col items-start rounded-lg border border-grey-200 bg-white p-6 sm:p-8">
             <h3 className="font-sans text-2xl font-bold tracking-tight text-grey-800 sm:text-3xl">
