@@ -212,7 +212,18 @@ export default defineConfig({
       "Cross-Origin-Resource-Policy": "cross-origin",
     },
     watch: {
-      ignored: ["**/data/**"],
+      // Jangan habiskan watcher dev untuk output build/tes atau aset statis
+      // berukuran besar yang jarang berubah. Setelah mengubah file di engines
+      // atau ebooks, muat ulang browser secara manual.
+      ignored: [
+        "**/data/**",
+        "**/dist/**",
+        "**/coverage/**",
+        "**/playwright-report/**",
+        "**/test-results/**",
+        "**/public/engines/**",
+        "**/public/ebooks/**",
+      ],
     },
     proxy: {
       "/api": {

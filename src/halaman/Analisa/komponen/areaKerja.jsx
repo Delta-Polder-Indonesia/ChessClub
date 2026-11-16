@@ -49,8 +49,6 @@ import Game from "./game/game.jsx";
 import BoardMenu from "./boardMenu/boardMenu.jsx";
 import Menu from "./menu/menu.jsx";
 import GameButtons from "./menu/analysis/gameButtons.jsx";
-import LayarDatabase from "./nav/layarDatabase.jsx";
-import LayarImpor from "./nav/layarImpor.jsx";
 import { validasiPgn } from "./nav/validasiImpor.js";
 import { ambilPgnTitipan } from "../../../lib/titipanAnalisa.js";
 
@@ -62,6 +60,8 @@ import { ambilPgnTitipan } from "../../../lib/titipanAnalisa.js";
  * unused JavaScript" Lighthouse ±80 KiB).
  */
 const LayarAkun = lazy(() => import("./nav/layarAkun.jsx"));
+const LayarDatabase = lazy(() => import("./nav/layarDatabase.jsx"));
+const LayarImpor = lazy(() => import("./nav/layarImpor.jsx"));
 const LayarDeteksiEngine = lazy(() => import("./nav/layarDeteksiEngine.jsx"));
 const LayarWawasan = lazy(() => import("./nav/layarWawasan.jsx"));
 const LayarPengaturan = lazy(() => import("./nav/layarPengaturan.jsx"));
@@ -152,9 +152,15 @@ function LapisanLayar({ tampilan, papanAktif, lapisanRef, kePapan, keAkun }) {
         </Suspense>
       ) : null}
       {tampilan === TAMPILAN_ANALISA.BASIS_DATA ? (
-        <LayarDatabase onTutup={kePapan} onAnalisa={muatPartai} onBukaAkun={keAkun} />
+        <Suspense fallback={<div className="h-full min-h-0 w-full bg-backgroundBox" />}>
+          <LayarDatabase onTutup={kePapan} onAnalisa={muatPartai} onBukaAkun={keAkun} />
+        </Suspense>
       ) : null}
-      {tampilan === TAMPILAN_ANALISA.IMPOR ? <LayarImpor onTutup={kePapan} onImpor={muatPartai} /> : null}
+      {tampilan === TAMPILAN_ANALISA.IMPOR ? (
+        <Suspense fallback={<div className="h-full min-h-0 w-full bg-backgroundBox" />}>
+          <LayarImpor onTutup={kePapan} onImpor={muatPartai} />
+        </Suspense>
+      ) : null}
     </div>
   );
 }
