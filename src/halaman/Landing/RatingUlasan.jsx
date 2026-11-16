@@ -180,9 +180,13 @@ export default function RatingUlasan() {
     navigate("/tulis-ulasan");
   }, [navigate]);
 
-  // Tampilkan maksimal 10 ulasan terbaru di carousel; selebihnya hanya
-  // bisa diakses dari halaman /rating-ulasan.
+  // Tampilkan maksimal 10 ulasan terbaru pada landing; filter memakai
+  // seluruh data agar rating lama tetap dapat ditemukan.
   const untukKarusel = urut.slice(0, 10);
+  const ulasanTampil = (filterBintang === 0
+    ? urut
+    : urut.filter((u) => u.bintang === filterBintang)
+  ).slice(0, 10);
 
   return (
     <section className="w-full px-6 md:px-8 xl:px-0 py-16">
@@ -230,8 +234,8 @@ export default function RatingUlasan() {
               <h2 className="font-sans text-lg font-semibold text-foreground sm:text-xl">
                 Ringkasan Penilaian
               </h2>
-              <span className="shrink-0 rounded-full bg-emerald-50 px-3 py-1 font-sans text-xs font-medium text-emerald-700">
-                {urut.length ? "Terverifikasi" : "Belum ada penilaian"}
+              <span className="shrink-0 font-sans text-xs text-foregroundGrey">
+                {urut.length} ulasan
               </span>
             </div>
             <div className="mt-6">
@@ -285,18 +289,13 @@ export default function RatingUlasan() {
             </div>
           </div>
           <div className="mt-6">
-            {(() => {
-              const ulasanTampil = filterBintang === 0
-                ? untukKarusel
-                : untukKarusel.filter((u) => u.bintang === filterBintang);
-              return ulasanTampil.length ? (
-                <KaruselUlasan t={t} ulasan={ulasanTampil} padaVote={vote} />
-              ) : (
-                <p className="py-8 text-center font-sans text-sm text-foregroundGrey">
-                  Belum ada ulasan dengan penilaian {filterBintang} bintang.
-                </p>
-              );
-            })()}
+            {ulasanTampil.length ? (
+              <KaruselUlasan t={t} ulasan={ulasanTampil} padaVote={vote} />
+            ) : (
+              <p className="py-8 text-center font-sans text-sm text-foregroundGrey">
+                Belum ada ulasan dengan penilaian {filterBintang} bintang.
+              </p>
+            )}
           </div>
         </section>
 
