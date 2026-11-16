@@ -14,7 +14,6 @@ export default function PanelVideo({
   memuatKoleksi = false,
   videoGagal = false,
   nilaiKoleksi = "lichess",
-  onPutarVideo = null,
   onGalatVideo = null,
   onBukaKoleksiVideo = null,
 }) {
@@ -150,7 +149,6 @@ export default function PanelVideo({
                         preload="none"
                         playsInline
                         src={videoUrlAman}
-                        onPlay={onPutarVideo || undefined}
                         onCanPlay={() => setVideoSiap(true)}
                         onError={(event) => {
                           setVideoSiap(false);

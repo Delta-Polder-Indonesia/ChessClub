@@ -225,11 +225,19 @@ judul("filter & kolam soal (services/puzzleFilter.js)");
     { problemid: 1, type: "Mate in One", rating: 900, first: "White to Move", tema: "fork pin" },
     { problemid: 2, type: "Mate in Two", rating: 1300, first: "Black to Move", tema: "pin" },
     { problemid: 3, type: "Mate in Two", rating: 1600, first: "White to Move", tema: "sacrifice" },
+    { problemid: 4, type: "Mate in Three", rating: 1600, first: "White to Move", tema: "fork" },
+    { problemid: 5, type: "Mate in More", rating: 1600, first: "White to Move", tema: "fork" },
+    { problemid: 6, type: "Tactical", rating: 1600, first: "White to Move", tema: "fork" },
   ];
 
-  uji("tanpa filter → semua soal", saringSoal(kolam, FILTER_AWAL).length === 3);
+  uji("tanpa filter → semua soal", saringSoal(kolam, FILTER_AWAL).length === 6);
   uji("kolam null → null", saringSoal(null, FILTER_AWAL) === null);
-  uji("filter tipe", saringSoal(kolam, { ...FILTER_AWAL, tipe: "Mate in Two" }).length === 2);
+  uji("filter tipe langsung", saringSoal(kolam, { ...FILTER_AWAL, tipe: "Mate in Two" }).length === 2);
+  uji("filter Mate 1 dari nilai dropdown", saringSoal(kolam, { ...FILTER_AWAL, tipe: "1" }).map((m) => m.problemid).join() === "1");
+  uji("filter Mate 2 dari nilai dropdown", saringSoal(kolam, { ...FILTER_AWAL, tipe: "2" }).map((m) => m.problemid).join() === "2,3");
+  uji("filter Mate 3 dari nilai dropdown", saringSoal(kolam, { ...FILTER_AWAL, tipe: "3" }).map((m) => m.problemid).join() === "4");
+  uji("filter Mate 4+ koleksi tambahan", saringSoal(kolam, { ...FILTER_AWAL, tipe: "4+" }).map((m) => m.problemid).join() === "5");
+  uji("filter taktik koleksi tambahan", saringSoal(kolam, { ...FILTER_AWAL, tipe: "taktik" }).map((m) => m.problemid).join() === "6");
   uji("filter level", saringSoal(kolam, { ...FILTER_AWAL, level: "3" }).length === 1);
   uji("filter level tanpa soal", saringSoal(kolam, { ...FILTER_AWAL, level: "2" }).length === 0);
   uji("filter tema", saringSoal(kolam, { ...FILTER_AWAL, tema: "pin" }).length === 2);

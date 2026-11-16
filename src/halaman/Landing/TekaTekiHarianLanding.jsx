@@ -513,10 +513,10 @@ export default function TekaTekiHarianLanding() {
   return (
     <section
       aria-labelledby="teka-teki-harian-judul"
-      className="w-full pl-6 md:pl-8 pr-6 md:pr-8 pb-12 xl:pb-16 pt-12 xl:pt-16 overflow-hidden"
+      className="w-full pl-6 md:pl-8 pr-6 md:pr-8 pb-8 pt-8 md:pb-12 md:pt-12 xl:pb-16 xl:pt-16 overflow-hidden"
     >
         <div className="relative mx-auto w-full max-w-7xl">
-        <div className="grid items-center gap-x-6 gap-y-10 xl:grid-cols-12 xl:gap-x-8">
+        <div className="grid items-center gap-x-6 gap-y-6 sm:gap-y-8 xl:grid-cols-12 xl:gap-x-8 xl:gap-y-10">
           {/*
            * Kiri: padanan HomeWelcomeMessage + HomeRatingProgress +
            * GameTowerProgress di acuan. Judul dan kalimatnya mengikuti keadaan
@@ -647,7 +647,7 @@ export default function TekaTekiHarianLanding() {
                   href={soal.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="font-sans text-sm font-semibold text-grey-600 underline-offset-4 transition-colors hover:text-primary hover:underline"
+                  className="inline-flex min-h-11 items-center px-2 font-sans text-sm font-semibold text-grey-600 underline-offset-4 transition-colors hover:text-primary hover:underline"
                 >
                   {t("landing.harianSumber")}
                 </a>
@@ -658,7 +658,7 @@ export default function TekaTekiHarianLanding() {
           {/* Tengah: papan demo menjadi fokus visual utama. */}
           <div className="flex w-full min-w-0 justify-center xl:col-span-6">
             {jatahHabis ? (
-              <div className="flex w-full max-w-lg flex-col gap-3 border border-grey-200 bg-paper p-5 sm:p-6">
+              <div className="flex w-full max-w-lg flex-col gap-3 border border-grey-200 bg-paper p-4 sm:p-6">
                 <p className="font-sans text-base font-bold text-grey-800">
                   {t("landing.harianTerkunciJudul", { total: BATAS_HARIAN })}
                 </p>
@@ -725,7 +725,7 @@ export default function TekaTekiHarianLanding() {
                               setGame((prev) => ({ ...prev, promosi: null }));
                               cobaLangkah(from, to, kode);
                             }}
-                            className="rounded bg-white px-3 py-2 font-sans text-sm font-semibold text-grey-800 transition-colors hover:bg-grey-100"
+                            className="min-h-11 rounded bg-white px-3 py-2 font-sans text-sm font-semibold text-grey-800 transition-colors hover:bg-grey-100"
                           >
                             {t(kunci)}
                           </button>
@@ -734,7 +734,7 @@ export default function TekaTekiHarianLanding() {
                       <button
                         type="button"
                         onClick={() => setGame((prev) => ({ ...prev, promosi: null }))}
-                        className="font-sans text-sm font-semibold text-white/80 underline underline-offset-2"
+                        className="inline-flex min-h-11 items-center px-3 font-sans text-sm font-semibold text-white/80 underline underline-offset-2"
                       >
                         {t("tekaTekiHarian.promosiBatal")}
                       </button>
@@ -789,7 +789,7 @@ export default function TekaTekiHarianLanding() {
                     type="button"
                     onClick={tampilkanPetunjuk}
                     disabled={game.selesaiSoal || game.menungguLawan}
-                    className="rounded border border-grey-200 px-3 py-2 text-sm font-semibold text-grey-800 transition-colors hover:border-primary hover:text-primary disabled:opacity-40"
+                    className="min-h-11 rounded border border-grey-200 px-3 py-2 text-sm font-semibold text-grey-800 transition-colors hover:border-primary hover:text-primary disabled:opacity-40"
                   >
                     {t("landing.harianPetunjuk")}
                   </button>
@@ -802,7 +802,7 @@ export default function TekaTekiHarianLanding() {
                         langkah: soal.langkah,
                       })
                     }
-                    className="rounded border border-grey-200 px-3 py-2 text-sm font-semibold text-grey-800 transition-colors hover:border-primary hover:text-primary"
+                    className="min-h-11 rounded border border-grey-200 px-3 py-2 text-sm font-semibold text-grey-800 transition-colors hover:border-primary hover:text-primary"
                   >
                     {t("landing.harianUlangi")}
                   </button>

@@ -94,10 +94,11 @@ function LandingHero({ t }) {
        seperti `components/Hero.jsx` di halaman lain. Dulu seksi ini `py-16`,
        sehingga 64px teratas halaman memperlihatkan kanvas `body` (putih) di
        belakang header: tautan top-bar putih tak terbaca dan logo terpotong
-       dua warna. Padding bawah tetap `pb-16` untuk jarak ke seksi berikut.
+       dua warna. Padding bawah `pb-10` di ponsel menjaga transisi ke seksi
+       berikut tetap rapat, lalu kembali `md:pb-16` pada layar lebih lebar.
        Tinggi 650px juga harus sama dengan `#boot-hero` di index.html dan
        `PlaceholderHalaman`, supaya tidak ada lompatan saat React mount. */
-    <section className="w-full relative bg-transparent pb-16 overflow-hidden">
+    <section className="w-full relative bg-transparent pb-10 md:pb-16 overflow-hidden">
       <div className="w-full relative h-full min-h-[650px] overflow-hidden">
         {SLIDES.map((slide, i) => (
           <div
@@ -133,7 +134,7 @@ function LandingHero({ t }) {
           <TitikLabel terang />
           {t("landing.sekilasLabel")}
         </p>
-        <h2 className={JUDUL_SEKSI_TERANG}>{t("nav.tentangKami")}</h2>
+        <h2 className={`${JUDUL_SEKSI_TERANG} max-sm:text-3xl`}>{t("nav.tentangKami")}</h2>
         <p className={`${LEAD_SEKSI_TERANG} max-w-2xl`}>{t("landing.sekilasDesk")}</p>
         <div className="flex flex-wrap gap-4 mt-8">
           <Link
@@ -158,7 +159,7 @@ function LandingHero({ t }) {
       </div>
 
       {/* Navigasi garis progress — di bawah gambar */}
-      <div className="absolute bottom-24 left-0 right-0 z-10 lg:max-w-[960px] xl:max-w-[1280px] mx-auto flex gap-2 px-8 md:px-10 lg:px-4 xl:px-0 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="absolute bottom-24 left-0 right-0 z-10 lg:max-w-[960px] xl:max-w-[1280px] mx-auto flex gap-2 px-6 sm:px-8 md:px-10 lg:px-4 xl:px-0 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {SLIDES.map((slide, i) => {
           const active = i === index;
           return (
@@ -168,7 +169,7 @@ function LandingHero({ t }) {
               aria-label={slide.label}
               aria-current={active ? "true" : undefined}
               onClick={() => setIndex(i)}
-              className={`swiper-pagination-line relative flex-1 min-w-[120px] cursor-pointer py-2 md:py-4 transition-colors duration-300 text-left text-[13px] font-sans font-medium group border-b-[3px] border-white/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 ${
+              className={`swiper-pagination-line relative flex-1 min-w-[120px] min-h-11 cursor-pointer py-2 md:py-4 transition-colors duration-300 text-left text-[13px] font-sans font-medium group border-b-[3px] border-white/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 ${
                 active ? "text-white" : "text-white/50"
               }`}
             >
@@ -334,17 +335,17 @@ function CardCarousel({ index, setIndex, t }) {
 
   return (
     <>
-      {/* Di ponsel, gunakan pola katalog buku: grid dua kolom dengan sampul
-          dan metadata. Ini menggantikan kartu 320px yang terpotong di jendela
-          carousel desktop. Terinspirasi tata letak produk Book Hub, bukan
-          menyalin markup atau asetnya. */}
-      <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-4 md:hidden">
+      {/* Di ponsel sempit, tampilkan katalog satu kolom agar sampul dan
+          metadata mudah dibaca; mulai breakpoint sm, gunakan dua kolom.
+          Katalog ini menggantikan kartu 320px yang terpotong di carousel
+          desktop. */}
+      <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:hidden">
         {kartu.map((k, i) => (
           k.penghujung ? (
             <Link
               key="lihat-semua-ebook-mobile"
               to={k.to}
-              className="col-span-2 flex min-h-[112px] items-center justify-between gap-4 rounded-xl bg-primary px-5 py-4 text-white shadow-sm transition-transform active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+              className="flex min-h-[112px] items-center justify-between gap-4 rounded-xl bg-primary px-5 py-4 text-white shadow-sm transition-transform active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 sm:col-span-2"
             >
               <span className="min-w-0">
                 <span className="block font-sans text-lg font-semibold leading-tight">{k.judul}</span>
@@ -361,10 +362,10 @@ function CardCarousel({ index, setIndex, t }) {
               title={k.judul}
               className="group flex min-w-0 flex-col overflow-hidden rounded-xl border border-grey-200 bg-white shadow-sm transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             >
-              <div className="relative aspect-[4/5] overflow-hidden bg-grey-100 p-2.5">
+              <div className="relative aspect-square overflow-hidden bg-grey-100 p-2.5 sm:aspect-[4/5]">
                 <img
                   {...k.sumber}
-                  sizes="(max-width: 639px) 44vw, 220px"
+                  sizes="(max-width: 639px) calc(100vw - 2rem), 220px"
                   alt=""
                   loading="lazy"
                   decoding="async"
@@ -570,7 +571,7 @@ function HarapanTerimaKasih({ t }) {
   const [pratinjau, setPratinjau] = useState(false);
   const tutupPratinjau = useCallback(() => setPratinjau(false), []);
   return (
-    <section className="w-full relative bg-transparent py-16 pl-6 pr-6 md:pl-8 md:pr-8">
+    <section className="w-full relative bg-transparent px-6 py-10 md:px-8 md:py-16">
       <div className="relative w-full mx-auto grid grid-cols-1 lg:grid-cols-[0.678fr_1.02fr] gap-x-4 md:gap-x-8 lg:gap-x-10 gap-y-4 lg:max-w-[960px] xl:max-w-[1280px]">
         {/* Kolom foto */}
         <div className="w-full relative bg-transparent">
@@ -601,7 +602,7 @@ function HarapanTerimaKasih({ t }) {
         {/* Kolom artikel */}
         <div className="w-full relative bg-transparent md:pt-4 xl:pt-4">
           <div className="relative w-full mx-auto flex flex-col gap-y-6">
-            <h2 className={JUDUL_SEKSI}>{t("landing.harapanJudul")}</h2>
+            <h2 className={`${JUDUL_SEKSI} max-sm:text-3xl`}>{t("landing.harapanJudul")}</h2>
             <div className="relative z-[1] font-serif prose-kci max-w-none">
               <p>{t("landing.harapanPembuka")}</p>
               <p>{t("landing.harapanP1")}</p>
@@ -637,10 +638,10 @@ function HarapanTerimaKasih({ t }) {
 /** Ajakan bergabung — penutup halaman. */
 function AjakanBergabung({ t }) {
   return (
-    <section className="w-full px-6 md:px-8 xl:px-0 py-16 text-center overflow-hidden">
+    <section className="w-full px-6 py-10 text-center overflow-hidden md:px-8 md:py-16 xl:px-0">
       <div className="mx-auto max-w-4xl flex flex-col items-center">
         <div className="flex flex-col items-center gap-[14px] text-center">
-          <h2 className={JUDUL_SEKSI}>
+          <h2 className={`${JUDUL_SEKSI} max-sm:text-3xl`}>
             {t("landing.ajakanJudul")} <em className="text-primary not-italic">{t("landing.ajakanJudulAccent")}</em>
           </h2>
           <p className={LEAD_SEKSI}>{t("landing.ajakanDeskripsi")}</p>
@@ -677,11 +678,11 @@ export default function Landing() {
           `--color-paper` (#f8f8f8) dari `body`. Akibatnya di sini pernah
           muncul garis sambungan karena putih murni #fff bersebelahan
           dengan paper #f8f8f8. */}
-      <section className="w-full pl-6 md:pl-8 pr-6 md:pr-8 py-16 overflow-hidden">
+      <section className="w-full px-6 py-10 md:px-8 md:py-16 overflow-hidden">
         <div className="relative w-full mx-auto lg:max-w-[960px] xl:max-w-[1280px] flex flex-col gap-y-4 md:gap-y-6 lg:gap-y-2">
           <div className="w-full grid lg:grid-cols-[82%_18%] gap-x-10 gap-y-6 items-start">
             <div className="grid lg:grid-cols-[1fr_1fr] gap-x-10 gap-y-4 md:gap-y-6 items-start">
-              <h2 className={JUDUL_SEKSI}>{t("nav.keberlanjutan")}</h2>
+              <h2 className={`${JUDUL_SEKSI} max-sm:text-3xl`}>{t("nav.keberlanjutan")}</h2>
               <p className={LEAD_SEKSI}>{t("landing.keberlanjutanDesk")}</p>
             </div>
             <div className="flex">

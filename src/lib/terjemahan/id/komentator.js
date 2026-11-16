@@ -952,6 +952,12 @@ export const komentatorPapan = {
 /** komentator teka-teki — ringkas, spesifik, tanpa kalimat pengisi */
 export const komentatorTekaTeki = {
   santai: {
+    mulaiTaktik: ["Cari taktik terbaik. {pihak} jalan.", "Temukan kombinasi taktis untuk {pihak}."],
+    lawanTaktikTerakhir: ["Balasan: {san}. Selesaikan kombinasinya.", "{san}. Cari lanjutan taktis."],
+    salahTaktik: ["{san} belum menemukan solusi.", "Coba langkah lain; {san} belum berhasil."],
+    salahSkakTaktik: ["Skak, tetapi masih ada {jalan} balasan legal.", "Skak belum menyelesaikan taktik; {jalan} balasan tersedia."],
+    salahTangkapTaktik: ["Makan {korban} belum menyelesaikan taktik.", "Tangkap {korban} bukan solusi taktis."],
+    salahTerakhirTaktik: ["Belum tepat: {san}.", "Langkah terakhir belum menyelesaikan taktik."],
     mulaiSatu: [
       "Mat satu langkah. {pihak} jalan.",
       "{pihak} jalan; targetnya mat satu.",
@@ -1023,6 +1029,12 @@ export const komentatorTekaTeki = {
     ],
   },
   formal: {
+    mulaiTaktik: ["Temukan langkah taktis terbaik bagi {pihak}.", "{pihak} melangkah; cari solusi taktis."],
+    lawanTaktikTerakhir: ["Balasan: {san}. Temukan lanjutan taktis.", "{san}; selesaikan kombinasi ini."],
+    salahTaktik: ["{san} belum menyelesaikan soal.", "Pilih langkah lain; {san} bukan solusinya."],
+    salahSkakTaktik: ["Skak; lawan masih memiliki {jalan} balasan legal.", "Skak itu belum menyelesaikan soal taktis."],
+    salahTangkapTaktik: ["Penangkapan {korban} bukan solusi taktis.", "Makan {korban} belum menyelesaikan soal."],
+    salahTerakhirTaktik: ["Belum tepat: {san}.", "Langkah ini belum menuntaskan soal taktis."],
     mulaiSatu: [
       "Mat satu langkah. {pihak} jalan.",
       "Target: mat satu; giliran {pihak}.",
@@ -1094,6 +1106,12 @@ export const komentatorTekaTeki = {
     ],
   },
   genZ: {
+    mulaiTaktik: ["Cari taktik terbaik; {pihak} jalan.", "Temukan kombinasi taktisnya."],
+    lawanTaktikTerakhir: ["{san}. Cari lanjutan taktis.", "Balasan {san}; tuntaskan kombinasinya."],
+    salahTaktik: ["{san} belum jadi solusi.", "Coba langkah lain; taktiknya belum ketemu."],
+    salahSkakTaktik: ["Skak, tapi masih ada {jalan} balasan legal.", "Skak ini belum menuntaskan taktik."],
+    salahTangkapTaktik: ["Makan {korban} belum menuntaskan taktik.", "Tangkap {korban} bukan solusi."],
+    salahTerakhirTaktik: ["Belum tepat: {san}.", "Langkah ini belum menuntaskan taktik."],
     mulaiSatu: [
       "Mat satu langkah. {pihak} jalan.",
       "{pihak} jalan; mat satu.",

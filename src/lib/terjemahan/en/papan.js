@@ -477,6 +477,7 @@ export const papan = {
     panel: "Board panel",
     salin: "Copy",
     tersalinSingkat: "Copied",
+    salinGagal: "Copy failed",
     tutup: "Close",
     lainnya: "More",
     menuAksiLainnya: "More board actions",

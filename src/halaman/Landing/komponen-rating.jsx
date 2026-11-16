@@ -53,15 +53,6 @@ export function PanahKiri({ className = "" }) {
     </svg>
   );
 }
-export function TigaTitik({ className = "" }) {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className={className} fill="currentColor">
-      <circle cx="12" cy="5" r="1.6" />
-      <circle cx="12" cy="12" r="1.6" />
-      <circle cx="12" cy="19" r="1.6" />
-    </svg>
-  );
-}
 export function Jempol({ arah = "naik", aktif = false, className = "" }) {
   const rotasi = arah === "turun" ? "rotate-180" : "";
   return (
@@ -203,7 +194,7 @@ export function Ringkasan({ ulasan, locale }) {
   return (
     <div className="flex flex-col gap-5 md:flex-row md:items-center md:gap-8">
       <div className="flex flex-col items-center gap-1 md:min-w-[160px]">
-        <span className="font-sans text-5xl font-semibold leading-none text-foreground md:text-6xl">{rataTeks}</span>
+        <span className="font-sans text-4xl font-semibold leading-none text-foreground sm:text-5xl md:text-6xl">{rataTeks}</span>
         <DeretBintang nilai={rata} ukuran="md" />
         <span className="mt-0.5 font-sans text-sm text-foregroundGrey">{formatRibuan(total, locale)}</span>
       </div>
@@ -230,10 +221,6 @@ export function KartuUlasan({ t, ulasan: u, padaVote, padat }) {
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
             <span className="truncate font-sans text-base font-semibold text-foreground">{u.nama}</span>
-            <button type="button" aria-label={t("landing.rating.lainnya")}
-              className="-mr-1 -mt-0.5 hidden size-8 items-center justify-center rounded-full text-foregroundGrey transition-colors hover:bg-backgroundBox hover:text-foreground md:flex">
-              <TigaTitik className="size-5" />
-            </button>
           </div>
           <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
             <DeretBintang nilai={u.bintang} ukuran="sm" />

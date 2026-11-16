@@ -9,6 +9,7 @@ import {
   petaDariFen,
   validasiPosisiSusun,
 } from "../src/halaman/PapanInteraktif/bersama/editorPosisi.js";
+import { salinKeClipboard } from "../src/halaman/PapanInteraktif/bersama/clipboard.js";
 
 const awal = petaDariFen(FEN_AWAL);
 assert.equal(Object.keys(awal).length, 32);
@@ -62,4 +63,17 @@ assert.equal(
   "posisiPionIlegal"
 );
 assert.equal(validasiPosisiSusun("broken fen"), "posisiTidakSah");
-console.log("OK — board edits, FEN, and legal-position validation.");
+
+const tulisanClipboard = [];
+assert.equal(
+  await salinKeClipboard("1. e4", { writeText: async (teks) => tulisanClipboard.push(teks) }),
+  true
+);
+assert.deepEqual(tulisanClipboard, ["1. e4"]);
+assert.equal(await salinKeClipboard("FEN", null), false);
+assert.equal(await salinKeClipboard("FEN", {}), false);
+assert.equal(
+  await salinKeClipboard("FEN", { writeText: async () => { throw new Error("denied"); } }),
+  false
+);
+console.log("OK — board edits, FEN, clipboard outcomes, and legal-position validation.");

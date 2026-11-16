@@ -147,9 +147,9 @@ export function KartuAlatLatihan() {
   const { t } = useI18n();
 
   return (
-    <section className="w-full py-16 px-6 md:px-8 xl:px-0 overflow-hidden">
-      <div className="mx-auto max-w-[1080px] xl:max-w-7xl flex flex-col gap-8">
-        <h2 className={JUDUL_SEKSI}>{t("landing.alatLatihanJudul")}</h2>
+    <section className="w-full px-6 py-10 md:px-8 md:py-16 xl:px-0 overflow-hidden">
+      <div className="mx-auto max-w-[1080px] xl:max-w-7xl flex flex-col gap-6 sm:gap-8">
+        <h2 className={`${JUDUL_SEKSI} max-sm:text-3xl`}>{t("landing.alatLatihanJudul")}</h2>
 
         <ul className="grid grid-cols-1 gap-x-8 gap-y-0 sm:grid-cols-2">
           {semuaAlat(t).map((alat) => (

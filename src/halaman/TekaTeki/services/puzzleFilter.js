@@ -73,6 +73,14 @@ export function daftarPelatihDari(kolamAktif, koleksi) {
  * Terapkan seluruh filter aktif pada kolam.
  * @param {object} filter `{ pelatih, tipe, level, tema, giliran }`
  */
+const TIPE_DARI_FILTER = {
+  "1": "Mate in One",
+  "2": "Mate in Two",
+  "3": "Mate in Three",
+  "4+": "Mate in More",
+  taktik: "Tactical",
+};
+
 export function saringSoal(kolamAktif, filter = FILTER_AWAL) {
   if (!kolamAktif) return null;
   let hasil = kolamAktif;
@@ -80,7 +88,8 @@ export function saringSoal(kolamAktif, filter = FILTER_AWAL) {
     hasil = hasil.filter((m) => m.pelatih === filter.pelatih);
   }
   if (filter.tipe && filter.tipe !== "semua") {
-    hasil = hasil.filter((m) => m.type === filter.tipe);
+    const tipeSoal = TIPE_DARI_FILTER[filter.tipe] || filter.tipe;
+    hasil = hasil.filter((m) => m.type === tipeSoal);
   }
   if (filter.level && filter.level !== "semua") {
     const pita = PITA_LEVEL[filter.level];

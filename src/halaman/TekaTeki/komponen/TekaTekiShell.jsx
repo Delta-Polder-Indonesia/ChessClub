@@ -41,7 +41,6 @@ export default function TekaTekiShell({
   onGantiTabPanel = null,
   videoGagal = false,
   onGalatVideo = null,
-  onPutarVideo = null,
   onBukaKoleksiVideo = null,
   // mesin
   mesin = {},
@@ -73,13 +72,17 @@ export default function TekaTekiShell({
 
   if (kosong) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#262421] px-6 py-10">
-        <p
-          role="status"
-          className="max-w-md rounded-md border border-amber-900 bg-amber-950/40 px-4 py-3 text-sm leading-6 text-amber-300"
-        >
-          {semuaTerpecahkan ? t("tekaTeki.semuaTerpecahkan") : t("tekaTeki.tidakAdaSoal")}
-        </p>
+      <div className="flex min-h-screen flex-col bg-[#262421] text-gray-200 font-sans lg:flex-row">
+        {/* Tetap sediakan filter agar pengguna bisa pulih dari kombinasi kosong. */}
+        <SidebarTekaTeki kol={kol} />
+        <main className="flex flex-1 items-center justify-center px-6 py-10">
+          <p
+            role="status"
+            className="max-w-md rounded-md border border-amber-900 bg-amber-950/40 px-4 py-3 text-sm leading-6 text-amber-300"
+          >
+            {semuaTerpecahkan ? t("tekaTeki.semuaTerpecahkan") : t("tekaTeki.tidakAdaSoal")}
+          </p>
+        </main>
       </div>
     );
   }
@@ -173,7 +176,6 @@ export default function TekaTekiShell({
               memuatKoleksi={memuatKoleksi}
               videoGagal={videoGagal}
               nilaiKoleksi={kol.nilai}
-              onPutarVideo={onPutarVideo}
               onGalatVideo={onGalatVideo}
               onBukaKoleksiVideo={onBukaKoleksiVideo}
             />

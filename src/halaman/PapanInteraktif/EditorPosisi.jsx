@@ -23,6 +23,7 @@ export default function EditorPosisi({
   onEditFen,
   onSalinFen,
   fenTersalin = false,
+  fenSalinGagal = false,
   onKosongkan,
   onAwal,
   onTerapkan,
@@ -182,9 +183,18 @@ export default function EditorPosisi({
               onClick={onSalinFen}
               className="shrink-0 rounded-md border border-[#57534e] px-3 py-2 text-xs font-semibold text-gray-200 transition hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500"
             >
-              {fenTersalin ? t("papan.tersalinSingkat") : t("papan.salin")}
+              {fenSalinGagal
+                ? t("papan.salinGagal")
+                : fenTersalin
+                  ? t("papan.tersalinSingkat")
+                  : t("papan.salin")}
             </button>
           </div>
+          {(fenTersalin || fenSalinGagal) && (
+            <p role="status" aria-live="polite" className="text-xs text-gray-300">
+              {fenSalinGagal ? t("papan.salinGagal") : t("papan.tersalinSingkat")}
+            </p>
+          )}
         </div>
         {!posisiSah && (
           <p role="status" className="text-xs font-semibold text-gray-200">

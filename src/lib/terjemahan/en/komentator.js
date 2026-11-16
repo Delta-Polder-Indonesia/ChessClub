@@ -952,6 +952,12 @@ export const komentatorPapan = {
 /** concise, specific puzzle commentary */
 export const komentatorTekaTeki = {
   santai: {
+    mulaiTaktik: ["Find the best tactic. {pihak} to move.", "Look for a tactical combination."],
+    lawanTaktikTerakhir: ["Reply: {san}. Find the tactical follow-up.", "{san}. Continue the combination."],
+    salahTaktik: ["{san} doesn't solve the puzzle.", "Try another move; {san} isn't it."],
+    salahSkakTaktik: ["Check, but {jalan} legal replies remain.", "That check doesn't solve the tactic."],
+    salahTangkapTaktik: ["Taking the {korban} doesn't solve the tactic.", "Capturing the {korban} isn't the solution."],
+    salahTerakhirTaktik: ["Not quite: {san}.", "That final move doesn't solve the tactic."],
     mulaiSatu: [
       "Mate in one. {pihak} to move.",
       "{pihak} to move; mate in one.",
@@ -1023,6 +1029,12 @@ export const komentatorTekaTeki = {
     ],
   },
   formal: {
+    mulaiTaktik: ["Find the best tactical move for {pihak}.", "{pihak} to move; find the tactical solution."],
+    lawanTaktikTerakhir: ["Reply: {san}. Find the tactical continuation.", "{san}; complete the combination."],
+    salahTaktik: ["{san} does not solve the puzzle.", "Choose another move; {san} is not the solution."],
+    salahSkakTaktik: ["Check; the opponent still has {jalan} legal replies.", "That check does not solve the tactic."],
+    salahTangkapTaktik: ["Capturing the {korban} is not the tactical solution.", "Taking the {korban} does not solve the puzzle."],
+    salahTerakhirTaktik: ["Not quite: {san}.", "This move does not complete the tactic."],
     mulaiSatu: [
       "Mate in one. {pihak} to move.",
       "Target: mate in one; {pihak} to move.",
@@ -1094,6 +1106,12 @@ export const komentatorTekaTeki = {
     ],
   },
   genZ: {
+    mulaiTaktik: ["Find the tactic. {pihak} to move.", "Spot the winning combo."],
+    lawanTaktikTerakhir: ["{san}. Find the tactical follow-up.", "Reply {san}; finish the combo."],
+    salahTaktik: ["{san} isn't the solution.", "Try another move; tactic not found yet."],
+    salahSkakTaktik: ["Check, but {jalan} legal replies remain.", "That check doesn't finish the tactic."],
+    salahTangkapTaktik: ["Taking the {korban} doesn't solve it.", "Capturing the {korban} isn't the tactic."],
+    salahTerakhirTaktik: ["Not quite: {san}.", "That move doesn't finish the tactic."],
     mulaiSatu: [
       "Mate in one. {pihak} to move.",
       "{pihak} to move; mate in one.",

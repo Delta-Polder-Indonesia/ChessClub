@@ -178,8 +178,18 @@ export const landing = {
     // Rating & ulasan
     rating: {
       judul: "Rating dan ulasan",
+      judulSeksi: "Rating dan Ulasan website",
       subJudul:
-        "Rating dan ulasan diverifikasi dan berasal dari orang yang menggunakan jenis perangkat yang sama dengan yang Anda gunakan",
+        "Bagian ini menampilkan ulasan contoh bawaan dan masukan tamu yang tersimpan di perangkat ini.",
+      filterAria: "Filter ulasan berdasarkan rating",
+      filterSemuaAria: "Tampilkan semua ulasan ({n})",
+      filterBintangAria: "Tampilkan ulasan dengan rating {n} bintang",
+      filterSemua: "Semua ({n})",
+      ringkasanJudul: "Ringkasan Penilaian",
+      ringkasanKeterangan: "Ringkasan mencakup ulasan yang tersimpan di perangkat ini.",
+      daftarUlasanAria: "Daftar ulasan pengguna",
+      kosongFilter: "Belum ada ulasan dengan rating {n} bintang.",
+      slide: "Slide {n}",
       ajakJudul: "Beri rating aplikasi ini",
       ajakSub:
         "Sampaikan pendapat Anda untuk membantu kami mengembangkan ekosistem catur digital di Indonesia.",
@@ -196,7 +206,6 @@ export const landing = {
       tulisUlasan: "Tulis ulasan",
       lihatSemua: "Lihat semua ulasan",
       lihatSemuaUlasan: "Lihat semua {n} ulasan",
-      lainnya: "Menu lainnya",
       kembali: "Kembali",
       sebelumnya: "Sebelumnya",
       berikutnya: "Berikutnya",

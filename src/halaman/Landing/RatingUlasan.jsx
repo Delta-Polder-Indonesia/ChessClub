@@ -8,7 +8,7 @@
  *        state lokasi (bukan query string).
  *   2. Kepala "Rating dan ulasan" dengan panah-kanan yang navigasi ke
  *      /rating-ulasan (halaman daftar semua ulasan).
- *   3. Paragraf verifikasi + ikon ⓘ.
+ *   3. Keterangan faktual tentang sumber ulasan + ikon ⓘ.
  *   4. Ringkasan agregat (skor besar + bintang pecahan + bar distribusi).
  *   5. Carousel geser kartu ulasan (embla via shadcn/ui Carousel) —
  *      beberapa ulasan terbaru ditampilkan sebagai kartu-kartu yang bisa
@@ -24,6 +24,7 @@ import { ArrowRight, PenSquare } from "lucide-react";
 import useEmblaCarousel from "embla-carousel-react";
 import { useI18n } from "../../lib/i18n.jsx";
 import { useUlasan } from "./gunakanUlasan.js";
+import { JUDUL_KARTU, LEAD_SEKSI } from "./gayaTeks.jsx";
 import {
   IkonInfo,
   KartuUlasan,
@@ -123,7 +124,7 @@ function KaruselUlasan({ t, ulasan, padaVote }) {
               key={i}
               type="button"
               onClick={() => emblaApi?.scrollTo(i)}
-              aria-label={`slide ${i + 1}`}
+              aria-label={t("landing.rating.slide", { n: i + 1 })}
               className={`h-1.5 rounded-full transition-all ${
                 i === indeksAktif ? "w-6 bg-primary" : "w-1.5 bg-grey-300"
               }`}
@@ -141,6 +142,7 @@ export default function RatingUlasan() {
   const navigate = useNavigate();
   const location = useLocation();
   const [toast, setToast] = useState(null);
+  const [filterBintang, setFilterBintang] = useState(0);
 
   // Baca bintang terpilih dari sessionStorage (bertahan jika user navigasi
   // sebelum klik "Tulis ulasan", dan reset saat tab ditutup).
@@ -179,76 +181,133 @@ export default function RatingUlasan() {
     navigate("/tulis-ulasan");
   }, [navigate]);
 
-  // Tampilkan maksimal 10 ulasan terbaru di carousel; selebihnya hanya
-  // bisa diakses dari halaman /rating-ulasan.
-  const untukKarusel = urut.slice(0, 10);
+  // Filter seluruh daftar terlebih dahulu, baru batasi carousel ke 10 ulasan
+  // terbaru agar ulasan ber-rating lama tetap dapat ditemukan.
+  const ulasanTampil = (filterBintang === 0
+    ? urut
+    : urut.filter((u) => u.bintang === filterBintang)
+  ).slice(0, 10);
 
   return (
-    <section className="w-full px-6 md:px-8 xl:px-0 py-16">
+    <section className="w-full px-6 pt-6 pb-10 sm:pt-12 sm:pb-12 md:px-8 md:pt-16 md:pb-16 xl:px-0">
       <div className="mx-auto max-w-[1080px] xl:max-w-7xl">
 
-        {/* 1. Hero "Beri rating aplikasi ini" */}
-        <div className="flex w-full flex-col items-start rounded-lg border border-grey-200 bg-white p-6 sm:p-8 md:max-w-[52%]">
-          <h3 className="font-sans text-2xl font-bold tracking-tight text-grey-800 sm:text-3xl">
-            {t("landing.rating.ajakJudul")}
-          </h3>
-          <p className="mt-1.5 font-sans text-base text-foregroundGrey">
-            {t("landing.rating.ajakSub")}
-          </p>
-          <PemilihBintang
-            nilai={bintangHero}
-            ukuran="xl"
-            onPilih={pilihBintangHero}
-            ariaLabel={t("landing.rating.beriBintang")}
-            labelSatuan={(n) => t("landing.rating.skalaBintang", { n })}
-            labelUntuk={(n) => (n > 0
-              ? t(`landing.rating.labelBintang${n}`)
-              : t("landing.rating.pilihBintangPrompt"))}
-            className="mt-6 w-full"
-          />
-          <div className="mt-7 flex w-full items-center justify-between border-t border-grey-200 pt-4">
-            <button
-              type="button"
-              onClick={bukaHalamanTulis}
-              className="group inline-flex items-center gap-2 font-sans text-sm font-semibold text-primary transition sm:text-base"
-            >
-              <PenSquare className="size-4" aria-hidden="true" />
-              <span>{t("landing.rating.tulisUlasan")}</span>
-              <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
-            </button>
-            <span className="hidden font-sans text-xs text-foregroundGrey sm:inline">
-              {t("landing.rating.ajakCatatan")}
-            </span>
-          </div>
-        </div>
-
-        {/* 2. Kepala "Rating dan ulasan" + panah ke halaman daftar */}
-        <div className="mt-10 flex w-full items-center justify-between gap-3 md:max-w-[52%]">
-          <h2 className="font-sans text-xl font-semibold text-foreground md:text-2xl">
-            {t("landing.rating.judul")}
+        <section aria-labelledby="judul-daftar-ulasan" className="mb-6 sm:mb-8">
+      <div className="flex flex-col gap-3 border-b border-grey-200 pb-4 sm:flex-row sm:items-end sm:justify-between sm:gap-4 sm:pb-5">
+        <div className="min-w-0">
+          <h2
+            id="judul-daftar-ulasan"
+            className="font-serif font-light text-3xl leading-[1.04] tracking-normal text-grey-800 sm:text-4xl lg:text-[clamp(2.4rem,3.6vw,3.4rem)]"
+          >
+            {t("landing.rating.judulSeksi")}
           </h2>
+          <p className={`mt-3 flex max-w-3xl items-start gap-2 ${LEAD_SEKSI}`}>
+            <IkonInfo className="mt-0.5 size-4 flex-none" />
+            <span>{t("landing.rating.subJudul")}</span>
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2" role="group" aria-label={t("landing.rating.filterAria")}>
+          {[0, 5, 4, 3, 2, 1].map((nilai) => {
+            const aktif = filterBintang === nilai;
+            return (
+              <button
+                key={nilai}
+                type="button"
+                aria-label={nilai === 0
+                  ? t("landing.rating.filterSemuaAria", { n: total })
+                  : t("landing.rating.filterBintangAria", { n: nilai })}
+                aria-pressed={aktif}
+                onClick={() => setFilterBintang(nilai)}
+                className={`inline-flex min-h-9 items-center justify-center rounded-full border px-3 font-sans text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
+                  aktif
+                    ? "border-foreground bg-foreground text-white"
+                    : "border-grey-200 bg-white text-grey-600 hover:border-grey-400 hover:text-foreground"
+                }`}
+              >
+                {nilai === 0 ? t("landing.rating.filterSemua", { n: total }) : `${nilai} ★`}
+              </button>
+            );
+          })}
           <Link
             to="/rating-ulasan"
             aria-label={t("landing.rating.lihatSemua")}
-            className="flex size-10 items-center justify-center rounded-full bg-grey-200 text-foregroundGrey transition-colors hover:bg-grey-300 hover:text-foreground"
+            className="ml-1 flex size-9 flex-none items-center justify-center rounded-full border border-grey-200 text-foregroundGrey transition-colors hover:border-grey-400 hover:text-foreground"
           >
             <PanahKanan className="size-5" />
           </Link>
         </div>
-        <p className="mt-2 flex w-full items-start gap-1.5 font-sans text-sm text-foregroundGrey md:max-w-[52%]">
-          <IkonInfo className="mt-0.5 size-4 flex-none" />
-          <span>{t("landing.rating.subJudul")}</span>
-        </p>
+      </div>
+        </section>
 
-        {/* 3. Ringkasan */}
-        <div className="mt-5 w-full md:max-w-[52%]">
-          <Ringkasan ulasan={urut} locale={locale} />
+        <div className="grid grid-cols-1 items-stretch gap-5 sm:gap-8 lg:grid-cols-2">
+          {/* Kolom kiri: ajakan memberi rating */}
+          <div className="flex w-full min-w-0 flex-col items-start rounded-lg border border-grey-200 bg-white p-4 sm:p-6 md:p-8">
+            <h3 className={JUDUL_KARTU}>
+              {t("landing.rating.ajakJudul")}
+            </h3>
+            <p className="mt-2 font-serif text-base leading-[1.65] text-grey-600 text-pretty">
+              {t("landing.rating.ajakSub")}
+            </p>
+            <PemilihBintang
+              nilai={bintangHero}
+              ukuran="xl"
+              onPilih={pilihBintangHero}
+              ariaLabel={t("landing.rating.beriBintang")}
+              labelSatuan={(n) => t("landing.rating.skalaBintang", { n })}
+              labelUntuk={(n) => (n > 0
+                ? t(`landing.rating.labelBintang${n}`)
+                : t("landing.rating.pilihBintangPrompt"))}
+              className="mt-5 w-full sm:mt-6"
+            />
+            <div className="mt-5 flex w-full items-center justify-between border-t border-grey-200 pt-4 sm:mt-7">
+              <button
+                type="button"
+                onClick={bukaHalamanTulis}
+                className="group inline-flex items-center gap-2 font-sans text-sm font-semibold text-primary transition sm:text-base"
+              >
+                <PenSquare className="size-4" aria-hidden="true" />
+                <span>{t("landing.rating.tulisUlasan")}</span>
+                <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
+              </button>
+              <span className="hidden font-sans text-xs text-foregroundGrey sm:inline">
+                {t("landing.rating.ajakCatatan")}
+              </span>
+            </div>
+          </div>
+
+          {/* Kolom kanan: ringkasan rating dan navigasi ke seluruh ulasan */}
+          <div className="w-full min-w-0 rounded-lg border border-grey-200 bg-white p-4 sm:p-6 md:p-8">
+            <div className="flex items-center justify-between gap-3">
+              <h3 className={JUDUL_KARTU}>
+                {t("landing.rating.ringkasanJudul")}
+              </h3>
+              <span className="shrink-0 font-sans text-[13px] leading-[1.5] text-grey-600">
+                {t("landing.rating.berdasarkan", { n: urut.length })}
+              </span>
+            </div>
+            <div className="mt-4 sm:mt-6">
+              <Ringkasan ulasan={urut} locale={locale} />
+            </div>
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-grey-200 pt-4 font-sans text-xs text-foregroundGrey sm:mt-6">
+              <span>{t("landing.rating.ringkasanKeterangan")}</span>
+              <span className="font-medium text-grey-600">
+                {t("landing.rating.berdasarkan", { n: urut.length })}
+              </span>
+            </div>
+          </div>
         </div>
 
-        {/* 4. Carousel kartu ulasan */}
-        <div className="mt-6">
-          <KaruselUlasan t={t} ulasan={untukKarusel} padaVote={vote} />
-        </div>
+        <section className="mt-6 sm:mt-8" aria-label={t("landing.rating.daftarUlasanAria")}>
+          <div className="mt-4 sm:mt-6">
+            {ulasanTampil.length ? (
+              <KaruselUlasan t={t} ulasan={ulasanTampil} padaVote={vote} />
+            ) : (
+              <p className="py-8 text-center font-sans text-sm text-foregroundGrey">
+                {t("landing.rating.kosongFilter", { n: filterBintang })}
+              </p>
+            )}
+          </div>
+        </section>
 
         {total > 10 ? (
           <div className="mt-4 text-center">

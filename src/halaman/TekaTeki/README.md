@@ -134,6 +134,8 @@ Tambahkan entri baru setiap kali melakukan audit/perbaikan:
 
 | Tanggal | Area / temuan | Bukti atau langkah reproduksi | Perbaikan / commit | Tes dijalankan | Status |
 | --- | --- | --- | --- | --- | --- |
+| 2026-11-15 | Filter Mate 1/2/3 mengosongkan hasil | UI mengirim nilai `1`/`2`/`3`, sedangkan dataset memakai `Mate in One`/`Two`/`Three`; perbandingan langsung tidak pernah cocok | `puzzleFilter.js` memetakan pilihan UI ke enum dataset; tes juga mencakup Mate 4+ dan Tactical | `uji:tekateki-murni`, `uji:tekateki-alur`, `uji:tekateki-regresi`, integritas data, lint, build | LULUS |
+| 2026-11-15 | Komentator menyebut mat pada soal taktis | Jalur `lawanTerakhir` dan komentar langkah salah selalu menyebut mat meskipun tipe soal `Tactical` | Komentar kini memilih bahasa taktis berdasarkan `type`; varian ID/EN dan tes regresi ditambahkan | `uji:komentator`, `uji:tekateki-alur`, `uji:tekateki-regresi`, lint, build | LULUS |
 | 2026-10-25 | Label jumlah langkah mate | Ditemukan perbedaan hitungan langkah penuh dan setengah-langkah | `f951663b` — perubahan tampilan jumlah langkah | CI pada commit saat itu perlu dikonfirmasi terhadap branch terkini | BELUM DIVERIFIKASI ULANG |
 | 2026-10-25 | Soal selesai muncul kembali saat pemulihan URL | Dilaporkan saat keluar lalu masuk kembali; pemulihan dan deep-link perlu dibedakan | `8b4e22da` — penyesuaian seleksi awal | Tes regresi keluar/masuk ulang masih harus dijalankan | BELUM DIUJI |
 | 2026-10-25 | Lint validator dataset | CI melaporkan `no-useless-assignment` di `scripts/uji-integritas-data-teka-teki.mjs` | `ff9de949` — penanganan error disederhanakan | Menunggu hasil CI baru pada commit terbaru | MENUNGGU CI |

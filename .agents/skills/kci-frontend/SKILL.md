@@ -130,6 +130,31 @@ Jangan memilih referensi berbeda untuk membenarkan gaya yang bertentangan. Bila 
 dibutuhkan belum diatur, ajukan pilihan kepada pengguna atau usulkan penambahan ke `DESIGN.md`
 sebelum menjadikannya standar baru.
 
+## Responsif mobile-first, dikerjakan bertahap
+
+Setiap kali memperbaiki atau mengubah satu halaman, perlakukan tampilan mobile sebagai bagian
+wajib dari pekerjaan halaman tersebut, bukan pekerjaan susulan. Terapkan pendekatan mobile-first:
+kelas dasar Tailwind ditujukan untuk viewport kecil, lalu breakpoint seperti `sm:` dan `lg:`
+meningkatkan atau menata ulang tampilan sesuai kebutuhan. Contoh skala seperti
+`text-2xl sm:text-4xl` hanya ilustrasi; ukuran akhir tetap mengikuti `DESIGN.md` dan pengecualian
+domain yang berlaku.
+
+Saat membuka halaman target, periksa sekurangnya heading/teks besar, padding sisi, padding kartu,
+jarak antarbagian, kontrol interaktif, teks panjang, dan kemungkinan overflow horizontal pada mobile.
+Sesuaikan hanya bagian yang relevan pada halaman itu dan komponen bersama yang benar-benar dipakai.
+Pertahankan urutan konten, fungsi, serta struktur/grid desktop yang sudah ada; jangan mengubah logika
+atau markup demi responsivitas bila perubahan kelas responsif sudah cukup. Tabel, papan catur, dan
+antarmuka padat boleh mempertahankan pola khusus domainnya selama tetap dapat digunakan di layar kecil.
+
+Kerjakan peningkatan responsif secara inkremental, per halaman atau per komponen yang sedang
+diperbaiki. Jangan menjalankan penggantian kelas massal atau memperluas satu perbaikan menjadi audit
+ulang seluruh situs. Catat temuan di halaman lain untuk pekerjaan terpisah, kecuali pengguna secara
+khusus meminta cakupan lintas situs.
+
+Validasi perubahan pada ukuran mobile dan desktop melalui preview atau pengujian visual yang tersedia,
+serta jalankan uji fungsional tertarget. Jika verifikasi visual tidak dapat dilakukan, nyatakan batasan
+itu dengan jelas dan jangan mengklaim tampilan sudah terverifikasi.
+
 ## Standar markup halaman (WAJIB sebelum membuat/porting halaman)
 
 Sebelum menulis satu baris JSX untuk halaman baru atau porting, baca

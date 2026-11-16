@@ -97,7 +97,7 @@ function AnggotaPengurus({ pengurus, t }) {
             target="_blank"
             rel="noreferrer noopener"
             aria-label={aria}
-            className="inline-flex size-6 items-center justify-center rounded text-grey-600 transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            className="inline-flex size-11 items-center justify-center rounded text-grey-600 transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 md:size-6"
           >
             <LinkIcon className="size-4" />
           </a>
@@ -111,10 +111,10 @@ export default function MaestroEdision() {
   const { t } = useI18n();
 
   return (
-    <section className="w-full py-16 px-6 md:px-8 xl:px-0">
-      <div className="mx-auto flex max-w-[1080px] flex-col items-center gap-8 xl:max-w-7xl">
+    <section className="w-full px-6 py-10 md:px-8 md:py-16 xl:px-0">
+      <div className="mx-auto flex max-w-[1080px] flex-col items-center gap-6 sm:gap-8 xl:max-w-7xl">
         <header className="px-4 text-center">
-          <h2 className={JUDUL_SEKSI}>{t("landing.arahJudul")}</h2>
+          <h2 className={`${JUDUL_SEKSI} max-sm:text-3xl`}>{t("landing.arahJudul")}</h2>
         </header>
 
         <ul
