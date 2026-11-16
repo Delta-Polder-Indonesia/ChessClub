@@ -290,6 +290,7 @@ export default function RatingUlasan() {
           </div>
         </div>
 
+        <section className="mt-8" aria-label="Daftar ulasan pengguna">
           <div className="mt-6">
             {ulasanTampil.length ? (
               <KaruselUlasan t={t} ulasan={ulasanTampil} padaVote={vote} />
