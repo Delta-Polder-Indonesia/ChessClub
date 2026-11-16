@@ -8,10 +8,10 @@ export default function KerangkaTekaTekiHarian() {
     <section
       aria-hidden="true"
       data-testid="kerangka-teka-teki-harian"
-      className="w-full pl-6 md:pl-8 pr-6 md:pr-8 pb-12 xl:pb-16 pt-12 xl:pt-16 overflow-hidden"
+      className="w-full pl-6 md:pl-8 pr-6 md:pr-8 pb-8 pt-8 md:pb-12 md:pt-12 xl:pb-16 xl:pt-16 overflow-hidden"
     >
       <div className="relative mx-auto w-full max-w-7xl">
-        <div className="grid items-center gap-x-6 gap-y-10 xl:grid-cols-12 xl:gap-x-8">
+        <div className="grid items-center gap-x-6 gap-y-6 sm:gap-y-8 xl:grid-cols-12 xl:gap-x-8 xl:gap-y-10">
           <div className="xl:col-span-3 xl:min-h-[440px] flex flex-col justify-center gap-y-6">
             <div className="h-8 w-3/4 rounded bg-grey-200 animate-pulse" />
             <div className="h-6 w-1/2 rounded bg-grey-200 animate-pulse" />
