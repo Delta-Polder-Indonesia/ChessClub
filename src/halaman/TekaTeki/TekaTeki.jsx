@@ -347,6 +347,7 @@ export default function TekaTeki() {
       fakta: komentar.fakta || null,
       giliran: giliranSoal,
       jumlahLangkah: Math.ceil(langkahPenuh.length / 2),
+      tujuanSkakmat: String(masalah.type || "").startsWith("Mate in "),
       sisa: komentar.sisa !== undefined ? komentar.sisa : Math.ceil(sisa.length / 2),
       nomor: komentar.nomor || 0,
       sudahPecah: terpecahkan.has(masalah.problemid),

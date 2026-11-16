@@ -1198,6 +1198,7 @@ export const TEMA_DISEBUT = [
  * @param {object|null} [p.fakta]  hasil faktaLangkah() langkah terkait
  * @param {"w"|"b"} p.giliran      pihak yang memecahkan soal
  * @param {number} [p.jumlahLangkah] N pada "mat dalam N"
+ * @param {boolean} [p.tujuanSkakmat] soal memang bertujuan mencari skakmat
  * @param {number} [p.sisa]        langkah pemain yang tersisa setelah ini
  * @param {number} [p.nomor]       nomor langkah (untuk tinjau)
  * @param {boolean} [p.sudahPecah] soal pernah dipecahkan
@@ -1214,6 +1215,7 @@ export function susunKomentarTekaTeki({
   fakta = null,
   giliran = "w",
   jumlahLangkah = 1,
+  tujuanSkakmat = true,
   sisa = 0,
   nomor = 0,
   sudahPecah = false,
@@ -1251,6 +1253,7 @@ export function susunKomentarTekaTeki({
   switch (tahap) {
     case "mulai": {
       if (sudahPecah) tambahSoal("mulaiSudah", 1, {}, 0);
+      else if (!tujuanSkakmat) tambahSoal("mulaiTaktik", 2, {}, 1);
       else if (jumlahLangkah <= 1) tambahSoal("mulaiSatu", 2, {}, 1);
       else tambahSoal("mulai", 3, {}, 1);
       break;
@@ -1262,13 +1265,26 @@ export function susunKomentarTekaTeki({
     }
     case "lawan": {
       tambahFaktaTaktis();
-      if (sisa <= 1) tambahSoal("lawanTerakhir", 2, {}, 1);
-      else tambahSoal("lawan", 2, {}, 1);
+      if (sisa <= 1) {
+        tambahSoal(tujuanSkakmat ? "lawanTerakhir" : "lawanTaktikTerakhir", 2, {}, 1);
+      } else tambahSoal("lawan", 2, {}, 1);
       break;
     }
     case "salah": {
       if (!legal || !fakta) {
         tambahSoal("ilegal", 2, {}, 1);
+        break;
+      }
+      if (!tujuanSkakmat) {
+        if (fakta.skak) {
+          tambahSoal("salahSkakTaktik", 2, { jalan: String(fakta.jumlahLegalLawan) }, 1);
+        } else if (fakta.tangkap && NILAI_BIDAK[fakta.tangkap] >= 3) {
+          tambahSoal("salahTangkapTaktik", 2, { korban: `{{bidak:${fakta.tangkap}}}` }, 1);
+        } else if (sisa <= 1) {
+          tambahSoal("salahTerakhirTaktik", 2, {}, 1);
+        } else {
+          tambahSoal("salahTaktik", 2, {}, 1);
+        }
         break;
       }
       if (fakta.skak) {
