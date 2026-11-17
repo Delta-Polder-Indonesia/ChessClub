@@ -10,12 +10,12 @@ import { gambar, berkasPublik } from "../../lib/asets.js";
 import ChessComLogo from "../Analisa/komponen/svg/ChessComLogo.jsx";
 import LichessLogo from "../Analisa/komponen/svg/LichessLogo.jsx";
 
-/** Tautan platform sosial; URL dipertahankan dari implementasi sebelumnya. */
-const KANAL_SOSIAL = [
-  { nama: "Instagram", href: "https://www.instagram.com/" },
-  { nama: "TikTok", href: "https://www.tiktok.com/" },
-  { nama: "X (Twitter)", href: "https://x.com/" },
-  { nama: "YouTube", href: "https://www.youtube.com/" },
+/** Ikon logo media sosial — href mengarah laman resmi masing-masing platform. */
+const IKON_SOSIAL = [
+  { nama: "Instagram", src: "/images/color-icon/logo-instagram.svg", href: "https://www.instagram.com/" },
+  { nama: "TikTok", src: "/images/color-icon/logo-tiktok.svg", href: "https://www.tiktok.com/" },
+  { nama: "X (Twitter)", src: "/images/color-icon/logo-x.svg", href: "https://x.com/" },
+  { nama: "YouTube", src: "/images/color-icon/logo-youtube.svg", href: "https://www.youtube.com/" },
 ];
 
 /** Teknologi & layanan tempat proyek ini dibangun dan dijalankan. */
@@ -484,9 +484,26 @@ export default function Atribusi() {
                 {t("analisa.atribusi.sosialDeskripsi")}
               </p>
               <nav aria-label={t("analisa.atribusi.sosialJudul")} className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-grey-200 pt-5">
-                {KANAL_SOSIAL.map((kanal) => (
-                  <a key={kanal.nama} href={kanal.href} target="_blank" rel="noreferrer noopener" className="text-xs font-medium text-grey-700 underline decoration-grey-300 underline-offset-4 transition-colors hover:text-grey-900 hover:decoration-grey-800">
-                    {kanal.nama}
+                {IKON_SOSIAL.map((s) => (
+                  <a
+                    key={s.nama}
+                    href={s.href}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    title={s.nama}
+                    aria-label={s.nama}
+                    className="inline-flex items-center justify-center transition-opacity hover:opacity-70"
+                  >
+                    <img
+                      src={berkasPublik(s.src)}
+                      alt=""
+                      width={s.lebar ?? 24}
+                      height={s.tinggi ?? 24}
+                      loading="lazy"
+                      decoding="async"
+                      draggable="false"
+                      className="h-6 w-auto"
+                    />
                   </a>
                 ))}
               </nav>
