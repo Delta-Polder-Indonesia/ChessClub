@@ -4,10 +4,9 @@
  * sumber eksternal.
  */
 import { Children } from "react";
-import { Link } from "react-router-dom";
 import { HalamanIsi } from "../../components/PageBagian.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
-import { gambar, sumberGambar, berkasPublik } from "../../lib/asets.js";
+import { gambar, berkasPublik } from "../../lib/asets.js";
 import ChessComLogo from "../Analisa/komponen/svg/ChessComLogo.jsx";
 import LichessLogo from "../Analisa/komponen/svg/LichessLogo.jsx";
 
@@ -94,9 +93,6 @@ function KelompokAtribusi({ id, penanda, judul, deskripsi, item }) {
 
 export default function Atribusi() {
   const { t } = useI18n();
-  const fotoHero = sumberGambar("/images/ProgramKami/atribusi-lisensi-hero.webp", {
-    sizes: "(min-width: 1024px) 40vw, 100vw",
-  });
 
   const kartu = [
     {
@@ -442,65 +438,24 @@ export default function Atribusi() {
       parent={t("nav.programKami")}
       parentPath="/program-kami"
       description={t("analisa.atribusi.pendahuluan")}
-      image="/images/ProgramKami/atribusi-lisensi-hero.webp"
-      imageWidth={1672}
-      imageHeight={653}
-      tampilkanHero={false}
+      heroImage="/images/ProgramKami/atribusi-lisensi-hero.webp"
+      heroImageAlt="Patung Dewi Keadilan memegang timbangan di samping papan dan bidak catur"
       next={{ to: "/program-kami/analisa", judul: t("analisa.judul") }}
     >
-      <div className="border-b border-grey-200">
-        <div className="mx-auto max-w-6xl px-6 md:px-10">
-          <nav aria-label={t("analisa.atribusi.breadcrumbAria")} className="flex flex-wrap items-center gap-2 pt-8 font-mono text-xs text-grey-500">
-            <Link to="/" className="transition-colors hover:text-grey-800">{t("common.home")}</Link>
-            <span aria-hidden="true">/</span>
-            <Link to="/program-kami" className="transition-colors hover:text-grey-800">{t("nav.programKami")}</Link>
-            <span aria-hidden="true">/</span>
-            <span className="font-medium text-grey-800">{t("analisa.atribusi.judul")}</span>
-          </nav>
-
-          <header className="grid grid-cols-1 items-start gap-8 py-10 sm:py-14 lg:grid-cols-12 lg:gap-12 lg:py-16">
-            <div className="lg:col-span-7">
-              <p className="font-mono text-xs uppercase tracking-[0.15em] text-grey-500">
-                {t("analisa.atribusi.labelEditorial")}
-              </p>
-              <h1 className="mt-4 font-serif text-4xl font-normal leading-tight tracking-tight text-grey-800 sm:text-5xl lg:leading-[1.12]">
-                {t("analisa.atribusi.judulEditorial")}
-              </h1>
-              <p className="mt-6 max-w-xl text-base leading-relaxed text-grey-700">
-                {t("analisa.atribusi.pendahuluan")}
-              </p>
-              <nav aria-label={t("analisa.atribusi.indeksAria")} className="mt-8 flex flex-wrap gap-x-7 gap-y-3 border-t border-grey-200 pt-5 text-xs font-medium text-grey-700">
-                {kelompok.map((grup) => (
-                  <a key={grup.id} href={`#${grup.id}`} className="transition-colors hover:text-grey-900 hover:underline hover:underline-offset-4">
-                    {grup.penanda.replace("/", "—")} · {grup.judul}
-                  </a>
-                ))}
-              </nav>
-            </div>
-
-            <figure className="min-w-0 lg:col-span-5">
-              <img
-                {...fotoHero}
-                alt={t("analisa.atribusi.visualAlt")}
-                decoding="async"
-                fetchPriority="high"
-                draggable="false"
-                className="aspect-[4/3] w-full bg-grey-100 object-cover object-[72%_center] grayscale contrast-105"
-              />
-              <figcaption className="mt-3 flex items-center justify-between gap-3 text-xs text-grey-500">
-                <span>{t("analisa.atribusi.visualCaption")}</span>
-                <span className="shrink-0 font-mono text-[11px]">{t("analisa.atribusi.periode")}</span>
-              </figcaption>
-            </figure>
-          </header>
-        </div>
-      </div>
-
       <main className="mx-auto w-full max-w-6xl px-6 py-14 md:px-10 md:py-20">
         <section className="grid grid-cols-1 gap-6 pb-10 sm:pb-12 lg:grid-cols-12">
-          <h2 className="font-serif text-2xl font-normal text-grey-800 lg:col-span-4">
-            {t("analisa.atribusi.judulDaftar")}
-          </h2>
+          <div className="lg:col-span-4">
+            <h2 className="font-serif text-2xl font-normal text-grey-800">
+              {t("analisa.atribusi.judulDaftar")}
+            </h2>
+            <nav aria-label={t("analisa.atribusi.indeksAria")} className="mt-6 flex flex-wrap gap-x-6 gap-y-3 border-t border-grey-200 pt-5 text-xs font-medium text-grey-700">
+              {kelompok.map((grup) => (
+                <a key={grup.id} href={`#${grup.id}`} className="transition-colors hover:text-grey-900 hover:underline hover:underline-offset-4">
+                  {grup.penanda.replace("/", "—")} · {grup.judul}
+                </a>
+              ))}
+            </nav>
+          </div>
           <p className="max-w-2xl text-sm leading-relaxed text-grey-700 lg:col-span-8">
             {t("analisa.atribusi.penjelasanKatalog")}
           </p>

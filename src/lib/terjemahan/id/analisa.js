@@ -835,12 +835,6 @@ export const analisa = {
     },
     atribusi: {
       judul: "Atribusi & lisensi",
-      judulEditorial: "Atribusi, Mesin Analisis & Lisensi Perangkat Lunak",
-      labelEditorial: "Dokumentasi & Kepatuhan Sumber Terbuka",
-      visualAlt: "Patung Dewi Keadilan sebagai simbol kepatuhan hak cipta dan atribusi terbuka",
-      visualCaption: "Kepatuhan Hak Cipta & Kode Terbuka",
-      periode: "2025–2026",
-      breadcrumbAria: "Jejak navigasi",
       indeksAria: "Indeks bagian atribusi",
       pendahuluan:
         "Tampilan dan logika penilaian halaman ini dipindah dari Brilliant-Chess (MIT, © 2025 Delo). Engine catur, muat worker, dan seluruh komunikasi UCI memakai implementasi lokal situs ini.",

@@ -838,12 +838,6 @@ export const analisa = {
     },
     atribusi: {
       judul: "Attributions & license",
-      judulEditorial: "Attribution, Analysis Engines & Software Licenses",
-      labelEditorial: "Open-Source Documentation & Compliance",
-      visualAlt: "Lady Justice statue symbolizing copyright compliance and open attribution",
-      visualCaption: "Copyright & Open-Source Compliance",
-      periode: "2025–2026",
-      breadcrumbAria: "Breadcrumb",
       indeksAria: "Attribution section index",
       pendahuluan:
         "The layout and rating logic of this page were ported from Brilliant-Chess (MIT, © 2025 Delo). The chess engine, worker loading, and all UCI communication use this site's own implementation.",

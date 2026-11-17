@@ -5,7 +5,7 @@ import MetaHalaman from "./MetaHalaman.jsx";
 import { BreadcrumbJsonLd } from "./JsonLd.jsx";
 import { useI18n } from "../lib/i18n.jsx";
 
-/** Kerangka halaman: hero standar atau header khusus, isi, dan blok Selanjutnya. */
+/** Kerangka halaman baru: hero + isi + blok Selanjutnya (sama seperti Pertamina). */
 export function HalamanIsi({
   title,
   parent,
@@ -17,7 +17,6 @@ export function HalamanIsi({
   imageHeight,
   heroImage,
   heroImageAlt,
-  tampilkanHero = true,
   robots,
   /**
    * Jalur kanonik eksplisit. Dipakai halaman yang punya beberapa alamat
@@ -49,15 +48,13 @@ export function HalamanIsi({
         path={kanonik}
       />
       <BreadcrumbJsonLd items={crumbs} />
-      {tampilkanHero ? (
-        <Hero
-          title={title}
-          description={description}
-          crumbs={crumbs}
-          image={heroImage}
-          imageAlt={heroImageAlt}
-        />
-      ) : null}
+      <Hero
+        title={title}
+        description={description}
+        crumbs={crumbs}
+        image={heroImage}
+        imageAlt={heroImageAlt}
+      />
       {submenu}
       {children}
       {next && <PageSelanjutnya to={next.to} judul={next.judul} />}
