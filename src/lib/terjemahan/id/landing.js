@@ -180,7 +180,7 @@ export const landing = {
       judul: "Rating dan ulasan",
       judulSeksi: "Rating dan Ulasan website",
       subJudul:
-        "Bagian ini menampilkan ulasan contoh bawaan dan masukan tamu yang tersimpan di perangkat ini.",
+        "Jangan hanya percaya kata-kata kami — dengarkan pendapat dari para tamu kami yang berharga.",
       filterAria: "Filter ulasan berdasarkan rating",
       filterSemuaAria: "Tampilkan semua ulasan ({n})",
       filterBintangAria: "Tampilkan ulasan dengan rating {n} bintang",
