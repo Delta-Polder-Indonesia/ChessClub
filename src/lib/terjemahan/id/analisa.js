@@ -838,25 +838,22 @@ export const analisa = {
       pendahuluan:
         "Tampilan dan logika penilaian halaman ini dipindah dari Brilliant-Chess (MIT, © 2025 Delo). Engine catur, muat worker, dan seluruh komunikasi UCI memakai implementasi lokal situs ini.",
       indeksAria: "Indeks bagian atribusi",
-      judulDaftar: "Katalog Kontributor & Pustaka",
+      judulDaftar: "Atribusi dan Lisensi",
       penjelasanKatalog:
-        "Seluruh komponen pihak ketiga di bawah ini digunakan sesuai dengan ketentuan lisensi masing-masing pemegang hak cipta. Tautan di sisi kanan mengarah langsung ke repositori resmi atau laman dokumentasi sumber.",
+        "Karya pihak ketiga yang dipakai situs ini, dikelompokkan menurut perannya, lengkap dengan sumber asli dan lisensinya.",
       labelPenutup: "Ketentuan Penggunaan & Distribusi",
       kelompok: {
         sumber: {
-          penanda: "01 / Sumber daya",
-          judul: "Aset visual & data catur",
-          deskripsi: "Ilustrasi bidak, referensi pembukaan, suara, merek, dan teka-teki yang digunakan di situs ini.",
+          judul: "Aset dan data",
+          deskripsi: "Bidak, pembukaan, suara, logo, dan teka-teki yang tampil langsung di papan dan halaman latihan.",
         },
         mesin: {
-          penanda: "02 / Komputasi",
-          judul: "Engine catur & simulasi",
-          deskripsi: "Mesin analisis dan model lawan yang mendukung fitur bermain serta latihan.",
+          judul: "Mesin catur",
+          deskripsi: "Tiga engine dengan kekuatan berbeda, semuanya dijalankan dari folder /engines situs ini.",
         },
         kode: {
-          penanda: "03 / Kode & lisensi",
-          judul: "Perangkat lunak & infrastruktur",
-          deskripsi: "Kode antarmuka yang diadaptasi, teknologi pendukung, dan lisensi proyek.",
+          judul: "Kode dan teknologi",
+          deskripsi: "Berkas dan pola tata letak yang dipindahkan, serta layanan tempat proyek ini dibangun dan dijalankan.",
         },
       },
       bidak: "Gambar bidak",
@@ -874,7 +871,7 @@ export const analisa = {
       kodeOleh: "MIT — sumber: github.com/wdeloo/Brilliant-Chess.",
       desain: "Tata letak halaman",
       desainOleh:
-        "Pola layout Program Kami (judul besar + kartu grid) mengikuti prompt.md pada repositori ini, lisensi MIT.",
+        "Pola layout Program Kami mengikuti prompt.md pada repositori ini, lisensi MIT.",
       suara: "Suara papan",
       suaraOleh:
         "Berkas MP3 di /SoundChess berasal dari set suara papan Chess.com, LLC. Hak cipta tetap pada pemiliknya; dipakai apa adanya untuk kebutuhan latihan komunitas, tanpa modifikasi dan tanpa klaim kepemilikan.",
@@ -886,7 +883,7 @@ export const analisa = {
         "Soal, judul, dan langkah solusi teka-teki harian berasal dari API publik Chess.com (api.chess.com). Situs ini menampilkannya ulang saat halaman dibuka, tidak menyalin arsip soal, dan selalu menautkan halaman aslinya.",
       teknologi: "Infrastruktur & Pustaka Pengembangan",
       teknologiOleh:
-        "Dibangun dan dijalankan menggunakan ekosistem perangkat lunak berikut:",
+        "Proyek ini dibangun dan dijalankan dengan layanan serta pustaka berikut. Terima kasih kepada masing-masing tim atas karya mereka.",
       lisensiProyek: "Lisensi Proyek",
       lisensiProyekRingkas: "Kode sumber proyek ini berlisensi MIT; aset pihak ketiga tetap tunduk pada lisensi masing-masing.",
       lisensiProyekOleh:

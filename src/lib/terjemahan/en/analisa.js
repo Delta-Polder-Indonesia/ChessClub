@@ -841,25 +841,22 @@ export const analisa = {
       pendahuluan:
         "The layout and rating logic of this page were ported from Brilliant-Chess (MIT, © 2025 Delo). The chess engine, worker loading, and all UCI communication use this site's own implementation.",
       indeksAria: "Attribution section index",
-      judulDaftar: "Contributor & Resource Catalog",
+      judulDaftar: "Attributions & Licensing",
       penjelasanKatalog:
-        "Third-party components listed below are used under the terms set by their respective copyright holders. Links on the right lead to official repositories or source documentation.",
+        "Third-party work used by this site, grouped by role and listed with its original source and license.",
       labelPenutup: "Terms of Use & Distribution",
       kelompok: {
         sumber: {
-          penanda: "01 / Resources",
-          judul: "Visual assets & chess data",
-          deskripsi: "Chess-piece artwork, opening references, sounds, trademarks, and puzzles used on this site.",
+          judul: "Assets and data",
+          deskripsi: "Chess pieces, openings, sounds, logos, and puzzles used on the board and training pages.",
         },
         mesin: {
-          penanda: "02 / Computing",
-          judul: "Chess engines & simulation",
-          deskripsi: "Analysis engines and opponent models that power the site's chess and training features.",
+          judul: "Chess engines",
+          deskripsi: "Three engines at different strengths, all served from this site's /engines folder.",
         },
         kode: {
-          penanda: "03 / Code & licensing",
-          judul: "Software & infrastructure",
-          deskripsi: "Adapted interface code, supporting technologies, and project licensing.",
+          judul: "Code and technology",
+          deskripsi: "Ported files and layout patterns, plus the services used to build and run this project.",
         },
       },
       bidak: "Chess pieces",
@@ -877,7 +874,7 @@ export const analisa = {
       kodeOleh: "MIT — source: github.com/wdeloo/Brilliant-Chess.",
       desain: "Page layout",
       desainOleh:
-        "The Program Kami layout pattern (large heading + card grid) follows prompt.md from this repository, licensed MIT.",
+        "The Program Kami layout pattern follows prompt.md in this repository, licensed MIT.",
       suara: "Board sounds",
       suaraOleh:
         "The MP3 files under /SoundChess come from the Chess.com, LLC board sound set. Copyright remains with its owner; they are used as-is for community practice, unmodified and with no claim of ownership.",
@@ -889,7 +886,7 @@ export const analisa = {
         "The daily puzzle's position, title, and solution moves come from Chess.com's public API (api.chess.com). This site replays them when the page is opened, does not copy the puzzle archive, and always links to the original page.",
       teknologi: "Development Infrastructure & Libraries",
       teknologiOleh:
-        "Built and run using the following software ecosystem:",
+        "This project is built and run with the following services and libraries. We thank each team for their work.",
       lisensiProyek: "Project License",
       lisensiProyekRingkas: "Project source code is MIT-licensed; third-party assets remain under their respective licenses.",
       lisensiProyekOleh:

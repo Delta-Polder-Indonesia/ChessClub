@@ -41,57 +41,42 @@ function Tautan({ href, children, teknis = false }) {
   );
 }
 
-function ItemAtribusi({ judul, isi, varian }) {
-  const anak = Children.toArray(isi.props.children);
-
-  if (varian === "teknologi") {
-    const [visual, keterangan, ...sumber] = anak;
-    return (
-      <article className="grid min-w-0 grid-cols-1 gap-4 py-6 sm:grid-cols-[5rem_minmax(0,1fr)] sm:items-start sm:gap-4">
-        <div className="font-sans text-sm font-medium text-grey-500">{visual?.props?.children}</div>
-        <div className="min-w-0">
-          <h4 className="font-serif text-base font-semibold text-grey-800">{judul}</h4>
-          <p className="mt-1 font-sans text-base leading-relaxed text-grey-600">{keterangan?.props?.children}</p>
-          <p className="mt-3 font-sans text-sm leading-loose text-grey-700">
-            {sumber[0]?.props?.children}
-          </p>
-          <p className="mt-3 font-sans text-base leading-relaxed text-grey-500">
-            {sumber[1]?.props?.children}
-          </p>
-        </div>
-      </article>
-    );
-  }
-
-  const [keterangan, ...sumber] = anak;
+function ItemAtribusi({ judul, isi, varian, nomor }) {
+  const [keterangan, ...sumber] = Children.toArray(isi.props.children);
+  const teknologi = varian === "teknologi";
 
   return (
-    <article className="grid min-w-0 grid-cols-1 gap-4 py-6 sm:grid-cols-[minmax(0,1fr)_minmax(0,13rem)] sm:items-start sm:gap-4">
+    <article className="grid min-w-0 grid-cols-[1.75rem_minmax(0,1fr)] gap-x-4 gap-y-2 border-t border-grey-200 py-6 sm:grid-cols-[1.75rem_minmax(0,1.35fr)_minmax(0,1fr)] sm:gap-x-8">
+      <span className="pt-0.5 font-sans text-sm text-grey-500">{String(nomor).padStart(2, "0")}</span>
       <div className="min-w-0">
-        <h4 className="font-serif text-base font-semibold text-grey-800">{judul}</h4>
+        <h4 className="font-serif text-base font-semibold leading-snug text-grey-800">{judul}</h4>
         <p className="mt-1 font-sans text-base leading-relaxed text-grey-600">{keterangan?.props?.children}</p>
+        {teknologi && sumber[1] ? (
+          <p className="mt-3 font-sans text-sm leading-relaxed text-grey-600">{sumber[1].props?.children}</p>
+        ) : null}
       </div>
-      {sumber.length ? (
-        <ul className="m-0 flex min-w-0 max-w-full list-none flex-col gap-1 p-0 text-left font-sans text-sm leading-relaxed text-grey-700 [overflow-wrap:anywhere] sm:text-right">
-          {sumber}
-        </ul>
-      ) : <span />}
+      <div className="col-start-2 min-w-0 break-words font-sans text-sm leading-relaxed text-grey-700 sm:col-start-auto">
+        {teknologi
+          ? sumber[0]?.props?.children
+          : sumber.map((item, i) => <p key={i} className={i ? "mt-1" : undefined}>{item?.props?.children}</p>)}
+      </div>
     </article>
   );
 }
 
-function KelompokAtribusi({ id, penanda, judul, deskripsi, item }) {
+function KelompokAtribusi({ id, judul, deskripsi, item, nomorAwal }) {
   return (
-    <section id={id} className="scroll-mt-12 grid grid-cols-1 gap-7 border-t border-grey-800 py-12 sm:py-14 lg:grid-cols-12 lg:gap-12" aria-labelledby={`${id}-judul`}>
+    <section id={id} className="scroll-mt-12 grid grid-cols-1 gap-7 border-t border-grey-800 py-10 pb-16 lg:grid-cols-12 lg:gap-14" aria-labelledby={`${id}-judul`}>
       <div className="lg:col-span-4 lg:sticky lg:top-[88px] lg:self-start">
         <div>
-          <span className="block font-sans text-xs uppercase tracking-wider text-grey-500">{penanda}</span>
-          <h3 id={`${id}-judul`} className="mt-2 font-serif text-xl font-normal tracking-tight text-grey-800">{judul}</h3>
-          <p className="mt-2.5 font-sans text-base leading-relaxed text-grey-600">{deskripsi}</p>
+          <h3 id={`${id}-judul`} className="font-serif text-xl font-semibold leading-snug text-grey-800">{judul}</h3>
+          <p className="mt-2 font-sans text-base leading-relaxed text-grey-600">{deskripsi}</p>
         </div>
       </div>
-      <div className="divide-y divide-grey-200 border-y border-grey-200 lg:col-span-8">
-        {item.map((k) => <ItemAtribusi key={k.judul} judul={k.judul} isi={k.isi} varian={k.varian} />)}
+      <div className="border-b border-grey-200 lg:col-span-8">
+        {item.map((k, i) => (
+          <ItemAtribusi key={k.judul} judul={k.judul} isi={k.isi} varian={k.varian} nomor={nomorAwal + i} />
+        ))}
       </div>
     </section>
   );
@@ -249,7 +234,6 @@ export default function Atribusi() {
       varian: "teknologi",
       isi: (
         <>
-          <li>TECH</li>
           <li>{t("analisa.atribusi.teknologiOleh")}</li>
           <li>
             {TEKNOLOGI.map((k, i) => (
@@ -267,43 +251,30 @@ export default function Atribusi() {
         </>
       ),
     },
-    {
-      judul: t("analisa.atribusi.lisensiProyek"),
-      ikon: null,
-      isi: (
-        <>
-          <li>{t("analisa.atribusi.lisensiProyekRingkas")}</li>
-          <li>
-            <Tautan href="https://github.com/Delta-Polder-Indonesia/ChessClub/blob/main/LICENSE">
-              {t("analisa.atribusi.lisensiCek")}
-            </Tautan>
-          </li>
-        </>
-      ),
-    },
+
   ];
 
   const kelompok = [
     {
       id: "kelompok-sumber",
-      penanda: t("analisa.atribusi.kelompok.sumber.penanda"),
       judul: t("analisa.atribusi.kelompok.sumber.judul"),
       deskripsi: t("analisa.atribusi.kelompok.sumber.deskripsi"),
       item: [kartu[0], kartu[1], kartu[7], kartu[8], kartu[9]],
+      nomorAwal: 1,
     },
     {
       id: "kelompok-mesin",
-      penanda: t("analisa.atribusi.kelompok.mesin.penanda"),
       judul: t("analisa.atribusi.kelompok.mesin.judul"),
       deskripsi: t("analisa.atribusi.kelompok.mesin.deskripsi"),
       item: [kartu[2], kartu[3], kartu[4]],
+      nomorAwal: 6,
     },
     {
       id: "kelompok-kode",
-      penanda: t("analisa.atribusi.kelompok.kode.penanda"),
       judul: t("analisa.atribusi.kelompok.kode.judul"),
       deskripsi: t("analisa.atribusi.kelompok.kode.deskripsi"),
-      item: [kartu[5], kartu[6], kartu[10], kartu[11]],
+      item: [kartu[5], kartu[6], kartu[10]],
+      nomorAwal: 9,
     },
   ];
 
@@ -317,14 +288,14 @@ export default function Atribusi() {
       heroImageAlt="Patung Dewi Keadilan memegang timbangan di samping papan dan bidak catur"
       next={{ to: "/program-kami/analisa", judul: t("analisa.judul") }}
     >
-      <main className="mx-auto w-full max-w-6xl px-6 py-16 md:px-10 md:py-24">
-        <header className="grid grid-cols-1 gap-6 pb-12 lg:grid-cols-12">
+      <main className="mx-auto w-full max-w-[1080px] px-6 pt-16 pb-20 md:px-8 md:pt-20 md:pb-24">
+        <header className="grid grid-cols-1 gap-6 pb-16 lg:grid-cols-12 lg:gap-14">
           <div className="lg:col-span-4">
-            <h2 className="font-serif text-2xl font-normal text-grey-800">
+            <h2 className="font-serif text-[clamp(2.4rem,3.6vw,3.4rem)] font-light leading-[1.04] text-balance text-grey-800">
               {t("analisa.atribusi.judulDaftar")}
             </h2>
           </div>
-          <p className="max-w-2xl font-sans text-base leading-relaxed text-grey-700 lg:col-span-8">
+          <p className="max-w-2xl font-sans text-base leading-relaxed text-grey-600 lg:col-span-8 lg:pt-1">
             {t("analisa.atribusi.penjelasanKatalog")}
           </p>
         </header>
@@ -335,55 +306,55 @@ export default function Atribusi() {
           ))}
         </div>
 
-        <section className="mt-8 border-t border-grey-800 pt-12 sm:pt-14">
-          <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-12">
-            <div className="lg:col-span-6">
-              <span className="font-sans text-xs uppercase tracking-wider text-grey-500">
+        <section aria-label={t("analisa.atribusi.lisensiProyek")} className="border-t border-grey-800 pt-10">
+          <div className="grid grid-cols-1 gap-10 md:grid-cols-2 md:gap-x-16">
+            <div className="min-w-0">
+              <h3 className="font-serif text-xl font-semibold leading-snug text-grey-800">
                 {t("analisa.atribusi.lisensiProyek")}
-              </span>
-              <h3 className="mt-2 font-serif text-2xl font-normal text-grey-800">
-                {t("analisa.atribusi.labelPenutup")}
               </h3>
-              <p className="mt-4 font-sans text-base leading-relaxed text-grey-700 italic">
+              <p className="mt-3 max-w-[65ch] font-sans text-base leading-relaxed text-grey-800">
                 {t("analisa.atribusi.lisensiProyekOleh")}
               </p>
-              <p className="mt-5 font-sans text-xs text-grey-500">
+              <p className="mt-4 font-sans text-sm leading-relaxed text-grey-600">
                 © 2025–2026 Delta-Polder-Indonesia (Bintang Toba) · MIT License
+              </p>
+              <p className="mt-3 font-sans text-sm">
+                <Tautan href="https://github.com/Delta-Polder-Indonesia/ChessClub/blob/main/LICENSE">
+                  {t("analisa.atribusi.lisensiCek")}
+                </Tautan>
               </p>
             </div>
 
-            <div className="border-t border-grey-200 pt-8 lg:col-span-6 lg:border-l lg:border-t-0 lg:pl-12 lg:pt-0">
-              <span className="font-sans text-xs uppercase tracking-wider text-grey-500">
+            <div className="min-w-0">
+              <h3 className="font-serif text-xl font-semibold leading-snug text-grey-800">
                 {t("analisa.atribusi.sosialJudul")}
-              </span>
-              <p className="mt-3 font-sans text-base leading-relaxed text-grey-700">
+              </h3>
+              <p className="mt-3 max-w-[65ch] font-sans text-base leading-relaxed text-grey-800">
                 {t("analisa.atribusi.sosialDeskripsi")}
               </p>
-              <nav aria-label={t("analisa.atribusi.sosialJudul")} className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-grey-200 pt-5">
+              <nav aria-label={t("analisa.atribusi.sosialJudul")} className="mt-6 max-w-[520px] border-t border-grey-200 font-sans text-sm">
                 {TAUTAN_SOSIAL.map((s) => (
                   <a
                     key={s.nama}
                     href={s.href}
                     target="_blank"
                     rel="noreferrer noopener"
-                    title={s.nama}
-                    aria-label={s.nama}
-                    className="font-sans text-sm font-medium text-grey-800 underline decoration-grey-300 underline-offset-4 transition-colors hover:decoration-grey-800"
+                    className="flex min-h-11 items-center border-b border-grey-200 text-grey-800 underline decoration-grey-300 underline-offset-4 transition-colors hover:decoration-grey-800"
                   >
                     {s.nama}
                   </a>
                 ))}
               </nav>
             </div>
+          </div>
 
-            <div className="border-t border-grey-200 pt-8 lg:col-span-12">
-              <h3 className="mt-2 font-serif text-2xl font-normal text-grey-800">
-                {t("analisa.atribusi.sanggahanJudul")}
-              </h3>
-              <p className="mt-3 max-w-4xl font-sans text-base leading-relaxed text-grey-700">
-                {t("analisa.atribusi.sanggahan")}
-              </p>
-            </div>
+          <div className="mt-16 grid grid-cols-1 gap-4 border-t border-grey-200 pt-8 md:grid-cols-[minmax(0,1fr)_minmax(0,3fr)] md:gap-16">
+            <h3 className="font-serif text-xl font-semibold leading-snug text-grey-800">
+              {t("analisa.atribusi.sanggahanJudul")}
+            </h3>
+            <p className="max-w-[75ch] font-sans text-base leading-relaxed text-grey-600">
+              {t("analisa.atribusi.sanggahan")}
+            </p>
           </div>
         </section>
       </main>
