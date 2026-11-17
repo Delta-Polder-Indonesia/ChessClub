@@ -838,9 +838,19 @@ export const analisa = {
     },
     atribusi: {
       judul: "Attributions & license",
+      judulEditorial: "Attribution, Analysis Engines & Software Licenses",
+      labelEditorial: "Open-Source Documentation & Compliance",
+      visualAlt: "Lady Justice statue symbolizing copyright compliance and open attribution",
+      visualCaption: "Copyright & Open-Source Compliance",
+      periode: "2025–2026",
+      breadcrumbAria: "Breadcrumb",
+      indeksAria: "Attribution section index",
       pendahuluan:
         "The layout and rating logic of this page were ported from Brilliant-Chess (MIT, © 2025 Delo). The chess engine, worker loading, and all UCI communication use this site's own implementation.",
-      judulDaftar: "Attributions and License",
+      judulDaftar: "Contributor & Resource Catalog",
+      penjelasanKatalog:
+        "Third-party components listed below are used under the terms set by their respective copyright holders. Links on the right lead to official repositories or source documentation.",
+      labelPenutup: "Terms of Use & Distribution",
       kelompok: {
         sumber: {
           penanda: "01 / Resources",
@@ -859,21 +869,21 @@ export const analisa = {
         },
       },
       bidak: "Chess pieces",
-      bidakOleh: "Created by Cburnett, licensed CC-BY-SA-3.0.",
+      bidakOleh: "Created by Cburnett for rendering chess pieces on the game board.",
       pembukaan: "Opening book",
-      pembukaanOleh: "Data derived from lichess-org/chess-openings, licensed CC0.",
+      pembukaanOleh: "Data derived from the lichess-org/chess-openings repository.",
       engine: "Stockfish",
-      engineOleh: "stockfish.js distribution (GPL-3.0) — served from this site's /engines folder.",
+      engineOleh: "stockfish.js distribution — served from this site's /engines folder.",
       enginePemula: "Beginner opponent engine",
       enginePemulaOleh: "sunfish by Thomas Ahle, JavaScript port by foo123 (GPL-3.0). Served from this site's /engines folder and modified so its evaluation can be weakened for beginner levels; those modifications are likewise GPL-3.0 and available in the project repository.",
       engineMenengah: "Intermediate opponent engine (Maia 3)",
       engineMenengahOleh:
         "Model weights maia3_simplified.onnx from Maia Chess (CSSLab, University of Toronto) — code GPL-3.0, weights under the Maia project's terms. Served from this site's /engines folder; position encoding and policy decoding are implemented in-house at src/lib/maia3.js. Inference uses onnxruntime-web (Microsoft, MIT).",
       kode: "Ported source",
-      kodeOleh: "MIT — source: github.com/wdeloo/Brilliant-Chess.",
+      kodeOleh: "Source: github.com/wdeloo/Brilliant-Chess.",
       desain: "Page layout",
       desainOleh:
-        "The Program Kami layout pattern (large heading + card grid) follows prompt.md from this repository, licensed MIT.",
+        "The Program Kami layout pattern (large heading + card grid) follows prompt.md from this repository.",
       suara: "Board sounds",
       suaraOleh:
         "The MP3 files under /SoundChess come from the Chess.com, LLC board sound set. Copyright remains with its owner; they are used as-is for community practice, unmodified and with no claim of ownership.",
