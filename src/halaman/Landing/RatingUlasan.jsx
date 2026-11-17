@@ -46,7 +46,7 @@ function Toast({ terbuka, pesan, onTutup }) {
   if (!terbuka) return null;
   return (
     <div role="status" aria-live="polite"
-      className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-lg bg-foreground px-4 py-2 font-sans text-sm font-medium text-paper shadow-lg">
+      className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-lg bg-grey-800 px-4 py-2 font-sans text-sm font-medium text-paper shadow-lg">
       {pesan}
     </div>
   );
@@ -125,10 +125,17 @@ function KaruselUlasan({ t, ulasan, padaVote }) {
               type="button"
               onClick={() => emblaApi?.scrollTo(i)}
               aria-label={t("landing.rating.slide", { n: i + 1 })}
-              className={`h-1.5 rounded-full transition-all ${
+              className={`flex h-1.5 items-center justify-center rounded-full transition-all max-sm:h-6 max-sm:w-6 max-sm:bg-transparent ${
                 i === indeksAktif ? "w-6 bg-primary" : "w-1.5 bg-grey-300"
               }`}
-            />
+            >
+              <span
+                aria-hidden="true"
+                className={`hidden h-1.5 rounded-full max-sm:block ${
+                  i === indeksAktif ? "w-6 bg-primary" : "w-1.5 bg-grey-300"
+                }`}
+              />
+            </button>
           ))}
         </div>
       ) : null}
@@ -220,7 +227,7 @@ export default function RatingUlasan() {
                 onClick={() => setFilterBintang(nilai)}
                 className={`inline-flex min-h-9 items-center justify-center rounded-full border px-3 font-sans text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
                   aktif
-                    ? "border-foreground bg-foreground text-white"
+                    ? "border-grey-800 bg-grey-800 text-white"
                     : "border-grey-200 bg-white text-grey-600 hover:border-grey-400 hover:text-foreground"
                 }`}
               >
@@ -263,7 +270,7 @@ export default function RatingUlasan() {
               <button
                 type="button"
                 onClick={bukaHalamanTulis}
-                className="group inline-flex items-center gap-2 font-sans text-sm font-semibold text-primary transition sm:text-base"
+                className="group inline-flex items-center gap-2 py-1 font-sans text-sm font-semibold text-primary transition sm:py-0 sm:text-base"
               >
                 <PenSquare className="size-4" aria-hidden="true" />
                 <span>{t("landing.rating.tulisUlasan")}</span>

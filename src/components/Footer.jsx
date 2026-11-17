@@ -147,7 +147,7 @@ export default function Footer() {
               {link.href.startsWith("/") ? (
                 <Link
                   to={link.href}
-                  className="text-slate-700 hover:text-primary hover:underline font-medium"
+                  className="py-1 text-slate-700 hover:text-primary hover:underline font-medium md:py-0"
                   title={link.title}
                 >
                   {link.title}
@@ -155,7 +155,7 @@ export default function Footer() {
               ) : (
                 <a
                   href={link.href}
-                  className="text-slate-700 hover:text-primary hover:underline font-medium"
+                  className="py-1 text-slate-700 hover:text-primary hover:underline font-medium md:py-0"
                   title={link.title}
                 >
                   {link.title}

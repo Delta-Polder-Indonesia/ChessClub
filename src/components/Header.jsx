@@ -250,7 +250,7 @@ function MobileDrawer({ open, onClose, onNavigate, pemicu }) {
                     onNavigate();
                     onClose();
                   }}
-                  className="flex-1"
+                  className="flex-1 py-1.5"
                 >
                   {t(item.title)}
                 </Link>
@@ -331,7 +331,7 @@ function MobileDrawer({ open, onClose, onNavigate, pemicu }) {
         <ul className="flex flex-col gap-4 text-sm text-slate-700">
           {MENU_ATAS.map((l) => (
             <li key={l.title}>
-              <Link to={l.path} title={t(l.title)} onClick={onClose}>
+              <Link to={l.path} title={t(l.title)} onClick={onClose} className="block py-1.5">
                 {t(l.title)}
               </Link>
             </li>
@@ -462,7 +462,7 @@ function TombolBahasa({ warna = "text-white" }) {
       title={t("common.pilihBahasa")}
       aria-label={`${t("common.pilihBahasa")}, ${bahasa.toUpperCase()}`}
       onClick={() => setBahasa(bahasa === "en" ? "id" : "en")}
-      className={`bg-transparent border-0 flex items-center gap-2 text-xs ${warna} cursor-pointer`}
+      className={`bg-transparent border-0 flex items-center gap-2 py-1.5 text-xs ${warna} cursor-pointer`}
     >
       <span>{bahasa.toUpperCase()}</span>
       <Bendera />
@@ -506,7 +506,7 @@ export default function Header() {
         }`}
       >
         <div
-          className={`header-wrapper w-full mx-auto max-w-[1080px] xl:max-w-7xl px-6 lg:px-8 xl:px-0 flex items-center justify-between transition-all duration-200 ${
+          className={`header-wrapper w-full mx-auto max-w-[1080px] xl:max-w-7xl px-4 sm:px-6 lg:px-8 xl:px-0 flex items-center justify-between max-[360px]:px-3 transition-all duration-200 ${
             scrolled ? "py-3" : "py-6"
           }`}
         >
@@ -519,7 +519,11 @@ export default function Header() {
             title="Logo Komunitas Catur Indonesia"
             className="flex-none flex items-center gap-4 md:gap-6"
           >
-            <Logo variant={scrolled ? "dark" : "light"} priority />
+            <Logo
+              variant={scrolled ? "dark" : "light"}
+              priority
+              className="max-[360px]:!gap-2 max-[360px]:[&_img]:!h-11 max-[360px]:[&_img]:!w-11 max-[360px]:[&_span_span]:text-[13px]"
+            />
           </Link>
           <div className="flex flex-col lg:items-end">
             {/* Top bar — tersembunyi saat header menempel (seperti Pertamina) */}
@@ -554,7 +558,7 @@ export default function Header() {
               </li>
             </ul>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-2">
               {/* Nav utama */}
               <nav className="relative bg-transparent min-h-[48px] hidden lg:block">
                 <ul className="flex flex-col md:flex-row items-start md:items-center gap-6 font-semibold">
