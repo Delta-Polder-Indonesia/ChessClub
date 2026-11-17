@@ -840,7 +840,11 @@ export const analisa = {
       judul: "Attributions & license",
       pendahuluan:
         "The layout and rating logic of this page were ported from Brilliant-Chess (MIT, © 2025 Delo). The chess engine, worker loading, and all UCI communication use this site's own implementation.",
-      judulDaftar: "Attributions and License",
+      indeksAria: "Attribution section index",
+      judulDaftar: "Contributor & Resource Catalog",
+      penjelasanKatalog:
+        "Third-party components listed below are used under the terms set by their respective copyright holders. Links on the right lead to official repositories or source documentation.",
+      labelPenutup: "Terms of Use & Distribution",
       kelompok: {
         sumber: {
           penanda: "01 / Resources",
