@@ -87,7 +87,7 @@ function KelompokAtribusi({ id, penanda, judul, deskripsi, item }) {
   return (
     <section id={id} className="scroll-mt-12 grid grid-cols-1 gap-7 border-t border-grey-800 py-12 sm:py-14 lg:grid-cols-12 lg:gap-12" aria-labelledby={`${id}-judul`}>
       <div className="lg:col-span-4">
-        <div className="lg:sticky lg:top-12">
+        <div>
           <span className="block font-mono text-xs uppercase tracking-wider text-grey-500">{penanda}</span>
           <h3 id={`${id}-judul`} className="mt-2 text-lg font-semibold tracking-tight text-grey-800">{judul}</h3>
           <p className="mt-2.5 font-sans text-sm leading-relaxed text-grey-600">{deskripsi}</p>
