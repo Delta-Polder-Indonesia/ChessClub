@@ -29,8 +29,6 @@ const TEKNOLOGI = [
   { nama: "Stockfish", href: "https://stockfishchess.org/" },
   { nama: "chess.js", href: "https://github.com/jhlywa/chess.js" },
   { nama: "onnxruntime-web", href: "https://onnxruntime.ai/docs/tutorials/web/" },
-  { nama: "Arena AI", href: "https://arena.ai/" },
-  { nama: "OpenCode", href: "https://opencode.ai/" },
 ];
 
 function Tautan({ href, children }) {
@@ -46,8 +44,26 @@ function Tautan({ href, children }) {
   );
 }
 
-function ItemAtribusi({ judul, isi }) {
+function ItemAtribusi({ judul, isi, varian }) {
   const [visual, keterangan, ...sumber] = Children.toArray(isi.props.children);
+
+  if (varian === "teknologi") {
+    return (
+      <article className="grid min-w-0 grid-cols-1 gap-4 py-6 sm:grid-cols-[2.75rem_minmax(0,1fr)] sm:items-baseline sm:gap-6">
+        <div className="font-mono text-xs font-medium text-grey-500">{visual}</div>
+        <div className="min-w-0">
+          <h4 className="text-sm font-semibold text-grey-800">{judul}</h4>
+          <p className="mt-1 font-sans text-sm leading-relaxed text-grey-600">{keterangan?.props?.children}</p>
+          <p className="mt-3 font-mono text-xs leading-loose text-grey-700">
+            {sumber[0]?.props?.children}
+          </p>
+          <p className="mt-3 font-sans text-xs leading-relaxed text-grey-500">
+            {sumber[1]?.props?.children}
+          </p>
+        </div>
+      </article>
+    );
+  }
 
   return (
     <article className="grid min-w-0 grid-cols-1 gap-4 py-6 sm:grid-cols-[2.75rem_minmax(0,1fr)_minmax(0,14rem)] sm:items-baseline sm:gap-6">
@@ -78,7 +94,7 @@ function KelompokAtribusi({ id, penanda, judul, deskripsi, item }) {
         </div>
       </div>
       <div className="divide-y divide-grey-200 border-y border-grey-200 lg:col-span-8">
-        {item.map((k) => <ItemAtribusi key={k.judul} judul={k.judul} isi={k.isi} />)}
+        {item.map((k) => <ItemAtribusi key={k.judul} judul={k.judul} isi={k.isi} varian={k.varian} />)}
       </div>
     </section>
   );
@@ -337,7 +353,7 @@ export default function Atribusi() {
     },
     {
       judul: t("analisa.atribusi.teknologi"),
-      ikon: null,
+      varian: "teknologi",
       isi: (
         <>
           <li>
@@ -353,16 +369,16 @@ export default function Atribusi() {
             />
           </li>
           <li>{t("analisa.atribusi.teknologiOleh")}</li>
-          <li className="flex flex-row flex-wrap items-center justify-center gap-x-2 gap-y-1 text-base">
-            {TEKNOLOGI.map((k) => (
-              <span key={k.nama} className="inline-flex items-center gap-1">
+          <li>
+            {TEKNOLOGI.map((k, i) => (
+              <span key={k.nama}>
+                {i > 0 ? " · " : ""}
                 <Tautan href={k.href}>{k.nama}</Tautan>
-                <span className="text-slate-400">·</span>
               </span>
             ))}
           </li>
-          <li className="text-sm text-slate-500">
-            Diarsiteki & kolaborasi via{" "}
+          <li>
+            Diarsiteki &amp; kolaborasi pengembangan via{" "}
             <Tautan href="https://arena.ai/">Arena AI</Tautan> menggunakan{" "}
             <Tautan href="https://opencode.ai/">OpenCode</Tautan>.
           </li>
@@ -436,19 +452,12 @@ export default function Atribusi() {
       heroImageAlt="Patung Dewi Keadilan memegang timbangan di samping papan dan bidak catur"
       next={{ to: "/program-kami/analisa", judul: t("analisa.judul") }}
     >
-      <main className="mx-auto w-full max-w-7xl px-6 pb-16 pt-14 md:px-8 md:pt-20 xl:px-0">
-        <header className="grid grid-cols-1 gap-6 pb-10 sm:pb-12 lg:grid-cols-12 lg:gap-12">
+      <main className="mx-auto w-full max-w-6xl px-6 py-16 md:px-10 md:py-24">
+        <header className="grid grid-cols-1 gap-6 pb-12 lg:grid-cols-12">
           <div className="lg:col-span-4">
-            <h2 className="font-serif text-2xl font-normal leading-snug text-grey-800 md:text-3xl">
+            <h2 className="font-serif text-2xl font-normal text-grey-800">
               {t("analisa.atribusi.judulDaftar")}
             </h2>
-            <nav aria-label={t("analisa.atribusi.indeksAria")} className="mt-6 flex flex-wrap gap-x-6 gap-y-3 border-t border-grey-200 pt-5 text-xs font-medium text-grey-700">
-              {kelompok.map((grup) => (
-                <a key={grup.id} href={`#${grup.id}`} className="transition-colors hover:text-grey-900 hover:underline hover:underline-offset-4">
-                  {grup.penanda.replace("/", "—")} · {grup.judul}
-                </a>
-              ))}
-            </nav>
           </div>
           <p className="max-w-2xl text-sm leading-relaxed text-grey-700 lg:col-span-8">
             {t("analisa.atribusi.penjelasanKatalog")}
