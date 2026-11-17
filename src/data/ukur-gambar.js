@@ -222,6 +222,13 @@ export const UKUR = {
       828
     ]
   ],
+  "/images/ProgramKami/atribusi-lisensi-hero.webp": [
+    1672,
+    653,
+    [
+      828
+    ]
+  ],
   "/images/ProgramKami/chess_1.webp": [
     1002,
     524,

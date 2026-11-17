@@ -385,6 +385,8 @@ export default function Atribusi() {
       parent={t("nav.programKami")}
       parentPath="/program-kami"
       description={t("analisa.atribusi.pendahuluan")}
+      heroImage="/images/ProgramKami/atribusi-lisensi-hero.webp"
+      heroImageAlt="Patung Dewi Keadilan memegang timbangan di samping papan dan bidak catur"
       next={{ to: "/program-kami/analisa", judul: t("analisa.judul") }}
     >
       <section className="w-full relative bg-transparent pl-6 md:pl-8 xl:pl-40 pr-6 md:pr-8 xl:pr-40 pb-16 pt-12 md:pt-14 xl:pt-16">
