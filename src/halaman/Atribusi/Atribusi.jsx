@@ -49,15 +49,15 @@ function ItemAtribusi({ judul, isi, varian }) {
 
   if (varian === "teknologi") {
     return (
-      <article className="grid min-w-0 grid-cols-1 gap-4 py-6 sm:grid-cols-[2.75rem_minmax(0,1fr)] sm:items-baseline sm:gap-6">
-        <div className="font-mono text-xs font-medium text-grey-500">{visual?.props?.children}</div>
+      <article className="grid min-w-0 grid-cols-1 gap-4 py-6 sm:grid-cols-[5rem_minmax(0,1fr)] sm:items-start sm:gap-4">
+        <div className="font-mono text-sm font-medium text-grey-500">{visual?.props?.children}</div>
         <div className="min-w-0">
-          <h4 className="text-sm font-semibold text-grey-800">{judul}</h4>
-          <p className="mt-1 font-sans text-sm leading-relaxed text-grey-600">{keterangan?.props?.children}</p>
-          <p className="mt-3 font-mono text-xs leading-loose text-grey-700">
+          <h4 className="text-base font-semibold text-grey-800">{judul}</h4>
+          <p className="mt-1 font-sans text-base leading-relaxed text-grey-600">{keterangan?.props?.children}</p>
+          <p className="mt-3 font-mono text-sm leading-loose text-grey-700">
             {sumber[0]?.props?.children}
           </p>
-          <p className="mt-3 font-sans text-xs leading-relaxed text-grey-500">
+          <p className="mt-3 font-sans text-sm leading-relaxed text-grey-500">
             {sumber[1]?.props?.children}
           </p>
         </div>
@@ -66,16 +66,16 @@ function ItemAtribusi({ judul, isi, varian }) {
   }
 
   return (
-    <article className="grid min-w-0 grid-cols-1 gap-4 py-6 sm:grid-cols-[2.75rem_minmax(0,1fr)_minmax(0,14rem)] sm:items-baseline sm:gap-6">
-      <ul aria-hidden="true" className="m-0 flex min-h-7 list-none items-center p-0 text-grey-800 [&_img]:max-h-8 [&_img]:max-w-11 [&_img]:object-contain [&_li]:m-0 [&_svg]:max-h-7 [&_svg]:max-w-full">
+    <article className="grid min-w-0 grid-cols-1 gap-4 py-6 sm:grid-cols-[5rem_minmax(0,1fr)_minmax(0,13rem)] sm:items-start sm:gap-4">
+      <ul aria-hidden="true" className="m-0 flex min-h-14 list-none items-center p-0 text-grey-800 [&_img]:max-h-14 [&_img]:max-w-20 [&_img]:object-contain [&_li]:m-0 [&_svg]:max-h-14 [&_svg]:max-w-full">
         {visual}
       </ul>
       <div className="min-w-0">
-        <h4 className="text-sm font-semibold text-grey-800">{judul}</h4>
-        <p className="mt-1 font-sans text-sm leading-relaxed text-grey-600">{keterangan?.props?.children}</p>
+        <h4 className="text-base font-semibold text-grey-800">{judul}</h4>
+        <p className="mt-1 font-sans text-base leading-relaxed text-grey-600">{keterangan?.props?.children}</p>
       </div>
       {sumber.length ? (
-        <ul className="m-0 flex min-w-0 max-w-full list-none flex-col gap-1 p-0 text-left font-mono text-xs leading-relaxed text-grey-700 [overflow-wrap:anywhere] sm:text-right">
+        <ul className="m-0 flex min-w-0 max-w-full list-none flex-col gap-1 p-0 text-left font-mono text-sm leading-relaxed text-grey-700 [overflow-wrap:anywhere] sm:text-right">
           {sumber}
         </ul>
       ) : <span />}
@@ -89,8 +89,8 @@ function KelompokAtribusi({ id, penanda, judul, deskripsi, item }) {
       <div className="lg:col-span-4">
         <div>
           <span className="block font-mono text-xs uppercase tracking-wider text-grey-500">{penanda}</span>
-          <h3 id={`${id}-judul`} className="mt-2 text-lg font-semibold tracking-tight text-grey-800">{judul}</h3>
-          <p className="mt-2.5 font-sans text-sm leading-relaxed text-grey-600">{deskripsi}</p>
+          <h3 id={`${id}-judul`} className="mt-2 text-xl font-semibold tracking-tight text-grey-800">{judul}</h3>
+          <p className="mt-2.5 font-sans text-base leading-relaxed text-grey-600">{deskripsi}</p>
         </div>
       </div>
       <div className="divide-y divide-grey-200 border-y border-grey-200 lg:col-span-8">
@@ -448,7 +448,7 @@ export default function Atribusi() {
               {t("analisa.atribusi.judulDaftar")}
             </h2>
           </div>
-          <p className="max-w-2xl text-sm leading-relaxed text-grey-700 lg:col-span-8">
+          <p className="max-w-2xl text-base leading-relaxed text-grey-700 lg:col-span-8">
             {t("analisa.atribusi.penjelasanKatalog")}
           </p>
         </header>
