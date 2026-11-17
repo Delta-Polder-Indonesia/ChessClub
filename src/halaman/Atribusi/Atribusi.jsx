@@ -6,16 +6,13 @@
 import { Children } from "react";
 import { HalamanIsi } from "../../components/PageBagian.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
-import { gambar, berkasPublik } from "../../lib/asets.js";
-import ChessComLogo from "../Analisa/komponen/svg/ChessComLogo.jsx";
-import LichessLogo from "../Analisa/komponen/svg/LichessLogo.jsx";
 
-/** Ikon logo media sosial — href mengarah laman resmi masing-masing platform. */
-const IKON_SOSIAL = [
-  { nama: "Instagram", src: "/images/color-icon/logo-instagram.svg", href: "https://www.instagram.com/" },
-  { nama: "TikTok", src: "/images/color-icon/logo-tiktok.svg", href: "https://www.tiktok.com/" },
-  { nama: "X (Twitter)", src: "/images/color-icon/logo-x.svg", href: "https://x.com/" },
-  { nama: "YouTube", src: "/images/color-icon/logo-youtube.svg", href: "https://www.youtube.com/" },
+/** Tautan media sosial — ditampilkan sebagai nama teks, tanpa ikon gambar. */
+const TAUTAN_SOSIAL = [
+  { nama: "Instagram", href: "https://www.instagram.com/" },
+  { nama: "TikTok", href: "https://www.tiktok.com/" },
+  { nama: "X (Twitter)", href: "https://x.com/" },
+  { nama: "YouTube", href: "https://www.youtube.com/" },
 ];
 
 /** Teknologi & layanan tempat proyek ini dibangun dan dijalankan. */
@@ -45,9 +42,10 @@ function Tautan({ href, children, teknis = false }) {
 }
 
 function ItemAtribusi({ judul, isi, varian }) {
-  const [visual, keterangan, ...sumber] = Children.toArray(isi.props.children);
+  const anak = Children.toArray(isi.props.children);
 
   if (varian === "teknologi") {
+    const [visual, keterangan, ...sumber] = anak;
     return (
       <article className="grid min-w-0 grid-cols-1 gap-4 py-6 sm:grid-cols-[5rem_minmax(0,1fr)] sm:items-start sm:gap-4">
         <div className="font-sans text-sm font-medium text-grey-500">{visual?.props?.children}</div>
@@ -65,11 +63,10 @@ function ItemAtribusi({ judul, isi, varian }) {
     );
   }
 
+  const [keterangan, ...sumber] = anak;
+
   return (
-    <article className="grid min-w-0 grid-cols-1 gap-4 py-6 sm:grid-cols-[5rem_minmax(0,1fr)_minmax(0,13rem)] sm:items-start sm:gap-4">
-      <ul aria-hidden="true" className="m-0 flex min-h-14 list-none items-center p-0 text-grey-800 [&_img]:max-h-14 [&_img]:max-w-20 [&_img]:object-contain [&_li]:m-0 [&_svg]:max-h-14 [&_svg]:max-w-full">
-        {visual}
-      </ul>
+    <article className="grid min-w-0 grid-cols-1 gap-4 py-6 sm:grid-cols-[minmax(0,1fr)_minmax(0,13rem)] sm:items-start sm:gap-4">
       <div className="min-w-0">
         <h4 className="font-serif text-base font-semibold text-grey-800">{judul}</h4>
         <p className="mt-1 font-sans text-base leading-relaxed text-grey-600">{keterangan?.props?.children}</p>
@@ -109,18 +106,6 @@ export default function Atribusi() {
       ikon: null,
       isi: (
         <>
-          <li>
-            <img
-              src={berkasPublik("/images/color-icon/pawn-solo.svg")}
-              alt=""
-              draggable="false"
-              width={90}
-              height={90}
-              decoding="async"
-              loading="lazy"
-              className="h-14 w-auto"
-            />
-          </li>
           <li>{t("analisa.atribusi.bidakOleh")}</li>
           <li>
             <Tautan href="https://github.com/cburnett/wikipedia-chess" teknis>
@@ -135,18 +120,6 @@ export default function Atribusi() {
       ikon: null,
       isi: (
         <>
-          <li>
-            <img
-              src={berkasPublik("/images/color-icon/Landscape-Lichess-logo.svg")}
-              alt=""
-              draggable="false"
-              width={3300}
-              height={1353}
-              decoding="async"
-              loading="lazy"
-              className="h-12 w-auto"
-            />
-          </li>
           <li>{t("analisa.atribusi.pembukaanOleh")}</li>
           <li>
             <Tautan href="https://github.com/lichess-org/chess-openings" teknis>
@@ -161,18 +134,6 @@ export default function Atribusi() {
       ikon: null,
       isi: (
         <>
-          <li>
-            <img
-              src={gambar("/images/stockfish.webp")}
-              alt=""
-              draggable="false"
-              width={256}
-              height={256}
-              decoding="async"
-              loading="lazy"
-              className="h-24 w-auto"
-            />
-          </li>
           <li>{t("analisa.atribusi.engineOleh")}</li>
           <li>
             <Tautan href="https://stockfishchess.org/">Stockfish</Tautan> ·{" "}
@@ -188,18 +149,6 @@ export default function Atribusi() {
       ikon: null,
       isi: (
         <>
-          <li>
-            <img
-              src={berkasPublik("/AtribusiDanlisensi/Sunfish.webp")}
-              alt=""
-              draggable="false"
-              width={545}
-              height={267}
-              decoding="async"
-              loading="lazy"
-              className="h-20 w-auto"
-            />
-          </li>
           <li>{t("analisa.atribusi.enginePemulaOleh")}</li>
           <li>
             <Tautan href="https://github.com/thomasahle/sunfish" teknis>thomasahle/sunfish</Tautan> ·{" "}
@@ -216,18 +165,6 @@ export default function Atribusi() {
       ikon: null,
       isi: (
         <>
-          <li>
-            <img
-              src={berkasPublik("/images/color-icon/training.svg")}
-              alt=""
-              draggable="false"
-              width={90}
-              height={90}
-              decoding="async"
-              loading="lazy"
-              className="h-14 w-auto"
-            />
-          </li>
           <li>{t("analisa.atribusi.engineMenengahOleh")}</li>
           <li>
             <Tautan href="https://github.com/CSSLab/maia-platform-frontend" teknis>CSSLab/maia-platform-frontend</Tautan> ·{" "}
@@ -245,18 +182,6 @@ export default function Atribusi() {
       ikon: null,
       isi: (
         <>
-          <li>
-            <img
-              src={berkasPublik("/images/color-icon/page-article.svg")}
-              alt=""
-              draggable="false"
-              width={90}
-              height={90}
-              decoding="async"
-              loading="lazy"
-              className="h-14 w-auto"
-            />
-          </li>
           <li>{t("analisa.atribusi.kodeOleh")}</li>
           <li>
             <Tautan href="https://github.com/wdeloo/Brilliant-Chess" teknis>
@@ -271,18 +196,6 @@ export default function Atribusi() {
       ikon: null,
       isi: (
         <>
-          <li>
-            <img
-              src={berkasPublik("/images/color-icon/page-blog.svg")}
-              alt=""
-              draggable="false"
-              width={90}
-              height={90}
-              decoding="async"
-              loading="lazy"
-              className="h-14 w-auto"
-            />
-          </li>
           <li>{t("analisa.atribusi.desainOleh")}</li>
           <li>
             <Tautan href="https://delta-polder-indonesia.github.io/BintangToba/" teknis>
@@ -297,18 +210,6 @@ export default function Atribusi() {
       ikon: null,
       isi: (
         <>
-          <li>
-            <img
-              src={berkasPublik("/images/color-icon/today.svg")}
-              alt=""
-              draggable="false"
-              width={90}
-              height={90}
-              decoding="async"
-              loading="lazy"
-              className="h-14 w-auto"
-            />
-          </li>
           <li>{t("analisa.atribusi.suaraOleh")}</li>
           <li>
             <Tautan href="https://www.chess.com/">Chess.com</Tautan>
@@ -321,11 +222,6 @@ export default function Atribusi() {
       ikon: null,
       isi: (
         <>
-          <li className="flex flex-row items-center gap-3">
-            <ChessComLogo className="h-[26px] w-auto fill-current" />
-            <span className="h-6 w-px bg-grey-300" />
-            <LichessLogo className="h-[20px] w-auto fill-current" />
-          </li>
           <li>{t("analisa.atribusi.logoOleh")}</li>
           <li>
             <Tautan href="https://www.chess.com/">Chess.com</Tautan> ·{" "}
@@ -339,9 +235,6 @@ export default function Atribusi() {
       ikon: null,
       isi: (
         <>
-          <li className="flex flex-row items-center gap-3">
-            <ChessComLogo className="h-[26px] w-auto fill-current" />
-          </li>
           <li>{t("analisa.atribusi.tekaTekiHarianOleh")}</li>
           <li>
             <Tautan href="https://www.chess.com/daily-chess-puzzle">
@@ -379,18 +272,6 @@ export default function Atribusi() {
       ikon: null,
       isi: (
         <>
-          <li>
-            <img
-              src={berkasPublik("/AtribusiDanlisensi/Konstitusi.webp")}
-              alt=""
-              draggable="false"
-              width={640}
-              height={640}
-              decoding="async"
-              loading="lazy"
-              className="h-20 w-auto"
-            />
-          </li>
           <li>{t("analisa.atribusi.lisensiProyekRingkas")}</li>
           <li>
             <Tautan href="https://github.com/Delta-Polder-Indonesia/ChessClub/blob/main/LICENSE">
@@ -479,7 +360,7 @@ export default function Atribusi() {
                 {t("analisa.atribusi.sosialDeskripsi")}
               </p>
               <nav aria-label={t("analisa.atribusi.sosialJudul")} className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-grey-200 pt-5">
-                {IKON_SOSIAL.map((s) => (
+                {TAUTAN_SOSIAL.map((s) => (
                   <a
                     key={s.nama}
                     href={s.href}
@@ -487,18 +368,9 @@ export default function Atribusi() {
                     rel="noreferrer noopener"
                     title={s.nama}
                     aria-label={s.nama}
-                    className="inline-flex items-center justify-center transition-opacity hover:opacity-70"
+                    className="font-sans text-sm font-medium text-grey-800 underline decoration-grey-300 underline-offset-4 transition-colors hover:decoration-grey-800"
                   >
-                    <img
-                      src={berkasPublik(s.src)}
-                      alt=""
-                      width={s.lebar ?? 24}
-                      height={s.tinggi ?? 24}
-                      loading="lazy"
-                      decoding="async"
-                      draggable="false"
-                      className="h-6 w-auto"
-                    />
+                    {s.nama}
                   </a>
                 ))}
               </nav>
