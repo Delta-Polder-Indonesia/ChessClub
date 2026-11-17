@@ -391,20 +391,8 @@ export default function Atribusi() {
     >
       <section className="w-full relative bg-transparent pl-6 md:pl-8 xl:pl-40 pr-6 md:pr-8 xl:pr-40 pb-16 pt-12 md:pt-14 xl:pt-16">
         <div className="relative w-full mx-auto max-w-[1280px]">
-          <div className="flex flex-col items-center gap-4 text-center">
-            <img
-              src={berkasPublik("/AtribusiDanlisensi/Dewi-Keadilan.webp")}
-              alt=""
-              draggable="false"
-              width={235}
-              height={405}
-              decoding="async"
-              className="h-32 w-auto"
-            />
+          <div className="text-center">
             <div className="w-full border-b border-grey-200 pb-4">
-              <p className="mb-1 font-sans text-[13px] font-semibold text-primary">
-                {t("analisa.atribusi.judul")}
-              </p>
               <h2 className="mb-2 text-3xl md:text-4xl leading-none font-semibold text-grey-800 uppercase">
                 {t("analisa.atribusi.judulDaftar")}
               </h2>
