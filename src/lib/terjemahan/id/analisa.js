@@ -884,9 +884,9 @@ export const analisa = {
       tekaTekiHarian: "Teka-teki harian",
       tekaTekiHarianOleh:
         "Soal, judul, dan langkah solusi teka-teki harian berasal dari API publik Chess.com (api.chess.com). Situs ini menampilkannya ulang saat halaman dibuka, tidak menyalin arsip soal, dan selalu menautkan halaman aslinya.",
-      teknologi: "Teknologi",
+      teknologi: "Infrastruktur & Pustaka Pengembangan",
       teknologiOleh:
-        "Proyek ini dibangun dan dijalankan dengan layanan serta pustaka berikut. Terima kasih kepada masing-masing tim atas karya mereka.",
+        "Dibangun dan dijalankan menggunakan ekosistem perangkat lunak berikut:",
       lisensiProyek: "Lisensi Proyek",
       lisensiProyekOleh:
         "Kode sumber proyek ini dirilis di bawah lisensi MIT — bebas digunakan, dimodifikasi, dan didistribusikan dengan menyertakan pemberitahuan hak cipta & teks lisensi. Aset pihak ketiga (ikon, pembukaan, engine, suara) tetap tunduk pada lisensinya masing-masing.",
