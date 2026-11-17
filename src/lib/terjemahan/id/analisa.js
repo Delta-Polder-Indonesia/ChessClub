@@ -835,13 +835,9 @@ export const analisa = {
     },
     atribusi: {
       judul: "Atribusi & lisensi",
-      indeksAria: "Indeks bagian atribusi",
       pendahuluan:
         "Tampilan dan logika penilaian halaman ini dipindah dari Brilliant-Chess (MIT, © 2025 Delo). Engine catur, muat worker, dan seluruh komunikasi UCI memakai implementasi lokal situs ini.",
-      judulDaftar: "Katalog Kontributor & Pustaka",
-      penjelasanKatalog:
-        "Seluruh komponen pihak ketiga di bawah ini digunakan sesuai dengan ketentuan lisensi masing-masing pemegang hak cipta. Tautan di sisi kanan mengarah langsung ke repositori resmi atau laman dokumentasi sumber.",
-      labelPenutup: "Ketentuan Penggunaan & Distribusi",
+      judulDaftar: "Atribusi dan Lisensi",
       kelompok: {
         sumber: {
           penanda: "01 / Sumber daya",
@@ -860,21 +856,21 @@ export const analisa = {
         },
       },
       bidak: "Gambar bidak",
-      bidakOleh: "Dibuat oleh Cburnett untuk rendering bidak catur pada papan permainan.",
+      bidakOleh: "Dibuat oleh Cburnett, lisensi CC-BY-SA-3.0.",
       pembukaan: "Buku pembukaan",
-      pembukaanOleh: "Data hasil olahan repositori lichess-org/chess-openings.",
+      pembukaanOleh: "Data olahan lichess-org/chess-openings, lisensi CC0.",
       engine: "Stockfish",
-      engineOleh: "Distribusi stockfish.js — berkas dijalankan dari folder /engines situs ini.",
+      engineOleh: "Distribusi stockfish.js (GPL-3.0) — berkas dijalankan dari folder /engines situs ini.",
       enginePemula: "Engine lawan pemula",
       enginePemulaOleh: "sunfish oleh Thomas Ahle, port JavaScript oleh foo123 (GPL-3.0). Berkas dijalankan dari folder /engines situs ini dan dimodifikasi agar penilaiannya bisa dilemahkan untuk level pemula; modifikasinya ikut berlisensi GPL-3.0 dan tersedia di repositori proyek.",
       engineMenengah: "Engine lawan menengah (Maia 3)",
       engineMenengahOleh:
         "Bobot model maia3_simplified.onnx dari Maia Chess (CSSLab, University of Toronto) — kode GPL-3.0, bobot mengikuti ketentuan proyek Maia. Berkas dijalankan dari folder /engines situs ini; penyandian posisi dan dekode policy diimplementasikan sendiri di src/lib/maia3.js. Inferensi memakai onnxruntime-web (Microsoft, MIT).",
       kode: "Berkas yang dipindah",
-      kodeOleh: "Sumber: github.com/wdeloo/Brilliant-Chess.",
+      kodeOleh: "MIT — sumber: github.com/wdeloo/Brilliant-Chess.",
       desain: "Tata letak halaman",
       desainOleh:
-        "Pola layout Program Kami (judul besar + kartu grid) mengikuti prompt.md pada repositori ini.",
+        "Pola layout Program Kami (judul besar + kartu grid) mengikuti prompt.md pada repositori ini, lisensi MIT.",
       suara: "Suara papan",
       suaraOleh:
         "Berkas MP3 di /SoundChess berasal dari set suara papan Chess.com, LLC. Hak cipta tetap pada pemiliknya; dipakai apa adanya untuk kebutuhan latihan komunitas, tanpa modifikasi dan tanpa klaim kepemilikan.",
