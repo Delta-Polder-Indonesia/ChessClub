@@ -229,7 +229,7 @@ export function KartuUlasan({ t, ulasan: u, padaVote, padat }) {
               className="hidden font-sans text-xs text-foregroundGrey md:inline">
               {formatTanggalSingkat(u.ts)}
             </time>
-            <span className="font-sans text-[11px] text-foregroundGrey">
+            <span className="font-sans text-xs text-foregroundGrey">
               {waktuRelatif(u.ts, t)}
             </span>
           </div>
