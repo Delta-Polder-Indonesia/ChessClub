@@ -837,7 +837,11 @@ export const analisa = {
       judul: "Atribusi & lisensi",
       pendahuluan:
         "Tampilan dan logika penilaian halaman ini dipindah dari Brilliant-Chess (MIT, © 2025 Delo). Engine catur, muat worker, dan seluruh komunikasi UCI memakai implementasi lokal situs ini.",
-      judulDaftar: "Atribusi dan Lisensi",
+      indeksAria: "Indeks bagian atribusi",
+      judulDaftar: "Katalog Kontributor & Pustaka",
+      penjelasanKatalog:
+        "Seluruh komponen pihak ketiga di bawah ini digunakan sesuai dengan ketentuan lisensi masing-masing pemegang hak cipta. Tautan di sisi kanan mengarah langsung ke repositori resmi atau laman dokumentasi sumber.",
+      labelPenutup: "Ketentuan Penggunaan & Distribusi",
       kelompok: {
         sumber: {
           penanda: "01 / Sumber daya",
