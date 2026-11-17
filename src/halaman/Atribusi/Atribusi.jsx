@@ -50,7 +50,7 @@ function ItemAtribusi({ judul, isi, varian }) {
   if (varian === "teknologi") {
     return (
       <article className="grid min-w-0 grid-cols-1 gap-4 py-6 sm:grid-cols-[2.75rem_minmax(0,1fr)] sm:items-baseline sm:gap-6">
-        <div className="font-mono text-xs font-medium text-grey-500">{visual}</div>
+        <div className="font-mono text-xs font-medium text-grey-500">{visual?.props?.children}</div>
         <div className="min-w-0">
           <h4 className="text-sm font-semibold text-grey-800">{judul}</h4>
           <p className="mt-1 font-sans text-sm leading-relaxed text-grey-600">{keterangan?.props?.children}</p>
@@ -356,18 +356,7 @@ export default function Atribusi() {
       varian: "teknologi",
       isi: (
         <>
-          <li>
-            <img
-              src={berkasPublik("/images/color-icon/reactjs-ar21.svg")}
-              alt=""
-              draggable="false"
-              width={120}
-              height={60}
-              decoding="async"
-              loading="lazy"
-              className="h-14 w-auto"
-            />
-          </li>
+          <li>TECH</li>
           <li>{t("analisa.atribusi.teknologiOleh")}</li>
           <li>
             {TEKNOLOGI.map((k, i) => (
