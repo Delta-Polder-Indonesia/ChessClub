@@ -51,7 +51,7 @@ function ItemAtribusi({ judul, isi }) {
   const [visual, keterangan, ...sumber] = Children.toArray(isi.props.children);
 
   return (
-    <article className="grid gap-3 py-5 sm:grid-cols-[minmax(0,1fr)_minmax(12rem,auto)] sm:items-start sm:gap-8">
+    <article className="grid min-w-0 gap-3 py-5 sm:grid-cols-[minmax(0,1fr)_minmax(0,16rem)] sm:items-start sm:gap-8">
       <div className="grid min-w-0 grid-cols-[4rem_minmax(0,1fr)] items-start gap-4">
         <ul className="m-0 flex min-h-11 w-16 list-none items-center p-0 [&_img]:max-h-10 [&_img]:max-w-16 [&_img]:object-contain [&_li]:m-0">
           {visual}
@@ -64,7 +64,7 @@ function ItemAtribusi({ judul, isi }) {
         </div>
       </div>
       {sumber.length ? (
-        <ul className="m-0 flex list-none flex-col gap-1 p-0 text-left font-mono text-xs leading-relaxed text-primary sm:items-end sm:text-right">
+        <ul className="m-0 flex w-full min-w-0 list-none flex-col gap-1 p-0 text-left font-mono text-xs leading-relaxed text-primary [overflow-wrap:anywhere] sm:text-right">
           {sumber}
         </ul>
       ) : null}
