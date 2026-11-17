@@ -510,9 +510,9 @@ export default function Atribusi() {
             </div>
 
             <div className="border-t border-grey-200 pt-8 lg:col-span-12">
-              <span className="font-mono text-xs uppercase tracking-wider text-grey-500">
+              <h3 className="mt-2 font-serif text-2xl font-normal text-grey-800">
                 {t("analisa.atribusi.sanggahanJudul")}
-              </span>
+              </h3>
               <p className="mt-3 max-w-4xl text-sm leading-relaxed text-grey-700">
                 {t("analisa.atribusi.sanggahan")}
               </p>
