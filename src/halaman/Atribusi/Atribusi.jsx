@@ -1,9 +1,9 @@
 /*
- * Halaman "Atribusi & lisensi" — atribusi fitur Analisa, ditata dengan markup
- * editorial koran (label kecil uppercase, judul font-semibold ber-border double,
- * serif, rata kiri-kanan) mengikuti pola Keberlanjutan. Tata letak grid kartu
- * dipertahankan. Tautan memakai <a> biasa — link sheet/eksternal.
+ * Halaman "Atribusi & lisensi" — katalog atribusi editorial berkelompok,
+ * dengan daftar baris tanpa kartu generik. Tautan memakai <a> biasa untuk
+ * sumber eksternal.
  */
+import { Children } from "react";
 import { HalamanIsi } from "../../components/PageBagian.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 import { gambar, berkasPublik } from "../../lib/asets.js";
@@ -47,16 +47,42 @@ function Tautan({ href, children }) {
   );
 }
 
-function Kartu({ judul, ikon, isi }) {
+function ItemAtribusi({ judul, isi }) {
+  const [visual, keterangan, ...sumber] = Children.toArray(isi.props.children);
+
   return (
-    <section className="bg-white border border-slate-300 rounded p-6 w-full flex flex-col items-center">
-      <h2 className="text-[13px] font-sans font-semibold text-primary flex flex-row items-center justify-center w-fit mx-auto mb-5 gap-2 border-b border-grey-200 pb-1.5">
-        {ikon}
-        {judul}
-      </h2>
-      <ul className="font-serif text-base leading-relaxed flex flex-col items-center gap-2 text-center text-grey-800">
-        {isi}
-      </ul>
+    <article className="grid gap-3 py-5 sm:grid-cols-[minmax(0,1fr)_minmax(12rem,auto)] sm:items-start sm:gap-8">
+      <div className="grid min-w-0 grid-cols-[4rem_minmax(0,1fr)] items-start gap-4">
+        <ul className="m-0 flex min-h-11 w-16 list-none items-center p-0 [&_img]:max-h-10 [&_img]:max-w-16 [&_img]:object-contain [&_li]:m-0">
+          {visual}
+        </ul>
+        <div className="min-w-0">
+          <h3 className="text-base font-semibold tracking-tight text-grey-800">{judul}</h3>
+          <ul className="mt-1 flex list-none flex-col gap-1 p-0 font-sans text-sm leading-relaxed text-grey-600">
+            {keterangan}
+          </ul>
+        </div>
+      </div>
+      {sumber.length ? (
+        <ul className="m-0 flex list-none flex-col gap-1 p-0 text-left font-mono text-xs leading-relaxed text-primary sm:items-end sm:text-right">
+          {sumber}
+        </ul>
+      ) : null}
+    </article>
+  );
+}
+
+function KelompokAtribusi({ penanda, judul, deskripsi, item }) {
+  return (
+    <section className="grid grid-cols-1 gap-7 py-10 sm:py-12 lg:grid-cols-12 lg:gap-12" aria-label={judul}>
+      <div className="lg:col-span-4">
+        <span className="mb-1.5 block font-mono text-xs uppercase tracking-wider text-grey-500">{penanda}</span>
+        <h3 className="text-lg font-semibold tracking-tight text-grey-800">{judul}</h3>
+        <p className="mt-2 font-sans text-sm leading-relaxed text-grey-600">{deskripsi}</p>
+      </div>
+      <div className="divide-y divide-grey-200 border-y border-grey-200 lg:col-span-8">
+        {item.map((k) => <ItemAtribusi key={k.judul} judul={k.judul} isi={k.isi} />)}
+      </div>
     </section>
   );
 }
@@ -379,6 +405,27 @@ export default function Atribusi() {
     },
   ];
 
+  const kelompok = [
+    {
+      penanda: t("analisa.atribusi.kelompok.sumber.penanda"),
+      judul: t("analisa.atribusi.kelompok.sumber.judul"),
+      deskripsi: t("analisa.atribusi.kelompok.sumber.deskripsi"),
+      item: [kartu[0], kartu[1], kartu[7], kartu[8], kartu[9]],
+    },
+    {
+      penanda: t("analisa.atribusi.kelompok.mesin.penanda"),
+      judul: t("analisa.atribusi.kelompok.mesin.judul"),
+      deskripsi: t("analisa.atribusi.kelompok.mesin.deskripsi"),
+      item: [kartu[2], kartu[3], kartu[4]],
+    },
+    {
+      penanda: t("analisa.atribusi.kelompok.kode.penanda"),
+      judul: t("analisa.atribusi.kelompok.kode.judul"),
+      deskripsi: t("analisa.atribusi.kelompok.kode.deskripsi"),
+      item: [kartu[5], kartu[6], kartu[10], kartu[11]],
+    },
+  ];
+
   return (
     <HalamanIsi
       title={t("analisa.atribusi.judul")}
@@ -389,22 +436,19 @@ export default function Atribusi() {
       heroImageAlt="Patung Dewi Keadilan memegang timbangan di samping papan dan bidak catur"
       next={{ to: "/program-kami/analisa", judul: t("analisa.judul") }}
     >
-      <section className="w-full relative bg-transparent pl-6 md:pl-8 xl:pl-40 pr-6 md:pr-8 xl:pr-40 pb-16 pt-12 md:pt-14 xl:pt-16">
-        <div className="relative w-full mx-auto max-w-[1280px]">
-          <div className="text-center">
-            <div className="w-full border-b border-grey-200 pb-4">
-              <h2 className="mb-2 text-3xl md:text-4xl leading-none font-semibold text-grey-800 uppercase">
-                {t("analisa.atribusi.judulDaftar")}
-              </h2>
-              <p className="m-0 mx-auto max-w-[720px] text-base text-grey-800 italic">
-                {t("analisa.atribusi.pendahuluan")}
-              </p>
-            </div>
-          </div>
-          <div className="w-full border-t border-slate-300 mb-10 md:mb-12" />
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-5">
-            {kartu.map((k) => (
-              <Kartu key={k.judul} judul={k.judul} ikon={k.ikon} isi={k.isi} />
+      <section className="relative w-full bg-transparent px-6 pb-16 pt-12 md:px-8 md:pt-14 xl:px-0 xl:pt-16">
+        <div className="relative mx-auto w-full max-w-7xl">
+          <header className="grid grid-cols-1 items-end gap-6 border-b border-grey-200 pb-8 sm:pb-10 lg:grid-cols-12 lg:gap-12">
+            <h2 className="text-3xl font-semibold leading-tight tracking-tight text-grey-800 sm:text-4xl lg:col-span-6">
+              {t("analisa.atribusi.judulDaftar")}
+            </h2>
+            <p className="m-0 text-sm leading-relaxed text-grey-600 sm:text-[15px] lg:col-span-6">
+              {t("analisa.atribusi.pendahuluan")}
+            </p>
+          </header>
+          <div className="divide-y divide-grey-200">
+            {kelompok.map((grup) => (
+              <KelompokAtribusi key={grup.penanda} {...grup} />
             ))}
           </div>
           <div className="mt-10 w-full px-6 py-8 text-center">

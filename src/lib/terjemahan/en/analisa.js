@@ -841,6 +841,23 @@ export const analisa = {
       pendahuluan:
         "The layout and rating logic of this page were ported from Brilliant-Chess (MIT, © 2025 Delo). The chess engine, worker loading, and all UCI communication use this site's own implementation.",
       judulDaftar: "Attributions and License",
+      kelompok: {
+        sumber: {
+          penanda: "01 / Resources",
+          judul: "Visual assets & chess data",
+          deskripsi: "Chess-piece artwork, opening references, sounds, trademarks, and puzzles used on this site.",
+        },
+        mesin: {
+          penanda: "02 / Computing",
+          judul: "Chess engines & simulation",
+          deskripsi: "Analysis engines and opponent models that power the site's chess and training features.",
+        },
+        kode: {
+          penanda: "03 / Code & licensing",
+          judul: "Software & infrastructure",
+          deskripsi: "Adapted interface code, supporting technologies, and project licensing.",
+        },
+      },
       bidak: "Chess pieces",
       bidakOleh: "Created by Cburnett, licensed CC-BY-SA-3.0.",
       pembukaan: "Opening book",

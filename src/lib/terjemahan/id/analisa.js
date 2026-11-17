@@ -838,6 +838,23 @@ export const analisa = {
       pendahuluan:
         "Tampilan dan logika penilaian halaman ini dipindah dari Brilliant-Chess (MIT, © 2025 Delo). Engine catur, muat worker, dan seluruh komunikasi UCI memakai implementasi lokal situs ini.",
       judulDaftar: "Atribusi dan Lisensi",
+      kelompok: {
+        sumber: {
+          penanda: "01 / Sumber daya",
+          judul: "Aset visual & data catur",
+          deskripsi: "Ilustrasi bidak, referensi pembukaan, suara, merek, dan teka-teki yang digunakan di situs ini.",
+        },
+        mesin: {
+          penanda: "02 / Komputasi",
+          judul: "Engine catur & simulasi",
+          deskripsi: "Mesin analisis dan model lawan yang mendukung fitur bermain serta latihan.",
+        },
+        kode: {
+          penanda: "03 / Kode & lisensi",
+          judul: "Perangkat lunak & infrastruktur",
+          deskripsi: "Kode antarmuka yang diadaptasi, teknologi pendukung, dan lisensi proyek.",
+        },
+      },
       bidak: "Gambar bidak",
       bidakOleh: "Dibuat oleh Cburnett, lisensi CC-BY-SA-3.0.",
       pembukaan: "Buku pembukaan",
