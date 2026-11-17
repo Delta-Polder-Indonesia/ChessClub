@@ -23,20 +23,20 @@ const TEKNOLOGI = [
   { nama: "GitHub", href: "https://github.com/" },
   { nama: "Vercel", href: "https://vercel.com/" },
   { nama: "Supabase", href: "https://supabase.com/" },
-  { nama: "React", href: "https://react.dev/" },
-  { nama: "Vite", href: "https://vitejs.dev/" },
-  { nama: "Tailwind CSS", href: "https://tailwindcss.com/" },
-  { nama: "Stockfish", href: "https://stockfishchess.org/" },
-  { nama: "chess.js", href: "https://github.com/jhlywa/chess.js" },
-  { nama: "onnxruntime-web", href: "https://onnxruntime.ai/docs/tutorials/web/" },
+  { nama: "React", href: "https://react.dev/", teknis: true },
+  { nama: "Vite", href: "https://vitejs.dev/", teknis: true },
+  { nama: "Tailwind CSS", href: "https://tailwindcss.com/", teknis: true },
+  { nama: "Stockfish", href: "https://stockfishchess.org/", teknis: true },
+  { nama: "chess.js", href: "https://github.com/jhlywa/chess.js", teknis: true },
+  { nama: "onnxruntime-web", href: "https://onnxruntime.ai/docs/tutorials/web/", teknis: true },
 ];
 
-function Tautan({ href, children }) {
+function Tautan({ href, children, teknis = false }) {
   return (
     <a
       target="_blank"
       rel="noreferrer noopener"
-      className="font-medium text-grey-800 underline decoration-grey-300 underline-offset-4 transition-colors hover:decoration-grey-800"
+      className={`${teknis ? "font-mono" : "font-sans"} font-medium text-grey-800 underline decoration-grey-300 underline-offset-4 transition-colors hover:decoration-grey-800`}
       href={href}
     >
       {children}
@@ -50,14 +50,14 @@ function ItemAtribusi({ judul, isi, varian }) {
   if (varian === "teknologi") {
     return (
       <article className="grid min-w-0 grid-cols-1 gap-4 py-6 sm:grid-cols-[5rem_minmax(0,1fr)] sm:items-start sm:gap-4">
-        <div className="font-mono text-sm font-medium text-grey-500">{visual?.props?.children}</div>
+        <div className="font-sans text-sm font-medium text-grey-500">{visual?.props?.children}</div>
         <div className="min-w-0">
-          <h4 className="text-base font-semibold text-grey-800">{judul}</h4>
+          <h4 className="font-serif text-base font-semibold text-grey-800">{judul}</h4>
           <p className="mt-1 font-sans text-base leading-relaxed text-grey-600">{keterangan?.props?.children}</p>
-          <p className="mt-3 font-mono text-sm leading-loose text-grey-700">
+          <p className="mt-3 font-sans text-sm leading-loose text-grey-700">
             {sumber[0]?.props?.children}
           </p>
-          <p className="mt-3 font-sans text-sm leading-relaxed text-grey-500">
+          <p className="mt-3 font-sans text-base leading-relaxed text-grey-500">
             {sumber[1]?.props?.children}
           </p>
         </div>
@@ -71,11 +71,11 @@ function ItemAtribusi({ judul, isi, varian }) {
         {visual}
       </ul>
       <div className="min-w-0">
-        <h4 className="text-base font-semibold text-grey-800">{judul}</h4>
+        <h4 className="font-serif text-base font-semibold text-grey-800">{judul}</h4>
         <p className="mt-1 font-sans text-base leading-relaxed text-grey-600">{keterangan?.props?.children}</p>
       </div>
       {sumber.length ? (
-        <ul className="m-0 flex min-w-0 max-w-full list-none flex-col gap-1 p-0 text-left font-mono text-sm leading-relaxed text-grey-700 [overflow-wrap:anywhere] sm:text-right">
+        <ul className="m-0 flex min-w-0 max-w-full list-none flex-col gap-1 p-0 text-left font-sans text-sm leading-relaxed text-grey-700 [overflow-wrap:anywhere] sm:text-right">
           {sumber}
         </ul>
       ) : <span />}
@@ -88,8 +88,8 @@ function KelompokAtribusi({ id, penanda, judul, deskripsi, item }) {
     <section id={id} className="scroll-mt-12 grid grid-cols-1 gap-7 border-t border-grey-800 py-12 sm:py-14 lg:grid-cols-12 lg:gap-12" aria-labelledby={`${id}-judul`}>
       <div className="lg:col-span-4 lg:sticky lg:top-[88px] lg:self-start">
         <div>
-          <span className="block font-mono text-xs uppercase tracking-wider text-grey-500">{penanda}</span>
-          <h3 id={`${id}-judul`} className="mt-2 text-xl font-semibold tracking-tight text-grey-800">{judul}</h3>
+          <span className="block font-sans text-xs uppercase tracking-wider text-grey-500">{penanda}</span>
+          <h3 id={`${id}-judul`} className="mt-2 font-serif text-xl font-normal tracking-tight text-grey-800">{judul}</h3>
           <p className="mt-2.5 font-sans text-base leading-relaxed text-grey-600">{deskripsi}</p>
         </div>
       </div>
@@ -123,7 +123,7 @@ export default function Atribusi() {
           </li>
           <li>{t("analisa.atribusi.bidakOleh")}</li>
           <li>
-            <Tautan href="https://github.com/cburnett/wikipedia-chess">
+            <Tautan href="https://github.com/cburnett/wikipedia-chess" teknis>
               cburnett/wikipedia-chess
             </Tautan>
           </li>
@@ -149,7 +149,7 @@ export default function Atribusi() {
           </li>
           <li>{t("analisa.atribusi.pembukaanOleh")}</li>
           <li>
-            <Tautan href="https://github.com/lichess-org/chess-openings">
+            <Tautan href="https://github.com/lichess-org/chess-openings" teknis>
               lichess-org/chess-openings
             </Tautan>
           </li>
@@ -176,7 +176,7 @@ export default function Atribusi() {
           <li>{t("analisa.atribusi.engineOleh")}</li>
           <li>
             <Tautan href="https://stockfishchess.org/">Stockfish</Tautan> ·{" "}
-            <Tautan href="https://github.com/nmrugg/stockfish.js">
+            <Tautan href="https://github.com/nmrugg/stockfish.js" teknis>
               nmrugg/stockfish.js
             </Tautan>
           </li>
@@ -202,8 +202,8 @@ export default function Atribusi() {
           </li>
           <li>{t("analisa.atribusi.enginePemulaOleh")}</li>
           <li>
-            <Tautan href="https://github.com/thomasahle/sunfish">thomasahle/sunfish</Tautan> ·{" "}
-            <Tautan href="https://github.com/foo123/sunfish.js">foo123/sunfish.js</Tautan>
+            <Tautan href="https://github.com/thomasahle/sunfish" teknis>thomasahle/sunfish</Tautan> ·{" "}
+            <Tautan href="https://github.com/foo123/sunfish.js" teknis>foo123/sunfish.js</Tautan>
           </li>
           <li>
             <Tautan href="https://www.gnu.org/licenses/gpl-3.0.html">GPL-3.0</Tautan>
@@ -230,12 +230,12 @@ export default function Atribusi() {
           </li>
           <li>{t("analisa.atribusi.engineMenengahOleh")}</li>
           <li>
-            <Tautan href="https://github.com/CSSLab/maia-platform-frontend">CSSLab/maia-platform-frontend</Tautan> ·{" "}
+            <Tautan href="https://github.com/CSSLab/maia-platform-frontend" teknis>CSSLab/maia-platform-frontend</Tautan> ·{" "}
             <Tautan href="https://maiachess.com/">maiachess.com</Tautan>
           </li>
           <li>
             <Tautan href="https://www.gnu.org/licenses/gpl-3.0.html">GPL-3.0</Tautan> ·{" "}
-            <Tautan href="https://github.com/onnx/onnx">onnxruntime-web (MIT)</Tautan>
+            <Tautan href="https://github.com/onnx/onnx" teknis>onnxruntime-web (MIT)</Tautan>
           </li>
         </>
       ),
@@ -259,7 +259,7 @@ export default function Atribusi() {
           </li>
           <li>{t("analisa.atribusi.kodeOleh")}</li>
           <li>
-            <Tautan href="https://github.com/wdeloo/Brilliant-Chess">
+            <Tautan href="https://github.com/wdeloo/Brilliant-Chess" teknis>
               wdeloo/Brilliant-Chess
             </Tautan>
           </li>
@@ -285,7 +285,7 @@ export default function Atribusi() {
           </li>
           <li>{t("analisa.atribusi.desainOleh")}</li>
           <li>
-            <Tautan href="https://delta-polder-indonesia.github.io/BintangToba/">
+            <Tautan href="https://delta-polder-indonesia.github.io/BintangToba/" teknis>
               Delta-Polder-Indonesia/BintangToba
             </Tautan>
           </li>
@@ -323,7 +323,7 @@ export default function Atribusi() {
         <>
           <li className="flex flex-row items-center gap-3">
             <ChessComLogo className="h-[26px] w-auto fill-current" />
-            <span className="h-6 w-px bg-slate-300" />
+            <span className="h-6 w-px bg-grey-300" />
             <LichessLogo className="h-[20px] w-auto fill-current" />
           </li>
           <li>{t("analisa.atribusi.logoOleh")}</li>
@@ -362,7 +362,7 @@ export default function Atribusi() {
             {TEKNOLOGI.map((k, i) => (
               <span key={k.nama}>
                 {i > 0 ? " · " : ""}
-                <Tautan href={k.href}>{k.nama}</Tautan>
+                <Tautan href={k.href} teknis={k.teknis}>{k.nama}</Tautan>
               </span>
             ))}
           </li>
@@ -391,16 +391,11 @@ export default function Atribusi() {
               className="h-20 w-auto"
             />
           </li>
-          <li>{t("analisa.atribusi.lisensiProyekOleh")}</li>
+          <li>{t("analisa.atribusi.lisensiProyekRingkas")}</li>
           <li>
-            <a
-              target="_blank"
-              rel="noreferrer noopener"
-              className="font-bold text-primary hover:underline"
-              href="https://github.com/Delta-Polder-Indonesia/ChessClub/blob/main/LICENSE"
-            >
+            <Tautan href="https://github.com/Delta-Polder-Indonesia/ChessClub/blob/main/LICENSE">
               {t("analisa.atribusi.lisensiCek")}
-            </a>
+            </Tautan>
           </li>
         </>
       ),
@@ -448,7 +443,7 @@ export default function Atribusi() {
               {t("analisa.atribusi.judulDaftar")}
             </h2>
           </div>
-          <p className="max-w-2xl text-base leading-relaxed text-grey-700 lg:col-span-8">
+          <p className="max-w-2xl font-sans text-base leading-relaxed text-grey-700 lg:col-span-8">
             {t("analisa.atribusi.penjelasanKatalog")}
           </p>
         </header>
@@ -462,25 +457,25 @@ export default function Atribusi() {
         <section className="mt-8 border-t border-grey-800 pt-12 sm:pt-14">
           <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-12">
             <div className="lg:col-span-6">
-              <span className="font-mono text-xs uppercase tracking-wider text-grey-500">
+              <span className="font-sans text-xs uppercase tracking-wider text-grey-500">
                 {t("analisa.atribusi.lisensiProyek")}
               </span>
               <h3 className="mt-2 font-serif text-2xl font-normal text-grey-800">
                 {t("analisa.atribusi.labelPenutup")}
               </h3>
-              <p className="mt-4 font-serif text-base leading-relaxed text-grey-700 italic">
+              <p className="mt-4 font-sans text-base leading-relaxed text-grey-700 italic">
                 {t("analisa.atribusi.lisensiProyekOleh")}
               </p>
-              <p className="mt-5 font-mono text-xs text-grey-500">
+              <p className="mt-5 font-sans text-xs text-grey-500">
                 © 2025–2026 Delta-Polder-Indonesia (Bintang Toba) · MIT License
               </p>
             </div>
 
             <div className="border-t border-grey-200 pt-8 lg:col-span-6 lg:border-l lg:border-t-0 lg:pl-12 lg:pt-0">
-              <span className="font-mono text-xs uppercase tracking-wider text-grey-500">
+              <span className="font-sans text-xs uppercase tracking-wider text-grey-500">
                 {t("analisa.atribusi.sosialJudul")}
               </span>
-              <p className="mt-3 text-sm leading-relaxed text-grey-700">
+              <p className="mt-3 font-sans text-base leading-relaxed text-grey-700">
                 {t("analisa.atribusi.sosialDeskripsi")}
               </p>
               <nav aria-label={t("analisa.atribusi.sosialJudul")} className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-grey-200 pt-5">
@@ -513,7 +508,7 @@ export default function Atribusi() {
               <h3 className="mt-2 font-serif text-2xl font-normal text-grey-800">
                 {t("analisa.atribusi.sanggahanJudul")}
               </h3>
-              <p className="mt-3 max-w-4xl text-sm leading-relaxed text-grey-700">
+              <p className="mt-3 max-w-4xl font-sans text-base leading-relaxed text-grey-700">
                 {t("analisa.atribusi.sanggahan")}
               </p>
             </div>

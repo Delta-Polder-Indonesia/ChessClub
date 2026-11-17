@@ -888,6 +888,7 @@ export const analisa = {
       teknologiOleh:
         "Dibangun dan dijalankan menggunakan ekosistem perangkat lunak berikut:",
       lisensiProyek: "Lisensi Proyek",
+      lisensiProyekRingkas: "Kode sumber proyek ini berlisensi MIT; aset pihak ketiga tetap tunduk pada lisensi masing-masing.",
       lisensiProyekOleh:
         "Kode sumber proyek ini dirilis di bawah lisensi MIT — bebas digunakan, dimodifikasi, dan didistribusikan dengan menyertakan pemberitahuan hak cipta & teks lisensi. Aset pihak ketiga (ikon, pembukaan, engine, suara) tetap tunduk pada lisensinya masing-masing.",
       lisensiCek: "Lihat berkas LICENSE",

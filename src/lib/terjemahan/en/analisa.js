@@ -891,6 +891,7 @@ export const analisa = {
       teknologiOleh:
         "Built and run using the following software ecosystem:",
       lisensiProyek: "Project License",
+      lisensiProyekRingkas: "Project source code is MIT-licensed; third-party assets remain under their respective licenses.",
       lisensiProyekOleh:
         "This project's source code is released under the MIT license — free to use, modify, and distribute provided the copyright notice and license text are included. Third-party assets (icons, openings, engine, sounds) remain under their own licenses.",
       lisensiCek: "See the LICENSE file",
