@@ -444,48 +444,46 @@ export default function Atribusi() {
       <main className="mx-auto w-full max-w-6xl px-6 py-16 md:px-10 md:py-24">
         <header className="grid grid-cols-1 gap-6 pb-12 lg:grid-cols-12">
           <div className="lg:col-span-4">
-            <h2 className="font-serif text-[2.3755rem] font-light tracking-tight text-grey-800 leading-[1.15]">
+            <h2 className="font-serif text-2xl font-normal text-grey-800">
               {t("analisa.atribusi.judulDaftar")}
             </h2>
           </div>
-          <div className="lg:col-span-8">
-            <p className="max-w-2xl font-sans text-base leading-relaxed text-grey-700">
-              {t("analisa.atribusi.penjelasanKatalog")}
-            </p>
-          </div>
+          <p className="max-w-2xl text-sm leading-relaxed text-grey-700 lg:col-span-8">
+            {t("analisa.atribusi.penjelasanKatalog")}
+          </p>
         </header>
 
-        <div className="space-y-4">
+        <div>
           {kelompok.map((grup) => (
             <KelompokAtribusi key={grup.id} {...grup} />
           ))}
         </div>
 
-        <section className="mt-16 border-t border-grey-800 pt-16">
-          <div className="grid grid-cols-1 gap-12 lg:grid-cols-12">
-            <div className="lg:col-span-6 space-y-4">
-              <span className="block font-mono text-xs uppercase tracking-wider text-grey-500">
+        <section className="mt-8 border-t border-grey-800 pt-12 sm:pt-14">
+          <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-12">
+            <div className="lg:col-span-6">
+              <span className="font-mono text-xs uppercase tracking-wider text-grey-500">
                 {t("analisa.atribusi.lisensiProyek")}
               </span>
-              <h3 className="font-serif text-[2rem] font-light text-grey-800 leading-[1.15]">
+              <h3 className="mt-2 font-serif text-2xl font-normal text-grey-800">
                 {t("analisa.atribusi.labelPenutup")}
               </h3>
-              <p className="font-serif text-base leading-relaxed text-grey-700 italic">
+              <p className="mt-4 font-serif text-base leading-relaxed text-grey-700 italic">
                 {t("analisa.atribusi.lisensiProyekOleh")}
               </p>
-              <p className="font-mono text-xs text-grey-500 pt-2">
+              <p className="mt-5 font-mono text-xs text-grey-500">
                 © 2025–2026 Delta-Polder-Indonesia (Bintang Toba) · MIT License
               </p>
             </div>
 
-            <div className="border-t border-grey-200 pt-8 lg:col-span-6 lg:border-l lg:border-t-0 lg:pl-12 lg:pt-0 space-y-4">
-              <span className="block font-mono text-xs uppercase tracking-wider text-grey-500">
+            <div className="border-t border-grey-200 pt-8 lg:col-span-6 lg:border-l lg:border-t-0 lg:pl-12 lg:pt-0">
+              <span className="font-mono text-xs uppercase tracking-wider text-grey-500">
                 {t("analisa.atribusi.sosialJudul")}
               </span>
-              <p className="font-sans text-sm leading-relaxed text-grey-700">
+              <p className="mt-3 text-sm leading-relaxed text-grey-700">
                 {t("analisa.atribusi.sosialDeskripsi")}
               </p>
-              <nav aria-label={t("analisa.atribusi.sosialJudul")} className="flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-grey-200 pt-5">
+              <nav aria-label={t("analisa.atribusi.sosialJudul")} className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-grey-200 pt-5">
                 {IKON_SOSIAL.map((s) => (
                   <a
                     key={s.nama}
@@ -511,11 +509,11 @@ export default function Atribusi() {
               </nav>
             </div>
 
-            <div className="border-t border-grey-200 pt-12 lg:col-span-12 space-y-3">
-              <h3 className="font-serif text-[1.75rem] font-light text-grey-800 leading-[1.2]">
+            <div className="border-t border-grey-200 pt-8 lg:col-span-12">
+              <h3 className="mt-2 font-serif text-2xl font-normal text-grey-800">
                 {t("analisa.atribusi.sanggahanJudul")}
               </h3>
-              <p className="max-w-4xl font-sans text-sm leading-relaxed text-grey-700">
+              <p className="mt-3 max-w-4xl text-sm leading-relaxed text-grey-700">
                 {t("analisa.atribusi.sanggahan")}
               </p>
             </div>
