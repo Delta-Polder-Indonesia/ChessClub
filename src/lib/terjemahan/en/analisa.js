@@ -887,9 +887,9 @@ export const analisa = {
       tekaTekiHarian: "Daily puzzle",
       tekaTekiHarianOleh:
         "The daily puzzle's position, title, and solution moves come from Chess.com's public API (api.chess.com). This site replays them when the page is opened, does not copy the puzzle archive, and always links to the original page.",
-      teknologi: "Technology",
+      teknologi: "Development Infrastructure & Libraries",
       teknologiOleh:
-        "This project is built and run using the following services and libraries. Thanks to each team for their work.",
+        "Built and run using the following software ecosystem:",
       lisensiProyek: "Project License",
       lisensiProyekOleh:
         "This project's source code is released under the MIT license — free to use, modify, and distribute provided the copyright notice and license text are included. Third-party assets (icons, openings, engine, sounds) remain under their own licenses.",
