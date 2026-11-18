@@ -397,7 +397,7 @@ export function Sheet({
         aria-modal="true"
         aria-label={judul}
         onClick={(e) => e.stopPropagation()}
-        className={`absolute bottom-0 left-0 top-12 flex w-64 max-w-full flex-col border-r-2 border-slate-200 bg-white transition-transform duration-300 ease-out ${
+        className={`absolute inset-y-0 left-0 flex w-64 max-w-full flex-col border-r-2 border-slate-200 bg-white transition-transform duration-300 ease-out ${
           terbuka ? "translate-x-0" : "-translate-x-full"
         }`}
       >

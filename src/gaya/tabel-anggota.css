@@ -37,10 +37,10 @@
   border: 2px solid var(--color-grey-200);
 }
 .tabel-kci.tabel-tebal th {
-  border-bottom: 2px solid var(--color-grey-200);
+  border-bottom: 1px solid var(--color-grey-200);
 }
 .tabel-kci.tabel-tebal td {
-  border-bottom: 2px solid var(--color-grey-200);
+  border-bottom: 1px solid var(--color-grey-200);
 }
 .tabel-kci a {
   text-decoration: underline;
