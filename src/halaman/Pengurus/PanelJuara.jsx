@@ -322,7 +322,7 @@ export default function PanelJuara({ beriTahu }) {
                 <button
                   type="button"
                   onClick={() => setTargetHapusMassal(true)}
-                  className="rounded-md border-2 border-red-300 bg-red-50 px-3 py-1 text-xs font-semibold text-red-700 hover:bg-red-100"
+                  className="rounded-md border-2 border-slate-300 px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100"
                 >
                   Hapus terpilih
                 </button>

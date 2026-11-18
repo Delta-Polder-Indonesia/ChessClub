@@ -251,12 +251,12 @@ function PanelKelolaAdmin({ beriTahu }) {
   return (
     <div className="max-w-6xl space-y-6">
       {galat && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-red-200 bg-white px-4 py-3">
-          <p className="text-sm font-medium text-red-800">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3">
+          <p className="text-sm font-medium text-slate-800">
             <span className="font-bold">Gagal memuat daftar admin.</span>{" "}
             {galat}
           </p>
-          <Tombol jenis="bahaya" onClick={muat} anak="Coba Lagi" />
+          <Tombol jenis="biasa" onClick={muat} anak="Coba Lagi" />
         </div>
       )}
       <div>
@@ -547,7 +547,7 @@ export default function Pengaturan({ onKembali, beriTahu, kabar }) {
           </div>
         </header>
         <div className="flex-1 flex items-center justify-center p-6">
-          <div className="rounded-lg border border-red-200 bg-white p-8 max-w-md text-center">
+          <div className="rounded-lg border border-slate-200 bg-white p-8 max-w-md text-center">
             <h2 className="text-lg font-bold text-slate-900">Akses Ditolak</h2>
             <p className="mt-2 text-sm text-slate-600">Hanya Master Admin yang bisa masuk Pengaturan.</p>
           </div>

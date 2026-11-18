@@ -204,17 +204,17 @@ export default function PanelAnggota({
     <div className="space-y-5">
       {/* ── Peringatan Ban ─────────────────────────────────── */}
       {anggotaTerblokir.length > 0 && (
-        <p className="flex items-center gap-2 text-sm text-red-700">
-          <svg className="h-4 w-4 shrink-0 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <p className="flex items-center gap-2 text-sm text-slate-700">
+          <svg className="h-4 w-4 shrink-0 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
           <span className="font-semibold">{anggotaTerblokir.length} akun</span>
-          <span>di roster terdeteksi terkena ban.</span>
+          <span>di roster terdeteksi terkena batasan.</span>
           {filterStatus !== "terblokir" && (
             <button
               type="button"
               onClick={() => setFilterStatus("terblokir")}
-              className="font-semibold text-red-900 underline underline-offset-2 hover:text-red-700"
+              className="font-semibold text-slate-900 underline underline-offset-2 hover:text-slate-600"
             >
               Lihat →
             </button>
@@ -375,17 +375,17 @@ export default function PanelAnggota({
                     <TableCell className="p-3">
                       {kenaBanBaris ? (
                         <div>
-                          <span className="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-red-700">
+                          <span className="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
                             {a.alasanStatus === "fair_play_violations" ? "Fair Play" : "Terblokir"}
                           </span>
                           {a.peringatan && (
-                            <p className="mt-0.5 text-xs text-red-600 max-w-[200px] truncate" title={a.peringatan}>
+                            <p className="mt-0.5 text-xs text-slate-500 max-w-[200px] truncate" title={a.peringatan}>
                               {a.peringatan}
                             </p>
                           )}
                         </div>
                       ) : a.terverifikasi ? (
-                        <span className="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                        <span className="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
                           Terverifikasi
                         </span>
                       ) : (

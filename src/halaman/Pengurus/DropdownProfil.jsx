@@ -12,7 +12,7 @@ function ItemDropdown({ icon, label, onClick, disabled = false, bahaya = false }
         flex items-center gap-3
         transition-colors duration-100
         disabled:opacity-40
-        ${bahaya ? "text-red-600 hover:bg-slate-100" : "text-slate-700 hover:bg-slate-50"}
+        ${bahaya ? "text-slate-600 hover:bg-slate-100" : "text-slate-700 hover:bg-slate-50"}
       `}
     >
       <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">

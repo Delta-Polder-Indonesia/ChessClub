@@ -80,15 +80,15 @@ export default function DropdownNotifikasi({
                   }`}
                 >
                   {b.jenis === "ebook" ? (
-                    <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                    <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-600">
                       <Book className="h-4 w-4" />
                     </div>
                   ) : b.jenis === "fairplay" ? (
-                    <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-50 text-red-700">
+                    <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-600">
                       <ShieldAlert className="h-4 w-4" />
                     </div>
                   ) : (
-                    <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                    <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-slate-600">
                       {String(b.nama || "?").charAt(0).toUpperCase()}
                     </div>
                   )}

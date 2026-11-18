@@ -201,7 +201,7 @@ export default function PanelPesan({
             <button
               type="button"
               onClick={() => setTargetHapus(pesanTerpilih.id)}
-              className="rounded px-3 py-1.5 text-xs font-medium text-red-600 border border-red-200 hover:bg-red-50"
+              className="rounded px-3 py-1.5 text-xs font-medium text-slate-600 border border-slate-200 hover:bg-slate-100"
             >
               Hapus
             </button>
@@ -243,7 +243,7 @@ export default function PanelPesan({
               <button
                 type="button"
                 onClick={() => setTargetHapusBanyak(true)}
-                className="rounded px-3 py-1.5 text-xs font-medium text-red-600 border border-red-200 hover:bg-red-50"
+                className="rounded px-3 py-1.5 text-xs font-medium text-slate-600 border border-slate-200 hover:bg-slate-100"
               >
                 Hapus Semua
               </button>
@@ -266,7 +266,7 @@ export default function PanelPesan({
                 type="checkbox"
                 checked={semuaDipilih}
                 onChange={toggleSemua}
-                className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                className="h-4 w-4 rounded border-slate-300 text-slate-600 focus:ring-slate-500"
               />
               <span className="w-40">Nama</span>
               <span className="w-48">Subjek</span>
@@ -285,7 +285,7 @@ export default function PanelPesan({
                   checked={terpilih.has(p.id)}
                   onChange={() => togglePilih(p.id)}
                   onClick={(e) => e.stopPropagation()}
-                  className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 shrink-0"
+                  className="h-4 w-4 rounded border-slate-300 text-slate-600 focus:ring-slate-500 shrink-0"
                 />
                 <button
                   type="button"

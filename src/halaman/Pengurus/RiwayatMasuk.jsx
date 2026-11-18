@@ -439,7 +439,7 @@ export default function PanelRiwayatMasuk({ beriTahu }) {
           <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
             Hari Ini
           </p>
-          <p className="mt-1 text-2xl font-bold text-emerald-700">
+          <p className="mt-1 text-2xl font-bold text-slate-800">
             {jumlahHariIni}
           </p>
           <p className="mt-0.5 text-xs text-slate-500">Aktivitas masuk hari ini</p>

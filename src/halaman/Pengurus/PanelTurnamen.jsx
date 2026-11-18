@@ -168,7 +168,7 @@ export default function PanelTurnamen({ beriTahu, muatUlang, saatBukaRincian }) 
             <button
               type="button"
               onClick={() => setTargetHapusMassal(true)}
-              className="rounded-md border-2 border-red-300 bg-red-50 px-3 py-1 text-xs font-semibold text-red-700 hover:bg-red-100"
+              className="rounded-md border-2 border-slate-300 px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100"
             >
               Hapus terpilih
             </button>
@@ -241,7 +241,7 @@ export default function PanelTurnamen({ beriTahu, muatUlang, saatBukaRincian }) 
                           {t.nama}
                         </button>
                         {t.jumlahPengajuan > 0 && (
-                          <span className="ml-2 bg-slate-100 px-2 py-0.5 text-xs font-semibold text-amber-700">
+                          <span className="ml-2 bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-700">
                             {t.jumlahPengajuan} pengajuan
                           </span>
                         )}

@@ -93,7 +93,7 @@ export default function FormulirTurnamen({ jenis, onSimpan, onBatal }) {
             placeholder="contoh: Turnamen Bulanan Agustus 2026"
           />
           {galat.nama && (
-            <p className="mt-1 text-xs text-red-600">{galat.nama}</p>
+            <p className="mt-1 text-xs text-slate-600">{galat.nama}</p>
           )}
         </div>
 
@@ -178,10 +178,10 @@ export default function FormulirTurnamen({ jenis, onSimpan, onBatal }) {
           Jika diisi, nama turnamen di Beranda akan langsung membuka tautan ini.
         </p>
         {galat.tautan && (
-          <p className="mt-1 text-xs text-red-600">{galat.tautan}</p>
+          <p className="mt-1 text-xs text-slate-600">{galat.tautan}</p>
         )}
         {galat.selesai && (
-          <p className="mt-1 text-xs text-red-600">{galat.selesai}</p>
+          <p className="mt-1 text-xs text-slate-600">{galat.selesai}</p>
         )}
       </div>
 
@@ -196,7 +196,7 @@ export default function FormulirTurnamen({ jenis, onSimpan, onBatal }) {
       </p>
 
       {galatUmum && (
-        <p className="mt-3 rounded-md border border-red-300 bg-white px-3 py-2 text-xs leading-5 text-red-800">
+        <p className="mt-3 rounded-md border border-slate-200 bg-white px-3 py-2 text-xs leading-5 text-slate-800">
           {galatUmum}
         </p>
       )}

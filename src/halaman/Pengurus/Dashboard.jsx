@@ -396,7 +396,7 @@ export default function Dashboard() {
           <Pengaturan onKembali={() => setTabPengaturan(false)} beriTahu={beriTahu} kabar={kabar} />
         ) : (
           <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 px-6 text-center">
-            <div className="rounded-lg border border-red-200 bg-white p-8 max-w-md">
+            <div className="rounded-lg border border-slate-200 bg-white p-8 max-w-md">
               <h2 className="text-lg font-bold text-slate-900">Akses Ditolak</h2>
               <p className="mt-2 text-sm leading-6 text-slate-600">
                 Halaman Pengaturan hanya bisa diakses oleh <strong>Master Admin</strong>.
@@ -515,14 +515,14 @@ export default function Dashboard() {
             ) : ringkas ? (
               <RingkasanDashboard ringkas={ringkas} onBuka={bukaTab} hitam={hitam} />
             ) : (
-              <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-red-200 bg-white px-4 py-3">
-                <p className="text-sm font-medium text-red-800">
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3">
+                <p className="text-sm font-medium text-slate-800">
                   Ringkasan dashboard gagal dimuat. Periksa koneksi lalu coba lagi.
                 </p>
                 <button
                   type="button"
                   onClick={muatUlang}
-                  className="rounded-md border-2 border-red-300 px-4 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-50"
+                  className="rounded-md border-2 border-slate-300 px-4 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100"
                 >
                   Coba Lagi
                 </button>

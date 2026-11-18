@@ -74,7 +74,7 @@ export default function DropdownPesan({
                     p.dibaca ? "bg-white" : "bg-slate-50"
                   }`}
                 >
-                  <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                  <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-slate-600">
                     {String(p.nama || "?").charAt(0).toUpperCase()}
                   </div>
                   <div className="min-w-0 flex-1">

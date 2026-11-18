@@ -327,7 +327,7 @@ export default function RincianTurnamen({ id, jenis, beriTahu, onTutup, onBeruba
                       ? new Date(p.akunDibuatPada).toLocaleDateString("id-ID")
                       : "—"}
                     {akunMasihBaru(p.akunDibuatPada) && (
-                      <span className="mt-1 block font-semibold text-red-700">
+                      <span className="mt-1 block font-semibold text-slate-700">
                         Akun baru (&lt;30 hari)
                       </span>
                     )}
@@ -339,10 +339,10 @@ export default function RincianTurnamen({ id, jenis, beriTahu, onTutup, onBeruba
                     <span
                       className={`text-xs font-semibold ${
                         p.status === "menunggu"
-                          ? "text-amber-700"
+                          ? "text-slate-700"
                           : p.status === "diterima"
-                            ? "text-emerald-700"
-                            : "text-red-700"
+                            ? "text-slate-700"
+                            : "text-slate-700"
                       }`}
                     >
                       {p.status}
@@ -430,21 +430,21 @@ export default function RincianTurnamen({ id, jenis, beriTahu, onTutup, onBeruba
                 {t.peserta.map((p, index) => (
                   <tr key={p.username}>
                     <td>{index + 1}</td>
-                    <td className={p.dianulir ? "text-red-600 line-through" : ""}>
+                    <td className={p.dianulir ? "text-slate-500 line-through" : ""}>
                       {p.rating ?? "—"}
                     </td>
                     <td>
                       <span
                         className={
                           p.dianulir
-                            ? "font-semibold text-red-600 line-through"
+                            ? "font-semibold text-slate-500 line-through"
                             : "font-semibold text-slate-800"
                         }
                       >
                         {p.panggilan || p.username}
                       </span>
                       {!p.anggota && (
-                        <span className="ml-1 text-xs text-amber-700">tamu</span>
+                        <span className="ml-1 text-xs text-slate-600">tamu</span>
                       )}
                     </td>
                     <td className="text-slate-600">{p.tim || "—"}</td>
@@ -477,7 +477,7 @@ export default function RincianTurnamen({ id, jenis, beriTahu, onTutup, onBeruba
                             "Peserta dikeluarkan."
                           )
                         }
-                        className="rounded p-1 text-slate-500 hover:bg-red-50 hover:text-red-600"
+                        className="rounded p-1 text-slate-500 hover:bg-slate-100 hover:text-slate-600"
                       >
                         <IkonSampah />
                       </button>
@@ -606,7 +606,7 @@ export default function RincianTurnamen({ id, jenis, beriTahu, onTutup, onBeruba
                               "Hasil dihapus."
                             )
                           }
-                          className="rounded p-1 text-slate-500 hover:bg-red-50 hover:text-red-600"
+                          className="rounded p-1 text-slate-500 hover:bg-slate-100 hover:text-slate-600"
                         >
                           <IkonSampah />
                         </button>
