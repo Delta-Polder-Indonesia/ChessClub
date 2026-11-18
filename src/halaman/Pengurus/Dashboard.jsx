@@ -418,8 +418,8 @@ export default function Dashboard() {
             <button onClick={() => setSidebarTerbuka((s) => !s)}
               className="p-2 rounded-md hover:bg-slate-100 transition-colors duration-150"
               title={sidebarTerbuka ? "Tutup sidebar" : "Buka sidebar"}>
-              <svg className="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              <svg className="w-5 h-5 text-slate-600" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M11.5,16V8l-4,4l4,4ZM5,21q-0.83,0-1.41-0.59T3,19V5Q3,4.17 3.59,3.59T5,3H19q0.83,0 1.41,0.59T21,5V19q0,0.82-0.59,1.41T19,21H5Zm11-2h3V5H16V19Zm-2,0V5H5V19h9Zm2,0h3H16Z" />
               </svg>
             </button>
             <h1 className="text-lg font-bold text-slate-900">{judulRincian || judulTab}</h1>
