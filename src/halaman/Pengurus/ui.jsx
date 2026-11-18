@@ -335,7 +335,11 @@ export function MenuAksi({ onUbah, onHapus, aksi }) {
                   setTerbuka(false);
                   onClick?.();
                 }}
-                className={`flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm disabled:opacity-40 text-slate-700 hover:bg-slate-50`}
+                className={`flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm disabled:opacity-40 font-medium ${
+                  bahaya
+                    ? "text-slate-700 hover:bg-slate-200 hover:text-slate-900"
+                    : "text-slate-700 hover:bg-slate-50 hover:text-slate-900"
+                }`}
               >
                 <Ikon className="size-4" />
                 {label}

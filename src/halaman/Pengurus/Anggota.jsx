@@ -532,7 +532,7 @@ export default function PanelAnggota({
                         "62"
                       )}`,
                       "_blank",
-                      "noopener"
+                      "noopener noreferrer"
                     )
                   }
                 />

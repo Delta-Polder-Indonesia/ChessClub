@@ -45,7 +45,7 @@ export default function PanelTurnamen({ beriTahu, muatUlang, saatBukaRincian }) 
     } finally {
       setMemuat(false);
     }
-  }, [beriTahu]);
+  }, []);
 
   useEffect(() => {
     muat();

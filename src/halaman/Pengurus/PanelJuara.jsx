@@ -378,7 +378,7 @@ export default function PanelJuara({ beriTahu }) {
                             t.juara.trim()
                           )}`}
                           target="_blank"
-                          rel="noreferrer"
+                          rel="noopener noreferrer"
                         >
                           {t.juara}
                         </a>

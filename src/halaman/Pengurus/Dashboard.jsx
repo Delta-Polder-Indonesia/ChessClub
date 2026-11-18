@@ -570,7 +570,7 @@ export default function Dashboard() {
           {tab === "pengumuman" && <PanelPengumuman beriTahu={beriTahu} muatUlang={segarkanRingkasan} />}
           {tab === "juara" && <PanelJuara beriTahu={beriTahu} />}
           {tab === "ebook" && <PanelEbook beriTahu={beriTahu} halaman={halamanEbook} onGantiHalaman={setHalamanEbook} />}
-          {tab === "turnamen" && <PanelTurnamen beriTahu={beriTahu} anggota={anggota} muatUlang={muatUlang} saatBukaRincian={setJudulRincian} />}
+          {tab === "turnamen" && <PanelTurnamen beriTahu={beriTahu} muatUlang={muatUlang} saatBukaRincian={setJudulRincian} />}
         </main>
       </div>
       </>
