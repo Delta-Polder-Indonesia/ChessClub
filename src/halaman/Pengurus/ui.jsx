@@ -25,7 +25,7 @@ export function Tombol({ anak, onClick, jenis = "biasa", kecil, className, ...si
       onClick={onClick}
       className={`rounded-md border-2 border-solid font-semibold ${gaya} ${
         kecil ? "px-3 py-1 text-xs" : "px-4 py-2 text-xs"
-      } ${className || ""}`}
+      } focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${className || ""}`}
       {...sisa}
     >
       {anak}
@@ -33,12 +33,13 @@ export function Tombol({ anak, onClick, jenis = "biasa", kecil, className, ...si
   );
 }
 
-export function Bidang({ label, ...sisa }) {
+export function Bidang({ label, invalid, ...sisa }) {
   return (
-    <label className="flex flex-col gap-1 text-xs font-medium text-slate-700">
+    <label className={`flex flex-col gap-1 text-xs font-medium ${invalid ? "text-red-700" : "text-slate-700"}`}>
       {label}
       <input
-        className="rounded border-2 border-slate-300 px-2.5 py-1.5 text-sm outline-none focus:border-primary"
+        className={`rounded border-2 ${invalid ? "border-red-600" : "border-slate-300"} px-2.5 py-1.5 text-sm outline-none focus:border-primary ${invalid ? "focus:border-red-600" : ""}`}
+        aria-invalid={invalid || undefined}
         {...sisa}
       />
     </label>

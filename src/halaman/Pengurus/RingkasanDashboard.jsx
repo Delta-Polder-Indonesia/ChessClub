@@ -18,7 +18,7 @@ export default function RingkasanDashboard({ ringkas, onBuka, hitam }) {
   return (
     <div className="space-y-6">
       {/* Kartu ringkasan */}
-      <div className="grid grid-cols-3 gap-3 lg:grid-cols-5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
         <Kartu label="Anggota" nilai={ringkas.anggota} warna="biru" />
         <div onClick={() => onBuka("larangan", banOtomatis ? "otomatis" : "semua")}
           className="cursor-pointer transition-transform active:scale-95" title="Klik untuk membuka daftar larangan">

@@ -30,11 +30,11 @@ function TombolUrutkan({ kolom, anak }) {
     >
       {anak}
       {arah === "asc" ? (
-        <ArrowUp className="size-3.5" />
+        <ArrowUp className="size-4" />
       ) : arah === "desc" ? (
-        <ArrowDown className="size-3.5" />
+        <ArrowDown className="size-4" />
       ) : (
-        <ArrowUpDown className="size-3.5 opacity-40" />
+        <ArrowUpDown className="size-4 opacity-40" />
       )}
     </button>
   );
@@ -186,7 +186,7 @@ export default function TabelData({
             {tabel.getHeaderGroups().map((hg) => (
               <TableRow key={hg.id}>
                 {hg.headers.map((h) => (
-                  <TableHead key={h.id}>
+                  <TableHead key={h.id} className="h-11 px-3">
                     {h.isPlaceholder
                       ? null
                       : flexRender(h.column.columnDef.header, h.getContext())}
@@ -200,7 +200,7 @@ export default function TabelData({
               tabel.getRowModel().rows.map((row) => (
                 <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell key={cell.id} className="p-3">
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}

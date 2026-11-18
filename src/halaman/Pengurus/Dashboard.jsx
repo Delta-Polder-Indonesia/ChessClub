@@ -385,7 +385,7 @@ export default function Dashboard() {
       ) : (
       <>
       {/* ── Header ── */}
-      <header className="bg-white border-b border-slate-200 pl-2 pr-6 py-0 shrink-0">
+      <header className="bg-white border-b border-slate-200 px-6 py-3 shrink-0">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-4">
             <button onClick={() => setSidebarTerbuka((s) => !s)}
