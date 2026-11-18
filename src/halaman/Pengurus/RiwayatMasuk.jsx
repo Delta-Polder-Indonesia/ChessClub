@@ -4,7 +4,7 @@ import {
   hapusRiwayatMasuk,
   bersihkanRiwayatMasuk,
 } from "../../lib/api/index.js";
-import { Tombol, Modal, Avatar, KotakGalatMuat } from "./ui.jsx";
+import { Tombol, Modal, Avatar, KotakGalatMuat, SkeletonTabel, TooltipLabel } from "./ui.jsx";
 import TabelData from "./TabelData.jsx";
 
 /* ========================================================
@@ -338,12 +338,13 @@ export default function PanelRiwayatMasuk({ beriTahu }) {
         id: "perangkat",
         header: "Perangkat",
         cell: (info) => (
-          <span
-            className="block max-w-[160px] truncate text-xs text-slate-600"
-            title={info.row.original.userAgent || info.getValue()}
-          >
-            {info.getValue()}
-          </span>
+          <TooltipLabel label={info.row.original.userAgent || info.getValue()}>
+            <span
+              className="block max-w-[160px] truncate text-xs text-slate-600"
+            >
+              {info.getValue()}
+            </span>
+          </TooltipLabel>
         ),
       },
       {
@@ -362,14 +363,15 @@ export default function PanelRiwayatMasuk({ beriTahu }) {
         enableSorting: false,
         enableHiding: false,
         cell: ({ row }) => (
-          <Tombol
-            anak="Hapus"
-            kecil
-            jenis="bahaya"
-            title="Hapus entri riwayat ini"
-            onClick={() => setTargetHapus(row.original)}
-            disabled={sibukRef.current === `hapus-${row.original.id}`}
-          />
+          <TooltipLabel label="Hapus entri riwayat ini">
+            <Tombol
+              anak="Hapus"
+              kecil
+              jenis="bahaya"
+              onClick={() => setTargetHapus(row.original)}
+              disabled={sibukRef.current === `hapus-${row.original.id}`}
+            />
+          </TooltipLabel>
         ),
       },
     ],
@@ -439,7 +441,7 @@ export default function PanelRiwayatMasuk({ beriTahu }) {
           <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
             Hari Ini
           </p>
-          <p className="mt-1 text-2xl font-bold text-emerald-700">
+          <p className="mt-1 text-2xl font-bold text-slate-800">
             {jumlahHariIni}
           </p>
           <p className="mt-0.5 text-xs text-slate-500">Aktivitas masuk hari ini</p>
@@ -518,9 +520,7 @@ export default function PanelRiwayatMasuk({ beriTahu }) {
 
       {/* ── Tabel Riwayat ─────────────────────────────────── */}
       {memuat ? (
-        <div className="rounded-lg border border-slate-200 bg-white p-12 text-center text-sm text-slate-500">
-          Memuat catatan riwayat masuk…
-        </div>
+        <SkeletonTabel jumlahBaris={5} />
       ) : galat ? (
         <KotakGalatMuat
           pesan="Riwayat masuk gagal dimuat. Periksa koneksi lalu coba lagi."

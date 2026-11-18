@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   apiPengurus,
@@ -23,7 +23,7 @@ import DropdownPesan from "./DropdownPesan.jsx";
 import Mail from "../Analisa/komponen/svg/mail.jsx";
 import DropdownProfil from "./DropdownProfil.jsx";
 import RingkasanDashboard from "./RingkasanDashboard.jsx";
-import { KotakGalatMuat } from "./ui.jsx";
+import { KotakGalatMuat, SkeletonTabel, TooltipLabel } from "./ui.jsx";
 import Marquee from "../../components/ui/marquee.jsx";
 
 // Judul header mengikuti menu sidebar yang sedang aktif (kunci → label),
@@ -35,6 +35,28 @@ const JUDUL_TAB = Object.fromEntries(
     ...(m.anak || []).map((s) => [`${m.kunci}/${s.kunci}`, s.label]),
   ])
 );
+
+// Jalur breadcrumb untuk header (root = "Dashboard Pengurus").
+const BREADCRUMB = {
+  dashboard: ["Dashboard Pengurus"],
+  anggota: ["Dashboard Pengurus", "Anggota"],
+  larangan: ["Dashboard Pengurus", "Daftar Larangan"],
+  pesan: ["Dashboard Pengurus", "Pesan Masuk"],
+  turnamen: ["Dashboard Pengurus", "Turnamen"],
+  juara: ["Dashboard Pengurus", "Juara Turnamen"],
+  berita: ["Dashboard Pengurus", "Berita Komunitas"],
+  pengumuman: ["Dashboard Pengurus", "Pengumuman"],
+  ebook: ["Dashboard Pengurus", "Kode E-Book"],
+  "ebook/terbit": ["Dashboard Pengurus", "Kode E-Book", "Kode E-Book"],
+  "ebook/minta": ["Dashboard Pengurus", "Kode E-Book", "Permintaan kode"],
+  "ebook/kode": ["Dashboard Pengurus", "Kode E-Book", "Daftar kode akses"],
+  "ebook/unduhan": ["Dashboard Pengurus", "Kode E-Book", "Jejak unduhan"],
+  kelolaAdmin: ["Pengaturan", "Kelola Admin"],
+  akun: ["Pengaturan", "Akun & Password"],
+  riwayatMasuk: ["Pengaturan", "Riwayat Masuk"],
+  jejakAudit: ["Pengaturan", "Jejak Audit"],
+  umum: ["Pengaturan", "Pengaturan Umum"],
+};
 
 /* ========================================================
    HALAMAN UTAMA: Dashboard
@@ -361,6 +383,11 @@ export default function Dashboard() {
   const kunciJudul = tab === "ebook" ? `ebook/${halamanEbook}` : tab;
   const judulTab = JUDUL_TAB[kunciJudul] || "Dashboard Pengurus";
 
+  const breadcrumb = useMemo(() => {
+    if (tabPengaturan) return ["Pengaturan"];
+    return BREADCRUMB[kunciJudul] || ["Dashboard Pengurus"];
+  }, [tabPengaturan, kunciJudul]);
+
   return (
     <div className="h-screen flex flex-col overflow-hidden bg-white">
       {/* ── Halaman Pengaturan (Full Layar) — hanya Master ── */}
@@ -369,7 +396,7 @@ export default function Dashboard() {
           <Pengaturan onKembali={() => setTabPengaturan(false)} beriTahu={beriTahu} kabar={kabar} />
         ) : (
           <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 px-6 text-center">
-            <div className="rounded-lg border border-red-200 bg-white p-8 max-w-md">
+            <div className="rounded-lg border border-slate-200 bg-white p-8 max-w-md">
               <h2 className="text-lg font-bold text-slate-900">Akses Ditolak</h2>
               <p className="mt-2 text-sm leading-6 text-slate-600">
                 Halaman Pengaturan hanya bisa diakses oleh <strong>Master Admin</strong>.
@@ -385,17 +412,32 @@ export default function Dashboard() {
       ) : (
       <>
       {/* ── Header ── */}
-      <header className="bg-white border-b border-slate-200 pl-2 pr-6 py-0 shrink-0">
+      <header className="bg-white border-b border-slate-200 px-6 py-3 shrink-0">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-4">
-            <button onClick={() => setSidebarTerbuka((s) => !s)}
-              className="p-2 rounded-md hover:bg-slate-100 transition-colors duration-150"
-              title={sidebarTerbuka ? "Tutup sidebar" : "Buka sidebar"}>
-              <svg className="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
+            <TooltipLabel label={sidebarTerbuka ? "Tutup sidebar" : "Buka sidebar"}>
+              <button onClick={() => setSidebarTerbuka((s) => !s)}
+                className="p-2 rounded-md hover:bg-slate-100 transition-colors duration-150">
+              {sidebarTerbuka ? (
+                <svg className="w-5 h-5 text-slate-600" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M16.5,16V8l-4,4l4,4ZM5,21q-0.83,0-1.41-0.59T3,19V5Q3,4.17 3.59,3.59T5,3H19q0.83,0 1.41,0.59T21,5V19q0,0.82-0.59,1.41T19,21H5Zm3-2V5H5V19H8Zm2,0h9V5H10V19ZM8,19H5H8Z" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5 text-slate-600" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12.5,8v8l4-4l-4-4ZM5,21q-0.83,0-1.41-0.59T3,19V5Q3,4.17 3.59,3.59T5,3H19q0.83,0 1.41,0.59T21,5V19q0,0.82-0.59,1.41T19,21H5Zm3-2V5H5V19H8Zm2,0h9V5H10V19ZM8,19H5H8Z" />
+                </svg>
+              )}
             </button>
+            </TooltipLabel>
             <h1 className="text-lg font-bold text-slate-900">{judulRincian || judulTab}</h1>
+            <div className="mt-1 flex items-center gap-1 text-[11px] text-slate-500">
+              {breadcrumb.map((item, i) => (
+                <Fragment key={i}>
+                  {i > 0 && <span className="text-slate-300">/</span>}
+                  <span>{item}</span>
+                </Fragment>
+              ))}
+            </div>
           </div>
 
           {/* Notifikasi backend (permintaan terlalu banyak, peringatan fair play,
@@ -408,9 +450,10 @@ export default function Dashboard() {
           <div className="flex items-center gap-2">
             {/* Lonceng notifikasi */}
             <div className="relative" ref={notifRef}>
-              <button onClick={() => { setMenuProfile(false); setMenuPesan(false); setMenuNotif((v) => !v); }}
-                className="relative p-2 rounded-md hover:bg-slate-100 transition-colors duration-150"
-                title="Notifikasi pesan masuk" aria-haspopup="true" aria-expanded={menuNotif}>
+              <TooltipLabel label="Notifikasi pesan masuk">
+                <button onClick={() => { setMenuProfile(false); setMenuPesan(false); setMenuNotif((v) => !v); }}
+                  className="relative p-2 rounded-md hover:bg-slate-100 transition-colors duration-150"
+                  aria-haspopup="true" aria-expanded={menuNotif}>
                 <svg className="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                     d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -421,6 +464,7 @@ export default function Dashboard() {
                   </span>
                 )}
               </button>
+              </TooltipLabel>
               <DropdownNotifikasi terbuka={menuNotif} baris={barisNotif} memuat={memuatNotif || memuatNotifEbook}
                 onBuka={() => { setMenuNotif(false); setTab("pesan"); }}
                 onPilih={pilihNotif} onTandaiSemua={tandaiSemuaDibaca} />
@@ -428,9 +472,10 @@ export default function Dashboard() {
 
             {/* Amplop pesan masuk */}
             <div className="relative" ref={pesanRef}>
-              <button onClick={() => { setMenuProfile(false); setMenuNotif(false); setMenuPesan((v) => !v); }}
+              <TooltipLabel label="Pesan masuk">
+                <button onClick={() => { setMenuProfile(false); setMenuNotif(false); setMenuPesan((v) => !v); }}
                 className="relative p-2 rounded-md hover:bg-slate-100 transition-colors duration-150"
-                title="Pesan masuk" aria-haspopup="true" aria-expanded={menuPesan}>
+                aria-haspopup="true" aria-expanded={menuPesan}>
                 <Mail className="w-5 h-5 text-slate-600" />
                 {ringkas?.pesan?.belumDibaca > 0 && (
                   <span className="absolute -top-0.5 -right-0.5 min-w-[1rem] h-4 px-1 bg-slate-900 rounded-full text-white text-[10px] font-bold flex items-center justify-center">
@@ -438,6 +483,7 @@ export default function Dashboard() {
                   </span>
                 )}
               </button>
+              </TooltipLabel>
               <DropdownPesan terbuka={menuPesan} pesan={notif} memuat={memuatNotif}
                 onBuka={() => { setMenuPesan(false); setTab("pesan"); }}
                 onBukaPesan={bukaPesan} />
@@ -445,9 +491,9 @@ export default function Dashboard() {
 
             {/* Profil + dropdown */}
             <div className="relative" ref={profileRef}>
-              <button onClick={() => setMenuProfile((v) => !v)}
-                className="flex items-center gap-3 rounded-md px-2 py-1.5 hover:bg-slate-100 transition-colors duration-150 focus:outline-none"
-                title={pengguna ? `Masuk sebagai ${pengguna}` : ""}>
+              <TooltipLabel label={pengguna ? `Masuk sebagai ${pengguna}` : ""}>
+                <button onClick={() => setMenuProfile((v) => !v)}
+                  className="flex items-center gap-3 rounded-md px-2 py-1.5 hover:bg-slate-100 transition-colors duration-150 focus:outline-none">
                 <div className="text-right hidden sm:block">
                   <p className="text-sm font-medium text-slate-900 leading-tight flex items-center justify-end gap-2">
                     {pengguna || "Pengurus"}
@@ -461,6 +507,7 @@ export default function Dashboard() {
                   {(pengguna || "?").charAt(0)}
                 </div>
               </button>
+              </TooltipLabel>
               <DropdownProfil terbuka={menuProfile} pengguna={pengguna} peran={peran}
                 onTutup={() => setMenuProfile(false)} onMuatUlang={muatUlang}
                 onKeluar={keluar} onBukaPengaturan={() => setTabPengaturan(true)} memuat={memuat} />
@@ -476,18 +523,18 @@ export default function Dashboard() {
         <main className="flex-1 p-6 md:p-8 min-w-0 overflow-y-auto min-h-0">
           {tab === "dashboard" && (
             memuat && !ringkas ? (
-              <p className="py-10 text-center text-sm text-slate-500">Memuat…</p>
+              <SkeletonTabel jumlahBaris={4} />
             ) : ringkas ? (
               <RingkasanDashboard ringkas={ringkas} onBuka={bukaTab} hitam={hitam} />
             ) : (
-              <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-red-200 bg-white px-4 py-3">
-                <p className="text-sm font-medium text-red-800">
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3">
+                <p className="text-sm font-medium text-slate-800">
                   Ringkasan dashboard gagal dimuat. Periksa koneksi lalu coba lagi.
                 </p>
                 <button
                   type="button"
                   onClick={muatUlang}
-                  className="rounded-md border-2 border-red-300 px-4 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-50"
+                  className="rounded-md border-2 border-slate-300 px-4 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100"
                 >
                   Coba Lagi
                 </button>
@@ -523,7 +570,7 @@ export default function Dashboard() {
           {tab === "pengumuman" && <PanelPengumuman beriTahu={beriTahu} muatUlang={segarkanRingkasan} />}
           {tab === "juara" && <PanelJuara beriTahu={beriTahu} />}
           {tab === "ebook" && <PanelEbook beriTahu={beriTahu} halaman={halamanEbook} onGantiHalaman={setHalamanEbook} />}
-          {tab === "turnamen" && <PanelTurnamen beriTahu={beriTahu} anggota={anggota} muatUlang={muatUlang} saatBukaRincian={setJudulRincian} />}
+          {tab === "turnamen" && <PanelTurnamen beriTahu={beriTahu} muatUlang={muatUlang} saatBukaRincian={setJudulRincian} />}
         </main>
       </div>
       </>

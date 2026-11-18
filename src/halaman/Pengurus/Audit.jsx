@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { apiPengurus } from "../../lib/api/index.js";
-import { KotakGalatMuat, Tombol } from "./ui.jsx";
+import { KotakGalatMuat, Tombol, Bidang, SkeletonTabel } from "./ui.jsx";
 import TabelData from "./TabelData.jsx";
 
 const BULAN = [
@@ -148,24 +148,20 @@ export default function PanelAudit({ beriTahu }) {
   return (
     <section>
       <form onSubmit={terapkanFilter} className="flex flex-wrap items-center gap-x-6 gap-y-3 mb-4">
-        <label className="flex items-center gap-2 text-sm text-slate-700">
-          Aksi:
-          <input
-            value={aksi}
-            onChange={(e) => setAksi(e.target.value)}
-            placeholder="login, block, …"
-            className="w-44 border-0 border-b border-slate-300 bg-transparent px-1 py-1 text-sm outline-none focus:border-primary"
-          />
-        </label>
-        <label className="flex items-center gap-2 text-sm text-slate-700">
-          Username:
-          <input
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            placeholder="admin"
-            className="w-44 border-0 border-b border-slate-300 bg-transparent px-1 py-1 text-sm outline-none focus:border-primary"
-          />
-        </label>
+        <Bidang
+          label="Aksi"
+          value={aksi}
+          onChange={(e) => setAksi(e.target.value)}
+          placeholder="login, block, …"
+          className="w-44"
+        />
+        <Bidang
+          label="Username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          placeholder="admin"
+          className="w-44"
+        />
         <label className="flex items-center gap-2 text-sm text-slate-700">
           Hari:
           <select
@@ -205,7 +201,7 @@ export default function PanelAudit({ beriTahu }) {
         />
       </form>
       {memuat ? (
-        <p className="text-sm text-slate-500">Memuat jejak audit…</p>
+        <SkeletonTabel jumlahBaris={5} />
       ) : galat ? (
         <KotakGalatMuat
           pesan="Jejak audit gagal dimuat. Periksa koneksi lalu coba lagi."

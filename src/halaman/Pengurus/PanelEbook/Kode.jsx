@@ -7,7 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from "../../../components/ui/table.jsx";
-import { Tombol, MenuAksi } from "../ui.jsx";
+import { Tombol, MenuAksi, TooltipLabel } from "../ui.jsx";
 import { Copy, Trash2 } from "lucide-react";
 
 /**
@@ -64,19 +64,20 @@ export default function EbookKode({ kode, kini, sibuk, onSalin, onHapus, onMuat 
                     {k.kadaluarsa ? (
                       <span className="text-xs">Kedaluwarsa</span>
                     ) : (
-                      <span
-                        className="text-xs"
-                        title={`Sisa ${sisaMenit(k.kedaluwarsa, kini)} menit lagi`}
-                      >
-                        Aktif · {sisaMenit(k.kedaluwarsa, kini)} mnt
+                      <span className="text-xs">
+                        <TooltipLabel label={`Sisa ${sisaMenit(k.kedaluwarsa, kini)} menit lagi`}>
+                          Aktif · {sisaMenit(k.kedaluwarsa, kini)} mnt
+                        </TooltipLabel>
                       </span>
                     )}
                   </TableCell>
                   <TableCell className="whitespace-nowrap text-xs">{formatWaktu(k.dibuat)}</TableCell>
                   <TableCell className="whitespace-nowrap text-xs">{formatWaktu(k.kedaluwarsa)}</TableCell>
                   <TableCell className="text-center text-xs">{k.jumlahUnduhan || 0}×</TableCell>
-                  <TableCell className="max-w-[180px] truncate text-xs text-slate-500" title={k.catatan || ""}>
-                    {k.catatan || "—"}
+                  <TableCell className="max-w-[180px] truncate text-xs text-slate-500">
+                    <TooltipLabel label={k.catatan || ""}>
+                      {k.catatan || "—"}
+                    </TooltipLabel>
                   </TableCell>
                   <TableCell>
                     <MenuAksi

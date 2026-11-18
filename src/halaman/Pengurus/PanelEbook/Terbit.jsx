@@ -67,7 +67,7 @@ export default function EbookTerbit({ onTerbit, sibuk, kodeBaru, onTutupKodeBaru
             autoComplete="off"
             className={`w-52 rounded-md border-2 px-2.5 py-1.5 text-sm outline-none ${
               salahPanggilan
-                ? "border-red-500 focus:border-red-500"
+                ? "border-slate-900 focus:border-slate-900"
                 : "border-slate-300 focus:border-primary"
             }`}
           />
@@ -168,16 +168,16 @@ export default function EbookTerbit({ onTerbit, sibuk, kodeBaru, onTutupKodeBaru
         <div
           role="status"
           aria-live="polite"
-          className="flex flex-wrap items-center gap-3 rounded-md border-2 border-emerald-200 bg-white px-4 py-3 text-sm"
+          className="flex flex-wrap items-center gap-3 rounded-md border-2 border-slate-200 bg-white px-4 py-3 text-sm"
         >
           <div className="flex-1">
-            <p className="text-emerald-800">
+            <p className="text-slate-800">
               Kode untuk <span className="font-semibold">{kodeBaru.panggilan}</span>:
-              <span className="ml-2 rounded bg-white px-2 py-0.5 font-mono font-bold tracking-wide text-emerald-900 ring-1 ring-emerald-300">
+              <span className="ml-2 rounded bg-white px-2 py-0.5 font-mono font-bold tracking-wide text-slate-900 ring-1 ring-slate-300">
                 {kodeBaru.kode}
               </span>
             </p>
-            <p className="mt-0.5 text-xs text-emerald-700">
+            <p className="mt-0.5 text-xs text-slate-600">
               Berlaku sampai {formatWaktu(kodeBaru.kedaluwarsa)} WIB. Sampaikan
               ke peminjam, lalu dia mengisi nama asli + akun Chess.com + kode
               ini pada popup unduh.

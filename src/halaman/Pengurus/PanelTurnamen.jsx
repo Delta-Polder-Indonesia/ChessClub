@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { apiPengurus, jenisTurnamen } from "../../lib/api/index.js";
-import { Tombol, Modal, MenuAksi } from "./ui.jsx";
+import { Tombol, Modal, MenuAksi, SkeletonTabel, NotifikasiError } from "./ui.jsx";
 import {
   Table,
   TableBody,
@@ -31,19 +31,21 @@ export default function PanelTurnamen({ beriTahu, muatUlang, saatBukaRincian }) 
   const [targetHapus, setTargetHapus] = useState(null);
   const [terpilih, setTerpilih] = useState({});
   const [targetHapusMassal, setTargetHapusMassal] = useState(false);
+  const [galatMuat, setGalatMuat] = useState(null);
 
   const muat = useCallback(async () => {
     setMemuat(true);
+    setGalatMuat(null);
     try {
       const [j, d] = await Promise.all([jenisTurnamen(), apiPengurus("/turnamen")]);
       setJenis(j.jenis);
       setDaftar(d);
     } catch (e) {
-      beriTahu(e.message, "galat");
+      setGalatMuat(e.message || "Gagal memuat data turnamen.");
     } finally {
       setMemuat(false);
     }
-  }, [beriTahu]);
+  }, []);
 
   useEffect(() => {
     muat();
@@ -168,7 +170,7 @@ export default function PanelTurnamen({ beriTahu, muatUlang, saatBukaRincian }) 
             <button
               type="button"
               onClick={() => setTargetHapusMassal(true)}
-              className="rounded-md border-2 border-red-300 bg-red-50 px-3 py-1 text-xs font-semibold text-red-700 hover:bg-red-100"
+              className="rounded-md border-2 border-slate-300 px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100"
             >
               Hapus terpilih
             </button>
@@ -186,10 +188,10 @@ export default function PanelTurnamen({ beriTahu, muatUlang, saatBukaRincian }) 
 
       {!buatBaru && (
         <>
-          {memuat ? (
-            <p className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-600">
-              Memuat…
-            </p>
+          {galatMuat ? (
+            <NotifikasiError pesan={galatMuat} onCobaLagi={muat} />
+          ) : memuat ? (
+            <SkeletonTabel jumlahBaris={4} />
           ) : tampil.length === 0 ? (
             <p className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-600">
               Belum ada turnamen. Tekan “+ Turnamen baru” untuk membuat.
@@ -241,7 +243,7 @@ export default function PanelTurnamen({ beriTahu, muatUlang, saatBukaRincian }) 
                           {t.nama}
                         </button>
                         {t.jumlahPengajuan > 0 && (
-                          <span className="ml-2 bg-slate-100 px-2 py-0.5 text-xs font-semibold text-amber-700">
+                          <span className="ml-2 bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-700">
                             {t.jumlahPengajuan} pengajuan
                           </span>
                         )}

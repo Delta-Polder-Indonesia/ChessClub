@@ -1,0 +1,27 @@
+/* ============================================================
+   KCI Design System — Komponen UI (1 pintu)
+   Semua file CSS komponen diimpor dari sini.
+   Import hanya file ini di halaman yang membutuhkan komponen.
+   ============================================================ */
+
+@import "./accordion.css";
+@import "./alert.css";
+@import "./avatar.css";
+@import "./badges.css";
+@import "./banner.css";
+@import "./blockquote.css";
+@import "./breadcrumb.css";
+@import "./button.css";
+@import "./card.css";
+@import "./dropdown.css";
+@import "./form-checks.css";
+@import "./form-input.css";
+@import "./link.css";
+@import "./modal.css";
+@import "./pagination.css";
+@import "./popover.css";
+@import "./step.css";
+@import "./tab.css";
+@import "./toast.css";
+@import "./toggle.css";
+@import "../tooltip.css";

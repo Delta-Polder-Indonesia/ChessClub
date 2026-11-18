@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { apiPengurus } from "../../lib/api/index.js";
-import { Modal } from "./ui.jsx";
+import { Modal, SkeletonTabel } from "./ui.jsx";
 import EbookTerbit from "./PanelEbook/Terbit.jsx";
 import EbookPermintaan from "./PanelEbook/Permintaan.jsx";
 import EbookKode from "./PanelEbook/Kode.jsx";
@@ -200,7 +200,7 @@ export default function PanelEbook({ beriTahu, halaman, onGantiHalaman }) {
 
       {/* ── Halaman aktif ──────────────────────────────────── */}
       {memuat ? (
-        <p className="py-8 text-center text-sm text-slate-500">Memuat…</p>
+        <SkeletonTabel jumlahBaris={4} />
       ) : halamanAktif === "terbit" ? (
         <EbookTerbit
           onTerbit={terbit}

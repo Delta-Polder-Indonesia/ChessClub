@@ -30,11 +30,11 @@ function TombolUrutkan({ kolom, anak }) {
     >
       {anak}
       {arah === "asc" ? (
-        <ArrowUp className="size-3.5" />
+        <ArrowUp className="size-4" />
       ) : arah === "desc" ? (
-        <ArrowDown className="size-3.5" />
+        <ArrowDown className="size-4" />
       ) : (
-        <ArrowUpDown className="size-3.5 opacity-40" />
+        <ArrowUpDown className="size-4 opacity-40" />
       )}
     </button>
   );
@@ -138,6 +138,12 @@ export default function TabelData({
 }) {
   const [sorting, setSorting] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});
+  const [ukuranHalaman, setUkuranHalaman] = useState(pageSize || 10);
+
+  // Atur ulang ke halaman pertama bila ukuran halaman diubah.
+  useEffect(() => {
+    tabel.setPageIndex(0);
+  }, [ukuranHalaman, tabel]);
 
   const kolomOtomatis = useMemo(
     () =>
@@ -166,7 +172,8 @@ export default function TabelData({
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    initialState: { pagination: { pageSize } },
+    pageSize: ukuranHalaman,
+    initialState: { pagination: { pageSize: ukuranHalaman } },
   });
 
   const jumlahTampil = tabel.getFilteredRowModel().rows.length;
@@ -186,7 +193,7 @@ export default function TabelData({
             {tabel.getHeaderGroups().map((hg) => (
               <TableRow key={hg.id}>
                 {hg.headers.map((h) => (
-                  <TableHead key={h.id}>
+                  <TableHead key={h.id} className="h-11 px-3">
                     {h.isPlaceholder
                       ? null
                       : flexRender(h.column.columnDef.header, h.getContext())}
@@ -200,7 +207,7 @@ export default function TabelData({
               tabel.getRowModel().rows.map((row) => (
                 <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell key={cell.id} className="p-3">
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
@@ -219,9 +226,24 @@ export default function TabelData({
           </TableBody>
         </Table>
         <div className="flex flex-wrap items-center justify-between gap-3 pt-3">
-          <p className="text-sm text-slate-600">
-            {jumlahTampil} {labelItem}.
-          </p>
+          <div className="flex items-center gap-2">
+            <p className="text-sm text-slate-600">
+              {jumlahTampil} {labelItem}.
+            </p>
+            <label className="flex items-center gap-1 text-sm text-slate-600">
+              Tampilkan
+              <select
+                value={ukuranHalaman}
+                onChange={(e) => setUkuranHalaman(Number(e.target.value))}
+                className="border-0 border-b border-slate-300 bg-transparent px-1 py-1 text-sm outline-none focus:border-primary"
+              >
+                <option value={10}>10</option>
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+              </select>
+              baris
+            </label>
+          </div>
           <div className="flex items-center gap-2">
             <Tombol
               kecil={true}

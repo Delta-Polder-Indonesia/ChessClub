@@ -1,0 +1,46 @@
+/* Step — langkah dalam proses */
+.steps {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+.step {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.step-number {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 9999px;
+  border: 1px solid var(--color-grey-300);
+  background: var(--color-paper);
+  color: var(--color-grey-600);
+  font-weight: 600;
+  font-size: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.step.completed .step-number {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: #eef2ff;
+}
+.step.active .step-number {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: #eef2ff;
+}
+.step-label {
+  color: var(--color-grey-700);
+}
+.step.completed .step-label,
+.step.active .step-label {
+  color: var(--color-grey-900);
+  font-weight: 500;
+}
+.step-separator {
+  color: var(--color-grey-400);
+}

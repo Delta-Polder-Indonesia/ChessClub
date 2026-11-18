@@ -10,6 +10,7 @@
 
 import { useState } from "react";
 import { MENU_SIDEBAR } from "./SidebarData.js";
+import { TooltipLabel } from "./ui.jsx";
 
 export default function Sidebar({ tab, setTab, terbuka, halamanEbook, onPilihEbook }) {
   const [bukaSub, setBukaSub] = useState({});
@@ -39,16 +40,16 @@ export default function Sidebar({ tab, setTab, terbuka, halamanEbook, onPilihEbo
 
           return (
             <div key={kunci}>
-              <button
-                type="button"
-                onClick={() => {
+              <TooltipLabel label={terbuka ? undefined : label}>
+                <button
+                  type="button"
+                  onClick={() => {
                   if (punyaAnak && terbuka) {
                     setBukaSub((b) => ({ ...b, [kunci]: !buka }));
                   } else {
                     setTab(kunci);
                   }
                 }}
-                title={terbuka ? undefined : label}
                 aria-expanded={punyaAnak && terbuka ? buka : undefined}
                 className={`
                   w-full text-sm font-medium
@@ -113,6 +114,7 @@ export default function Sidebar({ tab, setTab, terbuka, halamanEbook, onPilihEbo
                   </svg>
                 )}
               </button>
+              </TooltipLabel>
 
               {punyaAnak && terbuka && buka && (
                 <ul className="mt-0.5 mb-1 ml-[23px] border-l-2 border-slate-200 pl-2 space-y-0.5">

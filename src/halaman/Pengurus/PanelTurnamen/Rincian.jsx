@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { apiPengurus } from "../../../lib/api/index.js";
-import { Tombol, Bidang, Modal } from "../ui.jsx";
+import { Tombol, Bidang, Modal, SkeletonTabel, TooltipLabel } from "../ui.jsx";
 import { Lencana } from "./Lencana.jsx";
 import { LABEL_STATUS, akunMasihBaru } from "./bagianData.js";
 
@@ -176,7 +176,7 @@ export default function RincianTurnamen({ id, jenis, beriTahu, onTutup, onBeruba
       );
     });
 
-  if (!t) return <p className="py-6 text-sm text-slate-500">Memuat turnamen…</p>;
+  if (!t) return <SkeletonTabel jumlahBaris={4} />;
 
   const sifat = jenis[t.jenis] || {};
 
@@ -327,7 +327,7 @@ export default function RincianTurnamen({ id, jenis, beriTahu, onTutup, onBeruba
                       ? new Date(p.akunDibuatPada).toLocaleDateString("id-ID")
                       : "—"}
                     {akunMasihBaru(p.akunDibuatPada) && (
-                      <span className="mt-1 block font-semibold text-red-700">
+                      <span className="mt-1 block font-semibold text-slate-700">
                         Akun baru (&lt;30 hari)
                       </span>
                     )}
@@ -339,10 +339,10 @@ export default function RincianTurnamen({ id, jenis, beriTahu, onTutup, onBeruba
                     <span
                       className={`text-xs font-semibold ${
                         p.status === "menunggu"
-                          ? "text-amber-700"
+                          ? "text-slate-700"
                           : p.status === "diterima"
-                            ? "text-emerald-700"
-                            : "text-red-700"
+                            ? "text-slate-700"
+                            : "text-slate-700"
                       }`}
                     >
                       {p.status}
@@ -430,21 +430,21 @@ export default function RincianTurnamen({ id, jenis, beriTahu, onTutup, onBeruba
                 {t.peserta.map((p, index) => (
                   <tr key={p.username}>
                     <td>{index + 1}</td>
-                    <td className={p.dianulir ? "text-red-600 line-through" : ""}>
+                    <td className={p.dianulir ? "text-slate-500 line-through" : ""}>
                       {p.rating ?? "—"}
                     </td>
                     <td>
                       <span
                         className={
                           p.dianulir
-                            ? "font-semibold text-red-600 line-through"
+                            ? "font-semibold text-slate-500 line-through"
                             : "font-semibold text-slate-800"
                         }
                       >
                         {p.panggilan || p.username}
                       </span>
                       {!p.anggota && (
-                        <span className="ml-1 text-xs text-amber-700">tamu</span>
+                        <span className="ml-1 text-xs text-slate-600">tamu</span>
                       )}
                     </td>
                     <td className="text-slate-600">{p.tim || "—"}</td>
@@ -461,26 +461,27 @@ export default function RincianTurnamen({ id, jenis, beriTahu, onTutup, onBeruba
                       </a>
                     </td>
                     <td>
-                      <button
-                        type="button"
-                        aria-label={`Keluarkan ${p.panggilan || p.username}`}
-                        title="Keluarkan peserta"
-                        disabled={sibuk === "keluar"}
-                        onClick={() =>
-                          jalankan(
-                            "keluar",
-                            () =>
-                              apiPengurus(`/turnamen/${id}/peserta-keluar`, {
-                                metode: "POST",
-                                bodi: { username: p.username },
-                              }),
-                            "Peserta dikeluarkan."
-                          )
-                        }
-                        className="rounded p-1 text-slate-500 hover:bg-red-50 hover:text-red-600"
-                      >
-                        <IkonSampah />
-                      </button>
+                      <TooltipLabel label="Keluarkan peserta">
+                        <button
+                          type="button"
+                          aria-label={`Keluarkan ${p.panggilan || p.username}`}
+                          disabled={sibuk === "keluar"}
+                          onClick={() =>
+                            jalankan(
+                              "keluar",
+                              () =>
+                                apiPengurus(`/turnamen/${id}/peserta-keluar`, {
+                                  metode: "POST",
+                                  bodi: { username: p.username },
+                                }),
+                              "Peserta dikeluarkan."
+                            )
+                          }
+                          className="rounded p-1 text-slate-500 hover:bg-slate-100 hover:text-slate-600"
+                        >
+                          <IkonSampah />
+                        </button>
+                      </TooltipLabel>
                     </td>
                   </tr>
                 ))}
@@ -591,25 +592,26 @@ export default function RincianTurnamen({ id, jenis, beriTahu, onTutup, onBeruba
                       </td>
                       <td className="text-slate-800">{h.hitam}</td>
                       <td>
-                        <button
-                          type="button"
-                          aria-label={`Hapus hasil partai ${i + 1}`}
-                          title="Hapus hasil"
-                          onClick={() =>
-                            jalankan(
-                              "hapusHasil",
-                              () =>
-                                apiPengurus(`/turnamen/${id}/hasil-hapus`, {
-                                  metode: "POST",
-                                  bodi: { indeks: i },
+                        <TooltipLabel label="Hapus hasil">
+                          <button
+                            type="button"
+                            aria-label={`Hapus hasil partai ${i + 1}`}
+                            onClick={() =>
+                              jalankan(
+                                "hapusHasil",
+                                () =>
+                                  apiPengurus(`/turnamen/${id}/hasil-hapus`, {
+                                    metode: "POST",
+                                    bodi: { indeks: i },
                                 }),
                               "Hasil dihapus."
                             )
                           }
-                          className="rounded p-1 text-slate-500 hover:bg-red-50 hover:text-red-600"
+                          className="rounded p-1 text-slate-500 hover:bg-slate-100 hover:text-slate-600"
                         >
                           <IkonSampah />
                         </button>
+                        </TooltipLabel>
                       </td>
                     </tr>
                   ))}
@@ -653,13 +655,14 @@ export default function RincianTurnamen({ id, jenis, beriTahu, onTutup, onBeruba
                     <td className="font-medium text-slate-800">
                       {k.panggilan}
                       {!k.resmi && (
-                        <span
-                          title="Belum memenuhi minimal partai"
-                          aria-label="Belum memenuhi minimal partai"
-                          className="ml-1 inline-flex h-4 w-4 cursor-help items-center justify-center rounded-full border border-black align-middle text-[10px] font-bold text-black"
-                        >
-                          ?
-                        </span>
+                        <TooltipLabel label="Belum memenuhi minimal partai">
+                          <span
+                            aria-label="Belum memenuhi minimal partai"
+                            className="ml-1 inline-flex h-4 w-4 cursor-help items-center justify-center rounded-full border border-black align-middle text-[10px] font-bold text-black"
+                          >
+                            ?
+                          </span>
+                        </TooltipLabel>
                       )}
                     </td>
                     <td className="text-slate-600">{k.main}</td>

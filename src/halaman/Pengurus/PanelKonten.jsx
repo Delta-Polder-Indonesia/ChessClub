@@ -10,7 +10,7 @@ import {
   useLegacyTable,
 } from "@tanstack/react-table/legacy";
 import { apiPengurus } from "../../lib/api/index.js";
-import { Tombol, Bidang, Modal, MenuAksi } from "./ui.jsx";
+import { Tombol, Bidang, Modal, MenuAksi, SkeletonTabel } from "./ui.jsx";
 import {
   Table,
   TableBody,
@@ -320,7 +320,7 @@ function FormulirKonten({ konfig, item, onSimpan, onBatal }) {
             <button
               type="button"
               onClick={() => setData((d) => ({ ...d, gambar: "", altGambar: "" }))}
-              className="text-xs font-semibold text-red-600 hover:underline"
+              className="text-xs font-semibold text-slate-600 hover:underline"
             >
               Hapus gambar
             </button>
@@ -343,7 +343,7 @@ function FormulirKonten({ konfig, item, onSimpan, onBatal }) {
         )}
       </fieldset>
 
-      {pesan && <p className="text-xs text-red-600">{pesan}</p>}
+      {pesan && <p className="text-xs text-slate-600">{pesan}</p>}
 
       <div className="flex gap-2">
         <button
@@ -744,7 +744,7 @@ function PanelKonten({ konfig, beriTahu, muatUlang }) {
                 <button
                   type="button"
                   onClick={() => setTargetHapusMassal(true)}
-                  className="h-9 rounded-md border-2 border-red-300 bg-red-50 px-3 text-xs font-semibold text-red-700 hover:bg-red-100"
+                  className="h-9 rounded-md border-2 border-slate-300 px-3 text-xs font-semibold text-slate-700 hover:bg-slate-100"
                 >
                   Hapus terpilih
                 </button>
@@ -765,7 +765,7 @@ function PanelKonten({ konfig, beriTahu, muatUlang }) {
 
       {!formulir &&
         (memuat ? (
-          <p className="py-8 text-center text-sm text-slate-500">Memuat…</p>
+          <SkeletonTabel jumlahBaris={4} />
         ) : galat ? null : (
         <div className="overflow-auto">
           <Table>

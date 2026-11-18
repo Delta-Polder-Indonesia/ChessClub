@@ -1,7 +1,7 @@
 /**
  * Kartu-kartu ringkasan — tampil di tab Dashboard.
  */
-import { Kartu } from "./ui.jsx";
+import { Kartu, TooltipLabel } from "./ui.jsx";
 
 const LABEL_MODE_VERIFIKASI = {
   wajib: "Wajib",
@@ -18,14 +18,16 @@ export default function RingkasanDashboard({ ringkas, onBuka, hitam }) {
   return (
     <div className="space-y-6">
       {/* Kartu ringkasan */}
-      <div className="grid grid-cols-3 gap-3 lg:grid-cols-5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
         <Kartu label="Anggota" nilai={ringkas.anggota} warna="biru" />
-        <div onClick={() => onBuka("larangan", banOtomatis ? "otomatis" : "semua")}
-          className="cursor-pointer transition-transform active:scale-95" title="Klik untuk membuka daftar larangan">
+        <TooltipLabel label="Klik untuk membuka daftar larangan">
+          <div onClick={() => onBuka("larangan", banOtomatis ? "otomatis" : "semua")}
+            className="cursor-pointer transition-transform active:scale-95">
           <Kartu label="Daftar larangan" nilai={ringkas.daftarHitam}
             catatan={`${ringkas.otomatis} otomatis / ${ringkas.pengurus} pengurus`}
             warna={ringkas.daftarHitam ? "merah" : "slate"} />
         </div>
+        </TooltipLabel>
         <Kartu label="Turnamen" nilai={ringkas.turnamen?.total ?? 0}
           catatan={`${ringkas.turnamen?.berlangsung ?? 0} berlangsung`} />
         <Kartu label="Konten" nilai={jumlahKonten}
@@ -37,13 +39,40 @@ export default function RingkasanDashboard({ ringkas, onBuka, hitam }) {
           warna="hijau" />
       </div>
 
-      <div className="flex min-h-[16rem] flex-col items-center justify-center rounded-lg border border-dashed border-slate-200 bg-slate-50 px-6 py-12 text-center">
-        <p className="text-4xl font-black tracking-tight text-slate-400 sm:text-5xl">
-          Tahap Renovasi
-        </p>
-        <p className="mt-3 max-w-md text-sm text-slate-500">
-          Dashboard sedang ditata ulang. Bagian lain akan menyusul kembali setahap demi setahap.
-        </p>
+      {/* Kartu aktivitas */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+        <TooltipLabel label="Klik untuk membuka pesan masuk">
+          <div
+            onClick={() => onBuka("pesan")}
+            className="cursor-pointer transition-transform active:scale-95 rounded-lg border border-slate-200 bg-white p-4 text-center"
+          >
+          <p className="text-2xl font-bold text-slate-900">
+            {ringkas.pesan?.belumDibaca ?? 0}
+          </p>
+          <p className="mt-0.5 text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">
+            Pesan Masuk
+          </p>
+          <p className="mt-0.5 text-xs text-slate-500">
+            {ringkas.pesan?.total ?? 0} total
+          </p>
+        </div>
+        </TooltipLabel>
+        <TooltipLabel label="Klik untuk melihat larangan otomatis">
+          <div
+            onClick={() => onBuka("larangan", "otomatis")}
+            className="cursor-pointer transition-transform active:scale-95 rounded-lg border border-slate-200 bg-white p-4 text-center"
+          >
+          <p className="text-2xl font-bold text-slate-700">
+            {banOtomatis}
+          </p>
+          <p className="mt-0.5 text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">
+            Blokir Otomatis
+          </p>
+          <p className="mt-0.5 text-xs text-slate-500">
+            Fair Play
+          </p>
+        </div>
+        </TooltipLabel>
       </div>
     </div>
   );

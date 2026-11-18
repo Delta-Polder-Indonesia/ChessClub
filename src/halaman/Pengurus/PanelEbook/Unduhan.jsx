@@ -7,6 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from "../../../components/ui/table.jsx";
+import { TooltipLabel } from "../ui.jsx";
 
 /**
  * Halaman "Jejak unduhan": siapa yang mengunduh, memakai kode siapa, buku apa.
@@ -52,11 +53,10 @@ export default function EbookUnduhan({ unduhan }) {
                     <span className="font-mono">{u.kode}</span>
                     <span className="ml-1 text-slate-500">({u.panggilan})</span>
                   </TableCell>
-                  <TableCell
-                    className="max-w-[280px] truncate text-xs"
-                    title={u.judul || ""}
-                  >
-                    {u.judul || "—"}
+                  <TableCell className="max-w-[280px] truncate text-xs">
+                    <TooltipLabel label={u.judul || ""}>
+                      {u.judul || "—"}
+                    </TooltipLabel>
                   </TableCell>
                 </TableRow>
               ))}

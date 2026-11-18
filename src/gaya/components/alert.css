@@ -1,0 +1,55 @@
+/* Alert — kotak pesan singkat dengan ikon status */
+.alert {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-grey-200);
+  background: var(--color-paper);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+.alert-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+}
+.alert-title {
+  font-weight: 600;
+  color: var(--color-grey-800);
+  font-size: 0.875rem;
+}
+.alert-description {
+  color: var(--color-grey-600);
+  font-size: 0.875rem;
+}
+
+/* Variasi warna sesuai DESAIN.md — hanya slate/primary, tidak ada merah/amber */
+.alert-sukses {
+  border-color: #e2e8f0;
+  background: #f8fafc;
+  color: var(--color-grey-700);
+}
+.alert-sukses .alert-title,
+.alert-sukses .alert-description {
+  color: var(--color-grey-700);
+}
+.alert-peringatan {
+  border-color: #e2e8f0;
+  background: #f8fafc;
+  color: var(--color-grey-700);
+}
+.alert-peringatan .alert-title,
+.alert-peringatan .alert-description {
+  color: var(--color-grey-700);
+}
+.alert-galat {
+  border-color: #e2e8f0;
+  background: #f8fafc;
+  color: var(--color-grey-700);
+}
+.alert-galat .alert-title,
+.alert-galat .alert-description {
+  color: var(--color-grey-700);
+}

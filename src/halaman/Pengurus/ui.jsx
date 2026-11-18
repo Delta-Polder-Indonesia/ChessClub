@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { MoreHorizontal, Pencil, Trash2, X } from "lucide-react";
+import { TooltipLabel as TooltipLabelAsli } from "../../components/ui/tooltip.jsx";
 
 /**
  * Komponen kecil yang dipakai bersama oleh Dashboard dan PanelTurnamen.
@@ -17,7 +18,7 @@ export function Tombol({ anak, onClick, jenis = "biasa", kecil, className, ...si
       "border-slate-300 text-slate-700 hover:bg-slate-100 disabled:opacity-40",
     utama:
       "border-primary text-primary hover:bg-blue-50 disabled:opacity-40",
-    bahaya: "border-red-300 text-red-700 hover:bg-red-50 disabled:opacity-40",
+    bahaya: "border-slate-300 text-slate-700 hover:bg-slate-100 disabled:opacity-40",
   }[jenis];
   return (
     <button
@@ -25,7 +26,7 @@ export function Tombol({ anak, onClick, jenis = "biasa", kecil, className, ...si
       onClick={onClick}
       className={`rounded-md border-2 border-solid font-semibold ${gaya} ${
         kecil ? "px-3 py-1 text-xs" : "px-4 py-2 text-xs"
-      } ${className || ""}`}
+      } focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${className || ""}`}
       {...sisa}
     >
       {anak}
@@ -33,13 +34,14 @@ export function Tombol({ anak, onClick, jenis = "biasa", kecil, className, ...si
   );
 }
 
-export function Bidang({ label, ...sisa }) {
+export function Bidang({ label, invalid, className, ...sisa }) {
   return (
     <label className="flex flex-col gap-1 text-xs font-medium text-slate-700">
       {label}
       <input
-        className="rounded border-2 border-slate-300 px-2.5 py-1.5 text-sm outline-none focus:border-primary"
         {...sisa}
+        className={`rounded border-2 border-slate-300 px-2.5 py-1.5 text-sm outline-none focus:border-primary ${className || ""}`}
+        aria-invalid={invalid || undefined}
       />
     </label>
   );
@@ -53,14 +55,14 @@ export function Bidang({ label, ...sisa }) {
 export function KotakGalatMuat({ pesan, onCobaLagi, className = "" }) {
   return (
     <div
-      className={`flex flex-wrap items-center justify-between gap-3 rounded-lg border border-red-200 bg-white px-4 py-3 ${className}`}
+      className={`flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3 ${className}`}
     >
-      <p className="text-sm font-medium text-red-800">{pesan}</p>
+      <p className="text-sm font-medium text-slate-700">{pesan}</p>
       {onCobaLagi && (
         <Tombol
-          jenis="bahaya"
+          jenis="biasa"
           onClick={onCobaLagi}
-          className="shrink-0 bg-white hover:bg-red-100"
+          className="shrink-0"
         >
           Coba Lagi
         </Tombol>
@@ -186,7 +188,7 @@ export function Modal({
 
   const warnaTombol =
     jenisKonfirmasi === "bahaya"
-      ? "border-2 border-red-500 text-red-700 hover:bg-red-50"
+      ? "border-2 border-slate-500 text-slate-700 hover:bg-slate-100"
       : "border-2 border-primary text-primary hover:bg-blue-50";
 
   const bisaKonfirmasi = !sibuk && (!butuhInput || nilai.trim().length > 0);
@@ -333,10 +335,10 @@ export function MenuAksi({ onUbah, onHapus, aksi }) {
                   setTerbuka(false);
                   onClick?.();
                 }}
-                className={`flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm disabled:opacity-40 ${
+                className={`flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm disabled:opacity-40 font-medium ${
                   bahaya
-                    ? "text-red-600 hover:bg-red-50"
-                    : "text-slate-700 hover:bg-slate-50"
+                    ? "text-slate-700 hover:bg-slate-200 hover:text-slate-900"
+                    : "text-slate-700 hover:bg-slate-50 hover:text-slate-900"
                 }`}
               >
                 <Ikon className="size-4" />
@@ -396,7 +398,7 @@ export function Sheet({
         aria-modal="true"
         aria-label={judul}
         onClick={(e) => e.stopPropagation()}
-        className={`absolute bottom-0 left-0 top-12 flex w-64 max-w-full flex-col border-r-2 border-slate-200 bg-white transition-transform duration-300 ease-out ${
+        className={`absolute inset-y-0 left-0 flex w-64 max-w-full flex-col border-r-2 border-slate-200 bg-white transition-transform duration-300 ease-out ${
           terbuka ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -425,8 +427,8 @@ export function Sheet({
 export function Kartu({ label, nilai, catatan, warna = "slate" }) {
   const warnaTeks = {
     slate: "text-slate-900",
-    merah: "text-red-700",
-    hijau: "text-emerald-700",
+    merah: "text-slate-700",
+    hijau: "text-slate-700",
     biru: "text-primary",
   }[warna];
   return (
@@ -441,4 +443,66 @@ export function Kartu({ label, nilai, catatan, warna = "slate" }) {
       </div>
     </div>
   );
+}
+
+/**
+ * Skeleton baris tabel — ditampilkan saat data sedang dimuat agar tata letak
+ * tidak melompat dan pengurus tahu sistem masih bekerja.
+ */
+export function SkeletonTabel({ jumlahBaris = 3 }) {
+  return (
+    <div className="space-y-2">
+      {Array.from({ length: jumlahBaris }).map((_, i) => (
+        <div key={i} className="flex gap-3 border-b border-slate-100 pb-2">
+          <div className="w-10 h-4 bg-slate-200 rounded animate-pulse" />
+          <div className="w-24 h-4 bg-slate-200 rounded animate-pulse" />
+          <div className="flex-1 h-4 bg-slate-200 rounded animate-pulse" />
+          <div className="w-32 h-4 bg-slate-200 rounded animate-pulse" />
+          <div className="w-24 h-4 bg-slate-200 rounded animate-pulse" />
+          <div className="w-20 h-4 bg-slate-200 rounded animate-pulse" />
+          <div className="w-16 h-4 bg-slate-200 rounded animate-pulse" />
+          <div className="w-24 h-4 bg-slate-200 rounded animate-pulse" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * Notifikasi error sebagai dialog (Modal) — muncul saat server mati atau
+ * permintaan gagal, mengganti toast/inline tombol agar pesan tidak terlewat
+ * dan lebih jelas. Tersedia tombol "Coba Lagi" untuk memuat ulang.
+ */
+export function NotifikasiError({ pesan, onCobaLagi, sibuk = false }) {
+  return (
+    <Modal
+      terbuka
+      judul="Gagal memuat data"
+      jenisKonfirmasi="bahaya"
+      onBatal={() => {}}
+      onKonfirmasi={onCobaLagi}
+      labelKonfirmasi={sibuk ? "Mencoba lagi…" : "Coba Lagi"}
+      sibuk={sibuk}
+    >
+      <p className="mt-2 text-sm text-slate-700">{pesan}</p>
+      <p className="mt-1 text-xs text-slate-500">
+        Periksa koneksi internet lalu klik “Coba Lagi”.
+      </p>
+    </Modal>
+  );
+}
+
+/**
+ * TooltipLabel — 1 pintu untuk semua tooltip di halaman pengurus.
+ * Pakai komponen ini untuk mengganti atribut HTML `title` bawaan browser
+ * yang tampilannya tidak konsisten di setiap halaman.
+ *
+ * Contoh pakai:
+ *   <TooltipLabel label="Tutup sidebar">
+ *     <button>...</button>
+ *   </TooltipLabel>
+ */
+export function TooltipLabel({ children, label, side = "right" }) {
+  if (!label) return children;
+  return <TooltipLabelAsli children={children} label={label} side={side} />;
 }

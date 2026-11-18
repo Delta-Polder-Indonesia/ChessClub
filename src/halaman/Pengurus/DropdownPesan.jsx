@@ -4,6 +4,7 @@
  */
 
 import { waktuRelatif, cuplikan } from "./DropdownNotifikasiData.js";
+import { SkeletonTabel } from "./ui.jsx";
 
 export default function DropdownPesan({
   terbuka,
@@ -42,9 +43,7 @@ export default function DropdownPesan({
 
       <div className="max-h-[26rem] overflow-y-auto">
         {memuat && pesan.length === 0 ? (
-          <p className="px-4 py-8 text-center text-sm text-slate-500">
-            Memuat…
-          </p>
+          <SkeletonTabel jumlahBaris={3} />
         ) : pesan.length === 0 ? (
           <div className="px-4 py-10 text-center">
             <svg
@@ -74,7 +73,7 @@ export default function DropdownPesan({
                     p.dibaca ? "bg-white" : "bg-slate-50"
                   }`}
                 >
-                  <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                  <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-slate-600">
                     {String(p.nama || "?").charAt(0).toUpperCase()}
                   </div>
                   <div className="min-w-0 flex-1">

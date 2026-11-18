@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { apiPengurus } from "../../lib/api/index.js";
 import { parseWaktuKomunitas } from "../../lib/waktu.js";
-import { Tombol, Bidang, Modal, MenuAksi, Sheet } from "./ui.jsx";
+import { Tombol, Bidang, Modal, MenuAksi, Sheet, SkeletonTabel } from "./ui.jsx";
 import {
   Table,
   TableHeader,
@@ -300,9 +300,7 @@ export default function PanelJuara({ beriTahu }) {
       )}
 
       {gagal ? null : daftar === null ? (
-        <p className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-600">
-          Memuat…
-        </p>
+        <SkeletonTabel jumlahBaris={4} />
       ) : (
         <>
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -322,7 +320,7 @@ export default function PanelJuara({ beriTahu }) {
                 <button
                   type="button"
                   onClick={() => setTargetHapusMassal(true)}
-                  className="rounded-md border-2 border-red-300 bg-red-50 px-3 py-1 text-xs font-semibold text-red-700 hover:bg-red-100"
+                  className="rounded-md border-2 border-slate-300 px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100"
                 >
                   Hapus terpilih
                 </button>
@@ -338,7 +336,7 @@ export default function PanelJuara({ beriTahu }) {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-10">
+                  <TableHead className="w-10 px-3">
                     <input
                       type="checkbox"
                       checked={semuaTerpilih}
@@ -347,19 +345,19 @@ export default function PanelJuara({ beriTahu }) {
                       className="size-4 accent-primary"
                     />
                   </TableHead>
-                  <TableHead>#</TableHead>
-                  <TableHead>Nama Turnamen</TableHead>
-                  <TableHead>Kategori</TableHead>
-                  <TableHead>Juara</TableHead>
-                  <TableHead>Tanggal Mulai</TableHead>
-                  <TableHead>Tanggal Berakhir</TableHead>
-                  <TableHead className="w-24">Aksi</TableHead>
+                  <TableHead className="px-3">#</TableHead>
+                  <TableHead className="px-3">Nama Turnamen</TableHead>
+                  <TableHead className="px-3">Kategori</TableHead>
+                  <TableHead className="px-3">Juara</TableHead>
+                  <TableHead className="px-3">Tanggal Mulai</TableHead>
+                  <TableHead className="px-3">Tanggal Berakhir</TableHead>
+                  <TableHead className="w-24 px-3">Aksi</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {daftar.map((t, index) => (
                   <TableRow key={t.id}>
-                    <TableCell className="w-10">
+                    <TableCell className="w-10 p-3">
                       <input
                         type="checkbox"
                         checked={!!terpilih[t.id]}
@@ -370,17 +368,17 @@ export default function PanelJuara({ beriTahu }) {
                         className="size-4 accent-primary"
                       />
                     </TableCell>
-                    <TableCell>{index + 1}</TableCell>
-                    <TableCell>{t.nama}</TableCell>
-                    <TableCell>{LABEL_JENIS[t.jenis] || t.jenis}</TableCell>
-                    <TableCell>
+                    <TableCell className="p-3">{index + 1}</TableCell>
+                    <TableCell className="p-3">{t.nama}</TableCell>
+                    <TableCell className="p-3">{LABEL_JENIS[t.jenis] || t.jenis}</TableCell>
+                    <TableCell className="p-3">
                       {t.juara ? (
                         <a
                           href={`https://www.chess.com/member/${encodeURIComponent(
                             t.juara.trim()
                           )}`}
                           target="_blank"
-                          rel="noreferrer"
+                          rel="noopener noreferrer"
                         >
                           {t.juara}
                         </a>
@@ -388,9 +386,9 @@ export default function PanelJuara({ beriTahu }) {
                         <span className="text-slate-400">belum ditetapkan</span>
                       )}
                     </TableCell>
-                    <TableCell>{tanggal(t.mulai)}</TableCell>
-                    <TableCell>{tanggal(t.selesai)}</TableCell>
-                    <TableCell className="w-24">
+                    <TableCell className="p-3">{tanggal(t.mulai)}</TableCell>
+                    <TableCell className="p-3">{tanggal(t.selesai)}</TableCell>
+                    <TableCell className="w-24 p-3">
                       <MenuAksi
                         onUbah={() => bukaUbah(t)}
                         onHapus={() => setHapusTarget(t)}

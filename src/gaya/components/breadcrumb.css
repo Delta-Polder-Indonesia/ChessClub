@@ -1,0 +1,29 @@
+/* Breadcrumb — jalur navigasi halaman */
+.breadcrumb {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--color-grey-600);
+}
+.breadcrumb-item {
+  display: inline-flex;
+  align-items: center;
+}
+.breadcrumb-link {
+  color: var(--color-grey-600);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+.breadcrumb-link:hover {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+.breadcrumb-separator {
+  color: var(--color-grey-400);
+  font-weight: 400;
+}
+.breadcrumb-current {
+  color: var(--color-grey-800);
+  font-weight: 500;
+}

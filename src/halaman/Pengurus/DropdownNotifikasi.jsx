@@ -8,6 +8,7 @@
 import Book from "../Analisa/komponen/svg/book.jsx";
 import ShieldAlert from "../Analisa/komponen/svg/shield-alert.jsx";
 import { waktuRelatif, cuplikan } from "./DropdownNotifikasiData.js";
+import { SkeletonTabel } from "./ui.jsx";
 
 export default function DropdownNotifikasi({
   terbuka,
@@ -47,9 +48,7 @@ export default function DropdownNotifikasi({
 
       <div className="max-h-[26rem] overflow-y-auto">
         {memuat && baris.length === 0 ? (
-          <p className="px-4 py-8 text-center text-sm text-slate-500">
-            Memuat…
-          </p>
+          <SkeletonTabel jumlahBaris={3} />
         ) : baris.length === 0 ? (
           <div className="px-4 py-10 text-center">
             <svg
@@ -80,15 +79,15 @@ export default function DropdownNotifikasi({
                   }`}
                 >
                   {b.jenis === "ebook" ? (
-                    <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                    <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-600">
                       <Book className="h-4 w-4" />
                     </div>
                   ) : b.jenis === "fairplay" ? (
-                    <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-50 text-red-700">
+                    <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-600">
                       <ShieldAlert className="h-4 w-4" />
                     </div>
                   ) : (
-                    <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                    <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-slate-600">
                       {String(b.nama || "?").charAt(0).toUpperCase()}
                     </div>
                   )}

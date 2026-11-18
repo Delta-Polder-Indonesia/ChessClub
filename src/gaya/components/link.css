@@ -1,0 +1,24 @@
+/* Link — tautan teks */
+.link {
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: color 0.15s ease;
+}
+.link:hover {
+  color: #0B2F9F;
+}
+.link:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+.link-secondary {
+  color: var(--color-grey-600);
+  text-decoration: none;
+}
+.link-secondary:hover {
+  color: var(--color-grey-900);
+  text-decoration: underline;
+}
