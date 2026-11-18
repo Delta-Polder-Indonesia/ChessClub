@@ -277,13 +277,13 @@ export default function PanelAnggota({
       </div>
 
       {jumlahTerpilih > 0 && (
-        <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
-          <span className="text-sm font-medium text-slate-700">
+        <div className="flex items-center gap-3 text-sm mb-2">
+          <span className="font-medium text-slate-700">
             {jumlahTerpilih} akun terpilih
           </span>
           <Tombol
             anak={sibuk === "blokir-massal" ? "Memproses…" : "Blokir terpilih"}
-            jenis="bahaya"
+            jenis="biasa"
             onClick={blokirTerpilih}
             kecil
             disabled={sibuk === "blokir-massal"}
