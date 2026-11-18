@@ -59,7 +59,7 @@ export default function RingkasanDashboard({ ringkas, onBuka, hitam }) {
           className="cursor-pointer transition-transform active:scale-95 rounded-lg border border-slate-200 bg-white p-4 text-center"
           title="Klik untuk melihat larangan otomatis"
         >
-          <p className="text-2xl font-bold text-amber-700">
+          <p className="text-2xl font-bold text-slate-700">
             {banOtomatis}
           </p>
           <p className="mt-0.5 text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">

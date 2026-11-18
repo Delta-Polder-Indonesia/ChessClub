@@ -17,7 +17,7 @@ export function Tombol({ anak, onClick, jenis = "biasa", kecil, className, ...si
       "border-slate-300 text-slate-700 hover:bg-slate-100 disabled:opacity-40",
     utama:
       "border-primary text-primary hover:bg-blue-50 disabled:opacity-40",
-    bahaya: "border-red-300 text-red-700 hover:bg-red-50 disabled:opacity-40",
+    bahaya: "border-slate-300 text-slate-700 hover:bg-slate-100 disabled:opacity-40",
   }[jenis];
   return (
     <button
@@ -35,11 +35,11 @@ export function Tombol({ anak, onClick, jenis = "biasa", kecil, className, ...si
 
 export function Bidang({ label, invalid, className, ...sisa }) {
   return (
-    <label className={`flex flex-col gap-1 text-xs font-medium ${invalid ? "text-red-700" : "text-slate-700"}`}>
+    <label className="flex flex-col gap-1 text-xs font-medium text-slate-700">
       {label}
       <input
         {...sisa}
-        className={`rounded border-2 ${invalid ? "border-red-600" : "border-slate-300"} px-2.5 py-1.5 text-sm outline-none focus:border-primary ${invalid ? "focus:border-red-600" : ""} ${className || ""}`}
+        className={`rounded border-2 border-slate-300 px-2.5 py-1.5 text-sm outline-none focus:border-primary ${className || ""}`}
         aria-invalid={invalid || undefined}
       />
     </label>
@@ -54,14 +54,14 @@ export function Bidang({ label, invalid, className, ...sisa }) {
 export function KotakGalatMuat({ pesan, onCobaLagi, className = "" }) {
   return (
     <div
-      className={`flex flex-wrap items-center justify-between gap-3 rounded-lg border border-red-200 bg-white px-4 py-3 ${className}`}
+      className={`flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3 ${className}`}
     >
-      <p className="text-sm font-medium text-red-800">{pesan}</p>
+      <p className="text-sm font-medium text-slate-700">{pesan}</p>
       {onCobaLagi && (
         <Tombol
-          jenis="bahaya"
+          jenis="biasa"
           onClick={onCobaLagi}
-          className="shrink-0 bg-white hover:bg-red-100"
+          className="shrink-0"
         >
           Coba Lagi
         </Tombol>
@@ -187,7 +187,7 @@ export function Modal({
 
   const warnaTombol =
     jenisKonfirmasi === "bahaya"
-      ? "border-2 border-red-500 text-red-700 hover:bg-red-50"
+      ? "border-2 border-slate-500 text-slate-700 hover:bg-slate-100"
       : "border-2 border-primary text-primary hover:bg-blue-50";
 
   const bisaKonfirmasi = !sibuk && (!butuhInput || nilai.trim().length > 0);
@@ -334,11 +334,7 @@ export function MenuAksi({ onUbah, onHapus, aksi }) {
                   setTerbuka(false);
                   onClick?.();
                 }}
-                className={`flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm disabled:opacity-40 ${
-                  bahaya
-                    ? "text-red-600 hover:bg-red-50"
-                    : "text-slate-700 hover:bg-slate-50"
-                }`}
+                className={`flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm disabled:opacity-40 text-slate-700 hover:bg-slate-50`}
               >
                 <Ikon className="size-4" />
                 {label}
@@ -426,8 +422,8 @@ export function Sheet({
 export function Kartu({ label, nilai, catatan, warna = "slate" }) {
   const warnaTeks = {
     slate: "text-slate-900",
-    merah: "text-red-700",
-    hijau: "text-emerald-700",
+    merah: "text-slate-700",
+    hijau: "text-slate-700",
     biru: "text-primary",
   }[warna];
   return (
