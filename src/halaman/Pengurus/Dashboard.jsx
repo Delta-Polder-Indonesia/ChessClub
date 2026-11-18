@@ -23,7 +23,7 @@ import DropdownPesan from "./DropdownPesan.jsx";
 import Mail from "../Analisa/komponen/svg/mail.jsx";
 import DropdownProfil from "./DropdownProfil.jsx";
 import RingkasanDashboard from "./RingkasanDashboard.jsx";
-import { KotakGalatMuat, SkeletonTabel } from "./ui.jsx";
+import { KotakGalatMuat, SkeletonTabel, TooltipLabel } from "./ui.jsx";
 import Marquee from "../../components/ui/marquee.jsx";
 
 // Judul header mengikuti menu sidebar yang sedang aktif (kunci → label),
@@ -415,9 +415,9 @@ export default function Dashboard() {
       <header className="bg-white border-b border-slate-200 px-6 py-3 shrink-0">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-4">
-            <button onClick={() => setSidebarTerbuka((s) => !s)}
-              className="p-2 rounded-md hover:bg-slate-100 transition-colors duration-150"
-              title={sidebarTerbuka ? "Tutup sidebar" : "Buka sidebar"}>
+            <TooltipLabel label={sidebarTerbuka ? "Tutup sidebar" : "Buka sidebar"}>
+              <button onClick={() => setSidebarTerbuka((s) => !s)}
+                className="p-2 rounded-md hover:bg-slate-100 transition-colors duration-150">
               {sidebarTerbuka ? (
                 <svg className="w-5 h-5 text-slate-600" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M16.5,16V8l-4,4l4,4ZM5,21q-0.83,0-1.41-0.59T3,19V5Q3,4.17 3.59,3.59T5,3H19q0.83,0 1.41,0.59T21,5V19q0,0.82-0.59,1.41T19,21H5Zm3-2V5H5V19H8Zm2,0h9V5H10V19ZM8,19H5H8Z" />
@@ -428,6 +428,7 @@ export default function Dashboard() {
                 </svg>
               )}
             </button>
+            </TooltipLabel>
             <h1 className="text-lg font-bold text-slate-900">{judulRincian || judulTab}</h1>
             <div className="mt-1 flex items-center gap-1 text-[11px] text-slate-500">
               {breadcrumb.map((item, i) => (
@@ -449,9 +450,10 @@ export default function Dashboard() {
           <div className="flex items-center gap-2">
             {/* Lonceng notifikasi */}
             <div className="relative" ref={notifRef}>
-              <button onClick={() => { setMenuProfile(false); setMenuPesan(false); setMenuNotif((v) => !v); }}
-                className="relative p-2 rounded-md hover:bg-slate-100 transition-colors duration-150"
-                title="Notifikasi pesan masuk" aria-haspopup="true" aria-expanded={menuNotif}>
+              <TooltipLabel label="Notifikasi pesan masuk">
+                <button onClick={() => { setMenuProfile(false); setMenuPesan(false); setMenuNotif((v) => !v); }}
+                  className="relative p-2 rounded-md hover:bg-slate-100 transition-colors duration-150"
+                  aria-haspopup="true" aria-expanded={menuNotif}>
                 <svg className="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                     d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -462,6 +464,7 @@ export default function Dashboard() {
                   </span>
                 )}
               </button>
+              </TooltipLabel>
               <DropdownNotifikasi terbuka={menuNotif} baris={barisNotif} memuat={memuatNotif || memuatNotifEbook}
                 onBuka={() => { setMenuNotif(false); setTab("pesan"); }}
                 onPilih={pilihNotif} onTandaiSemua={tandaiSemuaDibaca} />
@@ -469,9 +472,10 @@ export default function Dashboard() {
 
             {/* Amplop pesan masuk */}
             <div className="relative" ref={pesanRef}>
-              <button onClick={() => { setMenuProfile(false); setMenuNotif(false); setMenuPesan((v) => !v); }}
+              <TooltipLabel label="Pesan masuk">
+                <button onClick={() => { setMenuProfile(false); setMenuNotif(false); setMenuPesan((v) => !v); }}
                 className="relative p-2 rounded-md hover:bg-slate-100 transition-colors duration-150"
-                title="Pesan masuk" aria-haspopup="true" aria-expanded={menuPesan}>
+                aria-haspopup="true" aria-expanded={menuPesan}>
                 <Mail className="w-5 h-5 text-slate-600" />
                 {ringkas?.pesan?.belumDibaca > 0 && (
                   <span className="absolute -top-0.5 -right-0.5 min-w-[1rem] h-4 px-1 bg-slate-900 rounded-full text-white text-[10px] font-bold flex items-center justify-center">
@@ -479,6 +483,7 @@ export default function Dashboard() {
                   </span>
                 )}
               </button>
+              </TooltipLabel>
               <DropdownPesan terbuka={menuPesan} pesan={notif} memuat={memuatNotif}
                 onBuka={() => { setMenuPesan(false); setTab("pesan"); }}
                 onBukaPesan={bukaPesan} />
@@ -486,9 +491,9 @@ export default function Dashboard() {
 
             {/* Profil + dropdown */}
             <div className="relative" ref={profileRef}>
-              <button onClick={() => setMenuProfile((v) => !v)}
-                className="flex items-center gap-3 rounded-md px-2 py-1.5 hover:bg-slate-100 transition-colors duration-150 focus:outline-none"
-                title={pengguna ? `Masuk sebagai ${pengguna}` : ""}>
+              <TooltipLabel label={pengguna ? `Masuk sebagai ${pengguna}` : ""}>
+                <button onClick={() => setMenuProfile((v) => !v)}
+                  className="flex items-center gap-3 rounded-md px-2 py-1.5 hover:bg-slate-100 transition-colors duration-150 focus:outline-none">
                 <div className="text-right hidden sm:block">
                   <p className="text-sm font-medium text-slate-900 leading-tight flex items-center justify-end gap-2">
                     {pengguna || "Pengurus"}
@@ -502,6 +507,7 @@ export default function Dashboard() {
                   {(pengguna || "?").charAt(0)}
                 </div>
               </button>
+              </TooltipLabel>
               <DropdownProfil terbuka={menuProfile} pengguna={pengguna} peran={peran}
                 onTutup={() => setMenuProfile(false)} onMuatUlang={muatUlang}
                 onKeluar={keluar} onBukaPengaturan={() => setTabPengaturan(true)} memuat={memuat} />

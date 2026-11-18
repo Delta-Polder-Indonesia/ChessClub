@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { apiPengurus } from "../../lib/api/index.js";
-import { Tombol, Modal, Avatar } from "./ui.jsx";
+import { Tombol, Modal, Avatar, TooltipLabel } from "./ui.jsx";
 import {
   Table,
   TableBody,
@@ -322,8 +322,8 @@ export default function PanelLarangan({
                         {h.alasan === "fair_play_violations" ? "Fair Play" : "Keputusan Pengurus"}
                       </span>
                       {h.keterangan && (
-                        <p className="mt-0.5 text-sm text-slate-500 max-w-[240px] truncate" title={h.keterangan}>
-                          {h.keterangan}
+                        <p className="mt-0.5 text-sm text-slate-500 max-w-[240px] truncate">
+                          <TooltipLabel label={h.keterangan}>{h.keterangan}</TooltipLabel>
                         </p>
                       )}
                     </TableCell>
@@ -334,17 +334,18 @@ export default function PanelLarangan({
                     </TableCell>
                     <TableCell className="p-3">{formatTanggal(h.diblokirPada)}</TableCell>
                     <TableCell className="w-24 p-3">
-                      <button
-                        type="button"
-                        title="Cabut larangan"
-                        onClick={() => setTargetBuka(h.username)}
-                        disabled={sibuk === `buka-${h.username}`}
-                        className="rounded p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-primary disabled:opacity-40"
-                      >
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
-                          <path d="M9 14l6-6M5.586 15H21m-6.414-6.414A3 3 0 1112.828 9H15a3 3 0 110 6h-2.172" />
-                        </svg>
-                      </button>
+                      <TooltipLabel label="Cabut larangan">
+                        <button
+                          type="button"
+                          onClick={() => setTargetBuka(h.username)}
+                          disabled={sibuk === `buka-${h.username}`}
+                          className="rounded p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-primary disabled:opacity-40"
+                        >
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+                            <path d="M9 14l6-6M5.586 15H21m-6.414-6.414A3 3 0 1112.828 9H15a3 3 0 110 6h-2.172" />
+                          </svg>
+                        </button>
+                      </TooltipLabel>
                     </TableCell>
                   </TableRow>
                 );

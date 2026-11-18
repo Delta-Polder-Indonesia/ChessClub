@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { apiPengurus } from "../../../lib/api/index.js";
-import { Tombol, Bidang, Modal, SkeletonTabel } from "../ui.jsx";
+import { Tombol, Bidang, Modal, SkeletonTabel, TooltipLabel } from "../ui.jsx";
 import { Lencana } from "./Lencana.jsx";
 import { LABEL_STATUS, akunMasihBaru } from "./bagianData.js";
 
@@ -461,26 +461,27 @@ export default function RincianTurnamen({ id, jenis, beriTahu, onTutup, onBeruba
                       </a>
                     </td>
                     <td>
-                      <button
-                        type="button"
-                        aria-label={`Keluarkan ${p.panggilan || p.username}`}
-                        title="Keluarkan peserta"
-                        disabled={sibuk === "keluar"}
-                        onClick={() =>
-                          jalankan(
-                            "keluar",
-                            () =>
-                              apiPengurus(`/turnamen/${id}/peserta-keluar`, {
-                                metode: "POST",
-                                bodi: { username: p.username },
-                              }),
-                            "Peserta dikeluarkan."
-                          )
-                        }
-                        className="rounded p-1 text-slate-500 hover:bg-slate-100 hover:text-slate-600"
-                      >
-                        <IkonSampah />
-                      </button>
+                      <TooltipLabel label="Keluarkan peserta">
+                        <button
+                          type="button"
+                          aria-label={`Keluarkan ${p.panggilan || p.username}`}
+                          disabled={sibuk === "keluar"}
+                          onClick={() =>
+                            jalankan(
+                              "keluar",
+                              () =>
+                                apiPengurus(`/turnamen/${id}/peserta-keluar`, {
+                                  metode: "POST",
+                                  bodi: { username: p.username },
+                                }),
+                              "Peserta dikeluarkan."
+                            )
+                          }
+                          className="rounded p-1 text-slate-500 hover:bg-slate-100 hover:text-slate-600"
+                        >
+                          <IkonSampah />
+                        </button>
+                      </TooltipLabel>
                     </td>
                   </tr>
                 ))}
@@ -591,17 +592,17 @@ export default function RincianTurnamen({ id, jenis, beriTahu, onTutup, onBeruba
                       </td>
                       <td className="text-slate-800">{h.hitam}</td>
                       <td>
-                        <button
-                          type="button"
-                          aria-label={`Hapus hasil partai ${i + 1}`}
-                          title="Hapus hasil"
-                          onClick={() =>
-                            jalankan(
-                              "hapusHasil",
-                              () =>
-                                apiPengurus(`/turnamen/${id}/hasil-hapus`, {
-                                  metode: "POST",
-                                  bodi: { indeks: i },
+                        <TooltipLabel label="Hapus hasil">
+                          <button
+                            type="button"
+                            aria-label={`Hapus hasil partai ${i + 1}`}
+                            onClick={() =>
+                              jalankan(
+                                "hapusHasil",
+                                () =>
+                                  apiPengurus(`/turnamen/${id}/hasil-hapus`, {
+                                    metode: "POST",
+                                    bodi: { indeks: i },
                                 }),
                               "Hasil dihapus."
                             )
@@ -610,6 +611,7 @@ export default function RincianTurnamen({ id, jenis, beriTahu, onTutup, onBeruba
                         >
                           <IkonSampah />
                         </button>
+                        </TooltipLabel>
                       </td>
                     </tr>
                   ))}
@@ -653,13 +655,14 @@ export default function RincianTurnamen({ id, jenis, beriTahu, onTutup, onBeruba
                     <td className="font-medium text-slate-800">
                       {k.panggilan}
                       {!k.resmi && (
-                        <span
-                          title="Belum memenuhi minimal partai"
-                          aria-label="Belum memenuhi minimal partai"
-                          className="ml-1 inline-flex h-4 w-4 cursor-help items-center justify-center rounded-full border border-black align-middle text-[10px] font-bold text-black"
-                        >
-                          ?
-                        </span>
+                        <TooltipLabel label="Belum memenuhi minimal partai">
+                          <span
+                            aria-label="Belum memenuhi minimal partai"
+                            className="ml-1 inline-flex h-4 w-4 cursor-help items-center justify-center rounded-full border border-black align-middle text-[10px] font-bold text-black"
+                          >
+                            ?
+                          </span>
+                        </TooltipLabel>
                       )}
                     </td>
                     <td className="text-slate-600">{k.main}</td>

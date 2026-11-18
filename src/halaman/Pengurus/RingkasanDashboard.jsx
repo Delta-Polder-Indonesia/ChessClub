@@ -1,7 +1,7 @@
 /**
  * Kartu-kartu ringkasan — tampil di tab Dashboard.
  */
-import { Kartu } from "./ui.jsx";
+import { Kartu, TooltipLabel } from "./ui.jsx";
 
 const LABEL_MODE_VERIFIKASI = {
   wajib: "Wajib",
@@ -20,12 +20,14 @@ export default function RingkasanDashboard({ ringkas, onBuka, hitam }) {
       {/* Kartu ringkasan */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
         <Kartu label="Anggota" nilai={ringkas.anggota} warna="biru" />
-        <div onClick={() => onBuka("larangan", banOtomatis ? "otomatis" : "semua")}
-          className="cursor-pointer transition-transform active:scale-95" title="Klik untuk membuka daftar larangan">
+        <TooltipLabel label="Klik untuk membuka daftar larangan">
+          <div onClick={() => onBuka("larangan", banOtomatis ? "otomatis" : "semua")}
+            className="cursor-pointer transition-transform active:scale-95">
           <Kartu label="Daftar larangan" nilai={ringkas.daftarHitam}
             catatan={`${ringkas.otomatis} otomatis / ${ringkas.pengurus} pengurus`}
             warna={ringkas.daftarHitam ? "merah" : "slate"} />
         </div>
+        </TooltipLabel>
         <Kartu label="Turnamen" nilai={ringkas.turnamen?.total ?? 0}
           catatan={`${ringkas.turnamen?.berlangsung ?? 0} berlangsung`} />
         <Kartu label="Konten" nilai={jumlahKonten}
@@ -39,11 +41,11 @@ export default function RingkasanDashboard({ ringkas, onBuka, hitam }) {
 
       {/* Kartu aktivitas */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-        <div
-          onClick={() => onBuka("pesan")}
-          className="cursor-pointer transition-transform active:scale-95 rounded-lg border border-slate-200 bg-white p-4 text-center"
-          title="Klik untuk membuka pesan masuk"
-        >
+        <TooltipLabel label="Klik untuk membuka pesan masuk">
+          <div
+            onClick={() => onBuka("pesan")}
+            className="cursor-pointer transition-transform active:scale-95 rounded-lg border border-slate-200 bg-white p-4 text-center"
+          >
           <p className="text-2xl font-bold text-slate-900">
             {ringkas.pesan?.belumDibaca ?? 0}
           </p>
@@ -54,11 +56,12 @@ export default function RingkasanDashboard({ ringkas, onBuka, hitam }) {
             {ringkas.pesan?.total ?? 0} total
           </p>
         </div>
-        <div
-          onClick={() => onBuka("larangan", "otomatis")}
-          className="cursor-pointer transition-transform active:scale-95 rounded-lg border border-slate-200 bg-white p-4 text-center"
-          title="Klik untuk melihat larangan otomatis"
-        >
+        </TooltipLabel>
+        <TooltipLabel label="Klik untuk melihat larangan otomatis">
+          <div
+            onClick={() => onBuka("larangan", "otomatis")}
+            className="cursor-pointer transition-transform active:scale-95 rounded-lg border border-slate-200 bg-white p-4 text-center"
+          >
           <p className="text-2xl font-bold text-slate-700">
             {banOtomatis}
           </p>
@@ -69,6 +72,7 @@ export default function RingkasanDashboard({ ringkas, onBuka, hitam }) {
             Fair Play
           </p>
         </div>
+        </TooltipLabel>
       </div>
     </div>
   );

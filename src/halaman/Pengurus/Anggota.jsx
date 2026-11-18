@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { apiPengurus } from "../../lib/api/index.js";
 import { LencanaBan } from "../../components/Lencana.jsx";
-import { Tombol, Avatar, Modal, MenuAksi } from "./ui.jsx";
+import { Tombol, Avatar, Modal, MenuAksi, TooltipLabel } from "./ui.jsx";
 import {
   Table,
   TableBody,
@@ -385,8 +385,8 @@ export default function PanelAnggota({
                             {a.alasanStatus === "fair_play_violations" ? "Fair Play" : "Terblokir"}
                           </span>
                           {a.peringatan && (
-                            <p className="mt-0.5 text-xs text-slate-500 max-w-[200px] truncate" title={a.peringatan}>
-                              {a.peringatan}
+                            <p className="mt-0.5 text-xs text-slate-500 max-w-[200px] truncate">
+                              <TooltipLabel label={a.peringatan}>{a.peringatan}</TooltipLabel>
                             </p>
                           )}
                         </div>
