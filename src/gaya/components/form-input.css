@@ -1,0 +1,40 @@
+/* Form Input — input teks, select, textarea */
+.form-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-grey-300);
+  background: var(--color-paper);
+  color: var(--color-grey-900);
+  font-size: 0.875rem;
+  line-height: 1.25;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.form-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgb(11 47 159 / 0.1);
+}
+.form-input::placeholder {
+  color: var(--color-grey-400);
+}
+.form-input:disabled {
+  background: var(--color-grey-50);
+  border-color: var(--color-grey-200);
+  color: var(--color-grey-400);
+  cursor: not-allowed;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-grey-700);
+}
+
+.form-text {
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--color-grey-500);
+}

@@ -1,0 +1,68 @@
+/* Button — tombol aksi, palet slate sesuai DESAIN.md */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.25;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-decoration: none;
+}
+.btn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Variasi biasa — slate */
+.btn-biasa {
+  border-color: var(--color-grey-300);
+  color: var(--color-grey-700);
+  background: var(--color-paper);
+}
+.btn-biasa:hover:not(:disabled) {
+  background: var(--color-grey-50);
+  border-color: var(--color-grey-400);
+}
+
+/* Variasi utama — primary */
+.btn-utama {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-paper);
+}
+.btn-utama:hover:not(:disabled) {
+  background: #eef2ff;
+  border-color: #0B2F9F;
+}
+
+/* Variasi bahaya — tetap slate (tidak ada merah) */
+.btn-bahaya {
+  border-color: var(--color-grey-300);
+  color: var(--color-grey-700);
+  background: var(--color-paper);
+}
+.btn-bahaya:hover:not(:disabled) {
+  background: var(--color-grey-50);
+  border-color: var(--color-grey-400);
+}
+
+/* Ukuran kecil */
+.btn-kecil {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+}
+
+/* Ukuran penuh lebar */
+.btn-lebar {
+  width: 100%;
+}
