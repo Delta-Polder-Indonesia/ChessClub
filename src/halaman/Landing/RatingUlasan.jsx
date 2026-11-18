@@ -124,13 +124,11 @@ function KaruselUlasan({ t, ulasan, padaVote }) {
               type="button"
               onClick={() => emblaApi?.scrollTo(i)}
               aria-label={t("landing.rating.slide", { n: i + 1 })}
-              className={`flex h-1.5 items-center justify-center rounded-full transition-all max-sm:h-6 max-sm:w-6 max-sm:bg-transparent ${
-                i === indeksAktif ? "w-6 bg-primary" : "w-1.5 bg-grey-300"
-              }`}
+              className={`inline-flex items-center justify-center p-2 min-w-6 min-h-6 rounded-full transition-all max-sm:bg-transparent focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2`}
             >
               <span
                 aria-hidden="true"
-                className={`hidden h-1.5 rounded-full max-sm:block ${
+                className={`h-1.5 rounded-full ${
                   i === indeksAktif ? "w-6 bg-primary" : "w-1.5 bg-grey-300"
                 }`}
               />
