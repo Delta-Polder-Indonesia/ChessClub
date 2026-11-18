@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   apiPengurus,
@@ -35,6 +35,28 @@ const JUDUL_TAB = Object.fromEntries(
     ...(m.anak || []).map((s) => [`${m.kunci}/${s.kunci}`, s.label]),
   ])
 );
+
+// Jalur breadcrumb untuk header (root = "Dashboard Pengurus").
+const BREADCRUMB = {
+  dashboard: ["Dashboard Pengurus"],
+  anggota: ["Dashboard Pengurus", "Anggota"],
+  larangan: ["Dashboard Pengurus", "Daftar Larangan"],
+  pesan: ["Dashboard Pengurus", "Pesan Masuk"],
+  turnamen: ["Dashboard Pengurus", "Turnamen"],
+  juara: ["Dashboard Pengurus", "Juara Turnamen"],
+  berita: ["Dashboard Pengurus", "Berita Komunitas"],
+  pengumuman: ["Dashboard Pengurus", "Pengumuman"],
+  ebook: ["Dashboard Pengurus", "Kode E-Book"],
+  "ebook/terbit": ["Dashboard Pengurus", "Kode E-Book", "Kode E-Book"],
+  "ebook/minta": ["Dashboard Pengurus", "Kode E-Book", "Permintaan kode"],
+  "ebook/kode": ["Dashboard Pengurus", "Kode E-Book", "Daftar kode akses"],
+  "ebook/unduhan": ["Dashboard Pengurus", "Kode E-Book", "Jejak unduhan"],
+  kelolaAdmin: ["Pengaturan", "Kelola Admin"],
+  akun: ["Pengaturan", "Akun & Password"],
+  riwayatMasuk: ["Pengaturan", "Riwayat Masuk"],
+  jejakAudit: ["Pengaturan", "Jejak Audit"],
+  umum: ["Pengaturan", "Pengaturan Umum"],
+};
 
 /* ========================================================
    HALAMAN UTAMA: Dashboard
@@ -361,6 +383,11 @@ export default function Dashboard() {
   const kunciJudul = tab === "ebook" ? `ebook/${halamanEbook}` : tab;
   const judulTab = JUDUL_TAB[kunciJudul] || "Dashboard Pengurus";
 
+  const breadcrumb = useMemo(() => {
+    if (tabPengaturan) return ["Pengaturan"];
+    return BREADCRUMB[kunciJudul] || ["Dashboard Pengurus"];
+  }, [tabPengaturan, kunciJudul]);
+
   return (
     <div className="h-screen flex flex-col overflow-hidden bg-white">
       {/* ── Halaman Pengaturan (Full Layar) — hanya Master ── */}
@@ -396,6 +423,14 @@ export default function Dashboard() {
               </svg>
             </button>
             <h1 className="text-lg font-bold text-slate-900">{judulRincian || judulTab}</h1>
+            <div className="mt-1 flex items-center gap-1 text-[11px] text-slate-500">
+              {breadcrumb.map((item, i) => (
+                <Fragment key={i}>
+                  {i > 0 && <span className="text-slate-300">/</span>}
+                  <span>{item}</span>
+                </Fragment>
+              ))}
+            </div>
           </div>
 
           {/* Notifikasi backend (permintaan terlalu banyak, peringatan fair play,

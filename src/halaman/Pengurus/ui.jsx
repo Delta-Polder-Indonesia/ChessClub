@@ -33,14 +33,14 @@ export function Tombol({ anak, onClick, jenis = "biasa", kecil, className, ...si
   );
 }
 
-export function Bidang({ label, invalid, ...sisa }) {
+export function Bidang({ label, invalid, className, ...sisa }) {
   return (
     <label className={`flex flex-col gap-1 text-xs font-medium ${invalid ? "text-red-700" : "text-slate-700"}`}>
       {label}
       <input
-        className={`rounded border-2 ${invalid ? "border-red-600" : "border-slate-300"} px-2.5 py-1.5 text-sm outline-none focus:border-primary ${invalid ? "focus:border-red-600" : ""}`}
-        aria-invalid={invalid || undefined}
         {...sisa}
+        className={`rounded border-2 ${invalid ? "border-red-600" : "border-slate-300"} px-2.5 py-1.5 text-sm outline-none focus:border-primary ${invalid ? "focus:border-red-600" : ""} ${className || ""}`}
+        aria-invalid={invalid || undefined}
       />
     </label>
   );

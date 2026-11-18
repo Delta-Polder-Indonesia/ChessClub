@@ -23,6 +23,7 @@ export default function PanelAnggota({
   const [targetBlokir, setTargetBlokir] = useState(null);
   const [filterStatus, setFilterStatus] = useState(filterAwal);
   const [cari, setCari] = useState("");
+  const [terpilih, setTerpilih] = useState({});
 
   // Sinkronkan filter saat Dashboard mengubah filterAwal selagi panel
   // ter-mount (mis. klik sidebar mereset filter ke "semua").
@@ -163,6 +164,42 @@ export default function PanelAnggota({
     anggotaTerverifikasi,
   ]);
 
+  const jumlahTerpilih = Object.values(terpilih).filter(Boolean).length;
+  const semuaTerpilih =
+    anggotaTersaring.length > 0 &&
+    anggotaTersaring.every((a) => terpilih[a.username]);
+
+  const pilihSemua = (e) => {
+    if (e.target.checked) {
+      const baru = {};
+      anggotaTersaring.forEach((a) => { baru[a.username] = true; });
+      setTerpilih(baru);
+    } else {
+      setTerpilih({});
+    }
+  };
+
+  const blokirTerpilih = async () => {
+    const usernames = Object.keys(terpilih).filter((u) => terpilih[u]);
+    if (!usernames.length) return;
+    setSibuk("blokir-massal");
+    try {
+      for (const u of usernames) {
+        await apiPengurus("/blokir", {
+          metode: "POST",
+          bodi: { username: u, keterangan: "Blokir massal dari dashboard" },
+        });
+      }
+      beriTahu(`${usernames.length} akun dipindahkan ke daftar larangan.`, "sukses");
+      setTerpilih({});
+      await muatUlang();
+    } catch (e) {
+      beriTahu(e.message || "Gagal blokir massal.", "galat");
+    } finally {
+      setSibuk("");
+    }
+  };
+
   return (
     <div className="space-y-5">
       {/* ── Peringatan Ban ─────────────────────────────────── */}
@@ -239,6 +276,28 @@ export default function PanelAnggota({
         </div>
       </div>
 
+      {jumlahTerpilih > 0 && (
+        <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+          <span className="text-sm font-medium text-slate-700">
+            {jumlahTerpilih} akun terpilih
+          </span>
+          <Tombol
+            anak={sibuk === "blokir-massal" ? "Memproses…" : "Blokir terpilih"}
+            jenis="bahaya"
+            onClick={blokirTerpilih}
+            kecil
+            disabled={sibuk === "blokir-massal"}
+          />
+          <button
+            type="button"
+            onClick={() => setTerpilih({})}
+            className="text-xs text-slate-500 hover:text-slate-700 underline underline-offset-2"
+          >
+            Batalkan
+          </button>
+        </div>
+      )}
+
       {/* ── Tabel ───────────────────────────────────────────── */}
       <div>
         <p className="text-xs text-slate-500 mb-1">
@@ -249,13 +308,22 @@ export default function PanelAnggota({
           <Table className="table-fixed">
             <TableHeader>
               <TableRow>
-                <TableHead className="w-10">#</TableHead>
-                <TableHead>Anggota</TableHead>
-                <TableHead>Kota</TableHead>
-                <TableHead>Rating</TableHead>
-                <TableHead>LIVE</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="w-24">Aksi</TableHead>
+                <TableHead className="w-10 px-3">
+                  <input
+                    type="checkbox"
+                    checked={semuaTerpilih}
+                    onChange={pilihSemua}
+                    aria-label="Pilih semua anggota"
+                    className="size-4 accent-primary"
+                  />
+                </TableHead>
+                <TableHead className="w-10 px-3">#</TableHead>
+                <TableHead className="px-3">Anggota</TableHead>
+                <TableHead className="px-3">Kota</TableHead>
+                <TableHead className="px-3">Rating</TableHead>
+                <TableHead className="px-3">LIVE</TableHead>
+                <TableHead className="px-3">Status</TableHead>
+                <TableHead className="w-24 px-3">Aksi</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -264,8 +332,18 @@ export default function PanelAnggota({
 
                 return (
                   <TableRow key={a.username}>
-                    <TableCell>{index + 1}</TableCell>
-                    <TableCell>
+                    <TableCell className="w-10 p-3">
+                      <input
+                        type="checkbox"
+                        checked={!!terpilih[a.username]}
+                        onChange={(e) =>
+                          setTerpilih((s) => ({ ...s, [a.username]: e.target.checked }))}
+                        aria-label={`Pilih ${a.username}`}
+                        className="size-4 accent-primary"
+                      />
+                    </TableCell>
+                    <TableCell className="p-3">{index + 1}</TableCell>
+                    <TableCell className="p-3">
                       <div className="flex items-center gap-3">
                         <Avatar username={a.username} foto={a.foto} />
                         <div className="min-w-0">
@@ -285,16 +363,16 @@ export default function PanelAnggota({
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell>{a.kota || "—"}</TableCell>
-                    <TableCell>
+                    <TableCell className="p-3">{a.kota || "—"}</TableCell>
+                    <TableCell className="p-3">
                       {a.elo ? (
                         <span className="elo-pilih">{a.elo}</span>
                       ) : (
                         "—"
                       )}
                     </TableCell>
-                    <TableCell>{a.kontrol || "—"}</TableCell>
-                    <TableCell>
+                    <TableCell className="p-3">{a.kontrol || "—"}</TableCell>
+                    <TableCell className="p-3">
                       {kenaBanBaris ? (
                         <div>
                           <span className="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-red-700">
@@ -314,7 +392,7 @@ export default function PanelAnggota({
                         "—"
                       )}
                     </TableCell>
-                    <TableCell className="w-24">
+                    <TableCell className="w-24 p-3">
                       <MenuAksi
                         aksi={[
                           {
@@ -345,7 +423,7 @@ export default function PanelAnggota({
               })}
               {!anggotaTersaring.length && (
                 <TableRow>
-                  <TableCell colSpan={7} className="py-10 text-center text-slate-500">
+                  <TableCell colSpan={8} className="py-10 text-center text-slate-500">
                     {cari || filterStatus !== "semua"
                       ? "Tidak ada anggota yang cocok dengan filter."
                       : "Belum ada anggota dari roster klub."}

@@ -37,13 +37,38 @@ export default function RingkasanDashboard({ ringkas, onBuka, hitam }) {
           warna="hijau" />
       </div>
 
-      <div className="flex min-h-[16rem] flex-col items-center justify-center rounded-lg border border-dashed border-slate-200 bg-slate-50 px-6 py-12 text-center">
-        <p className="text-4xl font-black tracking-tight text-slate-400 sm:text-5xl">
-          Tahap Renovasi
-        </p>
-        <p className="mt-3 max-w-md text-sm text-slate-500">
-          Dashboard sedang ditata ulang. Bagian lain akan menyusul kembali setahap demi setahap.
-        </p>
+      {/* Kartu aktivitas */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div
+          onClick={() => onBuka("pesan")}
+          className="cursor-pointer transition-transform active:scale-95 rounded-lg border border-slate-200 bg-white p-4 text-center"
+          title="Klik untuk membuka pesan masuk"
+        >
+          <p className="text-2xl font-bold text-slate-900">
+            {ringkas.pesan?.belumDibaca ?? 0}
+          </p>
+          <p className="mt-0.5 text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">
+            Pesan Masuk
+          </p>
+          <p className="mt-0.5 text-xs text-slate-500">
+            {ringkas.pesan?.total ?? 0} total
+          </p>
+        </div>
+        <div
+          onClick={() => onBuka("larangan", "otomatis")}
+          className="cursor-pointer transition-transform active:scale-95 rounded-lg border border-slate-200 bg-white p-4 text-center"
+          title="Klik untuk melihat larangan otomatis"
+        >
+          <p className="text-2xl font-bold text-amber-700">
+            {banOtomatis}
+          </p>
+          <p className="mt-0.5 text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">
+            Blokir Otomatis
+          </p>
+          <p className="mt-0.5 text-xs text-slate-500">
+            Fair Play
+          </p>
+        </div>
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import PanelRiwayatMasuk from "./RiwayatMasuk.jsx";
 import PanelAudit from "./Audit.jsx";
-import { Tombol, Modal } from "./ui.jsx";
+import { Tombol, Bidang, Modal } from "./ui.jsx";
 import TabelData from "./TabelData.jsx";
 import Marquee from "../../components/ui/marquee.jsx";
 import {
@@ -286,29 +286,25 @@ function PanelKelolaAdmin({ beriTahu }) {
       <form onSubmit={tambah} className="space-y-4">
         <h3 className="text-sm font-bold text-slate-900">Tambah Admin Baru</h3>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
-          <label className="flex items-center gap-2 text-sm text-slate-700">
-            Username:
-            <input
-              type="text"
-              value={form.username}
-              onChange={(e) => setForm((f) => ({ ...f, username: e.target.value }))}
-              placeholder="contoh: pengurus1"
-              className="w-44 border-0 border-b border-slate-300 bg-transparent px-1 py-1 text-sm outline-none focus:border-primary"
-              required
-            />
-          </label>
-          <label className="flex items-center gap-2 text-sm text-slate-700">
-            Password:
-            <input
-              type={lihatSandi ? "text" : "password"}
-              value={form.password}
-              onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
-              placeholder="minimal 12 karakter"
-              minLength={12}
-              className="w-44 border-0 border-b border-slate-300 bg-transparent px-1 py-1 text-sm outline-none focus:border-primary"
-              required
-            />
-          </label>
+          <Bidang
+            label="Username"
+            type="text"
+            value={form.username}
+            onChange={(e) => setForm((f) => ({ ...f, username: e.target.value }))}
+            placeholder="contoh: pengurus1"
+            required
+            className="w-44"
+          />
+          <Bidang
+            label="Password"
+            type={lihatSandi ? "text" : "password"}
+            value={form.password}
+            onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
+            placeholder="minimal 12 karakter"
+            minLength={12}
+            required
+            className="w-44"
+          />
           <button
             type="button"
             onClick={() => setLihatSandi((v) => !v)}
@@ -472,52 +468,41 @@ function PanelAkun({ beriTahu }) {
         <h3 className="text-sm font-bold text-slate-900">Ganti Username & Password Sendiri</h3>
 
         <div className="space-y-4 max-w-xl">
-          <label className="flex items-center gap-3 text-sm text-slate-700">
-            <span className="w-40 shrink-0">Username:</span>
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-64 border-0 border-b border-slate-300 bg-transparent px-1 py-1 text-sm outline-none focus:border-primary"
-              placeholder="admin"
-            />
-          </label>
-
-          <label className="flex items-center gap-3 text-sm text-slate-700">
-            <span className="w-40 shrink-0">Password lama:</span>
-            <input
-              type={lihat ? "text" : "password"}
-              value={passLama}
-              onChange={(e) => setPassLama(e.target.value)}
-              className="w-64 border-0 border-b border-slate-300 bg-transparent px-1 py-1 text-sm outline-none focus:border-primary"
-              placeholder="admin123"
-              required
-            />
-          </label>
-
-          <label className="flex items-center gap-3 text-sm text-slate-700">
-            <span className="w-40 shrink-0">Password baru:</span>
-            <input
-              type={lihat ? "text" : "password"}
-              value={passBaru}
-              onChange={(e) => setPassBaru(e.target.value)}
-              className="w-64 border-0 border-b border-slate-300 bg-transparent px-1 py-1 text-sm outline-none focus:border-primary"
-              placeholder="minimal 12 karakter"
-              required
-            />
-          </label>
-
-          <label className="flex items-center gap-3 text-sm text-slate-700">
-            <span className="w-40 shrink-0">Konfirmasi:</span>
-            <input
-              type={lihat ? "text" : "password"}
-              value={passKonf}
-              onChange={(e) => setPassKonf(e.target.value)}
-              className="w-64 border-0 border-b border-slate-300 bg-transparent px-1 py-1 text-sm outline-none focus:border-primary"
-              placeholder="ulang password baru"
-              required
-            />
-          </label>
+          <Bidang
+            label="Username"
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            placeholder="admin"
+            className="w-64"
+          />
+          <Bidang
+            label="Password lama"
+            type={lihat ? "text" : "password"}
+            value={passLama}
+            onChange={(e) => setPassLama(e.target.value)}
+            placeholder="admin123"
+            required
+            className="w-64"
+          />
+          <Bidang
+            label="Password baru"
+            type={lihat ? "text" : "password"}
+            value={passBaru}
+            onChange={(e) => setPassBaru(e.target.value)}
+            placeholder="minimal 12 karakter"
+            required
+            className="w-64"
+          />
+          <Bidang
+            label="Konfirmasi"
+            type={lihat ? "text" : "password"}
+            value={passKonf}
+            onChange={(e) => setPassKonf(e.target.value)}
+            placeholder="ulang password baru"
+            required
+            className="w-64"
+          />
         </div>
 
         <div className="flex items-center justify-between max-w-xl">

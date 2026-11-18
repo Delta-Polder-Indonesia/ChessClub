@@ -138,6 +138,12 @@ export default function TabelData({
 }) {
   const [sorting, setSorting] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});
+  const [ukuranHalaman, setUkuranHalaman] = useState(pageSize || 10);
+
+  // Atur ulang ke halaman pertama bila ukuran halaman diubah.
+  useEffect(() => {
+    tabel.setPageIndex(0);
+  }, [ukuranHalaman, tabel]);
 
   const kolomOtomatis = useMemo(
     () =>
@@ -166,7 +172,8 @@ export default function TabelData({
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    initialState: { pagination: { pageSize } },
+    pageSize: ukuranHalaman,
+    initialState: { pagination: { pageSize: ukuranHalaman } },
   });
 
   const jumlahTampil = tabel.getFilteredRowModel().rows.length;
@@ -219,9 +226,24 @@ export default function TabelData({
           </TableBody>
         </Table>
         <div className="flex flex-wrap items-center justify-between gap-3 pt-3">
-          <p className="text-sm text-slate-600">
-            {jumlahTampil} {labelItem}.
-          </p>
+          <div className="flex items-center gap-2">
+            <p className="text-sm text-slate-600">
+              {jumlahTampil} {labelItem}.
+            </p>
+            <label className="flex items-center gap-1 text-sm text-slate-600">
+              Tampilkan
+              <select
+                value={ukuranHalaman}
+                onChange={(e) => setUkuranHalaman(Number(e.target.value))}
+                className="border-0 border-b border-slate-300 bg-transparent px-1 py-1 text-sm outline-none focus:border-primary"
+              >
+                <option value={10}>10</option>
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+              </select>
+              baris
+            </label>
+          </div>
           <div className="flex items-center gap-2">
             <Tombol
               kecil={true}

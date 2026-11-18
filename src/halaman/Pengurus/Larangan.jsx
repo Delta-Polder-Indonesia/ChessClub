@@ -22,6 +22,7 @@ export default function PanelLarangan({
   const [targetBuka, setTargetBuka] = useState(null);
   const [filterSumber, setFilterSumber] = useState(filterAwal);
   const [cariAkun, setCariAkun] = useState("");
+  const [terpilih, setTerpilih] = useState({});
 
   // Sinkronkan filter saat Dashboard mengubah filterAwal selagi panel
   // ter-mount (mis. klik sidebar mereset filter ke "semua").
@@ -101,6 +102,39 @@ export default function PanelLarangan({
 
     return hasil;
   }, [hitam, filterSumber, cariAkun]);
+
+  const jumlahTerpilih = Object.values(terpilih).filter(Boolean).length;
+  const semuaTerpilih =
+    dataTersaring.length > 0 &&
+    dataTersaring.every((h) => terpilih[h.username]);
+
+  const pilihSemua = (e) => {
+    if (e.target.checked) {
+      const baru = {};
+      dataTersaring.forEach((h) => { baru[h.username] = true; });
+      setTerpilih(baru);
+    } else {
+      setTerpilih({});
+    }
+  };
+
+  const cabutTerpilih = async () => {
+    const usernames = Object.keys(terpilih).filter((u) => terpilih[u]);
+    if (!usernames.length) return;
+    setSibuk("cabut-massal");
+    try {
+      for (const u of usernames) {
+        await apiPengurus("/buka", { metode: "POST", bodi: { username: u } });
+      }
+      beriTahu(`${usernames.length} larangan dicabut.`, "sukses");
+      setTerpilih({});
+      await muatUlang();
+    } catch (e) {
+      beriTahu(e.message || "Gagal cabut massal.", "galat");
+    } finally {
+      setSibuk("");
+    }
+  };
 
   const formatTanggal = (iso) => {
     if (!iso) return "—";
@@ -206,6 +240,28 @@ export default function PanelLarangan({
         </div>
       </div>
 
+      {jumlahTerpilih > 0 && (
+        <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+          <span className="text-sm font-medium text-slate-700">
+            {jumlahTerpilih} akun terpilih
+          </span>
+          <Tombol
+            anak={sibuk === "cabut-massal" ? "Memproses…" : "Cabut terpilih"}
+            jenis="bahaya"
+            onClick={cabutTerpilih}
+            kecil
+            disabled={sibuk === "cabut-massal"}
+          />
+          <button
+            type="button"
+            onClick={() => setTerpilih({})}
+            className="text-xs text-slate-500 hover:text-slate-700 underline underline-offset-2"
+          >
+            Batalkan
+          </button>
+        </div>
+      )}
+
       {/* ── Tabel ───────────────────────────────────────────── */}
       <div>
         <p className="text-xs text-slate-500 mb-1">
@@ -216,12 +272,21 @@ export default function PanelLarangan({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-10">#</TableHead>
-                <TableHead>Akun</TableHead>
-                <TableHead>Alasan</TableHead>
-                <TableHead>Sumber</TableHead>
-                <TableHead>Tanggal Blokir</TableHead>
-                <TableHead className="w-24">Aksi</TableHead>
+                <TableHead className="w-10 px-3">
+                  <input
+                    type="checkbox"
+                    checked={semuaTerpilih}
+                    onChange={pilihSemua}
+                    aria-label="Pilih semua akun"
+                    className="size-4 accent-primary"
+                  />
+                </TableHead>
+                <TableHead className="w-10 px-3">#</TableHead>
+                <TableHead className="px-3">Akun</TableHead>
+                <TableHead className="px-3">Alasan</TableHead>
+                <TableHead className="px-3">Sumber</TableHead>
+                <TableHead className="px-3">Tanggal Blokir</TableHead>
+                <TableHead className="w-24 px-3">Aksi</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -229,8 +294,18 @@ export default function PanelLarangan({
                 const isOtomatis = h.sumber === "otomatis";
                 return (
                   <TableRow key={h.username}>
-                    <TableCell>{index + 1}</TableCell>
-                    <TableCell>
+                    <TableCell className="w-10 p-3">
+                      <input
+                        type="checkbox"
+                        checked={!!terpilih[h.username]}
+                        onChange={(e) =>
+                          setTerpilih((s) => ({ ...s, [h.username]: e.target.checked }))}
+                        aria-label={`Pilih ${h.username}`}
+                        className="size-4 accent-primary"
+                      />
+                    </TableCell>
+                    <TableCell className="p-3">{index + 1}</TableCell>
+                    <TableCell className="p-3">
                       <div className="flex items-center gap-3">
                         <Avatar username={h.username} />
                         <a
@@ -242,7 +317,7 @@ export default function PanelLarangan({
                         </a>
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="p-3">
                       <span className={`inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-medium ${
                         h.alasan === "fair_play_violations"
                           ? "bg-slate-100 text-red-700"
@@ -256,13 +331,13 @@ export default function PanelLarangan({
                         </p>
                       )}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="p-3">
                       <span className={isOtomatis ? "text-amber-700" : "text-slate-600"}>
                         {isOtomatis ? "Otomatis" : "Pengurus"}
                       </span>
                     </TableCell>
-                    <TableCell>{formatTanggal(h.diblokirPada)}</TableCell>
-                    <TableCell className="w-24">
+                    <TableCell className="p-3">{formatTanggal(h.diblokirPada)}</TableCell>
+                    <TableCell className="w-24 p-3">
                       <button
                         type="button"
                         title="Cabut larangan"
@@ -280,7 +355,7 @@ export default function PanelLarangan({
               })}
               {!dataTersaring.length && (
                 <TableRow>
-                  <TableCell colSpan={6} className="py-10 text-center text-slate-500">
+                  <TableCell colSpan={7} className="py-10 text-center text-slate-500">
                     {cariAkun || filterSumber !== "semua"
                       ? "Tidak ada akun yang cocok dengan filter."
                       : "Daftar larangan masih kosong."}
