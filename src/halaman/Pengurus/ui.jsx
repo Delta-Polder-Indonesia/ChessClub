@@ -443,3 +443,50 @@ export function Kartu({ label, nilai, catatan, warna = "slate" }) {
     </div>
   );
 }
+
+/**
+ * Skeleton baris tabel — ditampilkan saat data sedang dimuat agar tata letak
+ * tidak melompat dan pengurus tahu sistem masih bekerja.
+ */
+export function SkeletonTabel({ jumlahBaris = 3 }) {
+  return (
+    <div className="space-y-2">
+      {Array.from({ length: jumlahBaris }).map((_, i) => (
+        <div key={i} className="flex gap-3 border-b border-slate-100 pb-2">
+          <div className="w-10 h-4 bg-slate-200 rounded animate-pulse" />
+          <div className="w-24 h-4 bg-slate-200 rounded animate-pulse" />
+          <div className="flex-1 h-4 bg-slate-200 rounded animate-pulse" />
+          <div className="w-32 h-4 bg-slate-200 rounded animate-pulse" />
+          <div className="w-24 h-4 bg-slate-200 rounded animate-pulse" />
+          <div className="w-20 h-4 bg-slate-200 rounded animate-pulse" />
+          <div className="w-16 h-4 bg-slate-200 rounded animate-pulse" />
+          <div className="w-24 h-4 bg-slate-200 rounded animate-pulse" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * Notifikasi error sebagai dialog (Modal) — muncul saat server mati atau
+ * permintaan gagal, mengganti toast/inline tombol agar pesan tidak terlewat
+ * dan lebih jelas. Tersedia tombol "Coba Lagi" untuk memuat ulang.
+ */
+export function NotifikasiError({ pesan, onCobaLagi, sibuk = false }) {
+  return (
+    <Modal
+      terbuka
+      judul="Gagal memuat data"
+      jenisKonfirmasi="bahaya"
+      onBatal={() => {}}
+      onKonfirmasi={onCobaLagi}
+      labelKonfirmasi={sibuk ? "Mencoba lagi…" : "Coba Lagi"}
+      sibuk={sibuk}
+    >
+      <p className="mt-2 text-sm text-slate-700">{pesan}</p>
+      <p className="mt-1 text-xs text-slate-500">
+        Periksa koneksi internet lalu klik “Coba Lagi”.
+      </p>
+    </Modal>
+  );
+}

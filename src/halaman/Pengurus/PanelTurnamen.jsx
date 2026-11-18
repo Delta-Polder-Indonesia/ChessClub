@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { apiPengurus, jenisTurnamen } from "../../lib/api/index.js";
-import { Tombol, Modal, MenuAksi } from "./ui.jsx";
+import { Tombol, Modal, MenuAksi, SkeletonTabel, NotifikasiError } from "./ui.jsx";
 import {
   Table,
   TableBody,
@@ -31,15 +31,17 @@ export default function PanelTurnamen({ beriTahu, muatUlang, saatBukaRincian }) 
   const [targetHapus, setTargetHapus] = useState(null);
   const [terpilih, setTerpilih] = useState({});
   const [targetHapusMassal, setTargetHapusMassal] = useState(false);
+  const [galatMuat, setGalatMuat] = useState(null);
 
   const muat = useCallback(async () => {
     setMemuat(true);
+    setGalatMuat(null);
     try {
       const [j, d] = await Promise.all([jenisTurnamen(), apiPengurus("/turnamen")]);
       setJenis(j.jenis);
       setDaftar(d);
     } catch (e) {
-      beriTahu(e.message, "galat");
+      setGalatMuat(e.message || "Gagal memuat data turnamen.");
     } finally {
       setMemuat(false);
     }
@@ -186,10 +188,10 @@ export default function PanelTurnamen({ beriTahu, muatUlang, saatBukaRincian }) 
 
       {!buatBaru && (
         <>
-          {memuat ? (
-            <p className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-600">
-              Memuat…
-            </p>
+          {galatMuat ? (
+            <NotifikasiError pesan={galatMuat} onCobaLagi={muat} />
+          ) : memuat ? (
+            <SkeletonTabel jumlahBaris={4} />
           ) : tampil.length === 0 ? (
             <p className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-600">
               Belum ada turnamen. Tekan “+ Turnamen baru” untuk membuat.
