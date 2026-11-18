@@ -1,22 +1,18 @@
 /*
- * Halaman "Atribusi & lisensi" — atribusi fitur Analisa, ditata dengan markup
- * editorial koran (label kecil uppercase, judul font-semibold ber-border double,
- * serif, rata kiri-kanan) mengikuti pola Keberlanjutan. Tata letak grid kartu
- * dipertahankan. Tautan memakai <a> biasa — link sheet/eksternal.
+ * Halaman "Atribusi & lisensi" — katalog atribusi editorial berkelompok,
+ * dengan daftar baris tanpa kartu generik. Tautan memakai <a> biasa untuk
+ * sumber eksternal.
  */
+import { Children } from "react";
 import { HalamanIsi } from "../../components/PageBagian.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
-import { gambar, berkasPublik } from "../../lib/asets.js";
-import License from "../Analisa/komponen/svg/license.jsx";
-import ChessComLogo from "../Analisa/komponen/svg/ChessComLogo.jsx";
-import LichessLogo from "../Analisa/komponen/svg/LichessLogo.jsx";
 
-/** Ikon logo media sosial — href mengarah laman resmi masing-masing platform. */
-const IKON_SOSIAL = [
-  { nama: "Instagram", src: "/images/color-icon/logo-instagram.svg", href: "https://www.instagram.com/" },
-  { nama: "TikTok", src: "/images/color-icon/logo-tiktok.svg", href: "https://www.tiktok.com/" },
-  { nama: "X (Twitter)", src: "/images/color-icon/logo-x.svg", href: "https://x.com/" },
-  { nama: "YouTube", src: "/images/color-icon/logo-youtube.svg", href: "https://www.youtube.com/" },
+/** Tautan media sosial — ditampilkan sebagai nama teks, tanpa ikon gambar. */
+const TAUTAN_SOSIAL = [
+  { nama: "Instagram", href: "https://www.instagram.com/" },
+  { nama: "TikTok", href: "https://www.tiktok.com/" },
+  { nama: "X (Twitter)", href: "https://x.com/" },
+  { nama: "YouTube", href: "https://www.youtube.com/" },
 ];
 
 /** Teknologi & layanan tempat proyek ini dibangun dan dijalankan. */
@@ -30,8 +26,6 @@ const TEKNOLOGI = [
   { nama: "Stockfish", href: "https://stockfishchess.org/" },
   { nama: "chess.js", href: "https://github.com/jhlywa/chess.js" },
   { nama: "onnxruntime-web", href: "https://onnxruntime.ai/docs/tutorials/web/" },
-  { nama: "Arena AI", href: "https://arena.ai/" },
-  { nama: "OpenCode", href: "https://opencode.ai/" },
 ];
 
 function Tautan({ href, children }) {
@@ -39,7 +33,7 @@ function Tautan({ href, children }) {
     <a
       target="_blank"
       rel="noreferrer noopener"
-      className="text-primary hover:underline font-bold"
+      className="font-sans text-primary underline decoration-grey-300 underline-offset-4 transition-colors hover:decoration-primary"
       href={href}
     >
       {children}
@@ -47,16 +41,43 @@ function Tautan({ href, children }) {
   );
 }
 
-function Kartu({ judul, ikon, isi }) {
+function ItemAtribusi({ judul, isi, varian, nomor }) {
+  const [keterangan, ...sumber] = Children.toArray(isi.props.children);
+  const teknologi = varian === "teknologi";
+
   return (
-    <section className="bg-white border border-slate-300 rounded p-6 w-full flex flex-col items-center">
-      <h2 className="text-[13px] font-sans font-semibold text-primary flex flex-row items-center justify-center w-fit mx-auto mb-5 gap-2 border-b border-grey-200 pb-1.5">
-        {ikon}
-        {judul}
-      </h2>
-      <ul className="font-serif text-base leading-relaxed flex flex-col items-center gap-2 text-center text-grey-800">
-        {isi}
-      </ul>
+    <article className="grid min-w-0 grid-cols-[1.75rem_minmax(0,1fr)] gap-x-4 gap-y-2 border-t border-grey-200 py-6 md:grid-cols-[1.75rem_minmax(0,1.3fr)_minmax(0,1fr)] md:gap-x-8">
+      <span className="pt-0.5 font-sans text-sm text-grey-500">{String(nomor).padStart(2, "0")}</span>
+      <div className="min-w-0">
+        <h4 className="font-serif text-base font-semibold leading-snug text-grey-800">{judul}</h4>
+        <p className="mt-1 font-serif text-base leading-relaxed text-grey-600">{keterangan?.props?.children}</p>
+        {teknologi && sumber[1] ? (
+          <p className="mt-3 font-serif text-sm leading-relaxed text-grey-600">{sumber[1].props?.children}</p>
+        ) : null}
+      </div>
+      <div className="col-start-2 min-w-0 break-words font-sans text-sm leading-relaxed text-grey-700 md:col-start-auto">
+        {teknologi
+          ? sumber[0]?.props?.children
+          : sumber.map((item, i) => <p key={i} className={i ? "mt-1" : undefined}>{item?.props?.children}</p>)}
+      </div>
+    </article>
+  );
+}
+
+function KelompokAtribusi({ id, judul, deskripsi, item, nomorAwal }) {
+  return (
+    <section id={id} className="scroll-mt-12 grid grid-cols-1 gap-7 border-t border-grey-800 py-10 pb-16 lg:grid-cols-[minmax(0,300px)_minmax(0,1fr)] lg:gap-14" aria-labelledby={`${id}-judul`}>
+      <div className="lg:sticky lg:top-[88px] lg:self-start">
+        <div>
+          <h3 id={`${id}-judul`} className="font-serif text-xl font-semibold leading-snug text-grey-800">{judul}</h3>
+          <p className="mt-2 font-serif text-base leading-relaxed text-grey-600">{deskripsi}</p>
+        </div>
+      </div>
+      <div className="border-b border-grey-200">
+        {item.map((k, i) => (
+          <ItemAtribusi key={k.judul} judul={k.judul} isi={k.isi} varian={k.varian} nomor={nomorAwal + i} />
+        ))}
+      </div>
     </section>
   );
 }
@@ -70,18 +91,6 @@ export default function Atribusi() {
       ikon: null,
       isi: (
         <>
-          <li>
-            <img
-              src={berkasPublik("/images/color-icon/pawn-solo.svg")}
-              alt=""
-              draggable="false"
-              width={90}
-              height={90}
-              decoding="async"
-              loading="lazy"
-              className="h-14 w-auto"
-            />
-          </li>
           <li>{t("analisa.atribusi.bidakOleh")}</li>
           <li>
             <Tautan href="https://github.com/cburnett/wikipedia-chess">
@@ -96,18 +105,6 @@ export default function Atribusi() {
       ikon: null,
       isi: (
         <>
-          <li>
-            <img
-              src={berkasPublik("/images/color-icon/Landscape-Lichess-logo.svg")}
-              alt=""
-              draggable="false"
-              width={3300}
-              height={1353}
-              decoding="async"
-              loading="lazy"
-              className="h-12 w-auto"
-            />
-          </li>
           <li>{t("analisa.atribusi.pembukaanOleh")}</li>
           <li>
             <Tautan href="https://github.com/lichess-org/chess-openings">
@@ -122,18 +119,6 @@ export default function Atribusi() {
       ikon: null,
       isi: (
         <>
-          <li>
-            <img
-              src={gambar("/images/stockfish.webp")}
-              alt=""
-              draggable="false"
-              width={256}
-              height={256}
-              decoding="async"
-              loading="lazy"
-              className="h-24 w-auto"
-            />
-          </li>
           <li>{t("analisa.atribusi.engineOleh")}</li>
           <li>
             <Tautan href="https://stockfishchess.org/">Stockfish</Tautan> ·{" "}
@@ -149,18 +134,6 @@ export default function Atribusi() {
       ikon: null,
       isi: (
         <>
-          <li>
-            <img
-              src={berkasPublik("/AtribusiDanlisensi/Sunfish.webp")}
-              alt=""
-              draggable="false"
-              width={545}
-              height={267}
-              decoding="async"
-              loading="lazy"
-              className="h-20 w-auto"
-            />
-          </li>
           <li>{t("analisa.atribusi.enginePemulaOleh")}</li>
           <li>
             <Tautan href="https://github.com/thomasahle/sunfish">thomasahle/sunfish</Tautan> ·{" "}
@@ -177,18 +150,6 @@ export default function Atribusi() {
       ikon: null,
       isi: (
         <>
-          <li>
-            <img
-              src={berkasPublik("/images/color-icon/training.svg")}
-              alt=""
-              draggable="false"
-              width={90}
-              height={90}
-              decoding="async"
-              loading="lazy"
-              className="h-14 w-auto"
-            />
-          </li>
           <li>{t("analisa.atribusi.engineMenengahOleh")}</li>
           <li>
             <Tautan href="https://github.com/CSSLab/maia-platform-frontend">CSSLab/maia-platform-frontend</Tautan> ·{" "}
@@ -206,18 +167,6 @@ export default function Atribusi() {
       ikon: null,
       isi: (
         <>
-          <li>
-            <img
-              src={berkasPublik("/images/color-icon/page-article.svg")}
-              alt=""
-              draggable="false"
-              width={90}
-              height={90}
-              decoding="async"
-              loading="lazy"
-              className="h-14 w-auto"
-            />
-          </li>
           <li>{t("analisa.atribusi.kodeOleh")}</li>
           <li>
             <Tautan href="https://github.com/wdeloo/Brilliant-Chess">
@@ -232,18 +181,6 @@ export default function Atribusi() {
       ikon: null,
       isi: (
         <>
-          <li>
-            <img
-              src={berkasPublik("/images/color-icon/page-blog.svg")}
-              alt=""
-              draggable="false"
-              width={90}
-              height={90}
-              decoding="async"
-              loading="lazy"
-              className="h-14 w-auto"
-            />
-          </li>
           <li>{t("analisa.atribusi.desainOleh")}</li>
           <li>
             <Tautan href="https://delta-polder-indonesia.github.io/BintangToba/">
@@ -258,18 +195,6 @@ export default function Atribusi() {
       ikon: null,
       isi: (
         <>
-          <li>
-            <img
-              src={berkasPublik("/images/color-icon/today.svg")}
-              alt=""
-              draggable="false"
-              width={90}
-              height={90}
-              decoding="async"
-              loading="lazy"
-              className="h-14 w-auto"
-            />
-          </li>
           <li>{t("analisa.atribusi.suaraOleh")}</li>
           <li>
             <Tautan href="https://www.chess.com/">Chess.com</Tautan>
@@ -282,11 +207,6 @@ export default function Atribusi() {
       ikon: null,
       isi: (
         <>
-          <li className="flex flex-row items-center gap-3">
-            <ChessComLogo className="h-[26px] w-auto fill-current" />
-            <span className="h-6 w-px bg-slate-300" />
-            <LichessLogo className="h-[20px] w-auto fill-current" />
-          </li>
           <li>{t("analisa.atribusi.logoOleh")}</li>
           <li>
             <Tautan href="https://www.chess.com/">Chess.com</Tautan> ·{" "}
@@ -300,9 +220,6 @@ export default function Atribusi() {
       ikon: null,
       isi: (
         <>
-          <li className="flex flex-row items-center gap-3">
-            <ChessComLogo className="h-[26px] w-auto fill-current" />
-          </li>
           <li>{t("analisa.atribusi.tekaTekiHarianOleh")}</li>
           <li>
             <Tautan href="https://www.chess.com/daily-chess-puzzle">
@@ -314,68 +231,50 @@ export default function Atribusi() {
     },
     {
       judul: t("analisa.atribusi.teknologi"),
-      ikon: null,
+      varian: "teknologi",
       isi: (
         <>
-          <li>
-            <img
-              src={berkasPublik("/images/color-icon/reactjs-ar21.svg")}
-              alt=""
-              draggable="false"
-              width={120}
-              height={60}
-              decoding="async"
-              loading="lazy"
-              className="h-14 w-auto"
-            />
-          </li>
           <li>{t("analisa.atribusi.teknologiOleh")}</li>
-          <li className="flex flex-row flex-wrap items-center justify-center gap-x-2 gap-y-1 text-base">
-            {TEKNOLOGI.map((k) => (
-              <span key={k.nama} className="inline-flex items-center gap-1">
+          <li>
+            {TEKNOLOGI.map((k, i) => (
+              <span key={k.nama}>
+                {i > 0 ? " · " : ""}
                 <Tautan href={k.href}>{k.nama}</Tautan>
-                <span className="text-slate-400">·</span>
               </span>
             ))}
           </li>
-          <li className="text-sm text-slate-500">
-            Diarsiteki & kolaborasi via{" "}
+          <li>
+            Diarsiteki &amp; kolaborasi pengembangan via{" "}
             <Tautan href="https://arena.ai/">Arena AI</Tautan> menggunakan{" "}
             <Tautan href="https://opencode.ai/">OpenCode</Tautan>.
           </li>
         </>
       ),
     },
+
+  ];
+
+  const kelompok = [
     {
-      judul: t("analisa.atribusi.lisensiProyek"),
-      ikon: null,
-      isi: (
-        <>
-          <li>
-            <img
-              src={berkasPublik("/AtribusiDanlisensi/Konstitusi.webp")}
-              alt=""
-              draggable="false"
-              width={640}
-              height={640}
-              decoding="async"
-              loading="lazy"
-              className="h-20 w-auto"
-            />
-          </li>
-          <li>{t("analisa.atribusi.lisensiProyekOleh")}</li>
-          <li>
-            <a
-              target="_blank"
-              rel="noreferrer noopener"
-              className="font-bold text-primary hover:underline"
-              href="https://github.com/Delta-Polder-Indonesia/ChessClub/blob/main/LICENSE"
-            >
-              {t("analisa.atribusi.lisensiCek")}
-            </a>
-          </li>
-        </>
-      ),
+      id: "kelompok-sumber",
+      judul: t("analisa.atribusi.kelompok.sumber.judul"),
+      deskripsi: t("analisa.atribusi.kelompok.sumber.deskripsi"),
+      item: [kartu[0], kartu[1], kartu[7], kartu[8], kartu[9]],
+      nomorAwal: 1,
+    },
+    {
+      id: "kelompok-mesin",
+      judul: t("analisa.atribusi.kelompok.mesin.judul"),
+      deskripsi: t("analisa.atribusi.kelompok.mesin.deskripsi"),
+      item: [kartu[2], kartu[3], kartu[4]],
+      nomorAwal: 6,
+    },
+    {
+      id: "kelompok-kode",
+      judul: t("analisa.atribusi.kelompok.kode.judul"),
+      deskripsi: t("analisa.atribusi.kelompok.kode.deskripsi"),
+      item: [kartu[5], kartu[6], kartu[10]],
+      nomorAwal: 9,
     },
   ];
 
@@ -385,92 +284,82 @@ export default function Atribusi() {
       parent={t("nav.programKami")}
       parentPath="/program-kami"
       description={t("analisa.atribusi.pendahuluan")}
+      heroImage="/images/ProgramKami/atribusi-lisensi-hero.webp"
+      heroImageAlt="Patung Dewi Keadilan memegang timbangan di samping papan dan bidak catur"
       next={{ to: "/program-kami/analisa", judul: t("analisa.judul") }}
     >
-      <section className="w-full relative bg-transparent pl-6 md:pl-8 xl:pl-40 pr-6 md:pr-8 xl:pr-40 pb-16 pt-12 md:pt-14 xl:pt-16">
-        <div className="relative w-full mx-auto max-w-[1280px]">
-          <div className="flex flex-col items-center gap-4 text-center">
-            <img
-              src={berkasPublik("/AtribusiDanlisensi/Dewi-Keadilan.webp")}
-              alt=""
-              draggable="false"
-              width={235}
-              height={405}
-              decoding="async"
-              className="h-32 w-auto"
-            />
-            <div className="w-full border-b border-grey-200 pb-4">
-              <p className="mb-1 font-sans text-[13px] font-semibold text-primary">
-                {t("analisa.atribusi.judul")}
-              </p>
-              <h2 className="mb-2 text-3xl md:text-4xl leading-none font-semibold text-grey-800 uppercase">
+      <main className="w-full bg-paper px-6 pt-16 pb-20 font-serif md:px-8 md:pt-20 md:pb-24">
+        <div className="mx-auto max-w-[1080px]">
+          <header className="grid grid-cols-1 gap-6 pb-16 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1fr)] lg:gap-14">
+            <div>
+              <h2 className="font-serif text-[clamp(2.4rem,3.6vw,3.4rem)] font-light leading-[1.04] text-balance text-grey-800">
                 {t("analisa.atribusi.judulDaftar")}
               </h2>
-              <p className="m-0 mx-auto max-w-[720px] text-base text-grey-800 italic">
-                {t("analisa.atribusi.pendahuluan")}
-              </p>
             </div>
-          </div>
-          <div className="w-full border-t border-slate-300 mb-10 md:mb-12" />
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-5">
-            {kartu.map((k) => (
-              <Kartu key={k.judul} judul={k.judul} ikon={k.ikon} isi={k.isi} />
+            <p className="max-w-2xl font-serif text-base leading-relaxed text-grey-600 lg:pt-1 lg:text-lg">
+              {t("analisa.atribusi.penjelasanKatalog")}
+            </p>
+          </header>
+
+          <div>
+            {kelompok.map((grup) => (
+              <KelompokAtribusi key={grup.id} {...grup} />
             ))}
           </div>
-          <div className="mt-10 w-full px-6 py-8 text-center">
-            <div className="mx-auto flex w-fit flex-col items-center gap-3">
-              <License size={36} class="fill-gray-900" />
-              <p className="max-w-[720px] font-serif text-base leading-6 text-grey-800 italic">
-                {t("analisa.atribusi.lisensiProyekOleh")}
-              </p>
-              <code className="rounded border border-slate-300 bg-white px-3 py-1.5 text-sm font-mono text-grey-600">
-                © 2025-2026 Delta-Polder-Indonesia (Bintang Toba) · MIT License
-              </code>
-            </div>
-          </div>
 
-          <div className="w-full mt-14 md:mt-16 pt-10 md:pt-12 flex flex-col items-center gap-6 text-center">
-            <h3 className="pb-1 text-base sm:text-lg font-serif font-semibold text-grey-800 border-b border-grey-200">
-              {t("analisa.atribusi.sosialJudul")}
-            </h3>
-            <p className="max-w-[640px] font-serif text-base leading-relaxed text-grey-800">
-              {t("analisa.atribusi.sosialDeskripsi")}
-            </p>
-            <div className="flex flex-row items-center justify-center gap-5">
-              {IKON_SOSIAL.map((s) => (
-                <a
-                  key={s.nama}
-                  href={s.href}
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  title={s.nama}
-                  aria-label={s.nama}
-                  className="inline-flex items-center justify-center transition-opacity hover:opacity-70"
-                >
-                  <img
-                    src={berkasPublik(s.src)}
-                    alt=""
-                    width={s.lebar ?? 24}
-                    height={s.tinggi ?? 24}
-                    loading="lazy"
-                    decoding="async"
-                    draggable="false"
-                    className="h-6 w-auto"
-                  />
-                </a>
-              ))}
+          <section aria-label={t("analisa.atribusi.lisensiProyek")} className="border-t border-grey-800 pt-10">
+            <div className="grid grid-cols-1 gap-10 lg:grid-cols-2 lg:gap-x-16">
+              <div className="min-w-0">
+                <h3 className="font-serif text-xl font-semibold leading-snug text-grey-800">
+                  {t("analisa.atribusi.lisensiProyek")}
+                </h3>
+                <p className="mt-3 max-w-[65ch] font-serif text-base leading-relaxed text-grey-800">
+                  {t("analisa.atribusi.lisensiProyekOleh")}
+                </p>
+                <p className="mt-4 font-sans text-sm leading-relaxed text-grey-600">
+                  © 2025–2026 Delta-Polder-Indonesia (Bintang Toba) · MIT License
+                </p>
+                <p className="mt-3 font-sans text-sm">
+                  <Tautan href="https://github.com/Delta-Polder-Indonesia/ChessClub/blob/main/LICENSE">
+                    {t("analisa.atribusi.lisensiCek")}
+                  </Tautan>
+                </p>
+              </div>
+
+              <div className="min-w-0">
+                <h3 className="font-serif text-xl font-semibold leading-snug text-grey-800">
+                  {t("analisa.atribusi.sosialJudul")}
+                </h3>
+                <p className="mt-3 max-w-[65ch] font-serif text-base leading-relaxed text-grey-800">
+                  {t("analisa.atribusi.sosialDeskripsi")}
+                </p>
+                <nav aria-label={t("analisa.atribusi.sosialJudul")} className="mt-6 max-w-[520px] border-t border-grey-200 font-sans text-sm">
+                  {TAUTAN_SOSIAL.map((s) => (
+                    <a
+                      key={s.nama}
+                      href={s.href}
+                      target="_blank"
+                      rel="noreferrer noopener"
+                      className="flex min-h-11 items-center border-b border-grey-200 text-grey-800 transition-colors hover:text-primary"
+                    >
+                      {s.nama}
+                    </a>
+                  ))}
+                </nav>
+              </div>
             </div>
-            <div className="mt-2 w-full border border-slate-300 p-5 flex flex-col items-center gap-3">
-              <h4 className="font-sans text-base font-bold tracking-wide text-grey-800 uppercase">
+
+            <div className="mt-16 grid grid-cols-1 gap-4 border-t border-grey-200 pt-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,3fr)] lg:gap-16">
+              <h3 className="font-serif text-xl font-semibold leading-snug text-grey-800">
                 {t("analisa.atribusi.sanggahanJudul")}
-              </h4>
-              <p className="mx-auto max-w-[720px] font-serif text-base leading-relaxed text-grey-800 italic">
+              </h3>
+              <p className="max-w-[75ch] font-serif text-base leading-relaxed text-grey-600">
                 {t("analisa.atribusi.sanggahan")}
               </p>
             </div>
-          </div>
+          </section>
         </div>
-      </section>
+      </main>
     </HalamanIsi>
   );
 }

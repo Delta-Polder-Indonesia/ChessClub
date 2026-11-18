@@ -840,7 +840,25 @@ export const analisa = {
       judul: "Attributions & license",
       pendahuluan:
         "The layout and rating logic of this page were ported from Brilliant-Chess (MIT, © 2025 Delo). The chess engine, worker loading, and all UCI communication use this site's own implementation.",
-      judulDaftar: "Attributions and License",
+      indeksAria: "Attribution section index",
+      judulDaftar: "Attributions & Licensing",
+      penjelasanKatalog:
+        "Third-party work used by this site, grouped by role and listed with its original source and license.",
+      labelPenutup: "Terms of Use & Distribution",
+      kelompok: {
+        sumber: {
+          judul: "Assets and data",
+          deskripsi: "Chess pieces, openings, sounds, logos, and puzzles used on the board and training pages.",
+        },
+        mesin: {
+          judul: "Chess engines",
+          deskripsi: "Three engines at different strengths, all served from this site's /engines folder.",
+        },
+        kode: {
+          judul: "Code and technology",
+          deskripsi: "Ported files and layout patterns, plus the services used to build and run this project.",
+        },
+      },
       bidak: "Chess pieces",
       bidakOleh: "Created by Cburnett, licensed CC-BY-SA-3.0.",
       pembukaan: "Opening book",
@@ -848,15 +866,15 @@ export const analisa = {
       engine: "Stockfish",
       engineOleh: "stockfish.js distribution (GPL-3.0) — served from this site's /engines folder.",
       enginePemula: "Beginner opponent engine",
-      enginePemulaOleh: "sunfish by Thomas Ahle, JavaScript port by foo123 (GPL-3.0). Served from this site's /engines folder and modified so its evaluation can be weakened for beginner levels; those modifications are likewise GPL-3.0 and available in the project repository.",
+      enginePemulaOleh: "sunfish by Thomas Ahle, JavaScript port by foo123 (GPL-3.0). Modified so its evaluation can be weakened for beginner levels; those modifications are likewise GPL-3.0 and available in the project repository.",
       engineMenengah: "Intermediate opponent engine (Maia 3)",
       engineMenengahOleh:
-        "Model weights maia3_simplified.onnx from Maia Chess (CSSLab, University of Toronto) — code GPL-3.0, weights under the Maia project's terms. Served from this site's /engines folder; position encoding and policy decoding are implemented in-house at src/lib/maia3.js. Inference uses onnxruntime-web (Microsoft, MIT).",
+        "Model weights maia3_simplified.onnx from Maia Chess (CSSLab, University of Toronto) — code GPL-3.0, weights under the Maia project's terms. Position encoding and policy decoding are implemented in-house at src/lib/maia3.js. Inference uses onnxruntime-web (Microsoft, MIT).",
       kode: "Ported source",
       kodeOleh: "MIT — source: github.com/wdeloo/Brilliant-Chess.",
       desain: "Page layout",
       desainOleh:
-        "The Program Kami layout pattern (large heading + card grid) follows prompt.md from this repository, licensed MIT.",
+        "The Program Kami layout pattern follows prompt.md in this repository, licensed MIT.",
       suara: "Board sounds",
       suaraOleh:
         "The MP3 files under /SoundChess come from the Chess.com, LLC board sound set. Copyright remains with its owner; they are used as-is for community practice, unmodified and with no claim of ownership.",
@@ -868,8 +886,9 @@ export const analisa = {
         "The daily puzzle's position, title, and solution moves come from Chess.com's public API (api.chess.com). This site replays them when the page is opened, does not copy the puzzle archive, and always links to the original page.",
       teknologi: "Technology",
       teknologiOleh:
-        "This project is built and run using the following services and libraries. Thanks to each team for their work.",
+        "This project is built and run with the following services and libraries. We thank each team for their work.",
       lisensiProyek: "Project License",
+      lisensiProyekRingkas: "Project source code is MIT-licensed; third-party assets remain under their respective licenses.",
       lisensiProyekOleh:
         "This project's source code is released under the MIT license — free to use, modify, and distribute provided the copyright notice and license text are included. Third-party assets (icons, openings, engine, sounds) remain under their own licenses.",
       lisensiCek: "See the LICENSE file",

@@ -35,10 +35,22 @@ export default function ProgramKami() {
   const sekunder = [
     { kunci: "clinic" },
     { kunci: "sekolah" },
-    { kunci: "panduan", to: "/program-kami/ebook-panduan", label: t("nav.eBookPanduan") },
+    { 
+      kunci: "panduan", 
+      to: "/program-kami/ebook-panduan", 
+      label: t("nav.eBookPanduan") 
+    },
     { kunci: "simultan" },
-    { kunci: "tekaTeki", to: "/program-kami/teka-teki", label: t("nav.tekaTeki") },
-    { kunci: "manusiaVsMesin", to: "/program-kami/manusia-vs-mesin", label: t("program.kartu.manusiaVsMesin.judul") },
+    { 
+      kunci: "tekaTeki", 
+      to: "/program-kami/teka-teki", 
+      label: t("nav.tekaTeki") 
+    },
+    { 
+      kunci: "manusiaVsMesin", 
+      to: "/program-kami/manusia-vs-mesin", 
+      label: t("program.kartu.manusiaVsMesin.judul") 
+    },
     // Tiga mode papan mandiri: pintu masuknya halaman Program Kami ini,
     // bukan lagi sidebar Workspace Papan Interaktif.
     {
@@ -63,6 +75,11 @@ export default function ProgramKami() {
     },
   ];
 
+  // Kelas CSS yang sering digunakan (untuk menghindari pengulangan)
+  const sectionClasses = "w-full bg-paper";
+  const containerClasses = "mx-auto max-w-6xl px-6 py-8 md:px-8 md:py-10";
+  const headingClasses = "font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-grey-800";
+
   return (
     <HalamanIsi
       title={t("program.judul")}
@@ -73,112 +90,112 @@ export default function ProgramKami() {
       }}
     >
       <div className="font-serif">
-      {/* ═══ Sekilas Program — judul di atas, narasi di bawahnya ═══ */}
-      <section className="w-full bg-paper">
-        <div className="mx-auto max-w-6xl px-6 py-8 md:px-8 md:py-10">
-          <div className="flex flex-col gap-y-8">
-            <h2 className="font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-grey-800">
-              {t("program.artikel")}
-            </h2>
-            <div className="flex flex-col gap-y-5 text-base leading-relaxed text-pretty text-grey-800">
-              <p className="m-0">{t("program.p1")}</p>
-              <p className="m-0">{t("program.p2")}</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ Program Unggulan — sorotan lebar + daftar definisi sekunder ═══ */}
-      <section className="w-full bg-paper">
-        <div className="mx-auto max-w-6xl px-6 py-8 md:px-8 md:py-10">
-          <h2 className="font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-grey-800">
-            {t("program.programJudul")}
-          </h2>
-
-          {/* Program sorotan — foto + narasi, memberi hierarki yang jelas. */}
-          <article className="mt-10 grid items-center gap-8 md:mt-12 md:grid-cols-2 md:gap-12">
-            <figure className="order-2 m-0 border border-grey-200 bg-white p-1.5 md:order-1">
-              <img
-                {...sumberGambar("/images/landing-sorotan-program.webp", {
-                  sizes: "(min-width: 768px) 45vw, 92vw",
-                })}
-                alt={t("program.sorotanAlt")}
-                width={640}
-                height={427}
-                draggable="false"
-                decoding="async"
-                loading="lazy"
-                className="aspect-[3/2] w-full object-cover object-center"
-              />
-            </figure>
-            <div className="order-1 md:order-2">
-              <h3 className="font-serif text-2xl font-light leading-[1.04] tracking-normal text-balance text-grey-800">
-                {t("program.kartu.kelas.judul")}
-              </h3>
-              <p className="mt-3 text-base leading-relaxed text-pretty text-grey-800">
-                {t("program.kartu.kelas.deskripsi")}
-              </p>
-            </div>
-          </article>
-
-          {/* Program sekunder — daftar definisi dua kolom (tanpa kartu/nomor). */}
-          <dl className="mt-12 grid gap-x-12 gap-y-9 sm:grid-cols-2 md:mt-14">
-            {sekunder.map((item) => (
-              <div key={item.kunci} className="flex flex-col gap-y-2">
-                <dt className="font-serif text-base font-semibold leading-snug text-balance text-grey-800">
-                  {t(`program.kartu.${item.kunci}.judul`)}
-                </dt>
-                <dd className="m-0 text-sm leading-relaxed text-pretty text-grey-800">
-                  {t(`program.kartu.${item.kunci}.deskripsi`)}
-                </dd>
-                {item.to && (
-                  <TautanBuka to={item.to}>
-                    {t("common.selengkapnya")}: {item.label}
-                  </TautanBuka>
-                )}
+        {/* ═══ Sekilas Program — judul di atas, narasi di bawahnya ═══ */}
+        <section className={sectionClasses}>
+          <div className={containerClasses}>
+            <div className="flex flex-col gap-y-8">
+              <h2 className={headingClasses}>
+                {t("program.artikel")}
+              </h2>
+              <div className="flex flex-col gap-y-5 text-base leading-relaxed text-pretty text-grey-800">
+                <p className="m-0">{t("program.p1")}</p>
+                <p className="m-0">{t("program.p2")}</p>
               </div>
-            ))}
-          </dl>
-        </div>
-      </section>
-
-      {/* ═══ Panduan dan Latihan Mandiri — panel ajakan datar + tautan ═══ */}
-      <section className="w-full bg-paper">
-        <div className="mx-auto max-w-6xl px-6 py-8 md:px-8 md:py-10">
-          <div className="rounded-lg border border-grey-200 p-8 md:p-10">
-            <h2 className="font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-grey-800">
-              {t("program.h1")}
-            </h2>
-            <p className="mt-4 text-base leading-relaxed text-pretty text-grey-800">
-              {t("program.p3a")}{" "}
-              <Link
-                to="/program-kami/ebook-panduan"
-                className="font-semibold text-primary underline underline-offset-2 hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-              >
-                {t("nav.eBookPanduan")}
-              </Link>{" "}
-              {t("program.p3b")}{" "}
-              <Link
-                to="/program-kami/teka-teki"
-                className="font-semibold text-primary underline underline-offset-2 hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-              >
-                {t("nav.tekaTeki")}
-              </Link>{" "}
-              {t("program.p3c")}
-            </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Tombol to="/program-kami/ebook-panduan" variant="garis">
-                {t("nav.eBookPanduan")}
-                <ArrowRightIcon className="size-4" />
-              </Tombol>
-              <Tombol to="/program-kami/teka-teki" variant="garis">
-                {t("nav.tekaTeki")}
-                <ArrowRightIcon className="size-4" />
-              </Tombol>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+
+        {/* ═══ Program Unggulan — sorotan lebar + daftar definisi sekunder ═══ */}
+        <section className={sectionClasses}>
+          <div className={containerClasses}>
+            <h2 className={headingClasses}>
+              {t("program.programJudul")}
+            </h2>
+
+            {/* Program sorotan — foto + narasi, memberi hierarki yang jelas. */}
+            <article className="mt-10 grid items-center gap-8 md:mt-12 md:grid-cols-2 md:gap-12">
+              <figure className="order-2 m-0 border border-grey-200 bg-white p-1.5 md:order-1">
+                <img
+                  {...sumberGambar("/images/landing-sorotan-program.webp", {
+                    sizes: "(min-width: 768px) 45vw, 92vw",
+                  })}
+                  alt={t("program.sorotanAlt")}
+                  width={640}
+                  height={427}
+                  draggable="false"
+                  decoding="async"
+                  loading="lazy"
+                  className="aspect-[3/2] w-full object-cover object-center"
+                />
+              </figure>
+              <div className="order-1 md:order-2">
+                <h3 className="font-serif text-2xl font-light leading-[1.04] tracking-normal text-balance text-grey-800">
+                  {t("program.kartu.kelas.judul")}
+                </h3>
+                <p className="mt-3 text-base leading-relaxed text-pretty text-grey-800">
+                  {t("program.kartu.kelas.deskripsi")}
+                </p>
+              </div>
+            </article>
+
+            {/* Program sekunder — daftar definisi dua kolom (tanpa kartu/nomor). */}
+            <dl className="mt-12 grid gap-x-12 gap-y-9 sm:grid-cols-2 md:mt-14">
+              {sekunder.map((item) => (
+                <div key={item.kunci} className="flex flex-col gap-y-2">
+                  <dt className="font-serif text-base font-semibold leading-snug text-balance text-grey-800">
+                    {t(`program.kartu.${item.kunci}.judul`)}
+                  </dt>
+                  <dd className="m-0 text-sm leading-relaxed text-pretty text-grey-800">
+                    {t(`program.kartu.${item.kunci}.deskripsi`)}
+                  </dd>
+                  {item.to && (
+                    <TautanBuka to={item.to}>
+                      {t("common.selengkapnya")}: {item.label}
+                    </TautanBuka>
+                  )}
+                </div>
+              ))}
+            </dl>
+          </div>
+        </section>
+
+        {/* ═══ Panduan dan Latihan Mandiri — panel ajakan datar + tautan ═══ */}
+        <section className={sectionClasses}>
+          <div className={containerClasses}>
+            <div className="mx-auto max-w-4xl rounded-lg border border-grey-200 p-8 text-center md:p-10">
+              <h2 className={headingClasses}>
+                {t("program.h1")}
+              </h2>
+              <p className="mx-auto mt-4 max-w-3xl text-base leading-relaxed text-pretty text-grey-800">
+                {t("program.p3a")}{" "}
+                <Link
+                  to="/program-kami/ebook-panduan"
+                  className="font-semibold text-primary underline underline-offset-2 hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                >
+                  {t("nav.eBookPanduan")}
+                </Link>{" "}
+                {t("program.p3b")}{" "}
+                <Link
+                  to="/program-kami/teka-teki"
+                  className="font-semibold text-primary underline underline-offset-2 hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                >
+                  {t("nav.tekaTeki")}
+                </Link>{" "}
+                {t("program.p3c")}
+              </p>
+              <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                <Tombol to="/program-kami/ebook-panduan" variant="garis">
+                  {t("nav.eBookPanduan")}
+                  <ArrowRightIcon className="size-4" />
+                </Tombol>
+                <Tombol to="/program-kami/teka-teki" variant="garis">
+                  {t("nav.tekaTeki")}
+                  <ArrowRightIcon className="size-4" />
+                </Tombol>
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
     </HalamanIsi>
   );

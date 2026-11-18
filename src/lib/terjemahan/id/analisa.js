@@ -837,7 +837,25 @@ export const analisa = {
       judul: "Atribusi & lisensi",
       pendahuluan:
         "Tampilan dan logika penilaian halaman ini dipindah dari Brilliant-Chess (MIT, © 2025 Delo). Engine catur, muat worker, dan seluruh komunikasi UCI memakai implementasi lokal situs ini.",
+      indeksAria: "Indeks bagian atribusi",
       judulDaftar: "Atribusi dan Lisensi",
+      penjelasanKatalog:
+        "Karya pihak ketiga yang dipakai situs ini, dikelompokkan menurut perannya, lengkap dengan sumber asli dan lisensinya.",
+      labelPenutup: "Ketentuan Penggunaan & Distribusi",
+      kelompok: {
+        sumber: {
+          judul: "Aset dan data",
+          deskripsi: "Bidak, pembukaan, suara, logo, dan teka-teki yang tampil langsung di papan dan halaman latihan.",
+        },
+        mesin: {
+          judul: "Mesin catur",
+          deskripsi: "Tiga engine dengan kekuatan berbeda, semuanya dijalankan dari folder /engines situs ini.",
+        },
+        kode: {
+          judul: "Kode dan teknologi",
+          deskripsi: "Berkas dan pola tata letak yang dipindahkan, serta layanan tempat proyek ini dibangun dan dijalankan.",
+        },
+      },
       bidak: "Gambar bidak",
       bidakOleh: "Dibuat oleh Cburnett, lisensi CC-BY-SA-3.0.",
       pembukaan: "Buku pembukaan",
@@ -845,15 +863,15 @@ export const analisa = {
       engine: "Stockfish",
       engineOleh: "Distribusi stockfish.js (GPL-3.0) — berkas dijalankan dari folder /engines situs ini.",
       enginePemula: "Engine lawan pemula",
-      enginePemulaOleh: "sunfish oleh Thomas Ahle, port JavaScript oleh foo123 (GPL-3.0). Berkas dijalankan dari folder /engines situs ini dan dimodifikasi agar penilaiannya bisa dilemahkan untuk level pemula; modifikasinya ikut berlisensi GPL-3.0 dan tersedia di repositori proyek.",
+      enginePemulaOleh: "sunfish oleh Thomas Ahle, port JavaScript oleh foo123 (GPL-3.0). Dimodifikasi agar penilaiannya bisa dilemahkan untuk level pemula; modifikasinya ikut berlisensi GPL-3.0 dan tersedia di repositori proyek.",
       engineMenengah: "Engine lawan menengah (Maia 3)",
       engineMenengahOleh:
-        "Bobot model maia3_simplified.onnx dari Maia Chess (CSSLab, University of Toronto) — kode GPL-3.0, bobot mengikuti ketentuan proyek Maia. Berkas dijalankan dari folder /engines situs ini; penyandian posisi dan dekode policy diimplementasikan sendiri di src/lib/maia3.js. Inferensi memakai onnxruntime-web (Microsoft, MIT).",
+        "Bobot model maia3_simplified.onnx dari Maia Chess (CSSLab, University of Toronto) — kode GPL-3.0, bobot mengikuti ketentuan proyek Maia. Penyandian posisi dan dekode policy diimplementasikan sendiri di src/lib/maia3.js. Inferensi memakai onnxruntime-web (Microsoft, MIT).",
       kode: "Berkas yang dipindah",
       kodeOleh: "MIT — sumber: github.com/wdeloo/Brilliant-Chess.",
       desain: "Tata letak halaman",
       desainOleh:
-        "Pola layout Program Kami (judul besar + kartu grid) mengikuti prompt.md pada repositori ini, lisensi MIT.",
+        "Pola layout Program Kami mengikuti prompt.md pada repositori ini, lisensi MIT.",
       suara: "Suara papan",
       suaraOleh:
         "Berkas MP3 di /SoundChess berasal dari set suara papan Chess.com, LLC. Hak cipta tetap pada pemiliknya; dipakai apa adanya untuk kebutuhan latihan komunitas, tanpa modifikasi dan tanpa klaim kepemilikan.",
@@ -867,6 +885,7 @@ export const analisa = {
       teknologiOleh:
         "Proyek ini dibangun dan dijalankan dengan layanan serta pustaka berikut. Terima kasih kepada masing-masing tim atas karya mereka.",
       lisensiProyek: "Lisensi Proyek",
+      lisensiProyekRingkas: "Kode sumber proyek ini berlisensi MIT; aset pihak ketiga tetap tunduk pada lisensi masing-masing.",
       lisensiProyekOleh:
         "Kode sumber proyek ini dirilis di bawah lisensi MIT — bebas digunakan, dimodifikasi, dan didistribusikan dengan menyertakan pemberitahuan hak cipta & teks lisensi. Aset pihak ketiga (ikon, pembukaan, engine, suara) tetap tunduk pada lisensinya masing-masing.",
       lisensiCek: "Lihat berkas LICENSE",

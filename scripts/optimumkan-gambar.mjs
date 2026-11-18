@@ -75,6 +75,8 @@ export const TARGET = [
     varian: [320, 480, 640, 828],
     kualitas: 78,
   },
+  // Hero atribusi: 828w melayani ponsel, sumber penuh layar desktop.
+  { jalur: "images/ProgramKami/atribusi-lisensi-hero.webp", varian: [828], kualitas: 78 },
   // Hero lima halaman alat: 828w cukup untuk ponsel ber-DPR tinggi, sedangkan
   // berkas sumber melayani layar desktop tanpa kualitas berlebihan di 4G.
   { jalur: "images/ProgramKami/teka-teki-hero.webp", varian: [828], kualitas: 78 },

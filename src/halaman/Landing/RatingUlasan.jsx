@@ -8,7 +8,7 @@
  *        state lokasi (bukan query string).
  *   2. Kepala "Rating dan ulasan" dengan panah-kanan yang navigasi ke
  *      /rating-ulasan (halaman daftar semua ulasan).
- *   3. Keterangan faktual tentang sumber ulasan + ikon ⓘ.
+ *   3. Keterangan singkat di bawah judul.
  *   4. Ringkasan agregat (skor besar + bintang pecahan + bar distribusi).
  *   5. Carousel geser kartu ulasan (embla via shadcn/ui Carousel) —
  *      beberapa ulasan terbaru ditampilkan sebagai kartu-kartu yang bisa
@@ -26,7 +26,6 @@ import { useI18n } from "../../lib/i18n.jsx";
 import { useUlasan } from "./gunakanUlasan.js";
 import { JUDUL_KARTU, LEAD_SEKSI } from "./gayaTeks.jsx";
 import {
-  IkonInfo,
   KartuUlasan,
   PanahKanan,
   PanahKiri,
@@ -125,13 +124,11 @@ function KaruselUlasan({ t, ulasan, padaVote }) {
               type="button"
               onClick={() => emblaApi?.scrollTo(i)}
               aria-label={t("landing.rating.slide", { n: i + 1 })}
-              className={`flex h-1.5 items-center justify-center rounded-full transition-all max-sm:h-6 max-sm:w-6 max-sm:bg-transparent ${
-                i === indeksAktif ? "w-6 bg-primary" : "w-1.5 bg-grey-300"
-              }`}
+              className={`inline-flex items-center justify-center p-2 min-w-6 min-h-6 rounded-full transition-all max-sm:bg-transparent focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2`}
             >
               <span
                 aria-hidden="true"
-                className={`hidden h-1.5 rounded-full max-sm:block ${
+                className={`h-1.5 rounded-full ${
                   i === indeksAktif ? "w-6 bg-primary" : "w-1.5 bg-grey-300"
                 }`}
               />
@@ -208,9 +205,8 @@ export default function RatingUlasan() {
           >
             {t("landing.rating.judulSeksi")}
           </h2>
-          <p className={`mt-3 flex max-w-3xl items-start gap-2 ${LEAD_SEKSI}`}>
-            <IkonInfo className="mt-0.5 size-4 flex-none" />
-            <span>{t("landing.rating.subJudul")}</span>
+          <p className={`mt-3 max-w-3xl ${LEAD_SEKSI}`}>
+            {t("landing.rating.subJudul")}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2" role="group" aria-label={t("landing.rating.filterAria")}>
