@@ -498,7 +498,7 @@ export function NotifikasiError({ pesan, onCobaLagi, sibuk = false }) {
  *     <button>...</button>
  *   </TooltipLabel>
  */
-export function TooltipLabel({ children, label, side = "top" }) {
+export function TooltipLabel({ children, label, side = "right" }) {
   if (!label) return children;
   return <TooltipLabelAsli children={children} label={label} side={side} />;
 }
