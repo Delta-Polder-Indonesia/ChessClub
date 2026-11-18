@@ -162,11 +162,11 @@ export default function ProgramKami() {
         {/* ═══ Panduan dan Latihan Mandiri — panel ajakan datar + tautan ═══ */}
         <section className={sectionClasses}>
           <div className={containerClasses}>
-            <div className="rounded-lg border border-grey-200 p-8 md:p-10">
+            <div className="mx-auto max-w-4xl rounded-lg border border-grey-200 p-8 text-center md:p-10">
               <h2 className={headingClasses}>
                 {t("program.h1")}
               </h2>
-              <p className="mt-4 text-base leading-relaxed text-pretty text-grey-800">
+              <p className="mx-auto mt-4 max-w-3xl text-base leading-relaxed text-pretty text-grey-800">
                 {t("program.p3a")}{" "}
                 <Link
                   to="/program-kami/ebook-panduan"
@@ -183,7 +183,7 @@ export default function ProgramKami() {
                 </Link>{" "}
                 {t("program.p3c")}
               </p>
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
                 <Tombol to="/program-kami/ebook-panduan" variant="garis">
                   {t("nav.eBookPanduan")}
                   <ArrowRightIcon className="size-4" />
