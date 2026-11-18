@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import PanelRiwayatMasuk from "./RiwayatMasuk.jsx";
 import PanelAudit from "./Audit.jsx";
-import { Tombol, Bidang, Modal } from "./ui.jsx";
+import { Tombol, Bidang, Modal, SkeletonTabel } from "./ui.jsx";
 import TabelData from "./TabelData.jsx";
 import Marquee from "../../components/ui/marquee.jsx";
 import {
@@ -246,7 +246,7 @@ function PanelKelolaAdmin({ beriTahu }) {
     [setEditTarget, setEditData, setTargetHapus]
   );
 
-  if (loading) return <div className="text-sm text-slate-500">Memuat daftar admin...</div>;
+  if (loading) return <SkeletonTabel jumlahBaris={4} />;
 
   return (
     <div className="max-w-6xl space-y-6">
@@ -428,7 +428,7 @@ function PanelAkun({ beriTahu }) {
   };
 
   if (loading) {
-    return <div className="text-sm text-slate-500">Memuat info akun...</div>;
+    return <SkeletonTabel jumlahBaris={4} />;
   }
 
   const isMaster = (info?.role || "").toLowerCase() === "master";

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { apiPengurus } from "../../lib/api/index.js";
-import { Modal } from "./ui.jsx";
+import { Modal, SkeletonTabel } from "./ui.jsx";
 
 function waktuPesan(iso) {
   if (!iso) return "";
@@ -253,7 +253,7 @@ export default function PanelPesan({
       )}
 
       {memuat ? (
-        <p className="py-10 text-center text-sm text-slate-500">Memuat pesan…</p>
+        <SkeletonTabel jumlahBaris={4} />
       ) : galat ? null : pesan.length === 0 ? (
         <div className="flex items-center justify-center py-24">
           <p className="text-sm text-slate-500">Belum ada pesan masuk.</p>

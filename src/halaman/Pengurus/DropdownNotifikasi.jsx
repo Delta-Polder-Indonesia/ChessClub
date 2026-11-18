@@ -8,6 +8,7 @@
 import Book from "../Analisa/komponen/svg/book.jsx";
 import ShieldAlert from "../Analisa/komponen/svg/shield-alert.jsx";
 import { waktuRelatif, cuplikan } from "./DropdownNotifikasiData.js";
+import { SkeletonTabel } from "./ui.jsx";
 
 export default function DropdownNotifikasi({
   terbuka,
@@ -47,9 +48,7 @@ export default function DropdownNotifikasi({
 
       <div className="max-h-[26rem] overflow-y-auto">
         {memuat && baris.length === 0 ? (
-          <p className="px-4 py-8 text-center text-sm text-slate-500">
-            Memuat…
-          </p>
+          <SkeletonTabel jumlahBaris={3} />
         ) : baris.length === 0 ? (
           <div className="px-4 py-10 text-center">
             <svg

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { apiPengurus } from "../../lib/api/index.js";
-import { KotakGalatMuat, Tombol, Bidang } from "./ui.jsx";
+import { KotakGalatMuat, Tombol, Bidang, SkeletonTabel } from "./ui.jsx";
 import TabelData from "./TabelData.jsx";
 
 const BULAN = [
@@ -201,7 +201,7 @@ export default function PanelAudit({ beriTahu }) {
         />
       </form>
       {memuat ? (
-        <p className="text-sm text-slate-500">Memuat jejak audit…</p>
+        <SkeletonTabel jumlahBaris={5} />
       ) : galat ? (
         <KotakGalatMuat
           pesan="Jejak audit gagal dimuat. Periksa koneksi lalu coba lagi."

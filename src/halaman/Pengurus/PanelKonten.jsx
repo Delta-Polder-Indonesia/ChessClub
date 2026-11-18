@@ -10,7 +10,7 @@ import {
   useLegacyTable,
 } from "@tanstack/react-table/legacy";
 import { apiPengurus } from "../../lib/api/index.js";
-import { Tombol, Bidang, Modal, MenuAksi } from "./ui.jsx";
+import { Tombol, Bidang, Modal, MenuAksi, SkeletonTabel } from "./ui.jsx";
 import {
   Table,
   TableBody,
@@ -765,7 +765,7 @@ function PanelKonten({ konfig, beriTahu, muatUlang }) {
 
       {!formulir &&
         (memuat ? (
-          <p className="py-8 text-center text-sm text-slate-500">Memuat…</p>
+          <SkeletonTabel jumlahBaris={4} />
         ) : galat ? null : (
         <div className="overflow-auto">
           <Table>

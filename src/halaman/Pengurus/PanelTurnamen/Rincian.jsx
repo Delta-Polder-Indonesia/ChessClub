@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { apiPengurus } from "../../../lib/api/index.js";
-import { Tombol, Bidang, Modal } from "../ui.jsx";
+import { Tombol, Bidang, Modal, SkeletonTabel } from "../ui.jsx";
 import { Lencana } from "./Lencana.jsx";
 import { LABEL_STATUS, akunMasihBaru } from "./bagianData.js";
 
@@ -176,7 +176,7 @@ export default function RincianTurnamen({ id, jenis, beriTahu, onTutup, onBeruba
       );
     });
 
-  if (!t) return <p className="py-6 text-sm text-slate-500">Memuat turnamen…</p>;
+  if (!t) return <SkeletonTabel jumlahBaris={4} />;
 
   const sifat = jenis[t.jenis] || {};
 

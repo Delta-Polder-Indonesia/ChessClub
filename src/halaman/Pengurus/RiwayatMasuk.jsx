@@ -4,7 +4,7 @@ import {
   hapusRiwayatMasuk,
   bersihkanRiwayatMasuk,
 } from "../../lib/api/index.js";
-import { Tombol, Modal, Avatar, KotakGalatMuat } from "./ui.jsx";
+import { Tombol, Modal, Avatar, KotakGalatMuat, SkeletonTabel } from "./ui.jsx";
 import TabelData from "./TabelData.jsx";
 
 /* ========================================================
@@ -518,9 +518,7 @@ export default function PanelRiwayatMasuk({ beriTahu }) {
 
       {/* ── Tabel Riwayat ─────────────────────────────────── */}
       {memuat ? (
-        <div className="rounded-lg border border-slate-200 bg-white p-12 text-center text-sm text-slate-500">
-          Memuat catatan riwayat masuk…
-        </div>
+        <SkeletonTabel jumlahBaris={5} />
       ) : galat ? (
         <KotakGalatMuat
           pesan="Riwayat masuk gagal dimuat. Periksa koneksi lalu coba lagi."

@@ -23,7 +23,7 @@ import DropdownPesan from "./DropdownPesan.jsx";
 import Mail from "../Analisa/komponen/svg/mail.jsx";
 import DropdownProfil from "./DropdownProfil.jsx";
 import RingkasanDashboard from "./RingkasanDashboard.jsx";
-import { KotakGalatMuat } from "./ui.jsx";
+import { KotakGalatMuat, SkeletonTabel } from "./ui.jsx";
 import Marquee from "../../components/ui/marquee.jsx";
 
 // Judul header mengikuti menu sidebar yang sedang aktif (kunci → label),
@@ -511,7 +511,7 @@ export default function Dashboard() {
         <main className="flex-1 p-6 md:p-8 min-w-0 overflow-y-auto min-h-0">
           {tab === "dashboard" && (
             memuat && !ringkas ? (
-              <p className="py-10 text-center text-sm text-slate-500">Memuat…</p>
+              <SkeletonTabel jumlahBaris={4} />
             ) : ringkas ? (
               <RingkasanDashboard ringkas={ringkas} onBuka={bukaTab} hitam={hitam} />
             ) : (

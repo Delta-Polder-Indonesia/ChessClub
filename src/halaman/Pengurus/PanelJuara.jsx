@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { apiPengurus } from "../../lib/api/index.js";
 import { parseWaktuKomunitas } from "../../lib/waktu.js";
-import { Tombol, Bidang, Modal, MenuAksi, Sheet } from "./ui.jsx";
+import { Tombol, Bidang, Modal, MenuAksi, Sheet, SkeletonTabel } from "./ui.jsx";
 import {
   Table,
   TableHeader,
@@ -300,9 +300,7 @@ export default function PanelJuara({ beriTahu }) {
       )}
 
       {gagal ? null : daftar === null ? (
-        <p className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-600">
-          Memuat…
-        </p>
+        <SkeletonTabel jumlahBaris={4} />
       ) : (
         <>
           <div className="flex flex-wrap items-center justify-between gap-3">
