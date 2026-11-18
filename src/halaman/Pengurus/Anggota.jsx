@@ -363,7 +363,13 @@ export default function PanelAnggota({
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="p-3">{a.kota || "—"}</TableCell>
+                    <TableCell className="p-3">
+                      <div className="min-w-0">
+                        <p className="text-sm text-slate-500 truncate">
+                          {a.kota || "—"}
+                        </p>
+                      </div>
+                    </TableCell>
                     <TableCell className="p-3">
                       {a.elo ? (
                         <span className="elo-pilih">{a.elo}</span>
