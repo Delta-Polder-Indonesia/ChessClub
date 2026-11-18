@@ -493,6 +493,7 @@ export default function Dashboard() {
             <div className="relative" ref={profileRef}>
               <TooltipLabel label={pengguna ? `Masuk sebagai ${pengguna}` : ""}>
                 <button onClick={() => setMenuProfile((v) => !v)}
+                  aria-label={pengguna ? `Masuk sebagai ${pengguna}` : "Profil pengurus"}
                   className="flex items-center gap-3 rounded-md px-2 py-1.5 hover:bg-slate-100 transition-colors duration-150 focus:outline-none">
                 <div className="text-right hidden sm:block">
                   <p className="text-sm font-medium text-slate-900 leading-tight flex items-center justify-end gap-2">

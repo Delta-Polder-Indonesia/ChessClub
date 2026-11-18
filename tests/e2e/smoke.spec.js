@@ -406,7 +406,7 @@ test("dashboard pengurus memverifikasi login dan logout dengan aman", async ({ p
   await page.getByRole("button", { name: "Masuk" }).click();
 
   await expect(page.getByText("12", { exact: true })).toBeVisible();
-  await page.getByTitle("Masuk sebagai pengurusuji").click();
+  await page.getByRole("button", { name: "Masuk sebagai pengurusuji" }).click();
   await page.getByRole("button", { name: "Keluar" }).click();
   await expect(page.locator('input[autocomplete="username"]')).toBeVisible();
   periksaGalat();
