@@ -112,7 +112,12 @@ struktur tabel (kepala tabel, footer pagination). Tindakan cepat ditulis sebagai
 baris terbuka dengan pemisah tipis, bukan kartu berisi.
 
 Ketiga larangan ini diuji `scripts/uji-standar-desain.mjs` **sebelum** mekanisme
-baseline, jadi tidak bisa diredam dengan `npm run desain:baseline`. Memperlunak
+baseline, jadi tidak bisa diredam dengan `npm run desain:baseline`. Pemeriksa
+membaca `className` termasuk template literal dan kelas yang terpecah beberapa
+baris, menolak warna hex arbitrer, menolak `boxShadow` pada style inline, dan
+menolak nilai warna literal pada atribut SVG (kecuali `none`, `currentColor`,
+`transparent`, `inherit`). Memindahkan gaya ke CSS juga tidak menyelamatkan:
+berkas `.css` di area itu ikut dipindai aturan hex global. Memperlunak
 atau menghapus pemeriksaannya butuh persetujuan pemilik repo.
 
 Komitmen: pola lencana berwarna di dashboard Pengurus tidak dibuat lagi pada

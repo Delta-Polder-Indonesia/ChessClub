@@ -192,35 +192,71 @@ const LATAR_ABU = /(?:^|[\s"'`])bg-slate-(?:50|100|200)\b/;
 const BAYANGAN = /(?:^|[\s"'`])shadow(?:-(?:2xl|xl|lg|md|sm|inner|none)|-\[[^\]]+\])?\b/;
 
 /**
- * Cari kelas warna semantik di src/halaman/Pengurus/ dan laporkan per baris.
- * Komentar baris (`// …`) dibuang lebih dulu agar catatan dokumentasi yang
- * menyebut nama warna tidak dianggap pelanggaran.
+ * Aturan khusus dashboard Pengurus. Tiga larangan: warna semantik untuk status,
+ * kotak berlatar abu, dan efek mengambang. Diperiksa pada className (termasuk
+ * template literal dan string yang terpecah beberapa baris), pada atribut
+ * warna arbitrer, pada style inline, dan pada nilai warna SVG.
+ *
+ * Sengaja tidak lewat baseline: satu temuan langsung menggagalkan uji.
  */
-function periksaWarnaPengurus() {
+const KELAS_WARNA_HEX = /(?:^|[\s"'`])(?:bg|text|border(?:-[a-z]+)?|ring(?:-[a-z]+)?|from|to|via|outline(?:-[a-z]+)?|divide|decoration|accent|fill|stroke)-(?:\[#[0-9a-fA-F]{3,8}\])/;
+const WARNA_SVG = /\b(?:fill|stroke|stopColor|stop-color|floodColor)=["'](?!(?:none|currentColor|transparent|inherit)["'])[^"']+["']/g;
+
+function nomorBaris(isi, indeks) {
+  let baris = 1;
+  for (let i = 0; i < indeks && i < isi.length; i += 1) {
+    if (isi[i] === "\n") baris += 1;
+  }
+  return baris;
+}
+
+function kelasDari(isi) {
+  const hasil = [];
+  // className="…" dan className={`…`} — boleh memuat newline.
+  const pola = /className\s*=\s*(?:"([^"]*)"|\{`([^`]*)`\})/g;
+  for (const cocok of isi.matchAll(pola)) {
+    const nilai = (cocok[1] ?? cocok[2] ?? "").replace(/\s+/g, " ").trim();
+    if (!nilai) continue;
+    hasil.push({ nilai, baris: nomorBaris(isi, cocok.index) });
+  }
+  return hasil;
+}
+
+function periksaAturanPengurus() {
   const temuan = [];
   const akarPengurus = path.join(AKAR, AREA_PENGURUS);
   if (!fs.existsSync(akarPengurus)) return temuan;
+
   for (const penuh of daftarBerkas(akarPengurus)) {
     const relatif = path.relative(AKAR, penuh).replaceAll(path.sep, "/");
     const isi = fs.readFileSync(penuh, "utf8");
+
+    // 1. className (multi-baris dan template literal ikut terbaca).
+    for (const { nilai, baris } of kelasDari(isi)) {
+      for (const cocok of nilai.matchAll(HUE_SEMANTIK)) {
+        temuan.push(`${relatif}:${baris} memakai ${cocok[0]}`);
+      }
+      if (KELAS_WARNA_HEX.test(nilai)) {
+        temuan.push(`${relatif}:${baris} memakai warna hex arbitrer`);
+      }
+      if (BAYANGAN.test(nilai)) {
+        temuan.push(`${relatif}:${baris} memakai efek mengambang (bayangan)`);
+      }
+      if (LATAR_ABU.test(nilai) && /\brounded-lg\b/.test(nilai) && /\bborder\b/.test(nilai)) {
+        temuan.push(`${relatif}:${baris} memakai kotak berlatar abu (bg-slate + rounded-lg + border)`);
+      }
+    }
+
     isi.split("\n").forEach((baris, i) => {
-      const kode = siapkanBarisUntukCekHex(baris);
-      if (!kode) return;
-      for (const cocok of kode.matchAll(HUE_SEMANTIK)) {
-        temuan.push(`${relatif}:${i + 1} memakai ${cocok[0]}`);
+      // 2. Bayangan dan warna literal diperiksa pada baris mentah: helper
+      // pembersih sengaja membuang atribut SVG untuk aturan hex global, jadi
+      // tidak dipakai di sini.
+      if (/boxShadow\s*:/.test(baris) || /box-shadow\s*:/.test(baris)) {
+        temuan.push(`${relatif}:${i + 1} memakai bayangan lewat style inline`);
       }
-      if (BAYANGAN.test(kode)) {
-        temuan.push(`${relatif}:${i + 1} memakai efek mengambang (bayangan)`);
-      }
-      // Kotak berlatar abu: latar slate + sudut membulat + garis sekaligus.
-      if (
-        LATAR_ABU.test(kode) &&
-        /\brounded-lg\b/.test(kode) &&
-        /\bborder\b/.test(kode)
-      ) {
-        temuan.push(
-          `${relatif}:${i + 1} memakai kotak berlatar abu (bg-slate + rounded-lg + border)`
-        );
+      // 3. Warna literal pada atribut SVG (none/currentColor tetap boleh).
+      for (const cocok of baris.matchAll(WARNA_SVG)) {
+        temuan.push(`${relatif}:${i + 1} memakai warna literal pada SVG (${cocok[0]})`);
       }
     });
   }
@@ -272,7 +308,7 @@ function hitung() {
   return hasil;
 }
 
-const warnaPengurus = periksaWarnaPengurus();
+const warnaPengurus = periksaAturanPengurus();
 if (warnaPengurus.length) {
   console.error("Warna status terlarang di dashboard Pengurus:\n");
   for (const baris of warnaPengurus) console.error(`- ${baris}`);

@@ -156,6 +156,11 @@ Pemeriksaan ketiga menolak efek mengambang: setiap utilitas `shadow-*` di
 `shadow-sm`, `shadow-lg`, dan `shadow-xl`; batas bidang kini hanya garis 1px,
 dan dialog/dropdown memakai border `slate-300` di atas latar gelap transparan.
 
+Cakupan pemeriksa: `className` statis maupun template literal, termasuk kelas yang
+terpecah beberapa baris; utilitas warna hex arbitrer (`bg-[#dc2626]`); `boxShadow`
+pada style inline; dan nilai warna literal pada atribut SVG. Lima cara meloloskan
+desain terlarang sudah diuji dan seluruhnya tertangkap.
+
 Pemeriksaan ini berjalan **sebelum** mekanisme baseline, sehingga
 `npm run desain:baseline` tidak bisa mengabsahkan pelanggaran baru. Uji ini ikut
 `npm run uji:desain` dan sudah berada di jalur CI lewat `npm run uji:v1:ui-engine`
