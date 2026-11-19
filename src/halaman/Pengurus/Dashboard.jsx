@@ -430,18 +430,14 @@ export default function Dashboard() {
               )}
             </button>
             </TooltipLabel>
-            <div className="min-w-0">
-              <h1 className="truncate text-lg font-bold leading-tight text-slate-900">
-                {judulRincian || judulTab}
-              </h1>
-              <div className="mt-0.5 flex items-center gap-1 text-xs text-slate-500">
-                {breadcrumb.map((item, i) => (
-                  <Fragment key={i}>
-                    {i > 0 && <span className="text-slate-300">/</span>}
-                    <span className="truncate">{item}</span>
-                  </Fragment>
-                ))}
-              </div>
+            <h1 className="text-lg font-bold text-slate-900">{judulRincian || judulTab}</h1>
+            <div className="mt-1 flex items-center gap-1 text-[11px] text-slate-500">
+              {breadcrumb.map((item, i) => (
+                <Fragment key={i}>
+                  {i > 0 && <span className="text-slate-300">/</span>}
+                  <span>{item}</span>
+                </Fragment>
+              ))}
             </div>
           </div>
 
@@ -524,7 +520,7 @@ export default function Dashboard() {
 
       {/* ── Body ── */}
       <div className="flex flex-1 min-h-0">
-        <Sidebar tab={tab} setTab={pilihTabSidebar} terbuka={sidebarTerbuka} halamanEbook={halamanEbook} onPilihEbook={(hal) => { setHalamanEbook(hal); bukaTab("ebook"); }} pengguna={pengguna} peran={peran} />
+        <Sidebar tab={tab} setTab={pilihTabSidebar} terbuka={sidebarTerbuka} halamanEbook={halamanEbook} onPilihEbook={(hal) => { setHalamanEbook(hal); bukaTab("ebook"); }} />
 
         <main className="flex-1 p-6 md:p-8 min-w-0 overflow-y-auto min-h-0">
           {tab === "dashboard" && (

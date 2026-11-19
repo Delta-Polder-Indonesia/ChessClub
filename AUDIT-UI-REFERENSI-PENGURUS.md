@@ -28,8 +28,6 @@ yang ditambahkan — MUI/Amplify/CRA sengaja **tidak** diadopsi. Yang diambil ha
 | Pill *Access Level* Admin/Staff | `Lencana` (hijau/biru/merah/abu, ring 1px) | `ui.jsx` |
 | DataGrid: header berwarna, footer rentang baris + pemilih baris | `TabelData` dibungkus kartu: bilah atas "Menampilkan 1–10 dari N", header `bg-slate-50` uppercase, footer `bg-slate-50` | `TabelData.jsx` |
 | Banner "Add Users" (bilah judul berwarna + isi form + tombol simpan di tengah) | Kartu "Tambah Admin Baru" dengan bilah judul `bg-primary` | `Pengaturan.jsx` |
-| Sidebar: label grup menu + nama pengguna besar + role aksen | `grup` di `MENU_SIDEBAR`, blok identitas di atas menu | `SidebarData.js`, `Sidebar.jsx` |
-| Sidebar Pengaturan: item aktif beraksen | Item aktif `bg-blue-50 text-primary` (sebelumnya border hitam) | `Pengaturan.jsx` |
 | Display box halaman Settings | Kartu "Akun Saat Ini" dengan baris `divide-y` | `Pengaturan.jsx` |
 | Search bar Topbar (kotak terisi) | Kotak pencarian `bg-slate-100` → putih saat fokus, di Anggota & Larangan | `Anggota.jsx`, `Larangan.jsx` |
 | Kartu ringkasan statistik | `Kartu` jadi kartu putih ber-border + `shadow-sm`; dipakai di Ringkasan, Kelola Admin, Riwayat Masuk | `ui.jsx`, `RingkasanDashboard.jsx`, `RiwayatMasuk.jsx` |
@@ -37,6 +35,8 @@ yang ditambahkan — MUI/Amplify/CRA sengaja **tidak** diadopsi. Yang diambil ha
 
 ## 3. Yang sengaja **tidak** diambil
 
+- **Sidebar (utama & Pengaturan)** — sengaja **tidak** diubah; navigasi tetap versi
+  lama. Adaptasi hanya menyentuh area konten.
 - **Tema gelap & aksen hijau neon** — bertabrakan dengan `DESIGN.md` (tema terang,
   primary biru `#0B2F9F`).
 - **Gradien ungu/pink pada header DataGrid** — dilarang `DESIGN.md`.
@@ -50,13 +50,11 @@ yang ditambahkan — MUI/Amplify/CRA sengaja **tidak** diadopsi. Yang diambil ha
   `Kartu` jadi kartu; tambah `KepalaPanel` & `Lencana`.
 - `TabelData.jsx` — chrome kartu + bilah jumlah baris + footer pagination;
   `labelItem` dinaikkan ke bilah atas.
-- `SidebarData.js` — field `grup` (Utama / Komunitas / Konten / E-Book).
-- `Sidebar.jsx` — blok identitas pengguna + badge role, label grup, `Fragment`.
-- `Dashboard.jsx` — breadcrumb dipindah ke bawah judul (kolom), `text-[11px]` → `text-xs`.
 - `Anggota.jsx`, `Larangan.jsx` — `KepalaPanel`, kotak pencarian, tabel dalam kartu,
   header kolom uppercase, lencana status.
-- `Pengaturan.jsx` — header panel + badge "Master Only", grup menu, kartu admin +
-  form banner, panel Akun & Password ditata dua kolom, lencana role.
+- `Pengaturan.jsx` — kartu ringkasan admin, form Tambah Admin gaya banner, panel
+  Akun & Password ditata dua kolom, lencana role, `KepalaPanel` per panel.
+  Header dan sidebar Pengaturan **tidak diubah**.
 - `RiwayatMasuk.jsx` — `KepalaPanel` + statistik memakai `Kartu`.
 - `Audit.jsx` — `KepalaPanel`, filter dalam kartu.
 - `RingkasanDashboard.jsx` — kartu aktivitas memakai `Kartu` (tanpa border ganda).
@@ -65,6 +63,8 @@ yang ditambahkan — MUI/Amplify/CRA sengaja **tidak** diadopsi. Yang diambil ha
 
 ## 5. Kepatuhan `DESIGN.md`
 
+- Sidebar utama, `SidebarData.js`, dan `Dashboard.jsx` (shell) tetap versi lama —
+  tidak ada perubahan pada navigasi.
 - Token brand dipakai apa adanya (`primary`, slate, white) — tanpa hex baru.
 - Tidak ada `text-[11px]`/`text-[10px]` baru; beberapa yang lama di file tersentuh
   dinaikkan ke `text-xs` (12px).

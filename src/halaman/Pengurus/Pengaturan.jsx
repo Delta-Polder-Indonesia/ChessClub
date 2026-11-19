@@ -21,35 +21,30 @@ const MENU_PENGATURAN = [
   {
     kunci: "kelola-admin",
     label: "Kelola Admin",
-    grup: "Admin",
     icon: "M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z",
     masterOnly: true,
   },
   {
     kunci: "akun",
     label: "Akun & Password",
-    grup: "Admin",
     icon: "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z",
     masterOnly: true,
   },
   {
     kunci: "riwayat-masuk",
     label: "Riwayat Masuk",
-    grup: "Jejak",
     icon: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z",
     masterOnly: true,
   },
   {
     kunci: "jejak-audit",
     label: "Jejak Audit",
-    grup: "Jejak",
     icon: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z",
     masterOnly: true,
   },
   {
     kunci: "umum",
     label: "Pengaturan Umum",
-    grup: "Lainnya",
     icon: "M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z",
     masterOnly: false,
   },
@@ -616,17 +611,10 @@ export default function Pengaturan({ onKembali, beriTahu, kabar }) {
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      <header className="shrink-0 border-b border-slate-200 bg-white px-6 py-3">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="text-lg font-bold leading-tight text-slate-900">
-              Pengaturan
-            </h1>
-            <p className="mt-0.5 text-sm font-medium text-primary">
-              Kelola admin, keamanan akun, dan jejak aktivitas pengurus
-            </p>
-          </div>
-          <Lencana warna="hijau">Master Only</Lencana>
+      <header className="bg-white border-b border-slate-200 px-6 py-3 shrink-0">
+        <div className="flex items-center gap-4">
+          <h1 className="text-lg font-bold text-slate-900">Pengaturan (Master Admin)</h1>
+          <span className="ml-2 text-xs font-semibold text-slate-600">MASTER ONLY</span>
         </div>
       </header>
 
@@ -634,46 +622,29 @@ export default function Pengaturan({ onKembali, beriTahu, kabar }) {
 
       <div className="flex flex-1 min-h-0">
         <aside className="w-56 bg-white border-r border-slate-200 shrink-0 overflow-y-auto flex flex-col">
-          {/* Blok identitas — adaptasi sidebar referensi: nama + role di atas menu. */}
-          <div className="border-b border-slate-200 px-4 py-4 text-center">
-            <p className="truncate text-base font-bold text-slate-900">
-              {adminPengguna.ambil() || "Master"}
-            </p>
-            <div className="mt-1.5 flex justify-center">
-              <Lencana warna="hijau">Master Admin</Lencana>
-            </div>
-          </div>
           <nav className="p-3 space-y-1 flex-1">
-            {MENU_PENGATURAN.map(({ kunci, label, icon, grup }, i) => {
+            {MENU_PENGATURAN.map(({ kunci, label, icon }) => {
               const aktif = bagian === kunci;
-              const tampilLabelGrup =
-                grup && MENU_PENGATURAN[i - 1]?.grup !== grup;
               return (
-                <div key={kunci}>
-                  {tampilLabelGrup && (
-                    <p className="px-3 pb-1 pt-3 text-xs font-semibold uppercase tracking-[0.1em] text-slate-400">
-                      {grup}
-                    </p>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => setBagian(kunci)}
-                    className={`
-                      w-full text-sm font-medium
-                      flex items-center gap-3
-                      px-3 py-2 border
-                      transition-colors duration-150
-                      ${aktif
-                        ? "rounded-md border-primary/30 bg-blue-50 font-semibold text-primary"
-                        : "rounded-md border-transparent text-slate-700 hover:bg-slate-100"}
-                    `}
-                  >
-                    <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={icon} />
-                    </svg>
-                    {label}
-                  </button>
-                </div>
+                <button
+                  key={kunci}
+                  type="button"
+                  onClick={() => setBagian(kunci)}
+className={`
+                  w-full text-sm font-medium
+                  flex items-center gap-3
+                  px-3 py-2 border
+                  transition-colors duration-150
+                  ${aktif
+                    ? "text-slate-900 border-slate-900 rounded-md"
+                    : "text-slate-700 border-transparent hover:bg-slate-100"}
+                `}
+                >
+                  <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={icon} />
+                  </svg>
+                  {label}
+                </button>
               );
             })}
           </nav>
