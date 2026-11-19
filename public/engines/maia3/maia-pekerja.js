@@ -1,38 +1,17 @@
 /**
  * Maia 3 Web Worker — menjalankan inferensi ONNX di luar utas utama.
  *
- * Berkas ini disajikan APA ADANYA dari `public/` (bukan di-bundle Vite), jadi
- * ia harus tetap menjadi skrip klasik: tanpa impor ESM, memakai `importScripts`
- * untuk memuat runtime ONNX. Alasannya CSP: `script-src 'self'` mengizinkan
- * `importScripts` dari origin sendiri, dan dengan begini berkas runtime
- * onnxruntime-web (14 MB) tidak ikut menggemukkan bundle JavaScript aplikasi —
- * ia diambil terpisah, di-cache browser, dan hanya dimuat bila pemain benar
- *-benar memilih Maia.
- *
- * Satu utas, sengaja: repo ini mengirim COOP tanpa COEP (lihat vercel.json),
- * sehingga `crossOriginIsolated` false dan SharedArrayBuffer tidak tersedia.
- * onnxruntime-web 1.30 otomatis turun ke satu utas dalam keadaan itu
- * (`env.wasm.numThreads = 1`) dan tetap berjalan — kira-kira 0,3 detik per
- * posisi, jauh di bawah jeda giliran 2–4 detik yang dipakai UI.
- *
- * Pesan MASUK:
- *   { jenis: "init", urlModel, versiModel, jalurOrt }
- *   { jenis: "unduh" }
- *   { jenis: "inferensi", id, token, eloSelf, eloOppo, jumlah }
- *   { jenis: "hapus" }
- * Pesan KELUAR:
- *   { jenis: "keadaan", status, progres?, galat? }
- *   { jenis: "inferensi", id, logitsLangkah, logitsNilai }
- *   { jenis: "galat", pesan, id? }
- *
- * Hak cipta model: Maia Chess (CSSLab, University of Toronto) — GPL-3.0.
- * Runtime: onnxruntime-web (Microsoft) — MIT.
+ * Worker ini meneruskan hanya pesan berstruktur yang berasal dari aplikasi.
+ * URL model dan runtime dibatasi ke aset same-origin milik situs agar pesan
+ * yang palsu tidak dapat memaksa worker mengunduh atau mengeksekusi aset lain.
  */
 /* global ort, indexedDB */
 
 const NAMA_DB = "MaiaChessClub";
 const NAMA_SIMPAN = "model";
 const KUNCI_MODEL = "maia3";
+const PATH_MODEL_SAH = "/engines/maia3/maia3_simplified.onnx";
+const AWALAN_ORT_SAH = "/engines/ort/";
 
 let sesi = null;
 let jalurOrt = "./ort/";
@@ -47,10 +26,39 @@ function keadaan(status, tambahan) {
   kirim(Object.assign({ jenis: "keadaan", status }, tambahan || {}));
 }
 
-/* ────────────────────────────── IndexedDB ────────────────────────────── */
-/* Bobot 45 MB diunduh sekali lalu disimpan di peramban. Tanpa ini setiap
-   kunjungan mengunduh ulang; dengan ini kunjungan berikutnya langsung siap
-   (sesi ONNX dibuat dari buffer yang sudah ada di disk). */
+function urlAsetSameOrigin(persetujuan, nilaiAwal) {
+  if (typeof nilaiAwal !== "string" || !nilaiAwal) throw new Error("URL aset tidak sah");
+  let alamat;
+  try {
+    alamat = new URL(nilaiAwal, persetujuan);
+  } catch {
+    throw new Error("URL aset tidak sah");
+  }
+  if (alamat.origin !== self.location.origin) throw new Error("URL aset lintas-origin ditolak");
+  return alamat;
+}
+
+function validasiInit(pesan) {
+  if (!pesan || typeof pesan !== "object") throw new Error("Pesan init tidak sah");
+  const model = urlAsetSameOrigin(self.location.href, pesan.urlModel);
+  if (model.pathname !== PATH_MODEL_SAH && !model.pathname.endsWith("/maia3_simplified.onnx")) {
+    throw new Error("Berkas model tidak diizinkan");
+  }
+
+  let ort;
+  try {
+    ort = urlAsetSameOrigin(self.location.href, pesan.jalurOrt || jalurOrt);
+  } catch {
+    throw new Error("Jalur runtime tidak sah");
+  }
+  if (!ort.pathname.startsWith(AWALAN_ORT_SAH)) throw new Error("Jalur runtime tidak diizinkan");
+
+  urlModel = model.href;
+  jalurOrt = ort.pathname.endsWith("/") ? ort.pathname : `${ort.pathname}/`;
+  versiModel = typeof pesan.versiModel === "string" && /^[a-zA-Z0-9_.-]{1,64}$/.test(pesan.versiModel)
+    ? pesan.versiModel
+    : "3";
+}
 
 function bukaDb() {
   return new Promise((selesai, gagal) => {
@@ -73,7 +81,6 @@ async function ambilCache() {
       minta.onerror = () => gagal(minta.error);
     });
     if (!data) return null;
-    // Versi/URL berubah (model diganti) → cache lama tidak boleh dipakai.
     if (data.url !== urlModel || data.versi !== versiModel) {
       await new Promise((selesai) => {
         const hapus = db.transaction([NAMA_SIMPAN], "readwrite").objectStore(NAMA_SIMPAN).delete(KUNCI_MODEL);
@@ -83,8 +90,6 @@ async function ambilCache() {
     }
     return await data.data.arrayBuffer();
   } catch {
-    // IndexedDB bisa diblokir (mode penyamaran, kuota penuh). Bukan galat
-    // fatal: model tetap bisa dipakai, hanya tidak tersimpan.
     return null;
   }
 }
@@ -93,17 +98,14 @@ async function simpanCache(buffer) {
   try {
     const db = await bukaDb();
     await new Promise((selesai, gagal) => {
-      const minta = db
-        .transaction([NAMA_SIMPAN], "readwrite")
-        .objectStore(NAMA_SIMPAN)
-        .put({
-          id: KUNCI_MODEL,
-          url: urlModel,
-          versi: versiModel,
-          data: new Blob([buffer]),
-          ukuran: buffer.byteLength,
-          waktu: Date.now(),
-        });
+      const minta = db.transaction([NAMA_SIMPAN], "readwrite").objectStore(NAMA_SIMPAN).put({
+        id: KUNCI_MODEL,
+        url: urlModel,
+        versi: versiModel,
+        data: new Blob([buffer]),
+        ukuran: buffer.byteLength,
+        waktu: Date.now(),
+      });
       minta.onsuccess = () => selesai();
       minta.onerror = () => gagal(minta.error);
     });
@@ -113,19 +115,19 @@ async function simpanCache(buffer) {
   }
 }
 
-/* ──────────────────────────────── Unduh ──────────────────────────────── */
-
 async function unduhModel() {
   keadaan("mengunduh", { progres: 0 });
-  const jawab = await fetch(urlModel, { credentials: "same-origin" });
+  const jawab = await fetch(urlModel, { credentials: "same-origin", redirect: "error" });
   if (!jawab.ok) throw new Error(`HTTP ${jawab.status} saat mengunduh model`);
+
+  const balik = new URL(jawab.url || urlModel);
+  if (balik.origin !== self.location.origin || balik.pathname !== PATH_MODEL_SAH) {
+    throw new Error("Respons model lintas-origin tidak diterima");
+  }
 
   const total = Number(jawab.headers.get("Content-Length")) || 0;
   const baca = jawab.body && typeof jawab.body.getReader === "function" ? jawab.body.getReader() : null;
-
-  if (!baca) {
-    return new Uint8Array(await jawab.arrayBuffer());
-  }
+  if (!baca) return new Uint8Array(await jawab.arrayBuffer());
 
   const keping = [];
   let diterima = 0;
@@ -135,8 +137,6 @@ async function unduhModel() {
     if (done) break;
     keping.push(value);
     diterima += value.length;
-    // Lapor tiap 5%: cukup halus untuk bilah kemajuan, tidak membanjiri
-    // utas utama dengan postMessage (45 MB ≈ 700 keping di jaringan cepat).
     if (total > 0) {
       const persen = Math.floor((diterima / total) * 100);
       if (persen >= lapor + 5) {
@@ -154,8 +154,6 @@ async function unduhModel() {
   return gabung;
 }
 
-/* ───────────────────────────── Inferensi ─────────────────────────────── */
-
 function mulaiSesi(buffer) {
   return ort.InferenceSession.create(buffer, {
     executionProviders: ["wasm"],
@@ -165,6 +163,14 @@ function mulaiSesi(buffer) {
 
 async function jalankan(id, token, eloSelf, eloOppo, jumlah) {
   if (!sesi) throw new Error("Model Maia belum dimuat");
+  if (!Number.isInteger(id) || id < 1) throw new Error("ID inferensi tidak sah");
+  if (!Number.isInteger(jumlah) || jumlah < 1 || jumlah > 64) throw new Error("Jumlah inferensi tidak sah");
+  if (!(token instanceof ArrayBuffer) || !(eloSelf instanceof ArrayBuffer) || !(eloOppo instanceof ArrayBuffer)) {
+    throw new Error("Tensor inferensi tidak sah");
+  }
+  if (token.byteLength !== jumlah * 64 * 12 * 4 || eloSelf.byteLength !== jumlah * 4 || eloOppo.byteLength !== jumlah * 4) {
+    throw new Error("Ukuran tensor inferensi tidak sah");
+  }
   const masukan = {
     tokens: new ort.Tensor("float32", new Float32Array(token), [jumlah, 64, 12]),
     elo_self: new ort.Tensor("float32", new Float32Array(eloSelf), [jumlah]),
@@ -176,20 +182,16 @@ async function jalankan(id, token, eloSelf, eloOppo, jumlah) {
   kirim({ jenis: "inferensi", id, logitsLangkah, logitsNilai }, [logitsLangkah.buffer, logitsNilai.buffer]);
 }
 
-/* ────────────────────────────── Pengendali ───────────────────────────── */
-
 self.onmessage = async (peristiwa) => {
-  const pesan = peristiwa.data || {};
+  const pesan = peristiwa?.data;
   try {
-    if ("init" === pesan.jenis) {
-      urlModel = pesan.urlModel;
-      versiModel = pesan.versiModel || "3";
-      jalurOrt = pesan.jalurOrt || jalurOrt;
+    if (!pesan || typeof pesan !== "object" || typeof pesan.jenis !== "string") {
+      throw new Error("Pesan worker tidak sah");
+    }
 
-      if (typeof ort === "undefined") {
-        importScripts(`${jalurOrt}ort.wasm.min.js`);
-      }
-      // Satu utas (tanpa COEP tidak ada SharedArrayBuffer) dan jangan cerewet.
+    if (pesan.jenis === "init") {
+      validasiInit(pesan);
+      if (typeof ort === "undefined") importScripts(`${jalurOrt}ort.wasm.min.js`);
       ort.env.wasm.numThreads = 1;
       ort.env.wasm.wasmPaths = jalurOrt;
       ort.env.logLevel = "error";
@@ -205,22 +207,20 @@ self.onmessage = async (peristiwa) => {
       return;
     }
 
-    if ("unduh" === pesan.jenis) {
+    if (pesan.jenis === "unduh") {
       const berkas = await unduhModel();
-      // Simpan dulu, baru buat sesi: bila penyimpanan gagal (kuota), pemain
-      // tetap mendapat lawan yang bisa diajak main.
       await simpanCache(berkas.buffer);
       sesi = await mulaiSesi(berkas.buffer);
       keadaan("siap", { progres: 100 });
       return;
     }
 
-    if ("inferensi" === pesan.jenis) {
+    if (pesan.jenis === "inferensi") {
       await jalankan(pesan.id, pesan.token, pesan.eloSelf, pesan.eloOppo, pesan.jumlah ?? 1);
       return;
     }
 
-    if ("hapus" === pesan.jenis) {
+    if (pesan.jenis === "hapus") {
       try {
         const db = await bukaDb();
         await new Promise((selesai) => {
@@ -233,7 +233,9 @@ self.onmessage = async (peristiwa) => {
       keadaan("dihapus");
       return;
     }
+
+    throw new Error("Jenis pesan worker tidak dikenal");
   } catch (galat) {
-    kirim({ jenis: "galat", pesan: galat && galat.message ? galat.message : "galat worker Maia", id: pesan.id });
+    kirim({ jenis: "galat", pesan: galat?.message ? galat.message : "galat worker Maia", id: pesan?.id });
   }
 };
