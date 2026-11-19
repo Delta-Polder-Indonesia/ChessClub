@@ -78,6 +78,13 @@ function pastikanPepper(hitam) {
 }
 
 async function chessGet(p) {
+  if (
+    typeof p !== "string" ||
+    !(/^\/club\/[a-z0-9-]{1,60}\/members$/.test(p) ||
+      /^\/player\/[a-z0-9_-]{3,25}$/.test(p))
+  ) {
+    throw new Error("Jalur API Chess.com tidak diizinkan.");
+  }
   return fetch(`https://api.chess.com/pub${p}`, {
     headers: { "User-Agent": UA, Accept: "application/json" },
   });

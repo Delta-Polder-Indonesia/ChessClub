@@ -5,6 +5,7 @@
 import assert from "node:assert/strict";
 import { chessGet, ambilProfil, ambilStatistik, ambilAnggotaKlub, GalatChess } from "../src/chess.js";
 import { konfigurasi } from "../src/konfigurasi.js";
+import { ajukanKeikutsertaan, daftarkanPeserta } from "../src/turnamen.js";
 import { bersihkanRincian } from "../src/audit.js";
 import {
   playerIdChessSah,
@@ -41,10 +42,19 @@ try {
     ["username statistik tidak sah ditolak", () => ambilStatistik("../admin")],
     ["slug klub tidak sah ditolak", () => ambilAnggotaKlub("../attacker")],
   ]) {
-    await assert.rejects(tugas(), (galat) => galat instanceof GalatChess && galat.status === 400);
+    await assert.rejects(Promise.resolve().then(tugas), (galat) => galat instanceof GalatChess && galat.status === 400);
     cek(nama, true);
   }
-  cek("path tidak sah tidak memicu fetch keluar", urlDiminta.length === 0);
+  await assert.rejects(
+    Promise.resolve().then(() => ajukanKeikutsertaan("turnamen-uji", { username: ".." })),
+    (galat) => galat?.status === 400
+  );
+  cek("pengajuan turnamen menolak username tidak sah sebelum jaringan", urlDiminta.length === 0);
+  await assert.rejects(
+    Promise.resolve().then(() => daftarkanPeserta("turnamen-uji", { username: "../admin" })),
+    (galat) => galat?.status === 400
+  );
+  cek("penambahan peserta menolak username tidak sah sebelum jaringan", urlDiminta.length === 0);
 
   await chessGet("/player/magnuscarlsen", { pakaiCache: false });
   cek(
@@ -101,7 +111,7 @@ cek("array ikut disanitasi secara rekursif", rincian.nested.daftar[0].label === 
 cek("kode akses e-book disamarkan", !serial.includes("EBK-7F3K2M9Q") && serial.includes("kode akses disamarkan"));
 cek("string panjang dibatasi", rincian.panjang.length <= 400);
 cek("field metadata audit tidak dapat ditimpa", !("action" in rincian) && !("timestamp" in rincian));
-cek("referensi siklik tidak menyebabkan rekursi tak terbatas", !("siklus" in rincian));
+cek("referensi siklik tidak menyebabkan rekursi tak terbatas", rincian.siklus.status === "aman" && !("siklus" in rincian.siklus));
 
 const terlaluDalam = { a: { b: { c: { d: { e: "di luar batas" } } } } };
 cek("kedalaman objek dibatasi", bersihkanRincian(terlaluDalam).a.b.c.d === undefined);
