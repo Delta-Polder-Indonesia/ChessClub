@@ -557,10 +557,11 @@ console.log("\nKeamanan endpoint pengurus");
     // Riwayat masuk pengurus
     ipSaatIni = ipBaru();
     const loginPengurus = await panggil("POST", "/api/pengurus/masuk", {
+      // Payload sengaja memalsukan identitas; server wajib memakai sesi admin.
       username: "magnuscarlsen",
     });
     cek("catat riwayat masuk: token benar -> 200", loginPengurus.status === 200 && loginPengurus.data?.ok === true, `dapat ${loginPengurus.status}`);
-    cek("catat riwayat masuk: menyertakan username ternormalisasi", loginPengurus.data?.entri?.username === "magnuscarlsen");
+    cek("catat riwayat masuk: username berasal dari identitas terautentikasi, bukan body", loginPengurus.data?.entri?.username === "admin");
     cek("catat riwayat masuk: menyertakan waktu ISO", Boolean(loginPengurus.data?.entri?.waktu));
     const entriId = loginPengurus.data?.entri?.id;
 

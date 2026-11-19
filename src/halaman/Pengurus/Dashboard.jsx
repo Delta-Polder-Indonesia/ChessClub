@@ -340,10 +340,10 @@ export default function Dashboard() {
       .slice(0, 20);
   }, [notif, notifEbook, hitam]);
 
+  // Badge hanya menghitung item yang memang memiliki status belum dibaca.
+  // Peringatan fair play tetap tampil di daftar, tetapi bukan penghitung badge.
   const jumlahBelumDibaca =
-    (ringkas?.pesan?.belumDibaca ?? 0) +
-    notifEbook.length +
-    (hitam || []).filter((h) => h.sumber === "otomatis").length;
+    (ringkas?.pesan?.belumDibaca ?? 0) + notifEbook.length;
 
   const pilihNotif = useCallback(
     (b) => {
