@@ -1,19 +1,21 @@
 import { Link } from "react-router-dom";
 import { HalamanIsi } from "../../components/PageBagian.jsx";
-import { ArrowRightIcon } from "../../components/icons.jsx";
+import { Layers, Puzzle, GitBranch, Hand, ScanFace } from "lucide-react";
+import { ArrowRightIcon, CalendarDotsIcon, LaptopIcon, ReadingIcon } from "../../components/icons.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 import { sumberGambar } from "../../lib/asets.js";
 
 // Cuplikan notasi menghiasi kartu, bukan kontrol papan interaktif.
+const UKURAN_IKON = "size-[10px] shrink-0";
 const PROGRAM = [
-  ["tekaTekiHarian", "♛", "Qd8#", "teka-teki-harian"],
-  ["manusiaVsMesin", "♜", "1. e4 · c5", "manusia-vs-mesin"],
-  ["panduan", "♗", "Bc4 · Bc5", "ebook-panduan"],
-  ["simultan", "♔", "1. d4 · 1. e4"],
-  ["tekaTeki", "♕", "Qh5 · Qxf7#", "teka-teki"],
-  ["latihanRepertoar", "♞", "d4 · Nf6 · c4", "latihan-repertoar"],
-  ["handBrain", "♖", "Ra1 · Re1", "hand-brain"],
-  ["turingTest", "♟", "e4 · c6 · d4", "turing-test"],
+  ["tekaTekiHarian", CalendarDotsIcon, "Qd8#", "teka-teki-harian"],
+  ["manusiaVsMesin", LaptopIcon, "1. e4 · c5", "manusia-vs-mesin"],
+  ["panduan", ReadingIcon, "Bc4 · Bc5", "ebook-panduan"],
+  ["simultan", Layers, "1. d4 · 1. e4"],
+  ["tekaTeki", Puzzle, "Qh5 · Qxf7#", "teka-teki"],
+  ["latihanRepertoar", GitBranch, "d4 · Nf6 · c4", "latihan-repertoar"],
+  ["handBrain", Hand, "Ra1 · Re1", "hand-brain"],
+  ["turingTest", ScanFace, "e4 · c6 · d4", "turing-test"],
 ];
 
 export default function ProgramKami() {
@@ -46,10 +48,12 @@ export default function ProgramKami() {
               <p className="mt-2 max-w-lg leading-relaxed">{t("program.kartu.kelas.deskripsi")}</p>
             </div>
           </li>
-          {PROGRAM.map(([kunci, bidak, notasi, jalur]) => (
+          {PROGRAM.map(([kunci, Ikon, notasi, jalur]) => (
             <li key={kunci} className="flex min-w-0 flex-col gap-4 rounded-3xl border border-grey-200 bg-grey-50 p-6">
               <div aria-hidden="true" className="flex items-center justify-between gap-2 rounded-2xl border border-grey-200 bg-white p-4">
-                <span className="grid size-12 place-items-center rounded-xl bg-grey-100 text-3xl text-slate-800">{bidak}</span>
+                <span className="grid size-12 place-items-center rounded-xl bg-grey-100 text-slate-800">
+                  <Ikon className={UKURAN_IKON} />
+                </span>
                 <span className="font-mono text-sm text-grey-600">{notasi}</span>
               </div>
               <div>
@@ -59,7 +63,7 @@ export default function ProgramKami() {
               {jalur && (
                 <Link to={`/program-kami/${jalur}`} className="mt-auto inline-flex w-fit items-center gap-2 rounded text-sm font-semibold text-slate-800 hover:underline focus-visible:ring-2 focus-visible:ring-slate-800">
                   {t("common.selengkapnya")}<span className="sr-only">: {t(`program.kartu.${kunci}.judul`)}</span>
-                  <ArrowRightIcon className="size-4" />
+                  <ArrowRightIcon className={UKURAN_IKON} />
                 </Link>
               )}
             </li>
