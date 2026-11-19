@@ -162,6 +162,9 @@ async function jalankan(id, token, eloSelf, eloOppo, jumlah) {
 self.onmessage = async (peristiwa) => {
   const pesan = peristiwa?.data;
   try {
+    if (peristiwa?.origin !== self.location.origin) {
+      throw new Error("Asal pesan worker tidak diizinkan");
+    }
     if (!pesan || typeof pesan !== "object" || typeof pesan.jenis !== "string") {
       throw new Error("Pesan worker tidak sah");
     }
