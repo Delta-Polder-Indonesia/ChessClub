@@ -100,6 +100,17 @@ Status ditulis sebagai teks. Warna bukan satu-satunya penanda status
 (`DESIGN.md` §10). Bila butuh membedakan, gunakan teks, ketebalan huruf, atau
 posisi, bukan hue.
 
+Kotak berlatar abu juga dilarang di Pengurus. Elemen yang memakai latar
+`bg-slate-50/100/200` bersama `rounded-lg` dan `border` dianggap kotak terisi dan
+ditolak. Konten tampil pada bidang putih dengan garis tipis; latar abu hanya sah
+sebagai state interaksi (`hover:`, `focus:`, `active:`, `disabled:`) atau bagian
+struktur tabel (kepala tabel, footer pagination). Tindakan cepat ditulis sebagai
+baris terbuka dengan pemisah tipis, bukan kartu berisi.
+
+Kedua larangan ini diuji `scripts/uji-standar-desain.mjs` **sebelum** mekanisme
+baseline, jadi tidak bisa diredam dengan `npm run desain:baseline`. Memperlunak
+atau menghapus pemeriksaannya butuh persetujuan pemilik repo.
+
 Komitmen: pola lencana berwarna di dashboard Pengurus tidak dibuat lagi pada
 perubahan berikutnya, termasuk oleh agen yang membaca skill ini. Bila menemukan
 pola lama seperti itu, laporkan dan ganti dengan teks netral sebelum menambah

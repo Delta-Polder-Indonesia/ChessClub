@@ -179,6 +179,12 @@ function hitungUntukAturan(isi, pola, diizinkan, _file) {
   );
 }
 
+// Kotak berlatar abu (kartu/kotak terisi) dilarang di dashboard Pengurus.
+// Konten memakai bidang putih dengan garis tipis; latar abu hanya boleh sebagai
+// state interaksi (`hover:`, `focus:`, `active:`, `disabled:`) atau di dalam
+// struktur tabel (kepala tabel dan footer pagination).
+const LATAR_ABU = /(?:^|[\s"'`])bg-slate-(?:50|100|200)\b/;
+
 /**
  * Cari kelas warna semantik di src/halaman/Pengurus/ dan laporkan per baris.
  * Komentar baris (`// …`) dibuang lebih dulu agar catatan dokumentasi yang
@@ -196,6 +202,16 @@ function periksaWarnaPengurus() {
       if (!kode) return;
       for (const cocok of kode.matchAll(HUE_SEMANTIK)) {
         temuan.push(`${relatif}:${i + 1} memakai ${cocok[0]}`);
+      }
+      // Kotak berlatar abu: latar slate + sudut membulat + garis sekaligus.
+      if (
+        LATAR_ABU.test(kode) &&
+        /\brounded-lg\b/.test(kode) &&
+        /\bborder\b/.test(kode)
+      ) {
+        temuan.push(
+          `${relatif}:${i + 1} memakai kotak berlatar abu (bg-slate + rounded-lg + border)`
+        );
       }
     });
   }
@@ -253,8 +269,9 @@ if (warnaPengurus.length) {
   for (const baris of warnaPengurus) console.error(`- ${baris}`);
   console.error(
     "\nDashboard Pengurus tidak memakai warna semantik (hijau/merah/kuning/biru) " +
-      "untuk status. Tulis status sebagai teks netral: text-slate-700 atau lencana " +
-      "bg-slate-100. Lihat DESIGN.md §1 dan skill kci-anti-slop §4b."
+      "untuk status, dan tidak memakai kotak berlatar abu. Tulis status sebagai teks " +
+      "netral dan tampilkan konten pada bidang putih dengan garis tipis. " +
+      "Lihat DESIGN.md §1 dan skill kci-anti-slop §4b."
   );
   process.exit(1);
 }

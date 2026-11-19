@@ -36,14 +36,15 @@ export default function RingkasanDashboard({ ringkas, onBuka, hitam }) {
           catatan={ringkas.verifikasi?.oauthAktif ? "login Chess.com aktif" : "kode profil"} />
       </div>
 
-      {/* Tindakan cepat: bentuknya sengaja beda dari kartu statistik supaya
-          terbaca sebagai tautan, bukan angka. */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      {/* Tindakan cepat: baris terbuka dengan pemisah tipis, tanpa kotak
+          berlatar. Kotak berisi latar abu dilarang di panel Pengurus
+          (dijaga uji-standar-desain). */}
+      <div className="divide-y divide-slate-200 border-y border-slate-200">
         <TooltipLabel label="Klik untuk membuka pesan masuk">
           <button
             type="button"
             onClick={() => onBuka("pesan")}
-            className="flex w-full items-center justify-between gap-4 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-left transition-colors hover:border-primary/40 hover:bg-slate-100"
+            className="flex w-full items-center justify-between gap-4 py-3 text-left transition-colors hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
           >
             <span>
               <span className="block text-sm font-semibold text-slate-900">
@@ -54,16 +55,9 @@ export default function RingkasanDashboard({ ringkas, onBuka, hitam }) {
                 {ringkas.pesan?.total ?? 0} pesan
               </span>
             </span>
-            <svg
-              className="size-4 shrink-0 text-primary"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-            </svg>
+            <span className="shrink-0 text-xs font-semibold text-primary">
+              Buka
+            </span>
           </button>
         </TooltipLabel>
 
@@ -71,7 +65,7 @@ export default function RingkasanDashboard({ ringkas, onBuka, hitam }) {
           <button
             type="button"
             onClick={() => onBuka("larangan", "otomatis")}
-            className="flex w-full items-center justify-between gap-4 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-left transition-colors hover:border-primary/40 hover:bg-slate-100"
+            className="flex w-full items-center justify-between gap-4 py-3 text-left transition-colors hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
           >
             <span>
               <span className="block text-sm font-semibold text-slate-900">
@@ -81,16 +75,9 @@ export default function RingkasanDashboard({ ringkas, onBuka, hitam }) {
                 {banOtomatis} akun terblokir karena Fair Play
               </span>
             </span>
-            <svg
-              className="size-4 shrink-0 text-primary"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-            </svg>
+            <span className="shrink-0 text-xs font-semibold text-primary">
+              Buka
+            </span>
           </button>
         </TooltipLabel>
       </div>

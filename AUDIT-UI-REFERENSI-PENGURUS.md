@@ -146,6 +146,11 @@ Warna status terlarang di dashboard Pengurus:
 - src/halaman/Pengurus/PanelKonten.jsx:47 memakai text-emerald-700
 ```
 
+Pemeriksaan kedua menolak kotak berlatar abu: elemen dengan `bg-slate-50/100/200`
+sekaligus `rounded-lg` dan `border`. Dua tindakan cepat di Ringkasan Dashboard
+sebelumnya memakai pola itu; sekarang menjadi baris terbuka dengan pemisah tipis
+dan tautan teks "Buka", tanpa kotak.
+
 Pemeriksaan ini berjalan **sebelum** mekanisme baseline, sehingga
 `npm run desain:baseline` tidak bisa mengabsahkan pelanggaran baru. Uji ini ikut
 `npm run uji:desain` dan sudah berada di jalur CI lewat `npm run uji:v1:ui-engine`
