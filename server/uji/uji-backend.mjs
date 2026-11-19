@@ -567,7 +567,7 @@ console.log("\nKeamanan endpoint pengurus");
 
     const daftarMasuk = await panggil("GET", "/api/pengurus/riwayat-masuk");
     cek("ambil riwayat masuk -> 200", daftarMasuk.status === 200 && Array.isArray(daftarMasuk.data));
-    cek("riwayat memuat entri login terbaru", daftarMasuk.data?.some((r) => r.id === entriId && r.username === "magnuscarlsen"));
+    cek("riwayat memuat entri login terbaru", daftarMasuk.data?.some((r) => r.id === entriId && r.username === "admin"));
 
     const ringkasSesudahMasuk = await panggil("GET", "/api/pengurus/ringkasan");
     cek("ringkasan memuat statistik riwayat masuk", typeof ringkasSesudahMasuk.data?.riwayatMasuk?.total === "number" && ringkasSesudahMasuk.data?.riwayatMasuk?.total >= 1);
