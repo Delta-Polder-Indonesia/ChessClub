@@ -30,13 +30,15 @@ yang ditambahkan — MUI/Amplify/CRA sengaja **tidak** diadopsi. Yang diambil ha
 | Banner "Add Users" (bilah judul berwarna + isi form + tombol simpan di tengah) | Kartu "Tambah Admin Baru" dengan bilah judul `bg-primary` | `Pengaturan.jsx` |
 | Display box halaman Settings | Kartu "Akun Saat Ini" dengan baris `divide-y` | `Pengaturan.jsx` |
 | Search bar Topbar (kotak terisi) | Kotak pencarian `bg-slate-100` → putih saat fokus, di Anggota & Larangan | `Anggota.jsx`, `Larangan.jsx` |
+| Label grup menu sidebar | `grup` di `MENU_SIDEBAR` → judul kecil uppercase (Utama / Komunitas / Konten / E-Book) | `SidebarData.js`, `Sidebar.jsx` |
 | Kartu ringkasan statistik | `Kartu` jadi kartu putih ber-border + `shadow-sm`; dipakai di Ringkasan, Kelola Admin, Riwayat Masuk | `ui.jsx`, `RingkasanDashboard.jsx`, `RiwayatMasuk.jsx` |
 | Badge status berikon pada tabel | Lencana status Terverifikasi (hijau), Terblokir/Fair-Play (merah), Sumber Otomatis (biru) | `Anggota.jsx`, `Larangan.jsx` |
 
 ## 3. Yang sengaja **tidak** diambil
 
-- **Sidebar (utama & Pengaturan)** — sengaja **tidak** diubah; navigasi tetap versi
-  lama. Adaptasi hanya menyentuh area konten.
+- **Blok identitas + badge role di sidebar, dan sidebar Pengaturan** — tidak dipakai.
+  Sidebar utama hanya mendapat **label grup menu**; susunan, ikon, dan animasi menu
+  tetap versi lama.
 - **Tema gelap & aksen hijau neon** — bertabrakan dengan `DESIGN.md` (tema terang,
   primary biru `#0B2F9F`).
 - **Gradien ungu/pink pada header DataGrid** — dilarang `DESIGN.md`.
@@ -57,14 +59,17 @@ yang ditambahkan — MUI/Amplify/CRA sengaja **tidak** diadopsi. Yang diambil ha
   Header dan sidebar Pengaturan **tidak diubah**.
 - `RiwayatMasuk.jsx` — `KepalaPanel` + statistik memakai `Kartu`.
 - `Audit.jsx` — `KepalaPanel`, filter dalam kartu.
+- `SidebarData.js` / `Sidebar.jsx` — field `grup` + label kelompok menu (satu baris
+  kecil per kelompok, hanya saat sidebar terbuka).
 - `RingkasanDashboard.jsx` — kartu aktivitas memakai `Kartu` (tanpa border ganda).
 - `Pesan.jsx`, `PanelTurnamen.jsx`, `PanelJuara.jsx`, `PanelKonten.jsx`, `PanelEbook.jsx`
   — judul panel konsisten lewat `KepalaPanel`; lencana status konten jadi pill.
 
 ## 5. Kepatuhan `DESIGN.md`
 
-- Sidebar utama, `SidebarData.js`, dan `Dashboard.jsx` (shell) tetap versi lama —
-  tidak ada perubahan pada navigasi.
+- Sidebar utama hanya ditambah label grup (`grup` di `SidebarData.js`); tidak ada
+  blok identitas, perubahan susunan menu, atau perubahan animasi. Sidebar Pengaturan
+  dan `Dashboard.jsx` (shell) tetap versi lama.
 - Token brand dipakai apa adanya (`primary`, slate, white) — tanpa hex baru.
 - Tidak ada `text-[11px]`/`text-[10px]` baru; beberapa yang lama di file tersentuh
   dinaikkan ke `text-xs` (12px).
