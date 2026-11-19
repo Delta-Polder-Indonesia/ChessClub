@@ -331,7 +331,8 @@ export default function Dashboard() {
         nama: `@${h.username}`,
         subjek: "Pelanggaran fair play",
         teks: h.keterangan || h.alasan || "Diblokir otomatis",
-        dibaca: false,
+        // Catatan fair play bersifat informasional, bukan notifikasi berstatus baca.
+        dibaca: true,
         sumber: h,
       }));
     return [...dariPesan, ...dariEbook, ...dariFairPlay]
