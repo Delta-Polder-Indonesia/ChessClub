@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { apiPengurus } from "../../lib/api/index.js";
 import { LencanaBan } from "../../components/Lencana.jsx";
-import { Tombol, Avatar, Modal, MenuAksi, TooltipLabel } from "./ui.jsx";
+import { Tombol, Avatar, Modal, MenuAksi, TooltipLabel, KepalaPanel, Lencana } from "./ui.jsx";
 import {
   Table,
   TableBody,
@@ -202,6 +202,27 @@ export default function PanelAnggota({
 
   return (
     <div className="space-y-5">
+      <KepalaPanel
+        judul="Anggota"
+        subjudul="Kelola roster anggota klub dari Chess.com"
+        aksi={
+          <>
+            <Tombol
+              anak={sibuk === "segarkan" ? "Menyegarkan…" : "Segarkan dari Chess.com"}
+              onClick={segarkanRoster}
+              kecil
+              disabled={sibuk === "segarkan" || sibuk === "pindai"}
+            />
+            <Tombol
+              anak={sibuk === "pindai" ? "Memindai…" : "Pindai Fair Play"}
+              onClick={pindai}
+              kecil
+              jenis="utama"
+              disabled={sibuk === "pindai" || sibuk === "segarkan"}
+            />
+          </>
+        }
+      />
       {/* ── Peringatan Ban ─────────────────────────────────── */}
       {anggotaTerblokir.length > 0 && (
         <p className="flex items-center gap-2 text-sm text-slate-700">
@@ -223,8 +244,10 @@ export default function PanelAnggota({
         )}
 
       {/* ── Filter Tabs + Pencarian ──────────────────────────── */}
-      <div className="flex items-center justify-between gap-4">
-        <div className="relative flex-1 max-w-xs ml-2">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        {/* Kotak pencarian — adaptasi search bar Topbar referensi: kotak
+            terisi abu-abu dengan ikon di kiri, bukan garis bawah saja. */}
+        <div className="relative w-full max-w-xs">
           <svg className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
@@ -233,7 +256,7 @@ export default function PanelAnggota({
             value={cari}
             onChange={(e) => setCari(e.target.value)}
             placeholder="Cari nama, username, atau kota…"
-            className="w-full border-0 border-b border-slate-300 bg-transparent pl-9 pr-3 py-2 text-sm outline-none placeholder:text-slate-400 focus:border-slate-600"
+            className="w-full rounded-md border border-slate-200 bg-slate-100 py-2 pl-9 pr-3 text-sm outline-none placeholder:text-slate-400 focus:border-primary focus:bg-white"
           />
         </div>
         <div className="flex items-center gap-1">
@@ -261,18 +284,6 @@ export default function PanelAnggota({
               </span>
             </button>
           ))}
-          <Tombol
-            anak={sibuk === "segarkan" ? "Menyegarkan…" : "Segarkan dari Chess.com"}
-            onClick={segarkanRoster}
-            kecil
-            disabled={sibuk === "segarkan" || sibuk === "pindai"}
-          />
-          <Tombol
-            anak={sibuk === "pindai" ? "Memindai…" : "Pindai Fair Play"}
-            onClick={pindai}
-            kecil
-            disabled={sibuk === "pindai" || sibuk === "segarkan"}
-          />
         </div>
       </div>
 
@@ -299,16 +310,16 @@ export default function PanelAnggota({
       )}
 
       {/* ── Tabel ───────────────────────────────────────────── */}
-      <div>
-        <p className="text-xs text-slate-500 mb-1">
-          Menampilkan <span className="font-medium text-slate-700">{anggotaTersaring.length}</span> dari {anggota.length} anggota
+      <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+        <p className="border-b border-slate-200 px-4 py-2.5 text-sm text-slate-600">
+          Menampilkan <span className="font-semibold text-slate-900">{anggotaTersaring.length}</span> dari {anggota.length} anggota
         </p>
 
         <div className="max-h-[480px] overflow-y-auto">
           <Table className="table-fixed">
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-10 px-3">
+            <TableHeader className="bg-slate-50">
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="w-10 border-b border-slate-200 px-3">
                   <input
                     type="checkbox"
                     checked={semuaTerpilih}
@@ -317,13 +328,13 @@ export default function PanelAnggota({
                     className="size-4 accent-primary"
                   />
                 </TableHead>
-                <TableHead className="w-10 px-3">#</TableHead>
-                <TableHead className="px-3">Anggota</TableHead>
-                <TableHead className="px-3">Kota</TableHead>
-                <TableHead className="px-3">Rating</TableHead>
-                <TableHead className="px-3">LIVE</TableHead>
-                <TableHead className="px-3">Status</TableHead>
-                <TableHead className="w-24 px-3">Aksi</TableHead>
+                <TableHead className="w-10 border-b border-slate-200 px-3 text-xs font-semibold uppercase tracking-wide text-slate-600">#</TableHead>
+                <TableHead className="border-b border-slate-200 px-3 text-xs font-semibold uppercase tracking-wide text-slate-600">Anggota</TableHead>
+                <TableHead className="border-b border-slate-200 px-3 text-xs font-semibold uppercase tracking-wide text-slate-600">Kota</TableHead>
+                <TableHead className="border-b border-slate-200 px-3 text-xs font-semibold uppercase tracking-wide text-slate-600">Rating</TableHead>
+                <TableHead className="border-b border-slate-200 px-3 text-xs font-semibold uppercase tracking-wide text-slate-600">LIVE</TableHead>
+                <TableHead className="border-b border-slate-200 px-3 text-xs font-semibold uppercase tracking-wide text-slate-600">Status</TableHead>
+                <TableHead className="w-24 border-b border-slate-200 px-3 text-xs font-semibold uppercase tracking-wide text-slate-600">Aksi</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -381,9 +392,9 @@ export default function PanelAnggota({
                     <TableCell className="p-3">
                       {kenaBanBaris ? (
                         <div>
-                          <span className="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
+                          <Lencana warna="merah">
                             {a.alasanStatus === "fair_play_violations" ? "Fair Play" : "Terblokir"}
-                          </span>
+                          </Lencana>
                           {a.peringatan && (
                             <p className="mt-0.5 text-xs text-slate-500 max-w-[200px] truncate">
                               <TooltipLabel label={a.peringatan}>{a.peringatan}</TooltipLabel>
@@ -391,9 +402,7 @@ export default function PanelAnggota({
                           )}
                         </div>
                       ) : a.terverifikasi ? (
-                        <span className="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
-                          Terverifikasi
-                        </span>
+                        <Lencana warna="hijau">Terverifikasi</Lencana>
                       ) : (
                         "—"
                       )}

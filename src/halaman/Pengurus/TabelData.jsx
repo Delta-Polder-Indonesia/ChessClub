@@ -177,23 +177,40 @@ export default function TabelData({
   }, [ukuranHalaman, tabel]);
 
   const jumlahTampil = tabel.getFilteredRowModel().rows.length;
+  const indeksHalaman = tabel.getState().pagination.pageIndex;
+  const awalBaris = jumlahTampil === 0 ? 0 : indeksHalaman * ukuranHalaman + 1;
+  const akhirBaris = Math.min(
+    (indeksHalaman + 1) * ukuranHalaman,
+    jumlahTampil
+  );
 
   if (!data.length) {
     return <>{ruangKosong}</>;
   }
 
   return (
-    <div>
-      <div className="mb-2 flex justify-end">
+    <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+      <div className="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-2.5">
+        <p className="text-sm text-slate-600">
+          Menampilkan{" "}
+          <span className="font-semibold text-slate-900">
+            {awalBaris}–{akhirBaris}
+          </span>{" "}
+          dari <span className="font-semibold text-slate-900">{jumlahTampil}</span>{" "}
+          {labelItem}
+        </p>
         <MenuKolom tabel={tabel} />
       </div>
       <div className="overflow-auto">
         <Table>
-          <TableHeader>
+          <TableHeader className="bg-slate-50">
             {tabel.getHeaderGroups().map((hg) => (
-              <TableRow key={hg.id}>
+              <TableRow key={hg.id} className="hover:bg-transparent">
                 {hg.headers.map((h) => (
-                  <TableHead key={h.id} className="h-11 px-3">
+                  <TableHead
+                    key={h.id}
+                    className="h-11 border-b border-slate-200 px-3 text-xs font-semibold uppercase tracking-wide text-slate-600"
+                  >
                     {h.isPlaceholder
                       ? null
                       : flexRender(h.column.columnDef.header, h.getContext())}
@@ -225,43 +242,36 @@ export default function TabelData({
             )}
           </TableBody>
         </Table>
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-3">
-          <div className="flex items-center gap-2">
-            <p className="text-sm text-slate-600">
-              {jumlahTampil} {labelItem}.
-            </p>
-            <label className="flex items-center gap-1 text-sm text-slate-600">
-              Tampilkan
-              <select
-                value={ukuranHalaman}
-                onChange={(e) => setUkuranHalaman(Number(e.target.value))}
-                className="border-0 border-b border-slate-300 bg-transparent px-1 py-1 text-sm outline-none focus:border-primary"
-              >
-                <option value={10}>10</option>
-                <option value={25}>25</option>
-                <option value={50}>50</option>
-              </select>
-              baris
-            </label>
-          </div>
-          <div className="flex items-center gap-2">
-            <Tombol
-              kecil={true}
-              anak="Sebelumnya"
-              disabled={!tabel.getCanPreviousPage()}
-              onClick={() => tabel.previousPage()}
-            />
-            <span className="text-sm text-slate-600">
-              Halaman {tabel.getState().pagination.pageIndex + 1} dari{" "}
-              {tabel.getPageCount()}
-            </span>
-            <Tombol
-              kecil={true}
-              anak="Berikutnya"
-              disabled={!tabel.getCanNextPage()}
-              onClick={() => tabel.nextPage()}
-            />
-          </div>
+      </div>
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 bg-slate-50 px-4 py-2.5">
+        <label className="flex items-center gap-2 text-sm text-slate-600">
+          Baris per halaman
+          <select
+            value={ukuranHalaman}
+            onChange={(e) => setUkuranHalaman(Number(e.target.value))}
+            className="rounded-md border border-slate-300 bg-white px-2 py-1 text-sm outline-none focus:border-primary"
+          >
+            <option value={10}>10</option>
+            <option value={25}>25</option>
+            <option value={50}>50</option>
+          </select>
+        </label>
+        <div className="flex items-center gap-2">
+          <Tombol
+            kecil={true}
+            anak="Sebelumnya"
+            disabled={!tabel.getCanPreviousPage()}
+            onClick={() => tabel.previousPage()}
+          />
+          <span className="text-sm text-slate-600">
+            Halaman {indeksHalaman + 1} dari {tabel.getPageCount()}
+          </span>
+          <Tombol
+            kecil={true}
+            anak="Berikutnya"
+            disabled={!tabel.getCanNextPage()}
+            onClick={() => tabel.nextPage()}
+          />
         </div>
       </div>
     </div>

@@ -1,7 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { apiPengurus } from "../../lib/api/index.js";
 import { parseWaktuKomunitas } from "../../lib/waktu.js";
-import { Tombol, Bidang, Modal, MenuAksi, Sheet, SkeletonTabel } from "./ui.jsx";
+import {
+  Tombol,
+  Bidang,
+  Modal,
+  MenuAksi,
+  Sheet,
+  SkeletonTabel,
+  KepalaPanel,
+} from "./ui.jsx";
 import {
   Table,
   TableHeader,
@@ -287,6 +295,10 @@ export default function PanelJuara({ beriTahu }) {
 
   return (
     <div className="space-y-4">
+      <KepalaPanel
+        judul="Juara Turnamen"
+        subjudul="Daftar pemenang tiap turnamen komunitas"
+      />
       {gagal && (
         <div className="flex items-center justify-end gap-4">
           <button

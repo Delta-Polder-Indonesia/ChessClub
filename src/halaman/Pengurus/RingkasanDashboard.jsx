@@ -42,36 +42,24 @@ export default function RingkasanDashboard({ ringkas, onBuka, hitam }) {
       {/* Kartu aktivitas */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
         <TooltipLabel label="Klik untuk membuka pesan masuk">
-          <div
-            onClick={() => onBuka("pesan")}
-            className="cursor-pointer transition-transform active:scale-95 rounded-lg border border-slate-200 bg-white p-4 text-center"
-          >
-          <p className="text-2xl font-bold text-slate-900">
-            {ringkas.pesan?.belumDibaca ?? 0}
-          </p>
-          <p className="mt-0.5 text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">
-            Pesan Masuk
-          </p>
-          <p className="mt-0.5 text-xs text-slate-500">
-            {ringkas.pesan?.total ?? 0} total
-          </p>
-        </div>
+          <div onClick={() => onBuka("pesan")} className="cursor-pointer transition-transform active:scale-95">
+            <Kartu
+              label="Pesan Masuk"
+              nilai={ringkas.pesan?.belumDibaca ?? 0}
+              catatan={`${ringkas.pesan?.total ?? 0} total`}
+              warna={ringkas.pesan?.belumDibaca ? "biru" : "slate"}
+            />
+          </div>
         </TooltipLabel>
         <TooltipLabel label="Klik untuk melihat larangan otomatis">
-          <div
-            onClick={() => onBuka("larangan", "otomatis")}
-            className="cursor-pointer transition-transform active:scale-95 rounded-lg border border-slate-200 bg-white p-4 text-center"
-          >
-          <p className="text-2xl font-bold text-slate-700">
-            {banOtomatis}
-          </p>
-          <p className="mt-0.5 text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">
-            Blokir Otomatis
-          </p>
-          <p className="mt-0.5 text-xs text-slate-500">
-            Fair Play
-          </p>
-        </div>
+          <div onClick={() => onBuka("larangan", "otomatis")} className="cursor-pointer transition-transform active:scale-95">
+            <Kartu
+              label="Blokir Otomatis"
+              nilai={banOtomatis}
+              catatan="Fair Play"
+              warna={banOtomatis ? "merah" : "slate"}
+            />
+          </div>
         </TooltipLabel>
       </div>
     </div>

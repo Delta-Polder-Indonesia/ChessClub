@@ -17,8 +17,9 @@ export function Tombol({ anak, onClick, jenis = "biasa", kecil, className, ...si
     biasa:
       "border-slate-300 text-slate-700 hover:bg-slate-100 disabled:opacity-40",
     utama:
-      "border-primary text-primary hover:bg-blue-50 disabled:opacity-40",
-    bahaya: "border-slate-300 text-slate-700 hover:bg-slate-100 disabled:opacity-40",
+      "border-primary bg-primary text-white hover:bg-blue-800 disabled:opacity-40",
+    bahaya:
+      "border-red-300 text-red-700 hover:bg-red-50 disabled:opacity-40",
   }[jenis];
   return (
     <button
@@ -31,6 +32,54 @@ export function Tombol({ anak, onClick, jenis = "biasa", kecil, className, ...si
     >
       {anak}
     </button>
+  );
+}
+
+/**
+ * Kepala panel — adaptasi komponen Header dashboard referensi (judul besar
+ * + subjudul aksen di bawahnya). Satu pintu untuk judul setiap panel
+ * pengurus agar hierarki konsisten: judul text-lg bold, subjudul text-sm
+ * aksen primary. `aksi` opsional untuk tombol di sisi kanan.
+ */
+export function KepalaPanel({ judul, subjudul, aksi }) {
+  return (
+    <div className="flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <h2 className="text-lg font-bold leading-tight text-slate-900">
+          {judul}
+        </h2>
+        {subjudul && (
+          <p className="mt-0.5 text-sm font-medium text-primary">{subjudul}</p>
+        )}
+      </div>
+      {aksi && <div className="flex items-center gap-2">{aksi}</div>}
+    </div>
+  );
+}
+
+/**
+ * Lencana status/role — adaptasi pill "Access Level" (Admin hijau / Staff
+ * biru) pada tabel Users dashboard referensi. Warna netral terang agar
+ * lolos kontras di tema terang ChessClub:
+ *   hijau  → terverifikasi / master
+ *   biru   → pengurus / info
+ *   merah  → terblokir / bahaya
+ *   abu    → netral
+ */
+export function Lencana({ anak, warna = "abu", ikon }) {
+  const gaya = {
+    hijau: "bg-emerald-50 text-emerald-700 ring-emerald-200",
+    biru: "bg-blue-50 text-blue-800 ring-blue-200",
+    merah: "bg-red-50 text-red-700 ring-red-200",
+    abu: "bg-slate-100 text-slate-700 ring-slate-200",
+  }[warna];
+  return (
+    <span
+      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-inset ${gaya}`}
+    >
+      {ikon}
+      {anak}
+    </span>
   );
 }
 
@@ -429,19 +478,24 @@ export function Sheet({
 export function Kartu({ label, nilai, catatan, warna = "slate" }) {
   const warnaTeks = {
     slate: "text-slate-900",
-    merah: "text-slate-700",
-    hijau: "text-slate-700",
+    merah: "text-red-700",
+    hijau: "text-emerald-700",
     biru: "text-primary",
   }[warna];
   return (
-    <div className="flex h-full flex-col pb-3 text-center">
-      <p className={`text-2xl font-bold ${warnaTeks}`}>{nilai}</p>
+    <div className="flex h-full flex-col rounded-lg border border-slate-200 bg-white px-4 py-4 text-center shadow-sm">
+      <p
+        className={`truncate text-2xl font-bold leading-tight ${warnaTeks}`}
+        title={typeof nilai === "string" ? nilai : undefined}
+      >
+        {nilai}
+      </p>
       <p className="mt-0.5 text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">
         {label}
       </p>
       {catatan && <p className="mt-0.5 text-xs text-slate-500">{catatan}</p>}
       <div className="mx-auto mt-auto w-24 pt-2">
-        <div className="border-b border-slate-300"></div>
+        <div className="border-b border-slate-200"></div>
       </div>
     </div>
   );

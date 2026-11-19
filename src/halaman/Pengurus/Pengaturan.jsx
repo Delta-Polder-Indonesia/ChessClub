@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import PanelRiwayatMasuk from "./RiwayatMasuk.jsx";
 import PanelAudit from "./Audit.jsx";
-import { Tombol, Bidang, Modal, SkeletonTabel } from "./ui.jsx";
+import { Tombol, Bidang, Modal, SkeletonTabel, KepalaPanel, Lencana, Kartu } from "./ui.jsx";
 import TabelData from "./TabelData.jsx";
 import Marquee from "../../components/ui/marquee.jsx";
 import {
@@ -21,30 +21,35 @@ const MENU_PENGATURAN = [
   {
     kunci: "kelola-admin",
     label: "Kelola Admin",
+    grup: "Admin",
     icon: "M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z",
     masterOnly: true,
   },
   {
     kunci: "akun",
     label: "Akun & Password",
+    grup: "Admin",
     icon: "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z",
     masterOnly: true,
   },
   {
     kunci: "riwayat-masuk",
     label: "Riwayat Masuk",
+    grup: "Jejak",
     icon: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z",
     masterOnly: true,
   },
   {
     kunci: "jejak-audit",
     label: "Jejak Audit",
+    grup: "Jejak",
     icon: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z",
     masterOnly: true,
   },
   {
     kunci: "umum",
     label: "Pengaturan Umum",
+    grup: "Lainnya",
     icon: "M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z",
     masterOnly: false,
   },
@@ -184,16 +189,18 @@ function PanelKelolaAdmin({ beriTahu }) {
         accessorKey: "username",
         header: "Username",
         cell: ({ row }) => (
-          <span className="font-mono text-sm">@{row.original.username}</span>
+          <span className="font-mono text-sm font-semibold text-primary">
+            @{row.original.username}
+          </span>
         ),
       },
       {
         accessorKey: "role",
         header: "Role",
         cell: ({ row }) => (
-          <span className="text-xs font-semibold text-slate-700">
+          <Lencana warna={row.original.role === "master" ? "hijau" : "biru"}>
             {row.original.role === "master" ? "MASTER" : "PENGURUS"}
-          </span>
+          </Lencana>
         ),
       },
       {
@@ -278,6 +285,10 @@ function PanelKelolaAdmin({ beriTahu }) {
 
   return (
     <div className="max-w-6xl space-y-6">
+      <KepalaPanel
+        judul="Kelola Admin"
+        subjudul="Tambah, ubah, dan hapus akun pengurus dashboard"
+      />
       {galat && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3">
           <p className="text-sm font-medium text-slate-800">
@@ -288,84 +299,85 @@ function PanelKelolaAdmin({ beriTahu }) {
         </div>
       )}
       <div>
-        <h3 className="text-sm font-bold text-slate-900">Ringkasan Admin</h3>
-        <div className="grid grid-cols-3 gap-3 text-center">
-          <div className="pb-3">
-            <div className="text-lg font-bold text-slate-900">{admins.length}</div>
-            <div className="text-xs text-slate-500">Total Admin</div>
-            <div className="mx-auto mt-2 w-24 border-b border-slate-300"></div>
-          </div>
-          <div className="pb-3">
-            <div className="text-lg font-bold text-slate-900">{masterCount}</div>
-            <div className="text-xs text-slate-500">Master Admin</div>
-            <div className="mx-auto mt-2 w-24 border-b border-slate-300"></div>
-          </div>
-          <div className="pb-3">
-            <div className="text-lg font-bold text-slate-900">{pengurusCount}</div>
-            <div className="text-xs text-slate-500">Admin Pengurus</div>
-            <div className="mx-auto mt-2 w-24 border-b border-slate-300"></div>
-          </div>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <Kartu label="Total Admin" nilai={admins.length} warna="biru" />
+          <Kartu label="Master Admin" nilai={masterCount} warna="hijau" />
+          <Kartu label="Admin Pengurus" nilai={pengurusCount} />
         </div>
-        <p className="mt-3 text-[11px] leading-5 text-slate-500">
+        <p className="mt-3 text-xs leading-5 text-slate-500">
           <strong>Master Admin</strong> bisa akses Pengaturan, tambah/hapus admin, dan lihat riwayat masuk. <strong>Admin Pengurus</strong> hanya bisa kelola anggota, turnamen, pesan, berita — tidak bisa masuk Pengaturan.
         </p>
       </div>
 
-      <form onSubmit={tambah} className="space-y-4">
-        <h3 className="text-sm font-bold text-slate-900">Tambah Admin Baru</h3>
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
-          <Bidang
-            label="Username"
-            type="text"
-            value={form.username}
-            onChange={(e) => setForm((f) => ({ ...f, username: e.target.value }))}
-            placeholder="contoh: pengurus1"
-            required
-            className="w-44"
-          />
-          <Bidang
-            label="Password"
-            type={lihatSandi ? "text" : "password"}
-            value={form.password}
-            onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
-            placeholder="minimal 12 karakter"
-            minLength={12}
-            required
-            className="w-44"
-          />
-          <button
-            type="button"
-            onClick={() => setLihatSandi((v) => !v)}
-            className="text-xs text-slate-600 hover:text-slate-900"
-          >
-            {lihatSandi ? "Sembunyikan" : "Lihat"} password
-          </button>
-          <label className="flex items-center gap-2 text-sm text-slate-700">
-            Role:
-            <select
-              value={form.role}
-              onChange={(e) => setForm((f) => ({ ...f, role: e.target.value }))}
-              className="w-40 border-0 border-b border-slate-300 bg-transparent px-1 py-1 text-sm outline-none focus:border-primary"
-            >
-              <option value="pengurus">Admin Pengurus</option>
-              <option value="master">Master Admin</option>
-            </select>
-          </label>
-          <Tombol
-            type="submit"
-            jenis="biasa"
-            disabled={sibuk}
-            anak={sibuk ? "Menambahkan..." : "Tambah Admin"}
-          />
+      {/* Kartu form tambah admin — adaptasi banner "Add Users" referensi:
+          bilah judul warna brand di atas, isi form di bawahnya, tombol
+          simpan di tengah. */}
+      <form
+        onSubmit={tambah}
+        className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm"
+      >
+        <div className="bg-primary px-4 py-3 text-center">
+          <h3 className="text-sm font-bold uppercase tracking-wide text-white">
+            Tambah Admin Baru
+          </h3>
         </div>
-        <p className="text-[11px] leading-5 text-slate-500">
-          Admin Pengurus tidak bisa akses Pengaturan. Hanya Master yang bisa tambah/hapus admin dan lihat riwayat masuk.
-          Password minimal 12 karakter (kebijakan server) dan tidak boleh memakai password bawaan.
-        </p>
+        <div className="space-y-4 p-5">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Bidang
+              label="Username"
+              type="text"
+              value={form.username}
+              onChange={(e) => setForm((f) => ({ ...f, username: e.target.value }))}
+              placeholder="contoh: pengurus1"
+              required
+            />
+            <Bidang
+              label="Password"
+              type={lihatSandi ? "text" : "password"}
+              value={form.password}
+              onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
+              placeholder="minimal 12 karakter"
+              minLength={12}
+              required
+            />
+          </div>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
+            <button
+              type="button"
+              onClick={() => setLihatSandi((v) => !v)}
+              className="text-xs font-medium text-slate-600 hover:text-slate-900"
+            >
+              {lihatSandi ? "Sembunyikan" : "Lihat"} password
+            </button>
+            <label className="flex items-center gap-2 text-sm text-slate-700">
+              Role:
+              <select
+                value={form.role}
+                onChange={(e) => setForm((f) => ({ ...f, role: e.target.value }))}
+                className="rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm outline-none focus:border-primary"
+              >
+                <option value="pengurus">Admin Pengurus</option>
+                <option value="master">Master Admin</option>
+              </select>
+            </label>
+          </div>
+          <div className="flex justify-center pt-1">
+            <Tombol
+              type="submit"
+              jenis="utama"
+              disabled={sibuk}
+              anak={sibuk ? "Menambahkan..." : "Tambah Admin"}
+            />
+          </div>
+          <p className="text-xs leading-5 text-slate-500">
+            Admin Pengurus tidak bisa akses Pengaturan. Hanya Master yang bisa tambah/hapus admin dan lihat riwayat masuk.
+            Password minimal 12 karakter (kebijakan server) dan tidak boleh memakai password bawaan.
+          </p>
+        </div>
       </form>
 
       <div>
-        <h3 className="text-sm font-bold text-slate-900">Daftar Admin</h3>
+        <h3 className="mb-2 text-sm font-bold text-slate-900">Daftar Admin</h3>
         <TabelData
           data={admins}
           kolom={kolomAdmin}
@@ -463,92 +475,110 @@ function PanelAkun({ beriTahu }) {
 
   return (
     <div className="max-w-6xl space-y-8">
-      <div className="flex flex-col md:flex-row items-start gap-6">
-        <div className="w-80 shrink-0 rounded-lg border border-slate-200 bg-white p-5">
-        <h3 className="text-sm font-bold text-slate-900">Akun Saat Ini (Master)</h3>
-        <div className="mt-3 space-y-2 text-sm">
-          <div className="flex justify-between">
-            <span className="text-slate-500">Username</span>
-            <span className="font-mono font-bold text-slate-900">{info?.username || username}</span>
+      <KepalaPanel
+        judul="Akun & Password"
+        subjudul="Ubah username dan password akun master kamu"
+      />
+      <div className="grid items-start gap-6 md:grid-cols-[20rem_minmax(0,1fr)]">
+        {/* Kartu ringkas akun — pola "display box" halaman Settings referensi. */}
+        <aside className="rounded-lg border border-slate-200 bg-white shadow-sm">
+          <div className="border-b border-slate-200 px-4 py-3">
+            <h3 className="text-sm font-bold text-slate-900">
+              Akun Saat Ini (Master)
+            </h3>
           </div>
-          <div className="flex justify-between">
-            <span className="text-slate-500">Role</span>
-            <span className="text-xs font-semibold text-slate-700">
-              {isMaster ? "MASTER ADMIN" : "ADMIN PENGURUS"}
-            </span>
+          <div className="divide-y divide-slate-100 text-sm">
+            <div className="flex items-center justify-between gap-3 px-4 py-2.5">
+              <span className="text-slate-500">Username</span>
+              <span className="truncate font-mono font-bold text-primary">
+                {info?.username || username}
+              </span>
+            </div>
+            <div className="flex items-center justify-between gap-3 px-4 py-2.5">
+              <span className="text-slate-500">Role</span>
+              <Lencana warna={isMaster ? "hijau" : "biru"}>
+                {isMaster ? "MASTER ADMIN" : "ADMIN PENGURUS"}
+              </Lencana>
+            </div>
+            <div className="flex items-center justify-between gap-3 px-4 py-2.5">
+              <span className="text-slate-500">Sumber</span>
+              <span className="text-slate-700">
+                {info?.sumber === "file" ? "File admins.json" : "Env / bawaan"}
+              </span>
+            </div>
           </div>
-          <div className="flex justify-between">
-            <span className="text-slate-500">Sumber</span>
-            <span className="text-slate-700">{info?.sumber === "file" ? "File admins.json" : "Env / bawaan"}</span>
+          <p className="border-t border-slate-100 px-4 py-3 text-xs leading-5 text-slate-500">
+            Bawaan lokal: <code className="font-mono">admin / admin123</code>{" "}
+            sebagai Master. Perubahan di sini tersimpan di{" "}
+            <code className="font-mono">data/rahasia/admins.json</code> (tidak
+            masuk Git) dan langsung aktif. Pada FULL VERCEL, berkas runtime
+            berada di <code className="font-mono">/tmp</code> sehingga bisa
+            hilang saat redeploy/cold start; untuk permanen ubah env{" "}
+            <code className="font-mono">KCI_ADMIN_PASSWORD</code> lalu redeploy.
+          </p>
+        </aside>
+
+        <form
+          onSubmit={simpan}
+          className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm"
+        >
+          <div className="border-b border-slate-200 bg-slate-50 px-4 py-3">
+            <h3 className="text-sm font-bold text-slate-900">
+              Ganti Username &amp; Password Sendiri
+            </h3>
           </div>
-        </div>
+          <div className="space-y-4 p-5">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <Bidang
+                label="Username"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="admin"
+              />
+              <Bidang
+                label="Password lama"
+                type={lihat ? "text" : "password"}
+                value={passLama}
+                onChange={(e) => setPassLama(e.target.value)}
+                placeholder="password saat ini"
+                required
+              />
+              <Bidang
+                label="Password baru"
+                type={lihat ? "text" : "password"}
+                value={passBaru}
+                onChange={(e) => setPassBaru(e.target.value)}
+                placeholder="minimal 12 karakter"
+                required
+              />
+              <Bidang
+                label="Konfirmasi"
+                type={lihat ? "text" : "password"}
+                value={passKonf}
+                onChange={(e) => setPassKonf(e.target.value)}
+                placeholder="ulang password baru"
+                required
+              />
+            </div>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={() => setLihat((v) => !v)}
+                className="text-xs font-medium text-slate-600 hover:text-slate-900"
+              >
+                {lihat ? "Sembunyikan password" : "Lihat password"}
+              </button>
+              <Tombol
+                type="submit"
+                jenis="utama"
+                disabled={sibuk}
+                anak={sibuk ? "Menyimpan..." : "Simpan Password Baru"}
+              />
+            </div>
+          </div>
+        </form>
       </div>
-        <p className="text-[11px] leading-5 text-slate-500 md:mt-3">
-          Bawaan lokal: <code className="font-mono">admin / admin123</code> sebagai Master.
-          Perubahan di sini tersimpan di <code className="font-mono">data/rahasia/admins.json</code>{" "}
-          (tidak masuk Git) dan langsung aktif. Pada FULL VERCEL, berkas runtime berada di{" "}
-          <code className="font-mono">/tmp</code> sehingga bisa hilang saat redeploy/cold start; untuk permanen ubah env{" "}
-          <code className="font-mono">KCI_ADMIN_PASSWORD</code> lalu redeploy.
-        </p>
-      </div>
-
-      <form onSubmit={simpan} className="space-y-4">
-        <h3 className="text-sm font-bold text-slate-900">Ganti Username & Password Sendiri</h3>
-
-        <div className="space-y-4 max-w-xl">
-          <Bidang
-            label="Username"
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            placeholder="admin"
-            className="w-64"
-          />
-          <Bidang
-            label="Password lama"
-            type={lihat ? "text" : "password"}
-            value={passLama}
-            onChange={(e) => setPassLama(e.target.value)}
-            placeholder="admin123"
-            required
-            className="w-64"
-          />
-          <Bidang
-            label="Password baru"
-            type={lihat ? "text" : "password"}
-            value={passBaru}
-            onChange={(e) => setPassBaru(e.target.value)}
-            placeholder="minimal 12 karakter"
-            required
-            className="w-64"
-          />
-          <Bidang
-            label="Konfirmasi"
-            type={lihat ? "text" : "password"}
-            value={passKonf}
-            onChange={(e) => setPassKonf(e.target.value)}
-            placeholder="ulang password baru"
-            required
-            className="w-64"
-          />
-        </div>
-
-        <div className="flex items-center justify-between max-w-xl">
-          <button
-            type="button"
-            onClick={() => setLihat((v) => !v)}
-            className="text-xs text-slate-600 hover:text-slate-900"
-          >
-            {lihat ? "Sembunyikan password" : "Lihat password"}
-          </button>
-          <Tombol
-            type="submit"
-            jenis="biasa"
-            disabled={sibuk}
-            anak={sibuk ? "Menyimpan..." : "Simpan Password Baru"}
-          />
-        </div>
-      </form>
     </div>
   );
 }
@@ -586,10 +616,17 @@ export default function Pengaturan({ onKembali, beriTahu, kabar }) {
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      <header className="bg-white border-b border-slate-200 px-6 py-3 shrink-0">
-        <div className="flex items-center gap-4">
-          <h1 className="text-lg font-bold text-slate-900">Pengaturan (Master Admin)</h1>
-          <span className="ml-2 text-xs font-semibold text-slate-600">MASTER ONLY</span>
+      <header className="shrink-0 border-b border-slate-200 bg-white px-6 py-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h1 className="text-lg font-bold leading-tight text-slate-900">
+              Pengaturan
+            </h1>
+            <p className="mt-0.5 text-sm font-medium text-primary">
+              Kelola admin, keamanan akun, dan jejak aktivitas pengurus
+            </p>
+          </div>
+          <Lencana warna="hijau">Master Only</Lencana>
         </div>
       </header>
 
@@ -597,29 +634,46 @@ export default function Pengaturan({ onKembali, beriTahu, kabar }) {
 
       <div className="flex flex-1 min-h-0">
         <aside className="w-56 bg-white border-r border-slate-200 shrink-0 overflow-y-auto flex flex-col">
+          {/* Blok identitas — adaptasi sidebar referensi: nama + role di atas menu. */}
+          <div className="border-b border-slate-200 px-4 py-4 text-center">
+            <p className="truncate text-base font-bold text-slate-900">
+              {adminPengguna.ambil() || "Master"}
+            </p>
+            <div className="mt-1.5 flex justify-center">
+              <Lencana warna="hijau">Master Admin</Lencana>
+            </div>
+          </div>
           <nav className="p-3 space-y-1 flex-1">
-            {MENU_PENGATURAN.map(({ kunci, label, icon }) => {
+            {MENU_PENGATURAN.map(({ kunci, label, icon, grup }, i) => {
               const aktif = bagian === kunci;
+              const tampilLabelGrup =
+                grup && MENU_PENGATURAN[i - 1]?.grup !== grup;
               return (
-                <button
-                  key={kunci}
-                  type="button"
-                  onClick={() => setBagian(kunci)}
-className={`
-                  w-full text-sm font-medium
-                  flex items-center gap-3
-                  px-3 py-2 border
-                  transition-colors duration-150
-                  ${aktif
-                    ? "text-slate-900 border-slate-900 rounded-md"
-                    : "text-slate-700 border-transparent hover:bg-slate-100"}
-                `}
-                >
-                  <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={icon} />
-                  </svg>
-                  {label}
-                </button>
+                <div key={kunci}>
+                  {tampilLabelGrup && (
+                    <p className="px-3 pb-1 pt-3 text-xs font-semibold uppercase tracking-[0.1em] text-slate-400">
+                      {grup}
+                    </p>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setBagian(kunci)}
+                    className={`
+                      w-full text-sm font-medium
+                      flex items-center gap-3
+                      px-3 py-2 border
+                      transition-colors duration-150
+                      ${aktif
+                        ? "rounded-md border-primary/30 bg-blue-50 font-semibold text-primary"
+                        : "rounded-md border-transparent text-slate-700 hover:bg-slate-100"}
+                    `}
+                  >
+                    <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={icon} />
+                    </svg>
+                    {label}
+                  </button>
+                </div>
               );
             })}
           </nav>
@@ -641,9 +695,20 @@ className={`
           {bagian === "jejak-audit" && <PanelAudit beriTahu={beriTahu} />}
           {bagian === "akun" && <PanelAkun beriTahu={beriTahu} />}
           {bagian === "umum" && (
-            <div className="rounded-lg border border-dashed border-slate-300 bg-white p-12 text-center">
-              <p className="text-sm text-slate-500">Pengaturan umum akan segera tersedia.</p>
-              <p className="mt-2 text-xs text-slate-400">Master Admin: {adminPengguna.ambil()} | Role: {peranPengurus.ambil()}</p>
+            <div className="max-w-6xl space-y-6">
+              <KepalaPanel
+                judul="Pengaturan Umum"
+                subjudul="Preferensi umum dashboard pengurus"
+              />
+              <div className="rounded-lg border border-dashed border-slate-300 bg-white p-12 text-center">
+                <p className="text-sm font-medium text-slate-600">
+                  Pengaturan umum akan segera tersedia.
+                </p>
+                <p className="mt-2 text-xs text-slate-400">
+                  Master Admin: {adminPengguna.ambil()} | Role:{" "}
+                  {peranPengurus.ambil()}
+                </p>
+              </div>
             </div>
           )}
         </main>

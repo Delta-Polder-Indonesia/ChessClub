@@ -10,7 +10,14 @@ import {
   useLegacyTable,
 } from "@tanstack/react-table/legacy";
 import { apiPengurus } from "../../lib/api/index.js";
-import { Tombol, Bidang, Modal, MenuAksi, SkeletonTabel } from "./ui.jsx";
+import {
+  Tombol,
+  Bidang,
+  Modal,
+  MenuAksi,
+  SkeletonTabel,
+  KepalaPanel,
+} from "./ui.jsx";
 import {
   Table,
   TableBody,
@@ -35,8 +42,16 @@ const STATUS = {
 
 function Lencana({ status }) {
   const s = STATUS[status] || STATUS.draf;
+  const gaya =
+    status === "publik"
+      ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
+      : "bg-slate-100 text-slate-700 ring-slate-200";
   return (
-    <span className="text-sm text-slate-700">{s.teks}</span>
+    <span
+      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-inset ${gaya}`}
+    >
+      {s.teks}
+    </span>
   );
 }
 
@@ -683,9 +698,13 @@ function PanelKonten({ konfig, beriTahu, muatUlang }) {
   const bereskanSeleksi = () => setRowSelection({});
 
   return (
-    <div>
+    <div className="space-y-4">
+      <KepalaPanel
+        judul={konfig.label}
+        subjudul={`Kelola isi ${konfig.label.toLowerCase()} yang tampil di situs`}
+      />
       {!formulir && (
-        <div className="mb-4 flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <MenuStatus
             nilai={saring}
             onPilih={setSaring}

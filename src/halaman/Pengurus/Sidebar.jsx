@@ -8,12 +8,22 @@
  *   - label margin-left    → 0 ↔ 12px
  */
 
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { MENU_SIDEBAR } from "./SidebarData.js";
-import { TooltipLabel } from "./ui.jsx";
+import { Lencana, TooltipLabel } from "./ui.jsx";
 
-export default function Sidebar({ tab, setTab, terbuka, halamanEbook, onPilihEbook }) {
+export default function Sidebar({
+  tab,
+  setTab,
+  terbuka,
+  halamanEbook,
+  onPilihEbook,
+  pengguna,
+  peran,
+}) {
   const [bukaSub, setBukaSub] = useState({});
+  const isMaster = (peran || "").toLowerCase() === "master";
+  let grupSebelumnya = null;
 
   return (
     <aside
@@ -26,6 +36,20 @@ export default function Sidebar({ tab, setTab, terbuka, halamanEbook, onPilihEbo
         ${terbuka ? "w-64" : "w-[52px]"}
       `}
     >
+      {/* Blok identitas — adaptasi sidebar referensi: nama pengguna besar
+          di tengah + role aksen di bawahnya, selalu terlihat saat terbuka. */}
+      {terbuka && pengguna && (
+        <div className="border-b border-slate-200 px-4 py-4 text-center">
+          <p className="truncate text-base font-bold text-slate-900">
+            {pengguna}
+          </p>
+          <div className="mt-1.5 flex justify-center">
+            <Lencana warna={isMaster ? "hijau" : "biru"}>
+              {isMaster ? "Master Admin" : "Admin Pengurus"}
+            </Lencana>
+          </div>
+        </div>
+      )}
       <nav className={`
         flex-1 py-3 space-y-1
         ${terbuka
@@ -33,13 +57,21 @@ export default function Sidebar({ tab, setTab, terbuka, halamanEbook, onPilihEbo
           : "overflow-y-visible"
         }
       `}>
-        {MENU_SIDEBAR.map(({ kunci, label, icon, anak }) => {
+        {MENU_SIDEBAR.map(({ kunci, label, icon, anak, grup }) => {
           const aktif = tab === kunci;
           const punyaAnak = Array.isArray(anak) && anak.length > 0;
           const buka = !!bukaSub[kunci];
+          const tampilLabelGrup = terbuka && grup && grup !== grupSebelumnya;
+          if (grup) grupSebelumnya = grup;
 
           return (
-            <div key={kunci}>
+            <Fragment key={kunci}>
+              {tampilLabelGrup && (
+                <p className="px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-[0.1em] text-slate-400">
+                  {grup}
+                </p>
+              )}
+            <div>
               <TooltipLabel label={terbuka ? undefined : label}>
                 <button
                   type="button"
@@ -144,6 +176,7 @@ export default function Sidebar({ tab, setTab, terbuka, halamanEbook, onPilihEbo
                 </ul>
               )}
             </div>
+            </Fragment>
           );
         })}
       </nav>

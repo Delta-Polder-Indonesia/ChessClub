@@ -1,6 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
 import { apiPengurus, jenisTurnamen } from "../../lib/api/index.js";
-import { Tombol, Modal, MenuAksi, SkeletonTabel, NotifikasiError } from "./ui.jsx";
+import {
+  Tombol,
+  Modal,
+  MenuAksi,
+  SkeletonTabel,
+  NotifikasiError,
+  KepalaPanel,
+} from "./ui.jsx";
 import {
   Table,
   TableBody,
@@ -136,6 +143,10 @@ export default function PanelTurnamen({ beriTahu, muatUlang, saatBukaRincian }) 
 
   return (
     <div className="space-y-4">
+      <KepalaPanel
+        judul="Turnamen"
+        subjudul="Jadwal dan hasil turnamen komunitas"
+      />
       <div className="flex flex-wrap items-center gap-3">
         <Tombol
           anak={buatBaru ? "Tutup formulir" : "+ Turnamen baru"}

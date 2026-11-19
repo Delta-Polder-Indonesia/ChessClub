@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { apiPengurus } from "../../lib/api/index.js";
-import { Modal, SkeletonTabel } from "./ui.jsx";
+import { Modal, SkeletonTabel, KepalaPanel, Lencana } from "./ui.jsx";
 
 function waktuPesan(iso) {
   if (!iso) return "";
@@ -226,6 +226,13 @@ export default function PanelPesan({
   /* ── Daftar pesan: email-style list ───────────────────── */
   return (
     <div className="space-y-4">
+      <KepalaPanel
+        judul="Pesan Masuk"
+        subjudul="Pesan dan masukan dari pengunjung situs"
+        aksi={
+          adaTerpilih ? <Lencana warna="biru">{adaTerpilih} dipilih</Lencana> : null
+        }
+      />
       {(galat || adaTerpilih) && (
         <div className="flex items-center justify-end gap-3">
           {galat && (

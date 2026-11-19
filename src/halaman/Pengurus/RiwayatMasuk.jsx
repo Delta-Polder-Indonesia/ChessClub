@@ -4,7 +4,17 @@ import {
   hapusRiwayatMasuk,
   bersihkanRiwayatMasuk,
 } from "../../lib/api/index.js";
-import { Tombol, Modal, Avatar, KotakGalatMuat, SkeletonTabel, TooltipLabel } from "./ui.jsx";
+import {
+  Tombol,
+  Modal,
+  Avatar,
+  KotakGalatMuat,
+  SkeletonTabel,
+  TooltipLabel,
+  KepalaPanel,
+  Lencana,
+  Kartu,
+} from "./ui.jsx";
 import TabelData from "./TabelData.jsx";
 
 /* ========================================================
@@ -274,7 +284,7 @@ export default function PanelRiwayatMasuk({ beriTahu }) {
                 {/* Bukan tautan chess.com — username login adalah akun
                     admin dashboard, belum tentu akun Chess.com. */}
                 <span className="font-bold text-slate-900">{u}</span>
-                <p className="text-[11px] text-slate-400">Pengurus Komunitas</p>
+                <p className="text-xs text-slate-400">Pengurus Komunitas</p>
               </div>
             </div>
           );
@@ -320,7 +330,7 @@ export default function PanelRiwayatMasuk({ beriTahu }) {
               <p className="font-mono text-xs font-semibold text-slate-900">
                 {w.jam}
               </p>
-              <p className="text-[11px] text-slate-400">{w.relatif}</p>
+              <p className="text-xs text-slate-400">{w.relatif}</p>
             </div>
           );
         },
@@ -381,85 +391,57 @@ export default function PanelRiwayatMasuk({ beriTahu }) {
   return (
     <div className="space-y-6">
       {/* ── Header Bagian ──────────────────────────────────── */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-3">
-            <h2 className="text-xl font-bold text-slate-900">
-              Riwayat Masuk Pengurus
-            </h2>
-            <span className="text-xs font-semibold text-slate-600">
-              {riwayat.length} Catatan
-            </span>
-          </div>
-          <p className="mt-1 text-sm text-slate-600">
-            Mendeteksi dan mencatat siapa saja yang login ke bagian pengurus
-            berdasarkan akun admin, hari, tanggal, bulan, tahun, jam, serta
-            alamat IP.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Tombol
-            anak={memuat ? "Memuat…" : "Muat Ulang"}
-            onClick={muatData}
-            disabled={memuat || sibuk !== ""}
-          />
-          {riwayat.length > 0 && (
+      <KepalaPanel
+        judul="Riwayat Masuk Pengurus"
+        subjudul="Mencatat login admin: akun, waktu, perangkat, dan alamat IP"
+        aksi={
+          <>
+            <Lencana warna="abu">{riwayat.length} catatan</Lencana>
             <Tombol
-              anak="Bersihkan Semua"
-              jenis="bahaya"
-              onClick={() => setKonfirmasiBersihkan(true)}
-              disabled={sibuk !== ""}
+              anak={memuat ? "Memuat…" : "Muat Ulang"}
+              onClick={muatData}
+              disabled={memuat || sibuk !== ""}
             />
-          )}
-        </div>
-      </div>
+            {riwayat.length > 0 && (
+              <Tombol
+                anak="Bersihkan Semua"
+                jenis="bahaya"
+                onClick={() => setKonfirmasiBersihkan(true)}
+                disabled={sibuk !== ""}
+              />
+            )}
+          </>
+        }
+      />
 
       {/* ── Statistik Kartu ───────────────────────────────── */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <div className="border-b border-slate-300 pb-4 text-center">
-          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-            Total Sesi Masuk
-          </p>
-          <p className="mt-1 text-2xl font-bold text-slate-900">
-            {riwayat.length}
-          </p>
-          <p className="mt-0.5 text-xs text-slate-500">Sepanjang riwayat</p>
-        </div>
-
-        <div className="border-b border-slate-300 pb-4 text-center">
-          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-            Akun Pengurus
-          </p>
-          <p className="mt-1 text-2xl font-bold text-primary">
-            {akunUnik.length}
-          </p>
-          <p className="mt-0.5 text-xs text-slate-500">Akun admin unik</p>
-        </div>
-
-        <div className="border-b border-slate-300 pb-4 text-center">
-          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-            Hari Ini
-          </p>
-          <p className="mt-1 text-2xl font-bold text-slate-800">
-            {jumlahHariIni}
-          </p>
-          <p className="mt-0.5 text-xs text-slate-500">Aktivitas masuk hari ini</p>
-        </div>
-
-        <div className="border-b border-slate-300 pb-4 text-center">
-          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-            Masuk Terakhir
-          </p>
-          <p className="mt-1 truncate text-lg font-bold text-slate-900">
-            {riwayat[0]?.username ? `@${riwayat[0].username}` : "—"}
-          </p>
-          <p className="mt-0.5 truncate text-xs text-slate-500">
-            {riwayat[0]?.waktu
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <Kartu
+          label="Total Sesi Masuk"
+          nilai={riwayat.length}
+          catatan="Sepanjang riwayat"
+        />
+        <Kartu
+          label="Akun Pengurus"
+          nilai={akunUnik.length}
+          catatan="Akun admin unik"
+          warna="biru"
+        />
+        <Kartu
+          label="Hari Ini"
+          nilai={jumlahHariIni}
+          catatan="Aktivitas masuk hari ini"
+          warna="hijau"
+        />
+        <Kartu
+          label="Masuk Terakhir"
+          nilai={riwayat[0]?.username ? `@${riwayat[0].username}` : "—"}
+          catatan={
+            riwayat[0]?.waktu
               ? formatWaktuLengkap(riwayat[0].waktu).relatif
-              : "Belum ada"}
-          </p>
-        </div>
+              : "Belum ada"
+          }
+        />
       </div>
 
       {/* ── Filter & Pencarian ─────────────────────────────── */}

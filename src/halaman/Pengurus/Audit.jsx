@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { apiPengurus } from "../../lib/api/index.js";
-import { KotakGalatMuat, Tombol, Bidang, SkeletonTabel } from "./ui.jsx";
+import { KotakGalatMuat, Tombol, Bidang, SkeletonTabel, KepalaPanel } from "./ui.jsx";
 import TabelData from "./TabelData.jsx";
 
 const BULAN = [
@@ -146,8 +146,15 @@ export default function PanelAudit({ beriTahu }) {
   );
 
   return (
-    <section>
-      <form onSubmit={terapkanFilter} className="flex flex-wrap items-center gap-x-6 gap-y-3 mb-4">
+    <section className="space-y-4">
+      <KepalaPanel
+        judul="Jejak Audit"
+        subjudul="Rekam aktivitas pengurus dalam 90 hari terakhir"
+      />
+      <form
+        onSubmit={terapkanFilter}
+        className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm"
+      >
         <Bidang
           label="Aksi"
           value={aksi}

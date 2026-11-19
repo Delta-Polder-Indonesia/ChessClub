@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { apiPengurus } from "../../lib/api/index.js";
-import { Tombol, Modal, Avatar, TooltipLabel } from "./ui.jsx";
+import { Tombol, Modal, Avatar, TooltipLabel, KepalaPanel, Lencana } from "./ui.jsx";
 import {
   Table,
   TableBody,
@@ -154,6 +154,10 @@ export default function PanelLarangan({
 
   return (
     <div className="space-y-5">
+      <KepalaPanel
+        judul="Daftar Larangan"
+        subjudul="Akun yang dibatasi dari kegiatan komunitas"
+      />
       {/* ── Peringatan Ban Otomatis ─────────────────────────── */}
 {jumlahOtomatis > 0 && (
         <p className="flex items-center gap-2 text-sm text-slate-700">
@@ -175,8 +179,8 @@ export default function PanelLarangan({
       )}
 
       {/* ── Filter Tabs + Pencarian + Cek HP ──────────────────── */}
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3 ml-2">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center gap-3">
           <div className="relative">
             <svg className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -186,7 +190,7 @@ export default function PanelLarangan({
               value={cariAkun}
               onChange={(e) => setCariAkun(e.target.value)}
               placeholder="Cari username atau alasan…"
-              className="w-52 border-0 border-b border-slate-300 bg-transparent pl-9 pr-3 py-2 text-sm outline-none placeholder:text-slate-400 focus:border-slate-600"
+              className="w-52 rounded-md border border-slate-200 bg-slate-100 py-2 pl-9 pr-3 text-sm outline-none placeholder:text-slate-400 focus:border-primary focus:bg-white"
             />
           </div>
           <div className="h-4 w-px bg-slate-300" />
@@ -196,7 +200,7 @@ export default function PanelLarangan({
               value={cariNomor}
               onChange={(e) => setCariNomor(e.target.value)}
               placeholder="Cek nomor HP: 0812-3456-7890"
-              className="w-52 border-0 border-b border-slate-300 bg-transparent px-3 py-2 text-sm outline-none placeholder:text-slate-400 focus:border-slate-600"
+              className="w-52 rounded-md border border-slate-200 bg-slate-100 px-3 py-2 text-sm outline-none placeholder:text-slate-400 focus:border-primary focus:bg-white"
             />
             <Tombol
               type="submit"
@@ -263,16 +267,16 @@ export default function PanelLarangan({
       )}
 
       {/* ── Tabel ───────────────────────────────────────────── */}
-      <div>
-        <p className="text-xs text-slate-500 mb-1">
-          Menampilkan <span className="font-medium text-slate-700">{dataTersaring.length}</span> dari {hitam.length} akun
+      <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+        <p className="border-b border-slate-200 px-4 py-2.5 text-sm text-slate-600">
+          Menampilkan <span className="font-semibold text-slate-900">{dataTersaring.length}</span> dari {hitam.length} akun
         </p>
 
         <div className="max-h-[480px] overflow-y-auto">
           <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-10 px-3">
+            <TableHeader className="bg-slate-50">
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="w-10 border-b border-slate-200 px-3">
                   <input
                     type="checkbox"
                     checked={semuaTerpilih}
@@ -281,12 +285,12 @@ export default function PanelLarangan({
                     className="size-4 accent-primary"
                   />
                 </TableHead>
-                <TableHead className="w-10 px-3">#</TableHead>
-                <TableHead className="px-3">Akun</TableHead>
-                <TableHead className="px-3">Alasan</TableHead>
-                <TableHead className="px-3">Sumber</TableHead>
-                <TableHead className="px-3">Tanggal Blokir</TableHead>
-                <TableHead className="w-24 px-3">Aksi</TableHead>
+                <TableHead className="w-10 border-b border-slate-200 px-3 text-xs font-semibold uppercase tracking-wide text-slate-600">#</TableHead>
+                <TableHead className="border-b border-slate-200 px-3 text-xs font-semibold uppercase tracking-wide text-slate-600">Akun</TableHead>
+                <TableHead className="border-b border-slate-200 px-3 text-xs font-semibold uppercase tracking-wide text-slate-600">Alasan</TableHead>
+                <TableHead className="border-b border-slate-200 px-3 text-xs font-semibold uppercase tracking-wide text-slate-600">Sumber</TableHead>
+                <TableHead className="border-b border-slate-200 px-3 text-xs font-semibold uppercase tracking-wide text-slate-600">Tanggal Blokir</TableHead>
+                <TableHead className="w-24 border-b border-slate-200 px-3 text-xs font-semibold uppercase tracking-wide text-slate-600">Aksi</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -318,9 +322,9 @@ export default function PanelLarangan({
                       </div>
                     </TableCell>
                     <TableCell className="p-3">
-                      <span className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-medium bg-slate-100 text-slate-700">
+                      <Lencana warna={h.alasan === "fair_play_violations" ? "merah" : "abu"}>
                         {h.alasan === "fair_play_violations" ? "Fair Play" : "Keputusan Pengurus"}
-                      </span>
+                      </Lencana>
                       {h.keterangan && (
                         <p className="mt-0.5 text-sm text-slate-500 max-w-[240px] truncate">
                           <TooltipLabel label={h.keterangan}>{h.keterangan}</TooltipLabel>
@@ -328,9 +332,9 @@ export default function PanelLarangan({
                       )}
                     </TableCell>
                     <TableCell className="p-3">
-                      <span className="text-slate-700">
+                      <Lencana warna={isOtomatis ? "biru" : "abu"}>
                         {isOtomatis ? "Otomatis" : "Pengurus"}
-                      </span>
+                      </Lencana>
                     </TableCell>
                     <TableCell className="p-3">{formatTanggal(h.diblokirPada)}</TableCell>
                     <TableCell className="w-24 p-3">
