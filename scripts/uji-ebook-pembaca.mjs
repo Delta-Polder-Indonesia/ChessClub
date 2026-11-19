@@ -124,8 +124,9 @@ uji("sumberEbook: berkas statis dulu, lalu proxy tanpa tiket", () => {
   benar(parsed.searchParams.get("tiket") === null, "membaca via proxy tidak boleh menuntut tiket");
   benar(parsed.searchParams.get("unduh") === null, "membaca tidak boleh meminta attachment");
   for (const url of daftar) {
-    benar(!url.includes("media.githubusercontent.com"), "GitHub Media tidak boleh masuk bundle browser");
-    benar(!/^https?:/i.test(url), `sumber tidak same-origin: ${url}`);
+    const parsedUrl = new URL(url, "https://contoh.id");
+    benar(parsedUrl.origin === "https://contoh.id", `sumber tidak same-origin: ${url}`);
+    benar(parsedUrl.hostname !== "media.githubusercontent.com", "GitHub Media tidak boleh masuk bundle browser");
   }
 });
 
