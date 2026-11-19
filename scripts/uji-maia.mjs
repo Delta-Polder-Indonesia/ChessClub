@@ -114,6 +114,7 @@ if (existsSync(BERKAS_PEKERJA)) {
   const sumber = readFileSync(BERKAS_PEKERJA, "utf8");
   hasil("worker menyebut lisensi Maia (GPL-3.0)", sumber.includes("GPL-3.0"));
   hasil("worker memuat runtime lewat importScripts", sumber.includes("importScripts"));
+  hasil("worker menolak pesan dari origin berbeda", sumber.includes("peristiwa?.origin !== self.location.origin"));
   hasil("worker memakai satu utas (tanpa COEP tidak ada SharedArrayBuffer)", /numThreads\s*=\s*1/.test(sumber));
   hasil("worker menyimpan bobot di IndexedDB", sumber.includes("indexedDB") && sumber.includes("Blob"));
   // Skrip klasik: sekali ada `export`/`import` di tingkat atas, importScripts
