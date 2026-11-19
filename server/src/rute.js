@@ -694,7 +694,7 @@ export function daftarkanRute(router, { mulaiPada }) {
     // Identitas riwayat harus berasal dari sesi yang diverifikasi server.
     // Body request tidak boleh memilih akun yang dicatat.
     const admin = dapatkanAdminDariRequest(req);
-    const username = admin?.username || konteks.pengguna || "pengurus";
+    const username = admin?.username || "pengurus";
     const userAgent = req.headers["user-agent"] || "";
     const entri = await catatRiwayatMasuk({
       username,
