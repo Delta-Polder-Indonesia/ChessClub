@@ -59,7 +59,8 @@ function PanelKelolaAdmin({ beriTahu }) {
   const [editTarget, setEditTarget] = useState(null); // username yang sedang diedit
   const [editData, setEditData] = useState({ password: "", role: "pengurus" });
   const [targetHapus, setTargetHapus] = useState(null); // username yang akan dihapus
-  const [lihatSandi, setLihatSandi] = useState(false);
+  const [lihatSandiFor, setLihatSandiFor] = useState(null); // username yang passwordnya ditampilkan (edit)
+  const [lihatSandi, setLihatSandi] = useState(false); // toggle password lihat (tambah)
 
   const muat = useCallback(async () => {
     setLoading(true);
@@ -112,6 +113,11 @@ function PanelKelolaAdmin({ beriTahu }) {
     const username = targetHapus;
     setTargetHapus(null);
     if (!username) return;
+    const target = admins.find((a) => a.username === username);
+    if (target?.role === "master" && masterCount <= 1) {
+      beriTahu?.("Master admin terakhir tidak dapat dihapus.", "galat");
+      return;
+    }
     setSibuk(true);
     try {
       const res = await hapusAdmin(username);
@@ -127,6 +133,19 @@ function PanelKelolaAdmin({ beriTahu }) {
   const simpanEdit = async (username) => {
     if (editData.password && editData.password.length < 12) {
       beriTahu?.("Password minimal 12 karakter.", "galat");
+      return;
+    }
+    if (editData.password === "admin123") {
+      beriTahu?.("Password bawaan admin123 tidak diizinkan.", "galat");
+      return;
+    }
+    const target = admins.find((a) => a.username === username);
+    if (
+      target?.role === "master" &&
+      editData.role !== "master" &&
+      masterCount <= 1
+    ) {
+      beriTahu?.("Master admin terakhir tidak dapat diubah menjadi pengurus.", "galat");
       return;
     }
     try {
@@ -153,11 +172,11 @@ function PanelKelolaAdmin({ beriTahu }) {
   const adminRef = useRef({
     editTarget,
     editData,
-    lihatSandi,
+    lihatSandiFor,
     jumlahAdmin: admins.length,
     simpanEdit,
   });
-  adminRef.current = { editTarget, editData, lihatSandi, jumlahAdmin: admins.length, simpanEdit };
+  adminRef.current = { editTarget, editData, lihatSandiFor, jumlahAdmin: admins.length, simpanEdit };
 
   const kolomAdmin = useMemo(
     () => [
@@ -218,7 +237,7 @@ function PanelKelolaAdmin({ beriTahu }) {
                 <div className="mt-2 rounded border border-slate-200 bg-slate-50 p-3 text-left space-y-2">
                   <div className="text-xs font-bold text-slate-700">Edit {a.username}</div>
                   <input
-                    type={adminRef.current.lihatSandi ? "text" : "password"}
+                    type={lihatSandiFor === a.username ? "text" : "password"}
                     value={adminRef.current.editData.password}
                     onChange={(e) => setEditData((d) => ({ ...d, password: e.target.value }))}
                     placeholder="Password baru min. 12 karakter (kosongkan jika tidak ganti)"
@@ -234,6 +253,15 @@ function PanelKelolaAdmin({ beriTahu }) {
                   </select>
                   <div className="flex gap-2">
                     <Tombol anak="Simpan" kecil jenis="utama" onClick={() => adminRef.current.simpanEdit(a.username)} />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setLihatSandiFor(lihatSandiFor === a.username ? null : a.username)
+                      }
+                      className="text-xs text-slate-600 hover:text-slate-900"
+                    >
+                      {lihatSandiFor === a.username ? "Sembunyikan" : "Lihat"} password
+                    </button>
                     <Tombol anak="Batal" kecil onClick={() => setEditTarget(null)} />
                   </div>
                 </div>
@@ -243,7 +271,7 @@ function PanelKelolaAdmin({ beriTahu }) {
         },
       },
     ],
-    [setEditTarget, setEditData, setTargetHapus]
+    [setEditTarget, setEditData, setTargetHapus, lihatSandiFor]
   );
 
   if (loading) return <SkeletonTabel jumlahBaris={4} />;
@@ -371,7 +399,7 @@ function PanelKelolaAdmin({ beriTahu }) {
 function PanelAkun({ beriTahu }) {
   const [info, setInfo] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [username, setUsername] = useState(adminPengguna.ambil() || "admin");
+  const [username, setUsername] = useState(adminPengguna.ambil() || "");
   const [passLama, setPassLama] = useState("");
   const [passBaru, setPassBaru] = useState("");
   const [passKonf, setPassKonf] = useState("");
@@ -570,7 +598,7 @@ export default function Pengaturan({ onKembali, beriTahu, kabar }) {
       <div className="flex flex-1 min-h-0">
         <aside className="w-56 bg-white border-r border-slate-200 shrink-0 overflow-y-auto flex flex-col">
           <nav className="p-3 space-y-1 flex-1">
-            {MENU_PENGATURAN.filter((m) => !m.masterOnly || isMaster).map(({ kunci, label, icon }) => {
+            {MENU_PENGATURAN.map(({ kunci, label, icon }) => {
               const aktif = bagian === kunci;
               return (
                 <button
