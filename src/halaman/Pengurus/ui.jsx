@@ -470,7 +470,7 @@ export function MenuAksi({ onUbah, onHapus, aksi }) {
             role="menu"
             aria-label="Menu aksi"
             style={{ top: posisi.top, right: posisi.right }}
-            className="fixed z-50 min-w-[8rem] rounded-md border border-slate-300 bg-white p-1"
+            className="pengurus-portal fixed z-50 min-w-[8rem] rounded-md border border-slate-300 bg-white p-1"
           >
             {daftar.map(({ label, Ikon, onClick, bahaya, disabled }) => (
               <button
@@ -535,7 +535,7 @@ export function Sheet({
   return createPortal(
     <div
       aria-hidden={!terbuka}
-      className={`fixed inset-0 z-[70] transition-opacity duration-300 ${
+      className={`pengurus-portal fixed inset-0 z-[70] transition-opacity duration-300 ${
         terbuka ? "opacity-100" : "pointer-events-none opacity-0"
       }`}
       onClick={() => !isBusy && onTutup?.()}
