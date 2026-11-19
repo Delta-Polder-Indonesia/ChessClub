@@ -132,7 +132,27 @@ Yang tidak diubah: `LencanaBan` dan `CentangBiru` di `src/components/Lencana.jsx
 masih memakai warna karena dipakai bersama halaman publik (Peringkat, Keanggotaan).
 Mengubahnya mengubah halaman di luar Pengurus, jadi perlu keputusan terpisah.
 
-## 9. Batasan
+## 9. Penjaga otomatis di CI
+
+`scripts/uji-standar-desain.mjs` mendapat pemeriksaan khusus: setiap kelas warna
+semantik (`bg-|text-|border-|ring-|…` dengan hue emerald, green, red, rose, amber,
+yellow, orange, teal, lime, cyan, sky, violet, indigo, purple, fuchsia, pink, blue)
+di `src/halaman/Pengurus/` langsung menggagalkan uji, dengan laporan per baris:
+
+```
+Warna status terlarang di dashboard Pengurus:
+
+- src/halaman/Pengurus/PanelKonten.jsx:47 memakai bg-emerald-50
+- src/halaman/Pengurus/PanelKonten.jsx:47 memakai text-emerald-700
+```
+
+Pemeriksaan ini berjalan **sebelum** mekanisme baseline, sehingga
+`npm run desain:baseline` tidak bisa mengabsahkan pelanggaran baru. Uji ini ikut
+`npm run uji:desain` dan sudah berada di jalur CI lewat `npm run uji:v1:ui-engine`
+(`.github/workflows/quality.yml`). Aturannya dicatat di `DESIGN.md` §1 dan skill
+`kci-anti-slop` §4b.
+
+## 10. Batasan
 
 - Verifikasi visual di browser tidak dilakukan pada sesi ini. Pratinjau dev server
   tersedia di `/pengurus`, tetapi penilaian tampilan akhir belum diverifikasi mata.

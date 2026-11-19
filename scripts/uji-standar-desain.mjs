@@ -24,6 +24,15 @@ const AREA_CATUR = [
   "src/halaman/QuizCatur/",
 ];
 
+// Dashboard Pengurus tidak memakai warna semantik sebagai penanda status
+// (lihat DESIGN.md §1 "Aturan Warna" dan skill kci-anti-slop §4b). Aturan ini
+// sengaja TIDAK ikut mekanisme baseline: temuan sekecil apa pun langsung
+// menggagalkan uji, supaya lencana hijau/merah tidak bisa "diabsahkan" lewat
+// `npm run desain:baseline`.
+const AREA_PENGURUS = "src/halaman/Pengurus/";
+const HUE_SEMANTIK =
+  /\b(?:bg|text|border(?:-[a-z]+)?|ring(?:-[a-z]+)?|from|to|via|outline(?:-[a-z]+)?|divide|decoration|accent|fill|stroke|shadow(?:-[a-z]+)?)-(?:emerald|green|red|rose|amber|yellow|orange|teal|lime|cyan|sky|violet|indigo|purple|fuchsia|pink|blue)(?:-\d{2,3})?(?:\/\d{1,3})?\b/g;
+
 function termasukAreaKonten(relatif) {
   return AREA_KONTEN.some((awalan) => relatif.startsWith(awalan));
 }
@@ -170,6 +179,29 @@ function hitungUntukAturan(isi, pola, diizinkan, _file) {
   );
 }
 
+/**
+ * Cari kelas warna semantik di src/halaman/Pengurus/ dan laporkan per baris.
+ * Komentar baris (`// …`) dibuang lebih dulu agar catatan dokumentasi yang
+ * menyebut nama warna tidak dianggap pelanggaran.
+ */
+function periksaWarnaPengurus() {
+  const temuan = [];
+  const akarPengurus = path.join(AKAR, AREA_PENGURUS);
+  if (!fs.existsSync(akarPengurus)) return temuan;
+  for (const penuh of daftarBerkas(akarPengurus)) {
+    const relatif = path.relative(AKAR, penuh).replaceAll(path.sep, "/");
+    const isi = fs.readFileSync(penuh, "utf8");
+    isi.split("\n").forEach((baris, i) => {
+      const kode = siapkanBarisUntukCekHex(baris);
+      if (!kode) return;
+      for (const cocok of kode.matchAll(HUE_SEMANTIK)) {
+        temuan.push(`${relatif}:${i + 1} memakai ${cocok[0]}`);
+      }
+    });
+  }
+  return temuan;
+}
+
 function hitung() {
   const hasil = {};
   for (const penuh of daftarBerkas(path.join(AKAR, "src"))) {
@@ -213,6 +245,18 @@ function hitung() {
     if (Object.keys(temuan).length) hasil[relatif] = temuan;
   }
   return hasil;
+}
+
+const warnaPengurus = periksaWarnaPengurus();
+if (warnaPengurus.length) {
+  console.error("Warna status terlarang di dashboard Pengurus:\n");
+  for (const baris of warnaPengurus) console.error(`- ${baris}`);
+  console.error(
+    "\nDashboard Pengurus tidak memakai warna semantik (hijau/merah/kuning/biru) " +
+      "untuk status. Tulis status sebagai teks netral: text-slate-700 atau lencana " +
+      "bg-slate-100. Lihat DESIGN.md §1 dan skill kci-anti-slop §4b."
+  );
+  process.exit(1);
 }
 
 const sekarang = hitung();

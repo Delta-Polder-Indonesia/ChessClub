@@ -17,7 +17,7 @@ export function Tombol({ anak, onClick, jenis = "biasa", kecil, className, ...si
     biasa:
       "border-slate-300 text-slate-700 hover:bg-slate-100 disabled:opacity-40",
     utama:
-      "border-primary bg-primary text-white hover:bg-blue-800 disabled:opacity-40",
+      "border-primary bg-primary text-white hover:bg-primary/90 disabled:opacity-40",
     bahaya:
       "border-slate-900 text-slate-900 hover:bg-slate-100 disabled:opacity-40",
   }[jenis];
