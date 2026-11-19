@@ -1169,6 +1169,12 @@ uji("navigasi papan ketik tidak merobohkan halaman", !!domSiap.querySelector(".a
   const fetchAsli = globalThis.fetch;
   const fetchPalsu = (url) => {
     const u = String(url);
+    let host = "";
+    try {
+      host = new URL(u).hostname;
+    } catch {
+      host = "";
+    }
     if (u.includes("api.chess.com")) {
       if (u.includes("/games/archives")) {
         return Promise.resolve({
@@ -1204,7 +1210,7 @@ uji("navigasi papan ketik tidak merobohkan halaman", !!domSiap.querySelector(".a
         text: () => Promise.resolve(""),
       });
     }
-    if (u.includes("lichess.org")) {
+    if (host === "lichess.org" || host === "www.lichess.org") {
       return Promise.resolve({
         ok: true,
         status: 200,
