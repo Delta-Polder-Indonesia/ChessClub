@@ -110,9 +110,23 @@ uji(
   /npm run uji(?:\s|&&)/.test(paket.scripts["uji:rilis:v1"] ?? "")
 );
 
-const pembagianV1 = ["uji:v1:build-server", "uji:v1:ui-engine", "uji:v1:fitur-puzzle"];
+const pembagianV1 = [
+  "uji:v1:build-server",
+  "uji:v1:ui-engine",
+  "uji:v1:teka-teki-catur",
+  "uji:v1:rush",
+  "uji:v1:teka-teki-harian",
+  "uji:v1:kuis-catur",
+  "uji:v1:report-analisa",
+  "uji:v1:pembukaan",
+  "uji:v1:lawan-bot",
+  "uji:v1:ebook-panduan",
+  "uji:v1:latihan-repertoar",
+  "uji:v1:hand-brain",
+  "uji:v1:turing-test"
+];
 uji(
-  "tiga pecahan gerbang rilis v1 tersedia",
+  "seluruh pecahan gerbang rilis v1 tersedia",
   pembagianV1.every((nama) => typeof paket.scripts[nama] === "string" && paket.scripts[nama].trim()),
   pembagianV1.filter((nama) => !paket.scripts[nama]?.trim()).join(", ")
 );
