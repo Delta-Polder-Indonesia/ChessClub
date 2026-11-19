@@ -17,7 +17,7 @@ export default function Keberlanjutan() {
 
       <PageArtikel lebar>
         {/* ═══ Konten Paragraf Utama ═══ */}
-        <div className="flex w-full flex-col gap-y-4 pt-1 font-serif text-base leading-[1.6] text-grey-800">
+        <div className="flex w-full flex-col gap-y-4 pt-1 font-serif text-grey-800">
           <p className="m-0">
             Setiap komunitas yang ingin bertahan dan berkembang secara organik
             memerlukan fondasi yang lebih dalam sekadar keberadaan fisik atau
@@ -154,7 +154,7 @@ export default function Keberlanjutan() {
 
           {/* ═══ Footer Note / Penutup Editorial ═══ */}
           <div className="mt-6 border-t border-b border-grey-200 p-4 text-center">
-            <p className="m-0 font-serif text-sm leading-relaxed text-grey-800 italic">
+            <p className="m-0 font-serif leading-relaxed text-grey-800 italic">
               Artikel ini disusun sebagai panduan pemikiran bagi seluruh anggota
               Blunder Skuad, dengan harapan agar setiap individu yang bergabung
               memahami bahwa komunitas ini lebih dari sekadar tempat bermain

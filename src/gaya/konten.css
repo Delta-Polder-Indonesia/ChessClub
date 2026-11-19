@@ -1,5 +1,11 @@
 /* Tipografía editorial y primitivas reutilizables para páginas de contenido. */
 
+/* Satu skala judul display untuk seluruh halaman editorial, bukan hero. */
+.judul-konten {
+  font-size: clamp(2.4rem, 3.6vw, 3.4rem);
+  line-height: 1.04;
+}
+
 /* Prose artikel — teks bacaan halaman konten (DESIGN.md §2): 16px /
    line-height 1.6, rata kiri. Justify sengaja tidak dipakai: rata
    kiri-kanan meninggalkan celah spasi antar-kata yang tidak merata dan
@@ -7,7 +13,7 @@
 .prose-kci p,
 .prose-kci ol li,
 .prose-kci ul li {
-  font-size: 16px;
+  font-size: 1rem;
   line-height: 1.6;
   color: var(--color-grey-600);
 }
@@ -23,7 +29,7 @@
      pada komponen seksi seperti `Sekilas` dan `CorporateSection`. */
   .prose-kci h2 {
     margin: 24px 0 16px;
-    font-size: 24px;
+    font-size: 1.5rem;
     line-height: 32px;
     font-weight: 600;
     color: var(--color-grey-800);
@@ -31,7 +37,7 @@
 
 .prose-kci h3 {
   margin: 16px 0 12px;
-  font-size: 18px;
+  font-size: 1.125rem;
   line-height: 28px;
   font-weight: 600;
   color: var(--color-grey-800);
@@ -77,7 +83,7 @@
 
 .teks-lead-kci {
   font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
-  font-size: 18px;
+  font-size: 1.125rem;
   line-height: 1.6;
   color: var(--color-grey-600);
 }
@@ -118,7 +124,7 @@
 .kutipan-konten blockquote {
   margin: 0;
   font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
-  font-size: 24px;
+  font-size: 1.5rem;
   font-style: italic;
   font-weight: 500;
   line-height: 1.4;
@@ -145,7 +151,7 @@
 .catatan-konten h3 {
   margin: 0 0 8px;
   font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
-  font-size: 18px;
+  font-size: 1.125rem;
   font-weight: 600;
   line-height: 1.4;
   color: var(--color-grey-800);
@@ -161,7 +167,7 @@
   }
 
   .kutipan-konten blockquote {
-    font-size: 24px;
+    font-size: 1.5rem;
   }
 }
 

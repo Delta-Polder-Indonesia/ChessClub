@@ -27,7 +27,7 @@ export default function HandBrainLanding() {
         <section className="w-full border-t border-grey-200 bg-paper">
           <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
             <div className="flex flex-col gap-y-8">
-              <h2 className="font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-grey-800">
+              <h2 className="font-serif font-light judul-konten tracking-normal text-grey-800">
                 {t("handBrainLanding.introJudul")}
               </h2>
               <div className="flex flex-col items-start gap-8 lg:flex-row lg:items-center lg:gap-12">

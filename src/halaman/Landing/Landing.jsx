@@ -134,7 +134,7 @@ function LandingHero({ t }) {
           <TitikLabel terang />
           {t("landing.sekilasLabel")}
         </p>
-        <h2 className={`${JUDUL_SEKSI_TERANG} max-sm:text-3xl`}>{t("nav.tentangKami")}</h2>
+        <h2 className={JUDUL_SEKSI_TERANG}>{t("nav.tentangKami")}</h2>
         <p className={`${LEAD_SEKSI_TERANG} max-w-2xl`}>{t("landing.sekilasDesk")}</p>
         <div className="flex flex-wrap gap-4 mt-8">
           <Link
@@ -602,7 +602,7 @@ function HarapanTerimaKasih({ t }) {
         {/* Kolom artikel */}
         <div className="w-full relative bg-transparent md:pt-4 xl:pt-4">
           <div className="relative w-full mx-auto flex flex-col gap-y-6">
-            <h2 className={`${JUDUL_SEKSI} max-sm:text-3xl`}>{t("landing.harapanJudul")}</h2>
+            <h2 className={JUDUL_SEKSI}>{t("landing.harapanJudul")}</h2>
             <div className="relative z-[1] font-serif prose-kci max-w-none">
               <p>{t("landing.harapanPembuka")}</p>
               <p>{t("landing.harapanP1")}</p>
@@ -641,7 +641,7 @@ function AjakanBergabung({ t }) {
     <section className="w-full px-6 py-10 text-center overflow-hidden md:px-8 md:py-16 xl:px-0">
       <div className="mx-auto max-w-4xl flex flex-col items-center">
         <div className="flex flex-col items-center gap-[14px] text-center">
-          <h2 className={`${JUDUL_SEKSI} max-sm:text-3xl`}>
+          <h2 className={JUDUL_SEKSI}>
             {t("landing.ajakanJudul")} <em className="text-slate-800 not-italic">{t("landing.ajakanJudulAccent")}</em>
           </h2>
           <p className={LEAD_SEKSI}>{t("landing.ajakanDeskripsi")}</p>
@@ -682,7 +682,7 @@ export default function Landing() {
         <div className="relative w-full mx-auto lg:max-w-[960px] xl:max-w-[1280px] flex flex-col gap-y-4 md:gap-y-6 lg:gap-y-2">
           <div className="w-full grid lg:grid-cols-[82%_18%] gap-x-10 gap-y-6 items-start">
             <div className="grid lg:grid-cols-[1fr_1fr] gap-x-10 gap-y-4 md:gap-y-6 items-start">
-              <h2 className={`${JUDUL_SEKSI} max-sm:text-3xl`}>{t("nav.keberlanjutan")}</h2>
+              <h2 className={JUDUL_SEKSI}>{t("nav.keberlanjutan")}</h2>
               <p className={LEAD_SEKSI}>{t("landing.keberlanjutanDesk")}</p>
             </div>
             <div className="flex">

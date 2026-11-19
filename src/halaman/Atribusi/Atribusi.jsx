@@ -292,7 +292,7 @@ export default function Atribusi() {
         <div className="mx-auto max-w-[1080px]">
           <header className="grid grid-cols-1 gap-6 pb-16 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1fr)] lg:gap-14">
             <div>
-              <h2 className="font-serif text-[clamp(2.4rem,3.6vw,3.4rem)] font-light leading-[1.04] text-balance text-grey-800">
+              <h2 className="font-serif judul-konten font-light text-balance text-grey-800">
                 {t("analisa.atribusi.judulDaftar")}
               </h2>
             </div>

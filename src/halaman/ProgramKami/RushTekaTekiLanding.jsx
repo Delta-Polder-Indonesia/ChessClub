@@ -54,7 +54,7 @@ export default function RushTekaTekiLanding() {
         {/* Pengantar — kiri: judul, narasi & aksi utama; kanan: ilustrasi fotografis */}
         <section className="w-full border-t border-grey-200 bg-paper">
           <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
-            <h2 className="font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-balance text-grey-800">
+            <h2 className="font-serif font-light judul-konten tracking-normal text-balance text-grey-800">
               {t("rushLanding.ctaJudul")}
             </h2>
             <div className="mt-8 grid gap-y-10 md:grid-cols-2 md:items-start md:gap-x-12">
@@ -86,7 +86,7 @@ export default function RushTekaTekiLanding() {
         {/* Dua mode soal — perbandingan terbuka berbasis garis 1px */}
         <section className="w-full border-t border-grey-200 bg-paper">
           <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
-            <h2 className="font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-balance text-grey-800">
+            <h2 className="font-serif font-light judul-konten tracking-normal text-balance text-grey-800">
               {t("rushLanding.modeJudul")}
             </h2>
             <p className="mt-5 mb-0 max-w-[65ch] text-base leading-relaxed text-pretty text-grey-600">
@@ -117,7 +117,7 @@ export default function RushTekaTekiLanding() {
         {/* Aturan sesi & disiplin ritme — urutan bernomor + panduan praktis */}
         <section className="w-full border-t border-grey-200 bg-paper">
           <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
-            <h2 className="font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-balance text-grey-800">
+            <h2 className="font-serif font-light judul-konten tracking-normal text-balance text-grey-800">
               {t("rushLanding.caraJudul")}
             </h2>
 
@@ -153,7 +153,7 @@ export default function RushTekaTekiLanding() {
         {/* Yang dilatih & keterkaitan dengan alat latihan lain */}
         <section className="w-full border-t border-grey-200 bg-paper">
           <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
-            <h2 className="font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-balance text-grey-800">
+            <h2 className="font-serif font-light judul-konten tracking-normal text-balance text-grey-800">
               {t("rushLanding.fiturJudul")}
             </h2>
             <dl className="mt-10 grid gap-x-12 gap-y-9 border-t border-grey-200 pt-10 sm:grid-cols-3">

@@ -30,10 +30,10 @@ export default function ProgramKami() {
     >
       <section aria-labelledby="program-unggulan" className="mx-auto w-full max-w-6xl px-4 py-12 md:px-8 md:py-16">
         <header className="mx-auto max-w-2xl space-y-4 text-center">
-          <h2 id="program-unggulan" className="text-balance font-serif text-4xl text-grey-800 md:text-5xl">
+          <h2 id="program-unggulan" className="judul-konten text-balance font-serif font-light text-grey-800">
             {t("program.programJudul")}
           </h2>
-          <p className="text-lg text-grey-600">{t("program.pengantarKatalog")}</p>
+          <p className="teks-lead-kci">{t("program.pengantarKatalog")}</p>
         </header>
         <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <li className="relative isolate flex min-h-80 items-end overflow-hidden rounded-3xl bg-grey-800 sm:col-span-2 lg:row-span-2">

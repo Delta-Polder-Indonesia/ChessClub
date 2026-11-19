@@ -312,7 +312,7 @@ export default function Karir() {
 
         <div className="mb-0 mt-10 flex flex-wrap items-end justify-between gap-4">
           <div className="min-w-0">
-            <h2 className="font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] text-balance text-grey-800">{judul}</h2>
+            <h2 className="font-serif font-light judul-konten text-balance text-grey-800">{judul}</h2>
           </div>
           <div className="flex items-center gap-3 text-sm text-grey-600">
             {menyegarkan && <span role="status">{t("beranda.peringkatMenyegarkan")}</span>}

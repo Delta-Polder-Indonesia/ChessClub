@@ -116,7 +116,7 @@ export default function MaestroEdision() {
     <section aria-labelledby="pengurus-beranda" className="mx-auto w-full max-w-6xl px-4 py-10 md:py-16">
       <div className="w-full">
         <header className="mx-auto max-w-2xl space-y-4 text-center">
-          <h2 id="pengurus-beranda" className={`${JUDUL_SEKSI} max-sm:text-3xl`}>{t("landing.arahJudul")}</h2>
+          <h2 id="pengurus-beranda" className={JUDUL_SEKSI}>{t("landing.arahJudul")}</h2>
           <p className="text-lg text-grey-600">{t("landing.arahDeskripsi")}</p>
         </header>
 

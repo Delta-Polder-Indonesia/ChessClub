@@ -201,7 +201,7 @@ export default function RatingUlasan() {
         <div className="min-w-0">
           <h2
             id="judul-daftar-ulasan"
-            className="font-serif font-light text-3xl leading-[1.04] tracking-normal text-grey-800 sm:text-4xl lg:text-[clamp(2.4rem,3.6vw,3.4rem)]"
+            className="font-serif font-light text-grey-800 judul-konten"
           >
             {t("landing.rating.judulSeksi")}
           </h2>

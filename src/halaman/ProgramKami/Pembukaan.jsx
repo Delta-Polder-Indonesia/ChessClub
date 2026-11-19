@@ -427,7 +427,7 @@ export default function Pembukaan() {
       {/* ═══ Pembuka — editorial: judul, dua paragraf, papan ═══ */}
       <section className="w-full border-t border-grey-200 bg-paper">
         <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
-          <h2 className="m-0 font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-grey-800">
+          <h2 className="m-0 font-serif font-light judul-konten tracking-normal text-grey-800">
             {t("bukuPembukaan.introJudul")}
           </h2>
           <div className="mt-6 grid gap-x-12 gap-y-8 lg:grid-cols-[1fr_544px] lg:items-start">
@@ -457,7 +457,7 @@ export default function Pembukaan() {
         <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
           <div className="grid gap-x-16 gap-y-10 lg:grid-cols-12">
             <div className="min-w-0 lg:col-span-4">
-              <h2 className="m-0 font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-grey-800">
+              <h2 className="m-0 font-serif font-light judul-konten tracking-normal text-grey-800">
                 {t("bukuPembukaan.katalogJudul")}
               </h2>
               <p className="m-0 mt-4 font-serif text-[1rem] leading-[1.8] text-pretty text-grey-600">

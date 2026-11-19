@@ -488,10 +488,9 @@ export default function Galeri() {
             Elemennya <p>, bukan <h1> seperti di referensi, karena Hero.jsx:62
             sudah menjadi satu-satunya h1 halaman ini. Aturan "skipped heading
             level" di katalog Slop menyorot struktur heading yang membingungkan;
-            dua h1 untuk satu halaman/entity yang sama termasuk cacat itu. Kelas
-            fontnya sengaja dibiarkan sama persis supaya nol pergeseran visual. */}
+            dua h1 untuk satu halaman/entity yang sama termasuk cacat itu. */}
         <header className="pt-7 pb-6 max-[700px]:pt-[26px]">
-          <p className="m-0 font-serif text-[clamp(2.8rem,4vw,4rem)] leading-none tracking-[-0.02em] text-grey-800 max-[700px]:text-[3rem]">
+          <p className="m-0 font-serif judul-konten text-grey-800">
             {t("galeri.judul")}
           </p>
           <p className="mt-3 mb-0 text-sm leading-[1.5] text-grey-600 max-[700px]:mt-2.5 max-[700px]:text-[13px]">
@@ -539,7 +538,7 @@ export default function Galeri() {
                 className="pt-[30px] scroll-mt-[90px] [&+article]:border-t [&+article]:border-slate-200 [&+article]:pt-8"
               >
                 <header className="mb-4 flex items-center justify-between gap-6">
-                  <h2 className="m-0 font-serif text-[clamp(2.4rem,3.4vw,3.3rem)] leading-none font-normal text-grey-800">
+                  <h2 className="m-0 font-serif judul-konten font-normal text-grey-800">
                     {p.judul}
                   </h2>
                 </header>
