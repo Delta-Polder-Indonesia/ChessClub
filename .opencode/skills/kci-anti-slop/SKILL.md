@@ -116,10 +116,13 @@ baseline, jadi tidak bisa diredam dengan `npm run desain:baseline`. Pemeriksa
 membaca `className` termasuk template literal dan kelas yang terpecah beberapa
 baris, menolak warna hex arbitrer, menolak `boxShadow` pada style inline, dan
 menolak nilai warna literal pada atribut SVG (kecuali `none`, `currentColor`,
-`transparent`, `inherit`). Hal yang sama berlaku untuk CSS: warna ditulis sebagai token, tint di luar
-palet (indigo `#eef2ff`, sky `#f0f9ff`/`#0c4a6e`) dan `box-shadow` pada primitif
-komponen sudah dihapus. Menulis warna mentah baru di `.css` sama saja membuat
-sampah yang sama dengan menulisnya di `className`.
+`transparent`, `inherit`). Hal yang sama berlaku untuk seluruh CSS situs, bukan
+hanya Pengurus: warna ditulis sebagai token, tint di luar palet (indigo
+`#eef2ff`, sky `#f0f9ff`/`#0c4a6e`) dan `box-shadow` pada primitif komponen sudah
+dihapus, dan `uji-standar-desain` sekarang menolak hex atau `rgb()` di luar palet
+serta `box-shadow` baru di `.css` — gagal sebelum baseline, jadi tidak bisa
+diredam. Menulis warna mentah di `.css` sama saja membuat sampah yang sama
+dengan menulisnya di `className`.
 
 Memindahkan gaya ke CSS juga tidak menyelamatkan:
 berkas `.css` di area itu ikut dipindai aturan hex global. Memperlunak

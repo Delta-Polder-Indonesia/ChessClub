@@ -17,7 +17,7 @@ Dokumen ini adalah sumber kebenaran (*single source of truth*) untuk token desai
 | `--color-paper` | `#FFFFFF` | Latar kanvas utama & permukaan kartu |
 
 ### Aturan Warna:
-- **Warna di berkas CSS wajib memakai token.** Berkas `.css` tidak menulis warna mentah di luar token; tint di luar palet (mis. indigo `#EEF2FF`, sky `#F0F9FF`/`#0C4A6E`) sudah dihapus dari `src/gaya/components/` dan diganti `--color-grey-50/100/600`. Pengecualian: `--chart-*`, warna papan catur di `papan-cg.css`, dan tema papan Analisa (DESIGN.md §11).
+- **Warna di berkas CSS wajib memakai token.** Berkas `.css` tidak menulis warna mentah di luar token; tint di luar palet (mis. indigo `#EEF2FF`, sky `#F0F9FF`/`#0C4A6E`) sudah dihapus dari `src/gaya/components/` dan diganti `--color-grey-50/600`. Pengecualian: `--chart-*`, warna papan catur di `papan-cg.css`, dan tema papan Analisa (DESIGN.md §11). Aturan ini **ditegakkan otomatis**: `scripts/uji-standar-desain.mjs` menolak hex dan `rgb()` di luar palet serta `box-shadow` yang ditulis di `.css` (kecuali `tokens.css`, `tooltip.css`, dan berkas pengecualian di atas), langsung gagal, dan tidak bisa diredam lewat baseline.
 - **Ramp netral lengkap.** `--color-grey-400/700/900` kini didefinisikan di `tokens.css`; sebelumnya `border-grey-400`, `text-grey-700`, dan `text-grey-900` dipakai di halaman tetapi tokennya tidak ada sehingga kelas itu tidak menghasilkan gaya.
 - **Dilarang keras:** Gradien ungu/pink/biru, teks gradasi (`bg-gradient-to-r text-transparent`), dan efek bayangan pendar/glow (`shadow-[0_0_20px_...]`).
 - Semua kombinasi warna teks dan latar wajib lolos uji kontras **WCAG AA** ($\ge 4.5:1$ untuk body, $\ge 3:1$ untuk teks besar).

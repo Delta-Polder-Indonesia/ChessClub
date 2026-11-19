@@ -161,6 +161,14 @@ terpecah beberapa baris; utilitas warna hex arbitrer (`bg-[#dc2626]`); `boxShado
 pada style inline; dan nilai warna literal pada atribut SVG. Lima cara meloloskan
 desain terlarang sudah diuji dan seluruhnya tertangkap.
 
+Aturan CSS situs memakai penjaga yang sama: hex dan `rgb()` wajib berasal dari
+palet (`#0B2F9F`, `#4D7CF5`, `#021624`, ramp `grey-*`, `#F8F8F8`, `#FFF`, `#000`,
+dan `--chart-*`), dan `box-shadow` tidak boleh didefinisikan di `.css` kecuali
+`tokens.css` (token `--shadow-lift`) dan `tooltip.css`. Tema papan Analisa dan
+`papan-cg.css` dikecualikan. Uji negatif: tiga pelanggaran disisipkan ke
+`konten.css` (hex merah, `rgb()` merah, `box-shadow`) — ketiganya tertangkap dan
+uji gagal; menambahkan entri baseline tidak menyelamatkannya.
+
 Pemeriksaan ini berjalan **sebelum** mekanisme baseline, sehingga
 `npm run desain:baseline` tidak bisa mengabsahkan pelanggaran baru. Uji ini ikut
 `npm run uji:desain` dan sudah berada di jalur CI lewat `npm run uji:v1:ui-engine`

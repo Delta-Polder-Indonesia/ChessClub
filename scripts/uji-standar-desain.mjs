@@ -308,16 +308,86 @@ function hitung() {
   return hasil;
 }
 
+
+/**
+ * Aturan CSS situs. Berkas .css tidak boleh memperkenalkan warna di luar palet
+ * dan tidak boleh mendefinisikan bayangan sendiri; bayangan memakai token di
+ * tokens.css atau utility Tailwind. Pengecualian: tema papan Analisa
+ * (DESIGN.md §11), papan catur papan-cg.css, dan tokens.css sebagai sumber token.
+ *
+ * Seperti aturan Pengurus, diperiksa sebelum baseline dan menggagalkan uji.
+ */
+const HEX_DIIZINKAN = new Set([
+  // brand
+  "#0b2f9f", "#4d7cf5", "#021624",
+  // ramp netral
+  "#f8fafc", "#f1f5f9", "#e2e8f0", "#cbd5e1", "#94a3b8",
+  "#64748b", "#475569", "#334155", "#1e293b", "#0f172a",
+  "#f8f8f8", "#ffffff", "#fff", "#000",
+  // palet grafik
+  "#ffdc58", "#ff6b6b", "#7fbc8c",
+]);
+const RGB_DIIZINKAN = new Set(
+  [...HEX_DIIZINKAN].flatMap((hex) => {
+    const bersih = hex.slice(1);
+    const penuh =
+      bersih.length === 3
+        ? [...bersih].map((huruf) => huruf + huruf).join("")
+        : bersih.slice(0, 6);
+    const kanal = [0, 2, 4].map((i) => String(parseInt(penuh.slice(i, i + 2), 16)));
+    return [kanal.join(",")];
+  })
+);
+const CSS_DIKECUALIKAN = [/src\/halaman\/Analisa\//, /src\/gaya\/papan-cg\.css$/];
+// tokens.css mendefinisikan --shadow-lift; tooltip memakai bayangan tipis satu
+// lapis sesuai DESIGN.md §4 (halaman publik, bukan Pengurus).
+const BERKAS_BERBAYANG = [/src\/gaya\/tokens\.css$/, /src\/gaya\/tooltip\.css$/];
+
+function periksaCssSitus() {
+  const temuan = [];
+  for (const penuh of daftarBerkas(path.join(AKAR, "src"))) {
+    if (path.extname(penuh) !== ".css") continue;
+    const relatif = path.relative(AKAR, penuh).replaceAll(path.sep, "/");
+    if (CSS_DIKECUALIKAN.some((pola) => pola.test(relatif))) continue;
+    const baris = fs.readFileSync(penuh, "utf8").split("\n");
+
+    baris.forEach((isi, i) => {
+      for (const cocok of isi.matchAll(/#[0-9a-fA-F]{3,8}\b/g)) {
+        // Abaikan selektor id dan komentar yang memuat tagar.
+        if (!HEX_DIIZINKAN.has(cocok[0].toLowerCase())) {
+          temuan.push(`${relatif}:${i + 1} memakai warna ${cocok[0]} di luar palet`);
+        }
+      }
+      for (const cocok of isi.matchAll(/rgba?\(([^)]*)\)/g)) {
+        const angka = cocok[1].match(/\d+/g)?.slice(0, 3).map(Number) ?? [];
+        if (angka.length < 3) continue;
+        // rgb() hanya boleh mengekspresikan warna yang sudah ada di palet,
+        // jadi kanal dibandingkan langsung dengan token, bukan ditebak.
+        if (!RGB_DIIZINKAN.has(angka.join(","))) {
+          temuan.push(`${relatif}:${i + 1} memakai rgb(${angka.join(" ")}) di luar palet`);
+        }
+      }
+      if (/\bbox-shadow\s*:/.test(isi) && !BERKAS_BERBAYANG.some((pola) => pola.test(relatif))) {
+        temuan.push(`${relatif}:${i + 1} mendefinisikan box-shadow sendiri`);
+      }
+    });
+  }
+  return temuan;
+}
+
 const warnaPengurus = periksaAturanPengurus();
-if (warnaPengurus.length) {
-  console.error("Warna status terlarang di dashboard Pengurus:\n");
-  for (const baris of warnaPengurus) console.error(`- ${baris}`);
+const cssSitus = periksaCssSitus();
+
+if (warnaPengurus.length || cssSitus.length) {
+  console.error("Pelanggaran standar desain (tidak dapat dikecualikan lewat baseline):\n");
+  for (const baris of [...warnaPengurus, ...cssSitus]) console.error(`- ${baris}`);
   console.error(
     "\nDashboard Pengurus tidak memakai warna semantik (hijau/merah/kuning/biru) " +
       "untuk status, tidak memakai kotak berlatar abu, dan tidak memakai efek mengambang " +
-      "(bayangan). Tulis status sebagai teks netral, tampilkan konten pada bidang putih " +
-      "dengan garis tipis 1px. " +
-      "Lihat DESIGN.md §1 dan skill kci-anti-slop §4b."
+      "(bayangan). Berkas CSS tidak memakai warna di luar palet dan tidak mendefinisikan " +
+      "box-shadow sendiri. Tulis status sebagai teks netral, tampilkan konten pada bidang " +
+      "putih dengan garis tipis 1px. " +
+      "Lihat DESIGN.md §1, §4, dan skill kci-anti-slop §4b."
   );
   process.exit(1);
 }
