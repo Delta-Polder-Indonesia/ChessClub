@@ -110,5 +110,27 @@ uji(
   /npm run uji(?:\s|&&)/.test(paket.scripts["uji:rilis:v1"] ?? "")
 );
 
+const pembagianV1 = ["uji:v1:build-server", "uji:v1:ui-engine", "uji:v1:fitur-puzzle"];
+uji(
+  "tiga pecahan gerbang rilis v1 tersedia",
+  pembagianV1.every((nama) => typeof paket.scripts[nama] === "string" && paket.scripts[nama].trim()),
+  pembagianV1.filter((nama) => !paket.scripts[nama]?.trim()).join(", ")
+);
+
+// Setiap perintah pengujian dari rantai lokal uji harus muncul tepat satu kali pada pecahan CI.
+const polaPerintahUji = /(?:npm run uji:[\w-]+|node scripts\/uji-[\w-]+\.mjs)/g;
+const perintahLokal = paket.scripts.uji.match(polaPerintahUji) ?? [];
+const sumberPecahan = pembagianV1.map((nama) => paket.scripts[nama] ?? "").join(" && ");
+const perintahPecahan = sumberPecahan.match(polaPerintahUji) ?? [];
+const jumlahPecahan = new Map();
+for (const perintah of perintahPecahan) jumlahPecahan.set(perintah, (jumlahPecahan.get(perintah) ?? 0) + 1);
+const belumTerbagi = [...new Set(perintahLokal)].filter((perintah) => jumlahPecahan.get(perintah) !== 1);
+const duplikatPecahan = [...jumlahPecahan].filter(([, jumlah]) => jumlah > 1).map(([perintah]) => perintah);
+uji(
+  "seluruh perintah npm run uji tercakup tepat satu kali di pecahan CI",
+  belumTerbagi.length === 0 && duplikatPecahan.length === 0,
+  [...belumTerbagi.map((perintah) => "hilang/tidak tunggal: " + perintah), ...duplikatPecahan.map((perintah) => "duplikat: " + perintah)].join(", ")
+);
+
 console.log(`\nHasil: ${lulus} lulus, ${gagal} gagal.`);
 if (gagal) process.exit(1);
