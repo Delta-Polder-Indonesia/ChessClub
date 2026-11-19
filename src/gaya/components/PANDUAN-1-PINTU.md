@@ -22,6 +22,19 @@ Impor pintu dijaga otomatis oleh `scripts/uji-impor-css.mjs` ("src/index.css men
 
 ---
 
+### Siapa yang tidak memakai pintu ini
+
+Pintu ini untuk bentuk dasar antarmuka (tombol, input, kartu data, lencana,
+modal, dropdown). Tiga area sengaja **tidak** memakainya:
+
+| Area | Alasan |
+|---|---|
+| `src/halaman/ProgramKami/` | Halaman program punya karakter sendiri: kartu fitur, alur, dan warna khas. Kelas pintu di sana ditolak `uji:desain`. |
+| Antarmuka catur (`src/halaman/Analisa/komponen/` dan halaman catur lain) | Papan, bidak, jam, dan eval memakai pintu catur sendiri dengan tema gelap. |
+| Halaman konten editorial | Tipografi bacaan memakai pintu konten (`PageBagian`, `TabelKonten`). |
+
+---
+
 ## 2. Mengapa Harus Satu Pintu?
 
 | Tanpa 1 Pintu (Salah) | Dengan 1 Pintu (Benar) |

@@ -375,18 +375,57 @@ function periksaCssSitus() {
   return temuan;
 }
 
+
+/**
+ * Halaman Program Kami punya karakter sendiri (DESIGN.md §13): kartu fitur,
+ * alur, dan warnanya tidak mengikuti pintu CSS komponen maupun rupa halaman
+ * konten. Karena pintu CSS dimuat global, kelas seperti `btn`, `card`, atau
+ * `badge` akan menyeret halaman ini ke bentuk seragam — jadi dipakai sebagai
+ * penanda pelanggaran, bukan sebagai saran.
+ */
+const AREA_PROGRAM = "src/halaman/ProgramKami/";
+
+function periksaProgramKami() {
+  const temuan = [];
+  const akarProgram = path.join(AKAR, AREA_PROGRAM);
+  if (!fs.existsSync(akarProgram)) return temuan;
+
+  const kelasPintu = new Set();
+  for (const berkasCss of daftarBerkas(path.join(AKAR, "src/gaya/components"))) {
+    if (path.extname(berkasCss) !== ".css") continue;
+    for (const cocok of fs.readFileSync(berkasCss, "utf8").matchAll(/^\.([a-z0-9-]+)/gm)) {
+      kelasPintu.add(cocok[1]);
+    }
+  }
+
+  for (const penuh of daftarBerkas(akarProgram)) {
+    const relatif = path.relative(AKAR, penuh).replaceAll(path.sep, "/");
+    const isi = fs.readFileSync(penuh, "utf8");
+    for (const { nilai, baris } of kelasDari(isi)) {
+      for (const token of nilai.split(" ")) {
+        if (kelasPintu.has(token)) {
+          temuan.push(`${relatif}:${baris} memakai kelas pintu ${token} di Program Kami`);
+        }
+      }
+    }
+  }
+  return temuan;
+}
+
 const warnaPengurus = periksaAturanPengurus();
 const cssSitus = periksaCssSitus();
+const programKami = periksaProgramKami();
 
-if (warnaPengurus.length || cssSitus.length) {
+if (warnaPengurus.length || cssSitus.length || programKami.length) {
   console.error("Pelanggaran standar desain (tidak dapat dikecualikan lewat baseline):\n");
-  for (const baris of [...warnaPengurus, ...cssSitus]) console.error(`- ${baris}`);
+  for (const baris of [...warnaPengurus, ...cssSitus, ...programKami]) console.error(`- ${baris}`);
   console.error(
     "\nDashboard Pengurus tidak memakai warna semantik (hijau/merah/kuning/biru) " +
       "untuk status, tidak memakai kotak berlatar abu, dan tidak memakai efek mengambang " +
       "(bayangan). Berkas CSS tidak memakai warna di luar palet dan tidak mendefinisikan " +
       "box-shadow sendiri. Tulis status sebagai teks netral, tampilkan konten pada bidang " +
-      "putih dengan garis tipis 1px. " +
+      "putih dengan garis tipis 1px. Halaman Program Kami memakai bentuknya sendiri " +
+      "dan tidak memakai kelas pintu komponen. " +
       "Lihat DESIGN.md §1, §4, dan skill kci-anti-slop §4b."
   );
   process.exit(1);

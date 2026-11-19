@@ -53,8 +53,16 @@ Angka berasal dari pemindaian `src/halaman/**/*.jsx` (76 berkas, 331 kontrol
 | 1 | Dashboard Pengurus (`src/halaman/Pengurus/`) | selesai — tombol |
 | 2 | Sisa panel Pengurus: `Lencana` → `badge`, `Bidang` → `form-input`, dialog → `modal` | berikutnya |
 | 3 | Halaman publik non-catur: `PendaftaranAnggota`, `HubungiKami`, `Karir`, `Atribusi`, `Beranda`, `TentangKami` | belum |
-| 4 | Komponen bersama `src/components/` (Header, Footer, kartu program) | belum |
+| 4 | Komponen bersama `src/components/` (Header, Footer, kartu tautan) | belum |
 | 5 | Halaman catur (`Analisa`, `PapanInteraktif`, `TekaTeki*`, `QuizCatur`, `ManusiaVsMesin`, `LatihanRepertoar`) | sengaja beda pintu |
+
+**Catatan Program Kami:** `src/halaman/ProgramKami/` **tidak** mengikuti pintu ini
+dan tidak boleh diseragamkan dengan halaman lain. Halamannya punya karakter
+sendiri — kartu fitur, alur, dan warna khas tiap program. Karena pintu CSS dimuat
+global, memakai kelas pintu di sana akan menyeret tampilannya ke bentuk seragam;
+`scripts/uji-standar-desain.mjs` menolak kelas pintu (`.btn`, `.card`, `.badge`,
+dan seterusnya) di folder itu dan langsung gagal. Yang dijaga di Program Kami
+adalah konsistensi di dalam domainnya sendiri, bukan kesamaan dengan pintu.
 
 **Catatan gelombang 5:** sesuai `DESIGN.md` §13, antarmuka catur punya pintu
 sendiri (`src/halaman/Analisa/komponen/`) dan tema papan gelap. Tombol di sana

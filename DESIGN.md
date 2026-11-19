@@ -216,7 +216,7 @@ Dokumen atau kode lama yang bertentangan tidak menjadi preseden. Jangan memperba
 | Domain | Sumber resmi | Batas |
 |---|---|---|
 | Halaman konten publik | `src/components/PageBagian.jsx`, `src/components/konten/AksiKonten.jsx`, dan `src/components/konten/TabelKonten.jsx` | Tipografi, bagian, media, kutipan, catatan, aksi, serta tabel konten |
-| Program dan fitur belajar non-catur | komponen di `src/halaman/ProgramKami/` | Tidak mengikuti bentuk artikel; pertahankan karakter fitur dan alurnya |
+| Program dan fitur belajar non-catur | komponen di `src/halaman/ProgramKami/` | Tidak mengikuti bentuk artikel **maupun pintu CSS komponen**; pertahankan karakter fitur dan alurnya |
 | Seluruh antarmuka catur | `src/halaman/Analisa/komponen/` | Satu rumah papan, bidak, jam, evaluasi, nama pemain, panel, indikator, dan ikon catur untuk Analisa, Papan Interaktif, Teka-teki, Quiz, serta Rush |
 | Mode/alur catur | folder halaman masing-masing | Hanya orkestrasi, state, dan logika mode; jangan membuat ulang komponen visual catur yang sudah ada |
 | Pengurus/dashboard | `src/components/ui/`, komponen Pengurus, dan pintu CSS `src/gaya/components/` | Tabel padat, form operasional, dialog, dan state administrasi |
@@ -236,6 +236,7 @@ Aturan:
 - Halaman konten tidak menciptakan bentuk tombol, tabel, media, atau blok baru di setiap halaman; gunakan pintu konten.
 - Tombol, input, dan kartu memakai kelas pintu CSS di atas; kelas Tailwind dipakai untuk tata letak, bukan untuk membentuk ulang visual komponen yang sudah ada di pintu.
 - Komponen Program Kami, antarmuka catur, dan Pengurus tidak dipaksa memakai rupa halaman konten.
+- Halaman Program Kami **tidak memakai kelas pintu CSS** (`btn`, `card`, `badge`, `alert`, `form-input`, dan sejenisnya). Pintu itu bentuk dasar antarmuka umum; Program Kami mempertahankan bentuk fiturnya sendiri. `uji:desain` menolak kelas pintu di `src/halaman/ProgramKami/`.
 - Semua fitur catur mencari dan memperluas `src/halaman/Analisa/komponen/` sebelum membuat komponen visual lokal.
 - Folder Papan Interaktif, Teka-teki, Quiz, dan Rush boleh menyimpan komponen orkestrasi yang khusus alur, tetapi bukan salinan papan, bidak, ikon, jam, evaluasi, atau kontrol catur umum.
 - Komponen lintas domain boleh berbagi perilaku aksesibel, tetapi keluarga domain menentukan bentuk visualnya.
