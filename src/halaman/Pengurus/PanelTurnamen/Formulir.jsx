@@ -205,7 +205,7 @@ export default function FormulirTurnamen({ jenis, onSimpan, onBatal }) {
         <button
           type="submit"
           disabled={sibuk || !data.nama.trim()}
-          className="rounded-md border-2 border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:opacity-40"
+          className="btn btn-biasa btn-rapat"
         >
           {sibuk ? "Menyimpan…" : "Simpan"}
         </button>

@@ -185,7 +185,7 @@ export default function PanelEbook({ beriTahu, halaman, onGantiHalaman }) {
             <button
               type="button"
               onClick={muat}
-              className="shrink-0 rounded-md border-2 border-slate-300 px-4 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+              className="btn btn-biasa btn-rapat shrink-0"
             >
               Coba Lagi
             </button>

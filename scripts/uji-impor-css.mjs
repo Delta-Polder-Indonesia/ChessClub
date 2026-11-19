@@ -136,6 +136,22 @@ for (const impor of semuaImpor) {
   }
 }
 
+// Pintu komponen harus benar-benar terpasang di root. Sebelum ini keluarga
+// src/gaya/components/*.css tidak pernah diimpor siapa pun: 21 berkas gaya
+// "resmi" yang mati dan tidak berpengaruh ke halaman mana pun.
+const rootCss = path.join(SRC, "index.css");
+const imporRoot = existsSync(rootCss) ? temukanImpor(rootCss) : [];
+uji(
+  "src/index.css mengimpor pintu komponen (gaya/components/index.css)",
+  imporRoot.some((i) => /gaya\/components\/index\.css$/.test(i.target)),
+  "tambahkan @import \"./gaya/components/index.css\"; di src/index.css"
+);
+uji(
+  "gaya/tooltip.css hanya diimpor lewat pintu komponen",
+  !imporRoot.some((i) => /gaya\/tooltip\.css$/.test(i.target)),
+  "hapus impor langsung tooltip.css dari src/index.css; pintu sudah mengimpornya"
+);
+
 uji(
   `pemindai menemukan minimal ${MINIMAL_IMPOR} @import (${semuaImpor.length} terdeteksi)`,
   semuaImpor.length >= MINIMAL_IMPOR,

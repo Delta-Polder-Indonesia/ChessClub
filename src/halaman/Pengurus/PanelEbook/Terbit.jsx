@@ -95,7 +95,7 @@ export default function EbookTerbit({ onTerbit, sibuk, kodeBaru, onTutupKodeBaru
           <AlertDialogTrigger asChild>
             <button
               type="button"
-              className="rounded-md border-2 border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:opacity-40"
+              className="btn btn-biasa btn-rapat"
             >
               Buka
             </button>
@@ -153,7 +153,7 @@ export default function EbookTerbit({ onTerbit, sibuk, kodeBaru, onTutupKodeBaru
                     type="button"
                     disabled={sibuk}
                     onClick={lanjut}
-                    className="inline-flex h-9 items-center justify-center gap-2 rounded-md border-2 border-slate-300 px-4 text-sm font-semibold text-slate-700 hover:bg-slate-100 disabled:opacity-40"
+                    className="btn btn-biasa"
                   >
                     {sibuk ? "Memproses…" : "Lanjut"}
                   </button>

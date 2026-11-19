@@ -219,12 +219,22 @@ Dokumen atau kode lama yang bertentangan tidak menjadi preseden. Jangan memperba
 | Program dan fitur belajar non-catur | komponen di `src/halaman/ProgramKami/` | Tidak mengikuti bentuk artikel; pertahankan karakter fitur dan alurnya |
 | Seluruh antarmuka catur | `src/halaman/Analisa/komponen/` | Satu rumah papan, bidak, jam, evaluasi, nama pemain, panel, indikator, dan ikon catur untuk Analisa, Papan Interaktif, Teka-teki, Quiz, serta Rush |
 | Mode/alur catur | folder halaman masing-masing | Hanya orkestrasi, state, dan logika mode; jangan membuat ulang komponen visual catur yang sudah ada |
-| Pengurus/dashboard | `src/components/ui/` dan komponen Pengurus | Tabel padat, form operasional, dialog, dan state administrasi |
+| Pengurus/dashboard | `src/components/ui/`, komponen Pengurus, dan pintu CSS `src/gaya/components/` | Tabel padat, form operasional, dialog, dan state administrasi |
 | Ikon umum non-catur | `lucide-react` dan `src/components/icons.jsx` | Ikon catur tetap berasal dari `Analisa/komponen/svg/` |
+
+### Pintu CSS komponen
+
+`src/gaya/components/index.css` adalah satu-satunya sumber bentuk dasar tombol,
+input, kartu, lencana, pesan, modal, dropdown, dan sejenisnya. Pintu itu dipasang
+**sekali** di `src/index.css` (bukan per halaman) dan dijaga `scripts/uji-impor-css.mjs`.
+Varian tombol: `btn-biasa`, `btn-utama`, `btn-padat`, `btn-bahaya`, ukuran
+`btn-kecil`, `btn-rapat`, `btn-lebar`, `btn-ikon`. Status migrasi per gelombang ada di
+`src/gaya/components/MIGRASI-1-PINTU.md`; panduan pemakaian di `PANDUAN-1-PINTU.md`.
 
 Aturan:
 
 - Halaman konten tidak menciptakan bentuk tombol, tabel, media, atau blok baru di setiap halaman; gunakan pintu konten.
+- Tombol, input, dan kartu memakai kelas pintu CSS di atas; kelas Tailwind dipakai untuk tata letak, bukan untuk membentuk ulang visual komponen yang sudah ada di pintu.
 - Komponen Program Kami, antarmuka catur, dan Pengurus tidak dipaksa memakai rupa halaman konten.
 - Semua fitur catur mencari dan memperluas `src/halaman/Analisa/komponen/` sebelum membuat komponen visual lokal.
 - Folder Papan Interaktif, Teka-teki, Quiz, dan Rush boleh menyimpan komponen orkestrasi yang khusus alur, tetapi bukan salinan papan, bidak, ikon, jam, evaluasi, atau kontrol catur umum.

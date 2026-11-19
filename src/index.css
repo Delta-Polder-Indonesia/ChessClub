@@ -13,4 +13,4 @@
 @import "./gaya/analisa-theme.css";
 @import "./gaya/pendaftaran.css";
 @import "./gaya/papan-cg.css";
-@import "./gaya/tooltip.css";
+@import "./gaya/components/index.css";

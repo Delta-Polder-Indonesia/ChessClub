@@ -6,15 +6,19 @@ Dokumen ini adalah **sumber kebenaran tunggal** untuk pemasangan gaya komponen U
 
 ## 1. Apa Itu "1 Pintu"?
 
-"1 Pintu" = **satu file CSS entri** yang mengimpor semua gaya komponen. Setiap halaman yang membutuhkan komponen UI hanya perlu impor **satu file ini**, tidak perlu impor file CSS satu per satu.
+"1 Pintu" = **satu file CSS entri** yang mengimpor semua gaya komponen. Halaman **tidak** mengimpornya sendiri.
 
 File entri: `src/gaya/components/index.css`
 
+Pintu dipasang **sekali** di `src/index.css`:
+
 ```css
-@import "@/gaya/components/index.css";
+@import "./gaya/components/index.css";
 ```
 
-Dengan satu impor ini, halaman Anda secara otomatis mendapatkan gaya untuk: tombol, input, tabel, kartu, modal, dropdown, badge, avatar, link, dan semua komponen lain.
+Karena `src/index.css` adalah gaya global aplikasi, seluruh halaman otomatis mendapat gaya tombol, input, kartu, modal, dropdown, badge, avatar, link, dan komponen lain. Jangan menambahkan impor pintu di file halaman; impor ganda membuat aturan CSS dimuat dua kali.
+
+Impor pintu dijaga otomatis oleh `scripts/uji-impor-css.mjs` ("src/index.css mengimpor pintu komponen") — kalau impor itu hilang, uji gagal.
 
 ---
 
@@ -31,15 +35,9 @@ Dengan satu impor ini, halaman Anda secara otomatis mendapatkan gaya untuk: tomb
 
 ## 3. Cara Pakai di Setiap Halaman (Langkah demi Langkah)
 
-### Langkah 1: Impor file entri di awal file CSS atau JSX
+### Langkah 1: Tidak perlu impor — pintu sudah terpasang global
 
-Jika halaman Anda punya file CSS sendiri:
-
-```css
-@import "@/gaya/components/index.css";
-```
-
-Jika Anda gaya langsung di JSX (Tailwind classes), pastikan tidak menimpa gaya dari `index.css` dengan warna atau ukuran yang berbeda.
+Pintu dipasang di `src/index.css`, jadi halaman cukup memakai kelasnya. Jika Anda memakai Tailwind di JSX, jangan menimpa warna atau ukuran dari kelas komponen.
 
 ### Langkah 2: Pakai kelas kelas komponen yang sudah ada
 
@@ -48,7 +46,10 @@ Gunakan kelas yang sudah didefinisikan di file CSS komponen. Contoh:
 | Komponen | Kelas yang Dipakai |
 |----------|-------------------|
 | Tombol biasa | `btn btn-biasa` |
-| Tombol utama | `btn btn-utama` |
+| Tombol utama (garis) | `btn btn-utama` |
+| Tombol utama (isi penuh) | `btn btn-padat` |
+| Tombol kecil / rapat | `btn btn-biasa btn-kecil` · `btn btn-biasa btn-rapat` |
+| Tombol ikon | `btn btn-ikon` |
 | Input teks | `form-input` |
 | Label input | `form-label` |
 | Kartu | `card card-body card-title card-value` |
