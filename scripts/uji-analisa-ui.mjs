@@ -1833,7 +1833,13 @@ const papanTampil = (wadah) =>
   const fetchPemain = async (alamat) => {
     const u = String(alamat);
     const berjudul = u.includes("berjudul");
-    if (!u.includes("api.chess.com")) return fetchSebelum(alamat);
+    let host;
+    try {
+      host = new URL(u).hostname;
+    } catch {
+      return fetchSebelum(alamat);
+    }
+    if (host !== "api.chess.com") return fetchSebelum(alamat);
     return {
       ok: true,
       status: 200,
