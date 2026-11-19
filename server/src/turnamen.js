@@ -17,7 +17,7 @@ import { buatRepo } from "./simpanan.js";
 import { ambilProfil } from "./chess.js";
 import { daftarAnggotaKlub } from "./klub.js";
 import { evaluasiStatusChess, cariDiDaftarHitam } from "./identitas-server.js";
-import { normalisasiUsername } from "../../src/lib/identitas.js";
+import { normalisasiUsername, periksaUsername } from "../../src/lib/identitas.js";
 import {
   GalatAplikasi,
   repoAnggota,
@@ -38,6 +38,14 @@ const repoTurnamen = buatRepo(
 /* ------------------------------------------------------------ bantuan */
 
 const kiniIso = () => new Date().toISOString();
+
+function usernameTurnamenSah(raw) {
+  const hasil = periksaUsername(raw);
+  if (!hasil.sah) {
+    throw new GalatAplikasi(400, "Username Chess.com tidak valid (3-25 karakter, huruf/angka/_/-).");
+  }
+  return hasil.username;
+}
 
 function buatId(jenis) {
   const acak = crypto.randomBytes(3).toString("hex");
@@ -305,8 +313,7 @@ export async function hapusTurnamen(id) {
  * peserta; pengurus tetap harus meninjau dan menerima terlebih dahulu.
  */
 export async function ajukanKeikutsertaan(id, { username }) {
-  const uname = normalisasiUsername(username);
-  if (!uname) throw new GalatAplikasi(400, "Username Chess.com wajib diisi.");
+  const uname = usernameTurnamenSah(username);
 
   const t = await ambilTurnamen(id);
   if (t.status !== "pendaftaran") {
@@ -467,8 +474,7 @@ export async function tolakPengajuan(id, { username, alasan }) {
  * di sini, bukan hanya saat mendaftar keanggotaan.
  */
 export async function daftarkanPeserta(id, { username, tim }) {
-  const uname = normalisasiUsername(username);
-  if (!uname) throw new GalatAplikasi(400, "Username wajib diisi.");
+  const uname = usernameTurnamenSah(username);
 
   const [anggotaLokal, anggotaKlub, hitam] = await Promise.all([
     repoAnggota.baca(),

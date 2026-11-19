@@ -8,23 +8,91 @@ import fsp from "node:fs/promises";
 import { konfigurasi } from "./konfigurasi.js";
 import { tambahBaris } from "./simpanan.js";
 
-const KUNCI_SENSITIF = /password|passwd|token|secret|pepper|authorization|cookie|csrf/i;
+const KUNCI_SENSITIF =
+  /password|passwd|token|secret|pepper|authorization|cookie|csrf|kode|code|tiket|ticket|signature|session|api[_-]?key/i;
+const KODE_EBOOK = /\bEBK-[A-Z2-9]{8}\b/g;
+const KUNCI_METADATA = new Set(["timestamp", "waktu", "action", "peristiwa"]);
+const BATAS_AUDIT = Object.freeze({
+  kedalaman: 4,
+  node: 100,
+  elemenArray: 25,
+  propertiObjek: 40,
+  panjangString: 400,
+  karakter: 5000,
+  payload: 8192,
+});
 const RETENSI_HARI = 90;
 
-function bersihkanRincian(rincian = {}) {
-  const aman = {};
-  for (const [k, v] of Object.entries(rincian)) {
-    if (KUNCI_SENSITIF.test(k)) continue;
-    if (v == null) continue;
-    if (typeof v === "string" && v.length > 400) {
-      aman[k] = v.slice(0, 400);
-    } else if (typeof v === "object" && !Array.isArray(v)) {
-      aman[k] = bersihkanRincian(v);
-    } else {
-      aman[k] = v;
-    }
+function teksAudit(nilai, batas, keadaan) {
+  const teks = String(nilai)
+    .replace(/[\u0000-\u001f\u007f]/g, " ")
+    .replace(KODE_EBOOK, "[kode akses disamarkan]");
+  const panjang = Math.min(teks.length, batas, keadaan.sisaKarakter);
+  keadaan.sisaKarakter -= panjang;
+  return teks.slice(0, panjang);
+}
+
+function bersihkanNilai(nilai, keadaan, kedalaman = 0) {
+  if (keadaan.jumlahNode >= BATAS_AUDIT.node) return undefined;
+  keadaan.jumlahNode += 1;
+
+  if (nilai == null) return undefined;
+  if (typeof nilai === "string") {
+    return teksAudit(nilai, BATAS_AUDIT.panjangString, keadaan);
   }
-  return aman;
+  if (typeof nilai === "boolean") return nilai;
+  if (typeof nilai === "number") return Number.isFinite(nilai) ? nilai : undefined;
+  if (typeof nilai !== "object" || kedalaman >= BATAS_AUDIT.kedalaman) {
+    return undefined;
+  }
+  if (keadaan.objekAktif.has(nilai)) return undefined;
+
+  if (Array.isArray(nilai)) {
+    keadaan.objekAktif.add(nilai);
+    const hasil = [];
+    for (const item of nilai.slice(0, BATAS_AUDIT.elemenArray)) {
+      const aman = bersihkanNilai(item, keadaan, kedalaman + 1);
+      if (aman !== undefined) hasil.push(aman);
+      if (keadaan.jumlahNode >= BATAS_AUDIT.node || keadaan.sisaKarakter <= 0) break;
+    }
+    keadaan.objekAktif.delete(nilai);
+    return hasil;
+  }
+
+  const prototipe = Object.getPrototypeOf(nilai);
+  if (prototipe !== Object.prototype && prototipe !== null) return undefined;
+
+  keadaan.objekAktif.add(nilai);
+  const hasil = {};
+  for (const [kunciMentah, isi] of Object.entries(nilai).slice(0, BATAS_AUDIT.propertiObjek)) {
+    const nama = String(kunciMentah);
+    if (
+      KUNCI_SENSITIF.test(nama) ||
+      KUNCI_METADATA.has(nama) ||
+      nama === "__proto__" ||
+      nama === "prototype" ||
+      nama === "constructor"
+    ) continue;
+
+    const kunci = teksAudit(nama, 64, keadaan);
+    if (!kunci || keadaan.sisaKarakter <= 0) break;
+    const aman = bersihkanNilai(isi, keadaan, kedalaman + 1);
+    if (aman !== undefined) hasil[kunci] = aman;
+    if (keadaan.jumlahNode >= BATAS_AUDIT.node || keadaan.sisaKarakter <= 0) break;
+  }
+  keadaan.objekAktif.delete(nilai);
+  return hasil;
+}
+
+/** Sanitasi rekursif rincian audit, termasuk array dan objek bersarang. */
+export function bersihkanRincian(rincian = {}) {
+  if (!rincian || typeof rincian !== "object" || Array.isArray(rincian)) return {};
+  const keadaan = {
+    jumlahNode: 0,
+    sisaKarakter: BATAS_AUDIT.karakter,
+    objekAktif: new WeakSet(),
+  };
+  return bersihkanNilai(rincian, keadaan) || {};
 }
 
 /**
@@ -35,13 +103,22 @@ function bersihkanRincian(rincian = {}) {
 export async function logAudit(aksi, rincian = {}) {
   try {
     const kini = new Date().toISOString();
-    await tambahBaris(konfigurasi.berkasJejak, {
+    const rincianAman = bersihkanRincian(rincian);
+    const peristiwa = String(aksi || "peristiwa").slice(0, 80);
+    const entri = {
       timestamp: kini,
       waktu: kini,
-      action: aksi,
-      peristiwa: aksi,
-      ...bersihkanRincian(rincian),
-    });
+      action: peristiwa,
+      peristiwa,
+      ...rincianAman,
+    };
+    while (Buffer.byteLength(JSON.stringify(entri), "utf8") > BATAS_AUDIT.payload) {
+      const terakhir = Object.keys(rincianAman).at(-1);
+      if (!terakhir) break;
+      delete rincianAman[terakhir];
+      delete entri[terakhir];
+    }
+    await tambahBaris(konfigurasi.berkasJejak, entri);
   } catch {
     /* jejak audit tidak boleh menggagalkan permintaan utama */
   }

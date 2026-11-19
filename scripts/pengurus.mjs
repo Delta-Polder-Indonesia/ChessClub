@@ -37,6 +37,7 @@ import {
   LABEL_KUNCI,
 } from "../server/src/identitas-server.js";
 import { normalisasiHp, normalisasiUsername } from "../src/lib/identitas.js";
+import { playerIdChessSah, statusChessSah, usernameRosterSah } from "./validasi-respons-chess.mjs";
 
 const DATA = path.resolve("data/anggota.json");
 const HITAM = path.resolve("data/daftar-hitam.json");
@@ -84,6 +85,9 @@ async function chessGet(p) {
 
 /** Ambil dan satukan `weekly`, `monthly`, serta `all_time` dari roster klub. */
 async function rosterKlub() {
+  if (!/^[a-z0-9-]{1,60}$/.test(KLUB)) {
+    throw new Error("Slug klub Chess.com tidak valid.");
+  }
   const res = await chessGet(`/club/${encodeURIComponent(KLUB)}/members`);
   if (!res.ok) {
     throw new Error(
@@ -96,7 +100,7 @@ async function rosterKlub() {
   const username = new Set();
   for (const kategori of ["weekly", "monthly", "all_time"]) {
     for (const anggota of Array.isArray(data?.[kategori]) ? data[kategori] : []) {
-      const nama = normalisasiUsername(anggota?.username);
+      const nama = usernameRosterSah(anggota);
       if (nama) username.add(nama);
     }
   }
@@ -137,12 +141,12 @@ async function pindai() {
         continue;
       }
       const profil = await res.json();
-      const statusChess =
-        typeof profil?.status === "string" ? profil.status.slice(0, 64) : null;
-      const playerIdApi =
-        Number.isSafeInteger(profil?.player_id) && profil.player_id > 0
-          ? profil.player_id
-          : null;
+      const statusChess = statusChessSah(profil);
+      if (!statusChess) {
+        console.log("status profil tidak dikenal");
+        continue;
+      }
+      const playerIdApi = playerIdChessSah(profil);
       const playerIdLokal =
         Number.isSafeInteger(lokal?.playerId) && lokal.playerId > 0
           ? lokal.playerId
