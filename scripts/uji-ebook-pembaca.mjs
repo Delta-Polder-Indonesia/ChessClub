@@ -218,8 +218,20 @@ uji("CSP mengizinkan sumber cadangan PDF", () => {
   const indeks = readFileSync(path.join(ROOT, "index.html"), "utf8");
   for (const [berkas, isi] of [["vercel.json", vercel], ["index.html", indeks]]) {
     const connect = /connect-src([^;]+);/.exec(isi)?.[1] || "";
+    const sumber = connect.trim().split(/\s+/).filter(Boolean);
+    const hostDiizinkan = sumber.some((token) => {
+      const nilai = token.replace(/^'+|'+$/g, "");
+      if (nilai === "media.githubusercontent.com") return true;
+      if (nilai === "*.githubusercontent.com") return true;
+      if (!/^https?:\/\//i.test(nilai)) return false;
+      try {
+        return new URL(nilai).hostname === "media.githubusercontent.com";
+      } catch {
+        return false;
+      }
+    });
     benar(
-      connect.includes("media.githubusercontent.com"),
+      hostDiizinkan,
       `${berkas}: connect-src belum mengizinkan media.githubusercontent.com`
     );
   }
