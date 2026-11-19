@@ -185,6 +185,12 @@ function hitungUntukAturan(isi, pola, diizinkan, _file) {
 // struktur tabel (kepala tabel dan footer pagination).
 const LATAR_ABU = /(?:^|[\s"'`])bg-slate-(?:50|100|200)\b/;
 
+// Efek mengambang (bayangan) juga dilarang di dashboard Pengurus. Batas antar
+// bidang dibuat dengan garis 1px, bukan bayangan. Tidak ada pengecualian untuk
+// dialog, dropdown, maupun menu: lapisan atas memakai border yang lebih tegas
+// dan latar gelap transparan sebagai pemisah.
+const BAYANGAN = /(?:^|[\s"'`])shadow(?:-(?:2xl|xl|lg|md|sm|inner|none)|-\[[^\]]+\])?\b/;
+
 /**
  * Cari kelas warna semantik di src/halaman/Pengurus/ dan laporkan per baris.
  * Komentar baris (`// …`) dibuang lebih dulu agar catatan dokumentasi yang
@@ -202,6 +208,9 @@ function periksaWarnaPengurus() {
       if (!kode) return;
       for (const cocok of kode.matchAll(HUE_SEMANTIK)) {
         temuan.push(`${relatif}:${i + 1} memakai ${cocok[0]}`);
+      }
+      if (BAYANGAN.test(kode)) {
+        temuan.push(`${relatif}:${i + 1} memakai efek mengambang (bayangan)`);
       }
       // Kotak berlatar abu: latar slate + sudut membulat + garis sekaligus.
       if (
@@ -269,8 +278,9 @@ if (warnaPengurus.length) {
   for (const baris of warnaPengurus) console.error(`- ${baris}`);
   console.error(
     "\nDashboard Pengurus tidak memakai warna semantik (hijau/merah/kuning/biru) " +
-      "untuk status, dan tidak memakai kotak berlatar abu. Tulis status sebagai teks " +
-      "netral dan tampilkan konten pada bidang putih dengan garis tipis. " +
+      "untuk status, tidak memakai kotak berlatar abu, dan tidak memakai efek mengambang " +
+      "(bayangan). Tulis status sebagai teks netral, tampilkan konten pada bidang putih " +
+      "dengan garis tipis 1px. " +
       "Lihat DESIGN.md §1 dan skill kci-anti-slop §4b."
   );
   process.exit(1);

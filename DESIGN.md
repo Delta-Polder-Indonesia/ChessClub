@@ -22,6 +22,7 @@ Dokumen ini adalah sumber kebenaran (*single source of truth*) untuk token desai
 - **Palet grafik** (komponen `ui/chart`, `tools/GrafikTools`): `--chart-1` `#0B2F9F` · `--chart-2` `#4D7CF5` · `--chart-3` `#FFDC58` · `--chart-4` `#FF6B6B` · `#7FBC8C` sebagai `--chart-5`.
 - **Zona token shadcn/Analisa** (`:root`/`.dark`/`@theme inline` di bagian bawah `src/index.css`): token `--primary`, `--background`, `--radius`, dst. hanya untuk komponen `components/ui/`. **Dilarang menimpa token global** (`--color-primary`, `--color-grey-*`, `--color-paper`, skala radius Tailwind) dari zona ini.
 - **Dashboard Pengurus (`src/halaman/Pengurus/`) dilarang memakai warna semantik.** Status, peran, dan angka statistik tidak diberi hue hijau/merah/kuning/biru; semuanya netral (`text-slate-700`, lencana `bg-slate-100 text-slate-700 ring-slate-200`, angka `text-slate-900`). Satu-satunya warna di area ini adalah aksen brand `--color-primary`. Status dibaca dari teksnya, bukan warnanya. Aturan ini diuji otomatis dan **tidak dapat dikecualikan lewat baseline** (`npm run uji:desain`, `scripts/uji-standar-desain.mjs`). Latar belakang dan alasan ada di skill `kci-anti-slop` §4b.
+- **Dilarang efek mengambang di dashboard Pengurus.** Tidak ada `shadow-*` (termasuk `shadow-sm`, `shadow-lg`, `shadow-xl`, dan nilai arbitrer) pada kartu, tabel, tombol, dialog, dropdown, maupun menu. Batas bidang dibuat dengan garis 1px; lapisan atas memakai border lebih tegas dan latar gelap transparan. Aturan ini diuji otomatis dan tidak dapat dikecualikan lewat baseline.
 - **Dilarang kotak berlatar abu di dashboard Pengurus.** Elemen dengan latar `bg-slate-50/100/200` sekaligus `rounded-lg` dan `border` tidak boleh ada; konten tampil pada bidang putih dengan garis tipis, dan latar abu hanya sah sebagai state interaksi (`hover:`, `focus:`, `active:`, `disabled:`) atau bagian struktur tabel (kepala tabel, footer pagination). Aturan ini juga diuji otomatis dan tidak dapat dikecualikan lewat baseline.
 
 ---
@@ -66,7 +67,7 @@ Dokumen ini adalah sumber kebenaran (*single source of truth*) untuk token desai
 
 - **Batas (Border):** Garis tegas `1px` (`border border-slate-200` atau `border-slate-300`).
 - **Radius:** `rounded` (4px) atau `rounded-lg` (8px). Hindari bentuk pill raksasa atau `rounded-3xl` yang kekanak-kanakan.
-- **Elevasi & Bayangan:** Gunakan bayangan netral tipis (`shadow-sm`) atau cukup border `1px` datar (*flat restrained*).
+- **Elevasi & Bayangan:** Gunakan bayangan netral tipis (`shadow-sm`) atau cukup border `1px` datar (*flat restrained*). Khusus dashboard Pengurus (`src/halaman/Pengurus/`): **tanpa bayangan sama sekali**, termasuk pada dialog dan dropdown; lihat §1.
 - **Rating & ulasan — aturan khusus:** Kartu ulasan harus datar tanpa efek mengambang/bayangan. Waktu relatif (mis. “2 hari yang lalu”) tampil sebagai teks polos, bukan badge/chip/pill atau latar berwarna. Tombol suka/tidak suka tidak memakai latar kapsul/kartu, termasuk saat hover/aktif; state aktif hanya mengubah warna ikon jempol dan angka. Indikator fokus keyboard tetap dipertahankan.
 
 ---

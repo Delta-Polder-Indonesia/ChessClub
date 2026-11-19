@@ -153,7 +153,7 @@ export default function PanelAudit({ beriTahu }) {
       />
       <form
         onSubmit={terapkanFilter}
-        className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm"
+        className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-lg border border-slate-200 bg-white p-4"
       >
         <Bidang
           label="Aksi"

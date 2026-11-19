@@ -151,6 +151,11 @@ sekaligus `rounded-lg` dan `border`. Dua tindakan cepat di Ringkasan Dashboard
 sebelumnya memakai pola itu; sekarang menjadi baris terbuka dengan pemisah tipis
 dan tautan teks "Buka", tanpa kotak.
 
+Pemeriksaan ketiga menolak efek mengambang: setiap utilitas `shadow-*` di
+`src/halaman/Pengurus/` menggagalkan uji. Sebelas berkas dibersihkan dari
+`shadow-sm`, `shadow-lg`, dan `shadow-xl`; batas bidang kini hanya garis 1px,
+dan dialog/dropdown memakai border `slate-300` di atas latar gelap transparan.
+
 Pemeriksaan ini berjalan **sebelum** mekanisme baseline, sehingga
 `npm run desain:baseline` tidak bisa mengabsahkan pelanggaran baru. Uji ini ikut
 `npm run uji:desain` dan sudah berada di jalur CI lewat `npm run uji:v1:ui-engine`

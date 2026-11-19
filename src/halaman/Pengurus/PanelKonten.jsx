@@ -134,7 +134,7 @@ function MenuKolom({ tabel }) {
             role="menu"
             aria-label="Pilih kolom"
             style={{ top: posisi.top, left: posisi.left }}
-            className="fixed z-50 min-w-[10rem] rounded-md border border-slate-200 bg-white p-1 shadow-lg"
+            className="fixed z-50 min-w-[10rem] rounded-md border border-slate-300 bg-white p-1"
           >
             {kolom.map((c) => (
               <label
@@ -435,7 +435,7 @@ function MenuStatus({ nilai, onPilih, labelBaru, onBuatBaru }) {
             role="menu"
             aria-label="Status dan tindakan"
             style={{ top: posisi.top, left: posisi.left }}
-            className="fixed z-50 min-w-[9rem] rounded-md border border-slate-200 bg-white p-1 shadow-lg"
+            className="fixed z-50 min-w-[9rem] rounded-md border border-slate-300 bg-white p-1"
           >
             {pilihan.map((p) => (
               <button

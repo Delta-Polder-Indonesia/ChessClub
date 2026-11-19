@@ -310,7 +310,7 @@ export default function PanelAnggota({
       )}
 
       {/* ── Tabel ───────────────────────────────────────────── */}
-      <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
         <p className="border-b border-slate-200 px-4 py-2.5 text-sm text-slate-600">
           Menampilkan <span className="font-semibold text-slate-900">{anggotaTersaring.length}</span> dari {anggota.length} anggota
         </p>
@@ -476,7 +476,7 @@ export default function PanelAnggota({
           onClick={() => setKontak(null)}
         >
           <div
-            className="w-full max-w-md rounded-lg bg-white p-5 shadow-xl"
+            className="w-full max-w-md rounded-lg border border-slate-300 bg-white p-5"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between">

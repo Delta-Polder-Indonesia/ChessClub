@@ -80,7 +80,7 @@ export default function Gerbang({ onMasuk }) {
     <div className="mx-auto flex min-h-[70vh] max-w-md items-center px-6">
       <form
         onSubmit={masuk}
-        className="mt-10 w-full rounded-xl border border-slate-200 bg-white p-8 shadow-sm"
+        className="mt-10 w-full rounded-xl border border-slate-200 bg-white p-8"
       >
         <div className="flex justify-center">
           <Logo variant="dark" size="md" />
@@ -154,7 +154,7 @@ export default function Gerbang({ onMasuk }) {
             aria-label="Gagal masuk"
             onClick={() => setGalat("")}
           >
-            <div className="w-full max-w-md rounded-lg bg-white p-5 shadow-xl">
+            <div className="w-full max-w-md rounded-lg border border-slate-300 bg-white p-5">
               <h2 className="text-base font-bold text-slate-900">Gagal masuk</h2>
               <p className="mt-2 text-sm leading-6 text-slate-600">{galat}</p>
               <div className="mt-5 flex justify-end gap-2">

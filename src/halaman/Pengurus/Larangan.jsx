@@ -267,7 +267,7 @@ export default function PanelLarangan({
       )}
 
       {/* ── Tabel ───────────────────────────────────────────── */}
-      <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
         <p className="border-b border-slate-200 px-4 py-2.5 text-sm text-slate-600">
           Menampilkan <span className="font-semibold text-slate-900">{dataTersaring.length}</span> dari {hitam.length} akun
         </p>

@@ -90,7 +90,7 @@ export function Bidang({ label, invalid, className, ...sisa }) {
  * menyalin string kelas yang panjang di setiap kolom.
  */
 export const KELAS_KARTU_TABEL =
-  "overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm";
+  "overflow-hidden rounded-lg border border-slate-200 bg-white";
 
 export const KELAS_KEPALA_TABEL =
   "border-b border-slate-200 bg-slate-50 px-3 text-xs font-semibold uppercase tracking-wide text-slate-600";
@@ -252,7 +252,7 @@ export function Modal({
     >
       <div
         ref={wadahRef}
-        className="w-full max-w-md rounded-lg bg-white p-5 shadow-xl"
+        className="w-full max-w-md rounded-lg border border-slate-300 bg-white p-5"
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="text-base font-bold text-slate-900">{judul}</h3>
@@ -372,7 +372,7 @@ export function MenuAksi({ onUbah, onHapus, aksi }) {
             role="menu"
             aria-label="Menu aksi"
             style={{ top: posisi.top, right: posisi.right }}
-            className="fixed z-50 min-w-[8rem] rounded-md border border-slate-200 bg-white p-1 shadow-lg"
+            className="fixed z-50 min-w-[8rem] rounded-md border border-slate-300 bg-white p-1"
           >
             {daftar.map(({ label, Ikon, onClick, bahaya, disabled }) => (
               <button
@@ -479,8 +479,8 @@ export function Kartu({ label, nilai, catatan, sorotan = false }) {
     <div
       className={`flex h-full flex-col rounded-lg border px-4 py-4 text-center ${
         sorotan
-          ? "border-primary bg-white shadow-sm"
-          : "border-slate-200 bg-white shadow-sm"
+          ? "border-primary bg-white"
+          : "border-slate-200 bg-white"
       }`}
     >
       <p

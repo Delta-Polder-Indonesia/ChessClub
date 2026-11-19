@@ -38,7 +38,7 @@ export default function DropdownProfil({
     <div
       className={`
         absolute right-0 mt-2 w-56 z-50
-        bg-white rounded-lg shadow-lg border border-slate-200 py-2
+        bg-white rounded-lg border border-slate-300 py-2
         origin-top-right transform-gpu
         transition-[opacity,transform] duration-200
         ease-[cubic-bezier(0.22,1,0.36,1)]

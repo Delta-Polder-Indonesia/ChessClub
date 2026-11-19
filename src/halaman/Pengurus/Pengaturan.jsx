@@ -314,7 +314,7 @@ function PanelKelolaAdmin({ beriTahu }) {
           simpan di tengah. */}
       <form
         onSubmit={tambah}
-        className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm"
+        className="overflow-hidden rounded-lg border border-slate-200 bg-white"
       >
         <div className="bg-primary px-4 py-3 text-center">
           <h3 className="text-sm font-bold uppercase tracking-wide text-white">
@@ -481,7 +481,7 @@ function PanelAkun({ beriTahu }) {
       />
       <div className="grid items-start gap-6 md:grid-cols-[20rem_minmax(0,1fr)]">
         {/* Kartu ringkas akun — pola "display box" halaman Settings referensi. */}
-        <aside className="rounded-lg border border-slate-200 bg-white shadow-sm">
+        <aside className="rounded-lg border border-slate-200 bg-white">
           <div className="border-b border-slate-200 px-4 py-3">
             <h3 className="text-sm font-bold text-slate-900">
               Akun Saat Ini (Master)
@@ -520,7 +520,7 @@ function PanelAkun({ beriTahu }) {
 
         <form
           onSubmit={simpan}
-          className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm"
+          className="overflow-hidden rounded-lg border border-slate-200 bg-white"
         >
           <div className="border-b border-slate-200 bg-slate-50 px-4 py-3">
             <h3 className="text-sm font-bold text-slate-900">

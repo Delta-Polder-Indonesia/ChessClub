@@ -94,7 +94,7 @@ function MenuKolom({ tabel }) {
             role="menu"
             aria-label="Pilih kolom"
             style={{ top: posisi.top, left: posisi.left }}
-            className="fixed z-50 min-w-[10rem] rounded-md border border-slate-200 bg-white p-1 shadow-lg"
+            className="fixed z-50 min-w-[10rem] rounded-md border border-slate-300 bg-white p-1"
           >
             {kolom.map((c) => (
               <label
@@ -189,7 +189,7 @@ export default function TabelData({
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+    <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
       <div className="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-2.5">
         <p className="text-sm text-slate-600">
           Menampilkan{" "}
