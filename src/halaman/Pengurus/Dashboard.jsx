@@ -392,7 +392,7 @@ export default function Dashboard() {
   }, [tabPengaturan, kunciJudul]);
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden bg-white">
+    <div className="pengurus-root h-screen flex flex-col overflow-hidden bg-white">
       {/* ── Halaman Pengaturan (Full Layar) — hanya Master ── */}
       {tabPengaturan ? (
         isMaster ? (
