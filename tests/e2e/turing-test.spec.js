@@ -46,8 +46,6 @@ for (const [bahasa, t] of Object.entries(kamus)) {
     const galat = [];
     page.on("pageerror", (error) => galat.push(error.message));
     await page.addInitScript((nilai) => localStorage.setItem("kci-bahasa", nilai), bahasa);
-    // Turing test kini halaman mandiri (sidebar sendiri), jadi dibuka langsung
-    // dari rutenya — bukan lewat sidebar Workspace yang sudah tidak memuatnya.
     await page.goto("/papan-interaktif/turing-test", { waitUntil: "domcontentloaded" });
     await page.getByLabel(t.label).fill(PGN);
     await page.getByRole("button", { name: t.mulai, exact: true }).click();
@@ -55,14 +53,10 @@ for (const [bahasa, t] of Object.entries(kamus)) {
     await expect(page.getByText(t.soal)).toBeVisible({ timeout: 150_000 });
     await expect(page.getByText(t.tanya)).toBeVisible();
 
-    // Dua pilihan langkah ada di panel samping section Turing test, bukan
-    // di sidebar navigasi yang juga memakai `aside`.
     await page.getByRole("region", { name: t.menu }).locator("aside button").first().click();
     await expect(page.getByRole("status").filter({ hasText: t.hasil })).toBeVisible();
     await expect(page.getByRole("button", { name: t.berikut })).toBeVisible();
 
-    // Pengaturan tampil non-popup di area utama mode, memodifikasi warna papan,
-    // dan mempertahankan soal Turing test saat ditutup.
     const labelPengaturan = bahasa === "en" ? "Settings" : "Pengaturan";
     const labelWarna = bahasa === "en" ? "Board color" : "Warna papan";
     await page.getByRole("button", { name: labelPengaturan, exact: true }).click();
@@ -82,16 +76,14 @@ for (const [bahasa, t] of Object.entries(kamus)) {
   });
 }
 
-/*
- * Impor dari Lichess. Permintaan ke lichess.org dicegat (page.route) supaya
- * tes tidak bergantung pada jaringan; respons yang dikirim meniru PGN asli.
- */
+const POLA_API_LICHESS = /^https:\/\/lichess\.org\/api\/games\/user\/[^/?#]+(?:\?.*)?$/;
+
 test("turing test: ambil partai dari Lichess lalu mulai tebak (id)", async ({ page }) => {
   test.setTimeout(180_000);
   const galat = [];
   page.on("pageerror", (error) => galat.push(error.message));
   let urlDipanggil = "";
-  await page.route(/lichess\.org\/api\/games\/user\//, (route) => {
+  await page.route(POLA_API_LICHESS, (route) => {
     urlDipanggil = route.request().url();
     route.fulfill({ status: 200, contentType: "application/x-chess-pgn", body: PGN });
   });
@@ -107,8 +99,8 @@ test("turing test: ambil partai dari Lichess lalu mulai tebak (id)", async ({ pa
   expect(galat, galat.join("\n")).toEqual([]);
 });
 
-test("turing test: pengguna tidak ditemukan di Lichess menampilkan pesan galat (id)", async ({ page }) => {
-  await page.route(/lichess\.org\/api\/games\/user\//, (route) => route.fulfill({ status: 404, body: "" }));
+ test("turing test: pengguna tidak ditemukan di Lichess menampilkan pesan galat (id)", async ({ page }) => {
+  await page.route(POLA_API_LICHESS, (route) => route.fulfill({ status: 404, body: "" }));
   await page.addInitScript(() => localStorage.setItem("kci-bahasa", "id"));
   await page.goto("/papan-interaktif/turing-test", { waitUntil: "domcontentloaded" });
   await page.getByLabel("Atau ambil dari Lichess (nama pengguna)").fill("tidak-ada-kali");
