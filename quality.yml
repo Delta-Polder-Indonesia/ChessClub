@@ -74,7 +74,7 @@ jobs:
           fi
 
   v1-teka-teki-catur:
-    name: Program: Teka-teki Catur
+    name: "Program: Teka-teki Catur"
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -99,7 +99,7 @@ jobs:
             exit 1
           fi
   v1-rush-teka-teki:
-    name: Program: Rush Teka-teki
+    name: "Program: Rush Teka-teki"
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -124,7 +124,7 @@ jobs:
             exit 1
           fi
   v1-teka-teki-harian:
-    name: Program: Teka-teki Harian
+    name: "Program: Teka-teki Harian"
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -149,7 +149,7 @@ jobs:
             exit 1
           fi
   v1-kuis-catur:
-    name: Program: Kuis Catur
+    name: "Program: Kuis Catur"
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -174,7 +174,7 @@ jobs:
             exit 1
           fi
   v1-report-analisa:
-    name: Program: Report Analisa
+    name: "Program: Report Analisa"
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -199,7 +199,7 @@ jobs:
             exit 1
           fi
   v1-pembukaan:
-    name: Program: Pembukaan
+    name: "Program: Pembukaan"
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -224,7 +224,7 @@ jobs:
             exit 1
           fi
   v1-lawan-bot:
-    name: Program: Lawan Bot
+    name: "Program: Lawan Bot"
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -249,7 +249,7 @@ jobs:
             exit 1
           fi
   v1-ebook-panduan:
-    name: Program: E-Book & Panduan
+    name: "Program: E-Book & Panduan"
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -274,7 +274,7 @@ jobs:
             exit 1
           fi
   v1-latihan-repertoar:
-    name: Program: Latihan Repertoar
+    name: "Program: Latihan Repertoar"
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -299,7 +299,7 @@ jobs:
             exit 1
           fi
   v1-hand-brain:
-    name: Program: Hand & Brain
+    name: "Program: Hand & Brain"
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -324,7 +324,7 @@ jobs:
             exit 1
           fi
   v1-turing-test:
-    name: Program: Turing Test
+    name: "Program: Turing Test"
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
