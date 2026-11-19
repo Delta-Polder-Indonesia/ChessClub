@@ -9,6 +9,8 @@ import {
   Sheet,
   SkeletonTabel,
   KepalaPanel,
+  KELAS_KARTU_TABEL,
+  KELAS_KEPALA_TABEL,
 } from "./ui.jsx";
 import {
   Table,
@@ -341,14 +343,16 @@ export default function PanelJuara({ beriTahu }) {
           </div>
 
           {daftar.length === 0 ? (
-            <p className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-600">
+            <p className="py-8 text-center text-sm text-slate-500">
               Belum ada turnamen yang dipublikasikan.
             </p>
 ) : (
+            <div className={KELAS_KARTU_TABEL}>
+            <div className="max-h-[560px] overflow-auto">
             <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-10 px-3">
+              <TableHeader className="bg-slate-50">
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className={`${KELAS_KEPALA_TABEL} sticky top-0 z-10 w-10`}>
                     <input
                       type="checkbox"
                       checked={semuaTerpilih}
@@ -357,13 +361,13 @@ export default function PanelJuara({ beriTahu }) {
                       className="size-4 accent-primary"
                     />
                   </TableHead>
-                  <TableHead className="px-3">#</TableHead>
-                  <TableHead className="px-3">Nama Turnamen</TableHead>
-                  <TableHead className="px-3">Kategori</TableHead>
-                  <TableHead className="px-3">Juara</TableHead>
-                  <TableHead className="px-3">Tanggal Mulai</TableHead>
-                  <TableHead className="px-3">Tanggal Berakhir</TableHead>
-                  <TableHead className="w-24 px-3">Aksi</TableHead>
+                  <TableHead className={`${KELAS_KEPALA_TABEL} sticky top-0 z-10`}>#</TableHead>
+                  <TableHead className={`${KELAS_KEPALA_TABEL} sticky top-0 z-10`}>Nama Turnamen</TableHead>
+                  <TableHead className={`${KELAS_KEPALA_TABEL} sticky top-0 z-10`}>Kategori</TableHead>
+                  <TableHead className={`${KELAS_KEPALA_TABEL} sticky top-0 z-10`}>Juara</TableHead>
+                  <TableHead className={`${KELAS_KEPALA_TABEL} sticky top-0 z-10`}>Tanggal Mulai</TableHead>
+                  <TableHead className={`${KELAS_KEPALA_TABEL} sticky top-0 z-10`}>Tanggal Berakhir</TableHead>
+                  <TableHead className={`${KELAS_KEPALA_TABEL} sticky top-0 z-10 w-24`}>Aksi</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -410,6 +414,8 @@ export default function PanelJuara({ beriTahu }) {
                 ))}
               </TableBody>
             </Table>
+            </div>
+            </div>
           )}
         </>
       )}

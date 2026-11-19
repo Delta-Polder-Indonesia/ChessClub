@@ -294,8 +294,13 @@ function PanelKelolaAdmin({ beriTahu }) {
         </div>
       )}
       <div>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <Kartu label="Total Admin" nilai={admins.length} warna="biru" />
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1.6fr_1fr_1fr]">
+          <Kartu
+            label="Total Admin"
+            nilai={admins.length}
+            catatan="Semua akun dashboard"
+            sorotan
+          />
           <Kartu label="Master Admin" nilai={masterCount} warna="hijau" />
           <Kartu label="Admin Pengurus" nilai={pengurusCount} />
         </div>

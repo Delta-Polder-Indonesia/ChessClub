@@ -319,7 +319,7 @@ export default function PanelAnggota({
           <Table className="table-fixed">
             <TableHeader className="bg-slate-50">
               <TableRow className="hover:bg-transparent">
-                <TableHead className="w-10 border-b border-slate-200 px-3">
+                <TableHead className="sticky top-0 z-10 w-10 border-b border-slate-200 bg-slate-50 px-3">
                   <input
                     type="checkbox"
                     checked={semuaTerpilih}
@@ -328,13 +328,13 @@ export default function PanelAnggota({
                     className="size-4 accent-primary"
                   />
                 </TableHead>
-                <TableHead className="w-10 border-b border-slate-200 px-3 text-xs font-semibold uppercase tracking-wide text-slate-600">#</TableHead>
-                <TableHead className="border-b border-slate-200 px-3 text-xs font-semibold uppercase tracking-wide text-slate-600">Anggota</TableHead>
-                <TableHead className="border-b border-slate-200 px-3 text-xs font-semibold uppercase tracking-wide text-slate-600">Kota</TableHead>
-                <TableHead className="border-b border-slate-200 px-3 text-xs font-semibold uppercase tracking-wide text-slate-600">Rating</TableHead>
-                <TableHead className="border-b border-slate-200 px-3 text-xs font-semibold uppercase tracking-wide text-slate-600">LIVE</TableHead>
-                <TableHead className="border-b border-slate-200 px-3 text-xs font-semibold uppercase tracking-wide text-slate-600">Status</TableHead>
-                <TableHead className="w-24 border-b border-slate-200 px-3 text-xs font-semibold uppercase tracking-wide text-slate-600">Aksi</TableHead>
+                <TableHead className="sticky top-0 z-10 w-10 border-b border-slate-200 bg-slate-50 px-3 text-xs font-semibold uppercase tracking-wide text-slate-600">#</TableHead>
+                <TableHead className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50 px-3 text-xs font-semibold uppercase tracking-wide text-slate-600">Anggota</TableHead>
+                <TableHead className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50 px-3 text-xs font-semibold uppercase tracking-wide text-slate-600">Kota</TableHead>
+                <TableHead className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50 px-3 text-xs font-semibold uppercase tracking-wide text-slate-600">Rating</TableHead>
+                <TableHead className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50 px-3 text-xs font-semibold uppercase tracking-wide text-slate-600">LIVE</TableHead>
+                <TableHead className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50 px-3 text-xs font-semibold uppercase tracking-wide text-slate-600">Status</TableHead>
+                <TableHead className="sticky top-0 z-10 w-24 border-b border-slate-200 bg-slate-50 px-3 text-xs font-semibold uppercase tracking-wide text-slate-600">Aksi</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

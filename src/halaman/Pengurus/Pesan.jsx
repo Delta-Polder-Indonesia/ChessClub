@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { apiPengurus } from "../../lib/api/index.js";
-import { Modal, SkeletonTabel, KepalaPanel, Lencana } from "./ui.jsx";
+import { Modal, SkeletonTabel, KepalaPanel } from "./ui.jsx";
 
 function waktuPesan(iso) {
   if (!iso) return "";
@@ -229,9 +229,6 @@ export default function PanelPesan({
       <KepalaPanel
         judul="Pesan Masuk"
         subjudul="Pesan dan masukan dari pengunjung situs"
-        aksi={
-          adaTerpilih ? <Lencana warna="biru">{adaTerpilih} dipilih</Lencana> : null
-        }
       />
       {(galat || adaTerpilih) && (
         <div className="flex items-center justify-end gap-3">
@@ -252,7 +249,7 @@ export default function PanelPesan({
                 onClick={() => setTargetHapusBanyak(true)}
                 className="rounded px-3 py-1.5 text-xs font-medium text-slate-600 border border-slate-200 hover:bg-slate-100"
               >
-                Hapus Semua
+                Hapus terpilih
               </button>
             </>
           )}
@@ -262,28 +259,30 @@ export default function PanelPesan({
       {memuat ? (
         <SkeletonTabel jumlahBaris={4} />
       ) : galat ? null : pesan.length === 0 ? (
-        <div className="flex items-center justify-center py-24">
-          <p className="text-sm text-slate-500">Belum ada pesan masuk.</p>
-        </div>
+        <p className="py-8 text-center text-sm text-slate-500">
+          Belum ada pesan masuk.
+        </p>
       ) : (
         <>
           <div className="divide-y divide-slate-200">
-            <label className="flex items-center w-full px-4 py-2 gap-4 text-xs font-medium text-slate-500 select-none">
+            <label className="flex w-full items-center gap-3 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-slate-600 select-none sm:gap-4">
               <input
                 type="checkbox"
                 checked={semuaDipilih}
                 onChange={toggleSemua}
-                className="h-4 w-4 rounded border-slate-300 text-slate-600 focus:ring-slate-500"
+                aria-label="Pilih semua pesan"
+                className="h-4 w-4 shrink-0 rounded border-slate-300 text-slate-600 focus:ring-slate-500"
               />
-              <span className="w-40">Nama</span>
-              <span className="w-48">Subjek</span>
+              <span className="w-6 shrink-0" aria-hidden="true" />
+              <span className="w-36 shrink-0 truncate sm:w-40">Nama</span>
+              <span className="hidden w-48 shrink-0 truncate sm:block">Subjek</span>
               <span className="flex-1">Pesan</span>
-              <span className="w-16 text-right">Waktu</span>
+              <span className="hidden w-16 shrink-0 text-right md:block">Waktu</span>
             </label>
             {pesan.map((p) => (
               <div
                 key={p.id}
-                className={`flex items-center w-full px-4 py-3 gap-4 transition-colors hover:bg-slate-50 ${
+                className={`flex w-full items-center gap-3 px-4 py-3 transition-colors hover:bg-slate-50 sm:gap-4 ${
                   !p.dibaca ? "bg-slate-50" : ""
                 }`}
               >
@@ -297,22 +296,31 @@ export default function PanelPesan({
                 <button
                   type="button"
                   onClick={() => bukaPesan(p)}
-                  className={`flex-1 min-w-0 flex items-center gap-4 text-left ${!p.dibaca ? "font-semibold text-black" : "text-slate-500"}`}
+                  className={`flex min-w-0 flex-1 items-center gap-3 text-left sm:gap-4 ${
+                    !p.dibaca ? "font-semibold text-slate-900" : "text-slate-500"
+                  }`}
                 >
-                  {!p.dibaca && (
-                    <span className="h-2 w-2 rounded-full bg-slate-700 shrink-0" />
-                  )}
-                  {p.dibaca && <span className="w-2 shrink-0" />}
-                  <span className="shrink-0 w-36 truncate text-sm">
-                    {p.nama}
+                  <span
+                    className={`h-2 w-2 shrink-0 rounded-full ${
+                      !p.dibaca ? "bg-slate-700" : "bg-transparent"
+                    }`}
+                    aria-hidden="true"
+                  />
+                  <span className="flex min-w-0 flex-1 flex-col gap-0.5 sm:flex-1 sm:flex-row sm:items-center sm:gap-4">
+                    <span className="w-full shrink-0 truncate text-sm sm:w-36">
+                      {p.nama}
+                    </span>
+                    <span className="hidden w-44 shrink-0 truncate text-sm sm:block">
+                      {p.subjek}
+                    </span>
+                    <span className="truncate text-sm opacity-60 sm:flex-1">
+                      {cuplikan(p.pesan)}
+                    </span>
+                    <span className="text-xs opacity-60 sm:hidden">
+                      {waktuPesan(p.tanggal)}
+                    </span>
                   </span>
-                  <span className="shrink-0 w-44 truncate text-sm">
-                    {p.subjek}
-                  </span>
-                  <span className="flex-1 truncate text-sm opacity-60">
-                    {cuplikan(p.pesan)}
-                  </span>
-                  <span className="shrink-0 w-16 text-right text-xs opacity-60 whitespace-nowrap">
+                  <span className="hidden w-16 shrink-0 whitespace-nowrap text-right text-xs opacity-60 md:block">
                     {waktuPesan(p.tanggal)}
                   </span>
                 </button>

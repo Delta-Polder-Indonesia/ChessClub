@@ -39,27 +39,62 @@ export default function RingkasanDashboard({ ringkas, onBuka, hitam }) {
           warna="hijau" />
       </div>
 
-      {/* Kartu aktivitas */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+      {/* Tindakan cepat: bentuknya sengaja beda dari kartu statistik supaya
+          terbaca sebagai tautan, bukan angka. */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <TooltipLabel label="Klik untuk membuka pesan masuk">
-          <div onClick={() => onBuka("pesan")} className="cursor-pointer transition-transform active:scale-95">
-            <Kartu
-              label="Pesan Masuk"
-              nilai={ringkas.pesan?.belumDibaca ?? 0}
-              catatan={`${ringkas.pesan?.total ?? 0} total`}
-              warna={ringkas.pesan?.belumDibaca ? "biru" : "slate"}
-            />
-          </div>
+          <button
+            type="button"
+            onClick={() => onBuka("pesan")}
+            className="flex w-full items-center justify-between gap-4 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-left transition-colors hover:border-primary/30 hover:bg-blue-50"
+          >
+            <span>
+              <span className="block text-sm font-semibold text-slate-900">
+                Pesan Masuk
+              </span>
+              <span className="mt-0.5 block text-xs text-slate-600">
+                {ringkas.pesan?.belumDibaca ?? 0} belum dibaca dari{" "}
+                {ringkas.pesan?.total ?? 0} pesan
+              </span>
+            </span>
+            <svg
+              className="size-4 shrink-0 text-primary"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
         </TooltipLabel>
+
         <TooltipLabel label="Klik untuk melihat larangan otomatis">
-          <div onClick={() => onBuka("larangan", "otomatis")} className="cursor-pointer transition-transform active:scale-95">
-            <Kartu
-              label="Blokir Otomatis"
-              nilai={banOtomatis}
-              catatan="Fair Play"
-              warna={banOtomatis ? "merah" : "slate"}
-            />
-          </div>
+          <button
+            type="button"
+            onClick={() => onBuka("larangan", "otomatis")}
+            className="flex w-full items-center justify-between gap-4 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-left transition-colors hover:border-primary/30 hover:bg-blue-50"
+          >
+            <span>
+              <span className="block text-sm font-semibold text-slate-900">
+                Blokir Otomatis
+              </span>
+              <span className="mt-0.5 block text-xs text-slate-600">
+                {banOtomatis} akun terblokir karena Fair Play
+              </span>
+            </span>
+            <svg
+              className="size-4 shrink-0 text-primary"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
         </TooltipLabel>
       </div>
     </div>

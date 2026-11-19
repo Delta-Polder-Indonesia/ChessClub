@@ -84,7 +84,33 @@ node scripts/uji-integritas-suite.mjs 11 lulus
 npx vite build                        sukses
 ```
 
-## 7. Batasan
+## 7. Perbaikan lanjutan (review seluruh panel)
+
+Temuan dari penelusuran ulang seluruh berkas konten Pengurus, sudah dikerjakan:
+
+1. Kepala tabel Anggota dan Larangan kini `sticky` dengan latar `bg-slate-50`, jadi
+   judul kolom tetap terlihat saat daftar digulir.
+2. Tombol "Hapus Semua" pada Pesan berganti menjadi "Hapus terpilih" karena aksinya
+   hanya menghapus pesan yang dicentang.
+3. Badge "N dipilih" ganda di Pesan dihapus; informasi cukup satu di toolbar.
+4. Baris Pesan kini bertumpuk di mobile dan satu baris di layar lebar, tanpa lebar
+   tetap yang memicu scroll horizontal.
+5. Tabel Turnamen, Juara, dan Konten memakai bingkai kartu, kepala tabel abu-abu,
+   dan kepala sticky yang sama dengan tabel lain lewat `KELAS_KARTU_TABEL` dan
+   `KELAS_KEPALA_TABEL` di `ui.jsx`.
+6. Grid kartu identik dipecah: `Kartu` mendapat prop `sorotan`, dipakai pada Total
+   Admin dan Total Sesi Masuk. Dua tindakan cepat di Ringkasan Dashboard kini
+   berbentuk baris bertautan, bukan kartu statistik.
+7. Pola galat muat diseragamkan memakai `KotakGalatMuat`; `NotifikasiError` tidak
+   dipakai lagi di panel mana pun dan masih tersisa sebagai ekspor lama.
+8. Empty state Pesan, Turnamen, dan Juara memakai teks tengah `py-8` seperti
+   `TabelData`.
+
+Belum dikerjakan, menunggu keputusan: `localhost` putus saat pengembangan.
+Usulan perbaikannya target proxy `http://127.0.0.1:8787` di `vite.config.js` dan
+penetapan `keepAliveTimeout` serta `headersTimeout` di `server/src/server.js`.
+
+## 8. Batasan
 
 - Verifikasi visual di browser tidak dilakukan pada sesi ini. Pratinjau dev server
   tersedia di `/pengurus`, tetapi penilaian tampilan akhir belum diverifikasi mata.

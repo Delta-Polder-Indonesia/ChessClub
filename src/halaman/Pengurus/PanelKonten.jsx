@@ -17,6 +17,8 @@ import {
   MenuAksi,
   SkeletonTabel,
   KepalaPanel,
+  KELAS_KARTU_TABEL,
+  KELAS_KEPALA_TABEL,
 } from "./ui.jsx";
 import {
   Table,
@@ -786,13 +788,17 @@ function PanelKonten({ konfig, beriTahu, muatUlang }) {
         (memuat ? (
           <SkeletonTabel jumlahBaris={4} />
         ) : galat ? null : (
-        <div className="overflow-auto">
+        <div className={KELAS_KARTU_TABEL}>
+          <div className="max-h-[560px] overflow-auto">
           <Table>
-            <TableHeader>
+            <TableHeader className="bg-slate-50">
               {tabel.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
+                <TableRow key={headerGroup.id} className="hover:bg-transparent">
                   {headerGroup.headers.map((header) => (
-                    <TableHead key={header.id}>
+                    <TableHead
+                      key={header.id}
+                      className={`${KELAS_KEPALA_TABEL} sticky top-0 z-10`}
+                    >
                       {header.isPlaceholder
                         ? null
                         : flexRender(header.column.columnDef.header, header.getContext())}
@@ -833,7 +839,8 @@ function PanelKonten({ konfig, beriTahu, muatUlang }) {
               )}
             </TableBody>
           </Table>
-          <div className="flex flex-wrap items-center justify-between gap-3 pt-3">
+          </div>
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 bg-slate-50 px-4 py-2.5">
             <p className="text-sm text-slate-600">
               {jumlahTerpilih} dari {jumlahTampil} {konfig.label.toLowerCase()} terpilih.
             </p>

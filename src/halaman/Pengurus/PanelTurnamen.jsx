@@ -5,8 +5,10 @@ import {
   Modal,
   MenuAksi,
   SkeletonTabel,
-  NotifikasiError,
   KepalaPanel,
+  KELAS_KARTU_TABEL,
+  KELAS_KEPALA_TABEL,
+  KotakGalatMuat,
 } from "./ui.jsx";
 import {
   Table,
@@ -200,19 +202,20 @@ export default function PanelTurnamen({ beriTahu, muatUlang, saatBukaRincian }) 
       {!buatBaru && (
         <>
           {galatMuat ? (
-            <NotifikasiError pesan={galatMuat} onCobaLagi={muat} />
+            <KotakGalatMuat pesan={galatMuat} onCobaLagi={muat} />
           ) : memuat ? (
             <SkeletonTabel jumlahBaris={4} />
           ) : tampil.length === 0 ? (
-            <p className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-600">
+            <p className="py-8 text-center text-sm text-slate-500">
               Belum ada turnamen. Tekan “+ Turnamen baru” untuk membuat.
             </p>
           ) : (
-            <div className="overflow-auto">
+            <div className={KELAS_KARTU_TABEL}>
+              <div className="max-h-[560px] overflow-auto">
               <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-10">
+                <TableHeader className="bg-slate-50">
+                  <TableRow className="hover:bg-transparent">
+                    <TableHead className={`${KELAS_KEPALA_TABEL} sticky top-0 z-10`}>
                       <input
                         type="checkbox"
                         checked={semuaTerpilih}
@@ -221,13 +224,13 @@ export default function PanelTurnamen({ beriTahu, muatUlang, saatBukaRincian }) 
                         className="size-4 accent-primary"
                       />
                     </TableHead>
-                    <TableHead>#</TableHead>
-                    <TableHead>Nama Turnamen</TableHead>
-                    <TableHead>Kategori</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Tanggal Mulai</TableHead>
-                    <TableHead>Peserta</TableHead>
-                    <TableHead className="w-24">Aksi</TableHead>
+                    <TableHead className={`${KELAS_KEPALA_TABEL} sticky top-0 z-10`}>#</TableHead>
+                    <TableHead className={`${KELAS_KEPALA_TABEL} sticky top-0 z-10`}>Nama Turnamen</TableHead>
+                    <TableHead className={`${KELAS_KEPALA_TABEL} sticky top-0 z-10`}>Kategori</TableHead>
+                    <TableHead className={`${KELAS_KEPALA_TABEL} sticky top-0 z-10`}>Status</TableHead>
+                    <TableHead className={`${KELAS_KEPALA_TABEL} sticky top-0 z-10`}>Tanggal Mulai</TableHead>
+                    <TableHead className={`${KELAS_KEPALA_TABEL} sticky top-0 z-10`}>Peserta</TableHead>
+                    <TableHead className={`${KELAS_KEPALA_TABEL} sticky top-0 z-10`}>Aksi</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -278,6 +281,7 @@ export default function PanelTurnamen({ beriTahu, muatUlang, saatBukaRincian }) 
                   ))}
                 </TableBody>
               </Table>
+              </div>
             </div>
           )}
         </>

@@ -415,11 +415,12 @@ export default function PanelRiwayatMasuk({ beriTahu }) {
       />
 
       {/* ── Statistik Kartu ───────────────────────────────── */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[1.6fr_1fr_1fr_1fr]">
         <Kartu
           label="Total Sesi Masuk"
           nilai={riwayat.length}
           catatan="Sepanjang riwayat"
+          sorotan
         />
         <Kartu
           label="Akun Pengurus"

@@ -276,7 +276,7 @@ export default function PanelLarangan({
           <Table>
             <TableHeader className="bg-slate-50">
               <TableRow className="hover:bg-transparent">
-                <TableHead className="w-10 border-b border-slate-200 px-3">
+                <TableHead className="sticky top-0 z-10 w-10 border-b border-slate-200 bg-slate-50 px-3">
                   <input
                     type="checkbox"
                     checked={semuaTerpilih}
@@ -285,12 +285,12 @@ export default function PanelLarangan({
                     className="size-4 accent-primary"
                   />
                 </TableHead>
-                <TableHead className="w-10 border-b border-slate-200 px-3 text-xs font-semibold uppercase tracking-wide text-slate-600">#</TableHead>
-                <TableHead className="border-b border-slate-200 px-3 text-xs font-semibold uppercase tracking-wide text-slate-600">Akun</TableHead>
-                <TableHead className="border-b border-slate-200 px-3 text-xs font-semibold uppercase tracking-wide text-slate-600">Alasan</TableHead>
-                <TableHead className="border-b border-slate-200 px-3 text-xs font-semibold uppercase tracking-wide text-slate-600">Sumber</TableHead>
-                <TableHead className="border-b border-slate-200 px-3 text-xs font-semibold uppercase tracking-wide text-slate-600">Tanggal Blokir</TableHead>
-                <TableHead className="w-24 border-b border-slate-200 px-3 text-xs font-semibold uppercase tracking-wide text-slate-600">Aksi</TableHead>
+                <TableHead className="sticky top-0 z-10 w-10 border-b border-slate-200 bg-slate-50 px-3 text-xs font-semibold uppercase tracking-wide text-slate-600">#</TableHead>
+                <TableHead className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50 px-3 text-xs font-semibold uppercase tracking-wide text-slate-600">Akun</TableHead>
+                <TableHead className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50 px-3 text-xs font-semibold uppercase tracking-wide text-slate-600">Alasan</TableHead>
+                <TableHead className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50 px-3 text-xs font-semibold uppercase tracking-wide text-slate-600">Sumber</TableHead>
+                <TableHead className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50 px-3 text-xs font-semibold uppercase tracking-wide text-slate-600">Tanggal Blokir</TableHead>
+                <TableHead className="sticky top-0 z-10 w-24 border-b border-slate-200 bg-slate-50 px-3 text-xs font-semibold uppercase tracking-wide text-slate-600">Aksi</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

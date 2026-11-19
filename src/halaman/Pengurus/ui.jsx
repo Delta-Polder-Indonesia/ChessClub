@@ -97,6 +97,17 @@ export function Bidang({ label, invalid, className, ...sisa }) {
 }
 
 /**
+ * Kelas bersama tabel panel Pengurus. Dipakai agar tabel mentah (Turnamen,
+ * Juara, Konten) serupa dengan yang sudah memakai bingkai kartu, tanpa
+ * menyalin string kelas yang panjang di setiap kolom.
+ */
+export const KELAS_KARTU_TABEL =
+  "overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm";
+
+export const KELAS_KEPALA_TABEL =
+  "border-b border-slate-200 bg-slate-50 px-3 text-xs font-semibold uppercase tracking-wide text-slate-600";
+
+/**
  * Kotak galat muat data panel: pesan yang TETAP TAMPIL sampai berhasil,
  * plus tombol coba lagi. Tanpa ini, kegagalan muat hanya menghasilkan toast
  * 8 detik lalu tabel kosong dibaca sebagai "belum ada data" (menyesatkan).
@@ -475,7 +486,7 @@ export function Sheet({
   );
 }
 
-export function Kartu({ label, nilai, catatan, warna = "slate" }) {
+export function Kartu({ label, nilai, catatan, warna = "slate", sorotan = false }) {
   const warnaTeks = {
     slate: "text-slate-900",
     merah: "text-red-700",
@@ -483,9 +494,17 @@ export function Kartu({ label, nilai, catatan, warna = "slate" }) {
     biru: "text-primary",
   }[warna];
   return (
-    <div className="flex h-full flex-col rounded-lg border border-slate-200 bg-white px-4 py-4 text-center shadow-sm">
+    <div
+      className={`flex h-full flex-col rounded-lg border px-4 py-4 text-center ${
+        sorotan
+          ? "border-primary/20 bg-blue-50 shadow-sm"
+          : "border-slate-200 bg-white shadow-sm"
+      }`}
+    >
       <p
-        className={`truncate text-2xl font-bold leading-tight ${warnaTeks}`}
+        className={`truncate font-bold leading-tight ${
+          sorotan ? "text-3xl text-primary" : `text-2xl ${warnaTeks}`
+        }`}
         title={typeof nilai === "string" ? nilai : undefined}
       >
         {nilai}
