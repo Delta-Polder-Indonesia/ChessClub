@@ -6,16 +6,14 @@ import { sumberGambar } from "../../lib/asets.js";
 
 // Cuplikan notasi menghiasi kartu, bukan kontrol papan interaktif.
 const PROGRAM = [
-  ["clinic", "♘", "Nf3 · d5 · g3"],
-  ["sekolah", "♙", "e4 · e5 · Nf3"],
+  ["tekaTekiHarian", "♛", "Qd8#", "teka-teki-harian"],
+  ["manusiaVsMesin", "♜", "1. e4 · c5", "manusia-vs-mesin"],
   ["panduan", "♗", "Bc4 · Bc5", "ebook-panduan"],
   ["simultan", "♔", "1. d4 · 1. e4"],
   ["tekaTeki", "♕", "Qh5 · Qxf7#", "teka-teki"],
-  ["manusiaVsMesin", "♜", "1. e4 · c5", "manusia-vs-mesin"],
   ["latihanRepertoar", "♞", "d4 · Nf6 · c4", "latihan-repertoar"],
   ["handBrain", "♖", "Ra1 · Re1", "hand-brain"],
   ["turingTest", "♟", "e4 · c6 · d4", "turing-test"],
-  ["tekaTekiHarian", "♛", "Qd8#", "teka-teki-harian"],
 ];
 
 export default function ProgramKami() {
