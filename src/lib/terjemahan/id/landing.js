@@ -162,7 +162,6 @@ export const landing = {
       "Jujur, buku pembukaan interaktif ini ngebantu banget ngasih arah latihan yang jelas. Efeknya berasa pas tanding, saya jadi mulai hafal pola dan rencana lawan, makanya sekarang berani keluar dari pembukaan tanpa cemas lagi.",
     testimoniKutip2Nama: "Salim C.",
     testimoniKutip2Peran: "Anggota komunitas, peringkat 1890",
-    arahLabel: "Tim kami",
     arahDeskripsi: "Kenali pengurus klub dan kunjungi profil mereka di Chess.com.",
     arahJudul: "Pengurus blunder skuad",
     arahAriaLabel: "Daftar pengurus BLUNDER SKUAD",

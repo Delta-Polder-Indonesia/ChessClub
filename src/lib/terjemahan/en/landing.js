@@ -162,7 +162,6 @@ export const landing = {
       "The interactive opening book gives my practice a clear structure; I now know opponent plans and feel confident leaving the opening.",
     testimoniKutip2Nama: "Salim C.",
     testimoniKutip2Peran: "Community member, rated 1890",
-    arahLabel: "Our team",
     arahDeskripsi: "Meet the people who run the club and visit their Chess.com profiles.",
     arahJudul: "BLUNDER SKUAD Staff",
     arahAriaLabel: "BLUNDER SKUAD staff list",
