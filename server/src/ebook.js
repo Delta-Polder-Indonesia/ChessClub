@@ -48,9 +48,8 @@ const KODE_RE = /^EBK-[A-Z2-9]{8}$/;
 /** Kode pendek tanpa karakter membingungkan (0/O, 1/I/L). */
 function bikinKode() {
   const abjad = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
-  const bita = crypto.randomBytes(8);
   let isi = "";
-  for (const b of bita) isi += abjad[b % abjad.length];
+  for (let i = 0; i < 8; i++) isi += abjad[crypto.randomInt(abjad.length)];
   return `EBK-${isi}`;
 }
 

@@ -177,7 +177,10 @@ export function buatTangani(router) {
           pesan: e.message || "Chess.com sedang tidak dapat dihubungi.",
         }, { req });
       }
-      console.error(`[kci] galat tak tertangani id=${req.kciRequestId || "-"} pada ${metode} ${jalur}:`, e);
+      // Jangan teruskan path, pesan galat, atau stack yang dapat memuat input klien.
+      const idLog = typeof req.kciRequestId === "string" && /^[a-f0-9-]{36}$/i.test(req.kciRequestId)
+        ? req.kciRequestId : "-";
+      console.error("[kci] galat tak tertangani id=%s", idLog);
       kirimJson(res, 500, { pesan: "Kesalahan server." }, { req });
     }
   };

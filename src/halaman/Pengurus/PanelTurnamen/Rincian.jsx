@@ -81,11 +81,18 @@ export default function RincianTurnamen({ id, jenis, beriTahu, onTutup, onBeruba
       `Status diubah menjadi "${status}".`
     );
 
+  const nilaiTautan = tautan.trim();
+  let urlUji = null;
+  if (/^https:\/\//i.test(nilaiTautan) && URL.canParse(nilaiTautan)) {
+    const url = new URL(nilaiTautan);
+    if (url.protocol === "https:" && !url.username && !url.password) urlUji = url.href;
+  }
+
   const simpanTautan = (e) => {
     e.preventDefault();
-    const nilai = tautan.trim();
-    if (nilai && !/^https:\/\//i.test(nilai)) {
-      beriTahu("Tautan turnamen harus diawali https://", "galat");
+    const nilai = urlUji || "";
+    if (nilaiTautan && !urlUji) {
+      beriTahu("Masukkan URL HTTPS yang valid tanpa kredensial.", "galat");
       return;
     }
     jalankan(
@@ -261,9 +268,9 @@ export default function RincianTurnamen({ id, jenis, beriTahu, onTutup, onBeruba
             onClick={simpanTautan}
             disabled={sibuk === "tautan"}
           />
-          {/^https:\/\//i.test(tautan) && (
+          {urlUji && (
             <a
-              href={tautan}
+              href={urlUji}
               target="_blank"
               rel="noreferrer noopener"
               className="px-2 py-2 text-xs font-semibold text-slate-800 hover:underline"
