@@ -140,11 +140,6 @@ export default function TabelData({
   const [columnVisibility, setColumnVisibility] = useState({});
   const [ukuranHalaman, setUkuranHalaman] = useState(pageSize || 10);
 
-  // Atur ulang ke halaman pertama bila ukuran halaman diubah.
-  useEffect(() => {
-    tabel.setPageIndex(0);
-  }, [ukuranHalaman, tabel]);
-
   const kolomOtomatis = useMemo(
     () =>
       kolom.map((k) => ({
@@ -175,6 +170,11 @@ export default function TabelData({
     pageSize: ukuranHalaman,
     initialState: { pagination: { pageSize: ukuranHalaman } },
   });
+
+  // Atur ulang ke halaman pertama bila ukuran halaman diubah.
+  useEffect(() => {
+    tabel.setPageIndex(0);
+  }, [ukuranHalaman, tabel]);
 
   const jumlahTampil = tabel.getFilteredRowModel().rows.length;
 
