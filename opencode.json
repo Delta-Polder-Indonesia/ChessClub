@@ -3,13 +3,26 @@
   "permission": {
     "skill": {
       "*": "allow"
-    }
+    },
+    "context7_*": "allow"
   },
   "mcp": {
+    "context7": {
+      "type": "remote",
+      "url": "https://mcp.context7.com/mcp",
+      "oauth": false,
+      "enabled": true,
+      "headers": {
+        "CONTEXT7_API_KEY": "{env:CONTEXT7_API_KEY}"
+      }
+    },
     "reui": {
       "type": "remote",
       "url": "https://mcp.reui.io/api/mcp",
       "enabled": true
     }
-  }
+  },
+  "plugin": [
+    "./.opencode/plugins/design-audit/index.ts"
+  ]
 }
