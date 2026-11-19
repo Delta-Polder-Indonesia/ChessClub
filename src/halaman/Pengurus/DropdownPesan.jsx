@@ -68,6 +68,7 @@ export default function DropdownPesan({
               <li key={p.id}>
                 <button
                   type="button"
+                  data-ukuran-bebas="baris-pesan"
                   onClick={() => onBukaPesan(p)}
                   className={`flex w-full gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-50 ${
                     p.dibaca ? "bg-white" : "bg-slate-50"
