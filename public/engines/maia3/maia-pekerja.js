@@ -1,9 +1,12 @@
 /**
  * Maia 3 Web Worker — menjalankan inferensi ONNX di luar utas utama.
  *
- * Worker ini meneruskan hanya pesan berstruktur yang berasal dari aplikasi.
- * URL model dan runtime dibatasi ke aset same-origin milik situs agar pesan
- * yang palsu tidak dapat memaksa worker mengunduh atau mengeksekusi aset lain.
+ * Hak cipta model: Maia Chess (CSSLab, University of Toronto) — GPL-3.0.
+ * Runtime: onnxruntime-web (Microsoft) — MIT.
+ *
+ * Worker hanya menerima pesan berstruktur dari aplikasi. URL model dan
+ * runtime dibatasi ke aset same-origin milik situs agar pesan palsu tidak
+ * dapat memaksa pengunduhan atau eksekusi aset lintas-origin.
  */
 /* global ort, indexedDB */
 
