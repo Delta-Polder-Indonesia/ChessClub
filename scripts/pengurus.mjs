@@ -137,13 +137,24 @@ async function pindai() {
         continue;
       }
       const profil = await res.json();
-      const st = evaluasiStatusChess(profil.status);
+      const statusChess =
+        typeof profil?.status === "string" ? profil.status.slice(0, 64) : null;
+      const playerIdApi =
+        Number.isSafeInteger(profil?.player_id) && profil.player_id > 0
+          ? profil.player_id
+          : null;
+      const playerIdLokal =
+        Number.isSafeInteger(lokal?.playerId) && lokal.playerId > 0
+          ? lokal.playerId
+          : null;
+      const playerId = playerIdApi ?? playerIdLokal;
+      const st = evaluasiStatusChess(statusChess);
 
       if (st.diblokir) {
         if (!hitam.some((h) => h.username === username)) {
           hitam.push({
             username,
-            playerId: profil.player_id ?? lokal?.playerId ?? null,
+            playerId,
             identitas: lokal?.identitas || {},
             sidikPepper: sidikPepper(),
             alasan: st.alasan,
@@ -156,11 +167,11 @@ async function pindai() {
         console.log("DIBLOKIR — pelanggaran fair play");
         continue;
       }
-      console.log(profil.status || "aktif");
+      console.log(statusChess || "aktif");
       if (lokal) {
         pembaruan.set(username, {
-          statusChess: profil.status || null,
-          playerId: profil.player_id ?? lokal.playerId ?? null,
+          statusChess,
+          playerId,
         });
       }
     } catch (e) {
