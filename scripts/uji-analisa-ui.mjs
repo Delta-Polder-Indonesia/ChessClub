@@ -14,7 +14,7 @@
  *
  * Jalankan: node scripts/uji-analisa-ui.mjs
  */
-import { readFileSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -393,7 +393,8 @@ const PGN_UJI = '[Event "Kelas Catur Komunitas"]\n[White "Andini"]\n[Black "Baga
 
 /* ------------------------------------------------ bundel halaman (esbuild) */
 
-const berkasBundel = path.join(tmpdir(), "kci-uji-analisa-ui.cjs");
+const direktoriSementara = mkdtempSync(path.join(tmpdir(), "kci-uji-analisa-ui-"));
+const berkasBundel = path.join(direktoriSementara, "bundel.cjs");
 await build({
   stdin: {
     contents: MASUK,
@@ -1167,10 +1168,35 @@ uji("navigasi papan ketik tidak merobohkan halaman", !!domSiap.querySelector(".a
   // Komponen memanggil fetch global (bukan window.fetch), jadi keduanya
   // harus di-stub agar deterministik tanpa jaringan.
   const fetchAsli = globalThis.fetch;
+  const uraikanUrl = (url) => {
+    try {
+      return new URL(String(url));
+    } catch {
+      return null;
+    }
+  };
+  const hostLichessDiizinkan = (hostname) =>
+    hostname === "lichess.org" || hostname.endsWith(".lichess.org");
+
+  uji(
+    "stub Chess.com hanya mengenali hostname resmi",
+    uraikanUrl("https://api.chess.com/pub/player/contoh/games/archives")?.hostname === "api.chess.com" &&
+      uraikanUrl("https://api.chess.com.attacker.test/games/archives")?.hostname !== "api.chess.com" &&
+      uraikanUrl("https://attacker.test/?next=api.chess.com")?.hostname !== "api.chess.com"
+  );
+  uji(
+    "stub Lichess hanya mengenali domain resmi",
+    hostLichessDiizinkan(uraikanUrl("https://lichess.org/api/games/user/contoh")?.hostname ?? "") &&
+      hostLichessDiizinkan(uraikanUrl("https://export.lichess.org/api/games")?.hostname ?? "") &&
+      !hostLichessDiizinkan(uraikanUrl("https://lichess.org.attacker.test/api/games")?.hostname ?? "") &&
+      !hostLichessDiizinkan(uraikanUrl("https://attacker.test/?next=lichess.org")?.hostname ?? "")
+  );
   const fetchPalsu = (url) => {
-    const u = String(url);
-    if (u.includes("api.chess.com")) {
-      if (u.includes("/games/archives")) {
+    const parsed = uraikanUrl(url);
+    if (!parsed) return fetchAsli(url);
+    const { hostname, pathname } = parsed;
+    if (hostname === "api.chess.com") {
+      if (/^\/pub\/player\/[^/]+\/games\/archives$/.test(pathname)) {
         return Promise.resolve({
           ok: true,
           status: 200,
@@ -1204,7 +1230,7 @@ uji("navigasi papan ketik tidak merobohkan halaman", !!domSiap.querySelector(".a
         text: () => Promise.resolve(""),
       });
     }
-    if (u.includes("lichess.org")) {
+    if (hostLichessDiizinkan(hostname)) {
       return Promise.resolve({
         ok: true,
         status: 200,
@@ -2166,7 +2192,9 @@ console.error = consoleErrorAsli;
 dom.window.close();
 console.log(`\n${lulus} pemeriksaan lulus, ${gagal} gagal.`);
 if (gagal) {
-  writeFileSync(path.join(tmpdir(), "kci-uji-analisa-ui.html"), domSiap.documentElement?.innerHTML ?? "");
+  writeFileSync(path.join(direktoriSementara, "diagnostik.html"), domSiap.documentElement?.innerHTML ?? "", { flag: "wx", mode: 0o600 });
+  console.error(`Artefak diagnostik: ${path.join(direktoriSementara, "diagnostik.html")}`);
   process.exit(1);
 }
+rmSync(direktoriSementara, { recursive: true, force: true });
 process.exit(0);

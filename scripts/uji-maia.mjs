@@ -20,7 +20,7 @@
  *
  * Jalankan: node scripts/uji-maia.mjs [--tanpa-model] [--inferensi]
  */
-import { existsSync, readFileSync, statSync } from "node:fs";
+import { closeSync, existsSync, fstatSync, openSync, readFileSync, readSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { Chess } from "chess.js";
@@ -79,16 +79,33 @@ const hasil = (nama, kondisi, keterangan = "") => {
 
 console.log("\n1. Berkas model, worker, dan runtime ONNX");
 
-hasil("bobot model ada di public/engines/maia3/", existsSync(BERKAS_MODEL), BERKAS_MODEL);
-if (existsSync(BERKAS_MODEL)) {
-  const ukuran = statSync(BERKAS_MODEL).size;
-  // 45 MB: bukan pengecekan ukuran yang kaku, melainkan penangkal bobot
-  // yang setengah terunduh atau pointer Git LFS yang belum terganti.
-  hasil("ukuran bobot wajar (40–60 MB)", 40e6 < ukuran && ukuran < 60e6, `${(ukuran / 1e6).toFixed(1)} MB`);
-  const kepala = readFileSync(BERKAS_MODEL).subarray(0, 1 << 20);
-  const ekor = readFileSync(BERKAS_MODEL).subarray(ukuran - (1 << 22));
-  for (const nama of ["tokens", "elo_self", "elo_oppo", "logits_move", "logits_value"]) {
-    hasil(`kontrak model memuat "${nama}"`, kepala.includes(nama) || ekor.includes(nama));
+let fdModel = null;
+let ukuranModel = 0;
+try {
+  fdModel = openSync(BERKAS_MODEL, "r");
+  ukuranModel = fstatSync(fdModel).size;
+} catch (galat) {
+  if (fdModel !== null) closeSync(fdModel);
+  fdModel = null;
+  if (galat.code !== "ENOENT") throw galat;
+}
+hasil("bobot model ada di public/engines/maia3/", fdModel !== null, BERKAS_MODEL);
+if (fdModel !== null) {
+  try {
+    const ukuran = ukuranModel;
+    // 45 MB: bukan pengecekan ukuran yang kaku, melainkan penangkal bobot
+    // yang setengah terunduh atau pointer Git LFS yang belum terganti.
+    hasil("ukuran bobot wajar (40–60 MB)", 40e6 < ukuran && ukuran < 60e6, `${(ukuran / 1e6).toFixed(1)} MB`);
+    const kepala = Buffer.alloc(Math.min(1 << 20, ukuran));
+    readSync(fdModel, kepala, 0, kepala.length, 0);
+    const panjangEkor = Math.min(1 << 22, ukuran);
+    const ekor = Buffer.alloc(panjangEkor);
+    readSync(fdModel, ekor, 0, ekor.length, ukuran - panjangEkor);
+    for (const nama of ["tokens", "elo_self", "elo_oppo", "logits_move", "logits_value"]) {
+      hasil(`kontrak model memuat "${nama}"`, kepala.includes(nama) || ekor.includes(nama));
+    }
+  } finally {
+    closeSync(fdModel);
   }
 }
 
@@ -97,6 +114,7 @@ if (existsSync(BERKAS_PEKERJA)) {
   const sumber = readFileSync(BERKAS_PEKERJA, "utf8");
   hasil("worker menyebut lisensi Maia (GPL-3.0)", sumber.includes("GPL-3.0"));
   hasil("worker memuat runtime lewat importScripts", sumber.includes("importScripts"));
+  hasil("worker menolak pesan dari origin berbeda", sumber.includes("peristiwa?.origin !== self.location.origin"));
   hasil("worker memakai satu utas (tanpa COEP tidak ada SharedArrayBuffer)", /numThreads\s*=\s*1/.test(sumber));
   hasil("worker menyimpan bobot di IndexedDB", sumber.includes("indexedDB") && sumber.includes("Blob"));
   // Skrip klasik: sekali ada `export`/`import` di tingkat atas, importScripts

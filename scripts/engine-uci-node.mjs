@@ -20,7 +20,7 @@ import { spawn } from "node:child_process";
 import {
   copyFileSync,
   existsSync,
-  mkdirSync,
+  mkdtempSync,
   readdirSync,
   rmSync,
   symlinkSync,
@@ -107,27 +107,30 @@ function siapkanRunner(engine) {
     throw new Error(`loader engine tidak ditemukan: ${dirAsli}/${namaAsli}`);
   }
 
-  const dir = path.join(os.tmpdir(), `kci-engine-${engine.dir}`);
-  rmSync(dir, { recursive: true, force: true });
-  mkdirSync(dir, { recursive: true });
-  writeFileSync(path.join(dir, "package.json"), '{"type":"commonjs"}\n');
-  const loader = path.join(dir, `${engine.dir}.cjs`);
-  copyFileSync(path.join(dirAsli, namaAsli), loader);
-  // berkas pendukung (.wasm satu utuh/terpecah -part-N, .nnue net eksternal)
-  // cukup di-symlink.
-  for (const berkas of readdirSync(dirAsli)) {
-    if (!berkas.endsWith(".wasm") && !berkas.endsWith(".nnue")) continue;
-    symlinkSync(
-      path.join(dirAsli, berkas),
-      path.join(dir, berkas),
-      "file"
-    );
+  const dir = mkdtempSync(path.join(os.tmpdir(), `kci-engine-${engine.dir}-`));
+  try {
+    writeFileSync(path.join(dir, "package.json"), '{"type":"commonjs"}\n', { flag: "wx", mode: 0o600 });
+    const loader = path.join(dir, `${engine.dir}.cjs`);
+    copyFileSync(path.join(dirAsli, namaAsli), loader);
+    // berkas pendukung (.wasm satu utuh/terpecah -part-N, .nnue net eksternal)
+    // cukup di-symlink.
+    for (const berkas of readdirSync(dirAsli)) {
+      if (!berkas.endsWith(".wasm") && !berkas.endsWith(".nnue")) continue;
+      symlinkSync(
+        path.join(dirAsli, berkas),
+        path.join(dir, berkas),
+        "file"
+      );
+    }
+    return {
+      dir,
+      loader,
+      bersihkan: () => rmSync(dir, { recursive: true, force: true }),
+    };
+  } catch (galat) {
+    rmSync(dir, { recursive: true, force: true });
+    throw galat;
   }
-  return {
-    dir,
-    loader,
-    bersihkan: () => rmSync(dir, { recursive: true, force: true }),
-  };
 }
 
 export class UciEngine {
