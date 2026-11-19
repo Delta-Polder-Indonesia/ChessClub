@@ -379,17 +379,17 @@ export default function PendaftaranAnggota() {
                 href={URL_KLUB}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-primary hover:underline"
+                className="hover:text-slate-800 hover:underline"
               >
                 {t("pendaftaran.tautanKlub")}
               </a>
-              <Link to="/bantuan" className="hover:text-primary hover:underline">
+              <Link to="/bantuan" className="hover:text-slate-800 hover:underline">
                 {t("bantuan.judul")}
               </Link>
-              <Link to="/privasi" className="hover:text-primary hover:underline">
+              <Link to="/privasi" className="hover:text-slate-800 hover:underline">
                 {t("privasi.judul")}
               </Link>
-              <Link to="/ketentuan" className="hover:text-primary hover:underline">
+              <Link to="/ketentuan" className="hover:text-slate-800 hover:underline">
                 {t("ketentuan.judul")}
               </Link>
             </nav>

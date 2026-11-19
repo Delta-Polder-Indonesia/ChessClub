@@ -204,7 +204,7 @@ function Lempeng({ src, alt, onBuka, labelBuka, kecil = false }) {
         type="button"
         onClick={onBuka}
         aria-label={`${labelBuka}: ${alt}`}
-        className="group relative block aspect-[16/10] w-full cursor-zoom-in overflow-hidden rounded bg-grey-100 p-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+        className="group relative block aspect-[16/10] w-full cursor-zoom-in overflow-hidden rounded bg-grey-100 p-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-800"
       >
         <img
           src={src}
@@ -321,7 +321,7 @@ function Lightbox({ proyek, idx, setIdx, onTutup, t, onToast }) {
               onClick={salin}
               aria-label={t("galeri.lightbox.salinTautan")}
               title={t("galeri.lightbox.salin")}
-              className="flex cursor-pointer rounded bg-transparent p-2 text-xs font-medium whitespace-nowrap text-inherit hover:bg-grey-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+              className="flex cursor-pointer rounded bg-transparent p-2 text-xs font-medium whitespace-nowrap text-inherit hover:bg-grey-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-800"
             >
               <LinkIcon className="size-[17px]" />
             </button>
@@ -330,7 +330,7 @@ function Lightbox({ proyek, idx, setIdx, onTutup, t, onToast }) {
               ref={tutupRef}
               onClick={onTutup}
               aria-label={t("galeri.lightbox.tutup")}
-              className="flex cursor-pointer rounded bg-transparent p-2 text-inherit hover:bg-grey-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+              className="flex cursor-pointer rounded bg-transparent p-2 text-inherit hover:bg-grey-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-800"
             >
               <CloseIcon className="size-[22px]" />
             </button>
@@ -361,7 +361,7 @@ function Lightbox({ proyek, idx, setIdx, onTutup, t, onToast }) {
           <button
             type="button"
             onClick={() => setIdx((i) => (i - 1 + total) % total)}
-            className="cursor-pointer rounded border border-slate-300 bg-white px-3 py-2 font-medium text-grey-800 hover:bg-grey-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            className="cursor-pointer rounded border border-slate-300 bg-white px-3 py-2 font-medium text-grey-800 hover:bg-grey-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-800"
           >
             {t("galeri.lightbox.sebelumnya")}
           </button>
@@ -371,7 +371,7 @@ function Lightbox({ proyek, idx, setIdx, onTutup, t, onToast }) {
           <button
             type="button"
             onClick={() => setIdx((i) => (i + 1) % total)}
-            className="cursor-pointer rounded border border-slate-300 bg-white px-3 py-2 font-medium text-grey-800 hover:bg-grey-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            className="cursor-pointer rounded border border-slate-300 bg-white px-3 py-2 font-medium text-grey-800 hover:bg-grey-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-800"
           >
             {t("galeri.lightbox.berikutnya")}
           </button>
@@ -488,10 +488,9 @@ export default function Galeri() {
             Elemennya <p>, bukan <h1> seperti di referensi, karena Hero.jsx:62
             sudah menjadi satu-satunya h1 halaman ini. Aturan "skipped heading
             level" di katalog Slop menyorot struktur heading yang membingungkan;
-            dua h1 untuk satu halaman/entity yang sama termasuk cacat itu. Kelas
-            fontnya sengaja dibiarkan sama persis supaya nol pergeseran visual. */}
+            dua h1 untuk satu halaman/entity yang sama termasuk cacat itu. */}
         <header className="pt-7 pb-6 max-[700px]:pt-[26px]">
-          <p className="m-0 font-serif text-[clamp(2.8rem,4vw,4rem)] leading-none tracking-[-0.02em] text-grey-800 max-[700px]:text-[3rem]">
+          <p className="m-0 font-serif judul-konten text-grey-800">
             {t("galeri.judul")}
           </p>
           <p className="mt-3 mb-0 text-sm leading-[1.5] text-grey-600 max-[700px]:mt-2.5 max-[700px]:text-[13px]">
@@ -515,14 +514,14 @@ export default function Galeri() {
                 key={p.id}
                 href={`#${p.id}`}
                 aria-current={aktif === p.id ? "location" : undefined}
-                className={`inline-flex min-h-10 flex-none cursor-pointer snap-start items-center gap-2 rounded-md bg-transparent px-3 py-2 text-left text-xs leading-[1.3] font-medium whitespace-nowrap no-underline transition-[background-color,color,box-shadow] duration-[180ms] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary motion-reduce:transition-none ${
+                className={`inline-flex min-h-10 flex-none cursor-pointer snap-start items-center gap-2 rounded-md bg-transparent px-3 py-2 text-left text-xs leading-[1.3] font-medium whitespace-nowrap no-underline transition-[background-color,color,box-shadow] duration-[180ms] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-800 motion-reduce:transition-none ${
                   aktif === p.id
                     ? "bg-white text-grey-800"
                     : "text-grey-600 hover:bg-white hover:text-grey-800"
                 }`}
               >
                 <p.Ikon
-                  className={`size-[18px] flex-none ${aktif === p.id ? "text-primary" : ""}`}
+                  className={`size-[18px] flex-none ${aktif === p.id ? "text-slate-800" : ""}`}
                 />
                 {p.judul}
               </a>
@@ -539,14 +538,14 @@ export default function Galeri() {
                 className="pt-[30px] scroll-mt-[90px] [&+article]:border-t [&+article]:border-slate-200 [&+article]:pt-8"
               >
                 <header className="mb-4 flex items-center justify-between gap-6">
-                  <h2 className="m-0 font-serif text-[clamp(2.4rem,3.4vw,3.3rem)] leading-none font-normal text-grey-800">
+                  <h2 className="m-0 font-serif judul-konten font-normal text-grey-800">
                     {p.judul}
                   </h2>
                 </header>
 
                 {/* .gallery-brief - blok kutip 96ch; ikon 20px di kiri teks */}
                 <blockquote className="mb-[26px] flex max-w-[96ch] items-start gap-3">
-                  <BriefIcon className="mt-0.5 size-5 flex-none text-primary" />
+                  <BriefIcon className="mt-0.5 size-5 flex-none text-slate-800" />
                   <p className="m-0 text-sm leading-[1.6] text-grey-800">
                     {t(`galeri.proyek.${p.id}.brief`)}
                   </p>
@@ -578,7 +577,7 @@ export default function Galeri() {
                 <h3 className="mb-3 flex items-center gap-2 text-[13px] leading-[1.4] font-medium text-grey-800">
                   <span
                     aria-hidden="true"
-                    className="inline-block size-[7px] flex-none rounded-full bg-primary"
+                    className="inline-block size-[7px] flex-none rounded-full bg-slate-800"
                   />
                   {t("galeri.dengan")}
                   <span className="text-[11px] font-normal text-grey-600">
@@ -610,7 +609,7 @@ export default function Galeri() {
                 KCI. */}
             <div className="flex flex-wrap items-start justify-end gap-x-7 gap-y-3 pt-3 pb-10 max-[700px]:gap-x-4">
               <details className="min-w-0 max-w-[72ch] scroll-mt-[90px] py-3">
-                <summary className="ml-auto w-fit cursor-pointer list-none text-sm font-medium text-grey-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary max-[700px]:text-[13px] [&::-webkit-details-marker]:hidden">
+                <summary className="ml-auto w-fit cursor-pointer list-none text-sm font-medium text-grey-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-800 max-[700px]:text-[13px] [&::-webkit-details-marker]:hidden">
                   {t("galeri.tentang")}
                 </summary>
                 <div className="max-w-[72ch] pt-6 pb-2.5 text-left text-sm">

@@ -14,6 +14,7 @@
  *    dua pendaftaran yang tiba bersamaan bisa saling menimpa (baca-ubah-tulis
  *    yang balapan), sehingga satu anggota hilang.
  */
+import crypto from "node:crypto";
 import fs from "node:fs";
 import fsp from "node:fs/promises";
 import path from "node:path";
@@ -78,18 +79,23 @@ export async function tulisJson(berkas, isi) {
     return;
   }
   await fsp.mkdir(path.dirname(berkas), { recursive: true });
-  const sementara = `${berkas}.${process.pid}.${Date.now()}.tmp`;
+  // Nama acak dan flag `wx` mencegah file sementara yang sudah ada atau
+  // symlink yang dipasang pihak lain dibuka/ditimpa oleh proses ini.
+  const sementara = `${berkas}.${process.pid}.${crypto.randomBytes(16).toString("hex")}.tmp`;
   const teks = JSON.stringify(isi, null, 2) + "\n";
 
-  let fd;
+  let fd = await fsp.open(sementara, "wx", 0o600);
   try {
-    fd = await fsp.open(sementara, "w");
     await fd.writeFile(teks, "utf8");
     await fd.sync(); // pastikan benar-benar sampai disk
-  } finally {
-    await fd?.close();
+    await fd.close();
+    fd = null;
+    await fsp.rename(sementara, berkas);
+  } catch (e) {
+    await fd?.close().catch(() => {});
+    await fsp.rm(sementara, { force: true }).catch(() => {});
+    throw e;
   }
-  await fsp.rename(sementara, berkas);
 }
 
 /** Tambahkan satu baris ke berkas JSONL (untuk jejak audit), atau ke Supabase. */

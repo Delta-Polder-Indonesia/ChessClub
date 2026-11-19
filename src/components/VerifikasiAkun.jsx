@@ -366,7 +366,7 @@ export default function VerifikasiAkun({
         <ol className="space-y-2.5">
           {LANGKAH.map((l, i) => (
             <li key={l.judul} className="flex items-start gap-3">
-              <span className="mt-0.5 grid h-5 w-5 flex-none place-items-center rounded-full bg-primary text-[10px] font-bold text-white">
+              <span className="mt-0.5 grid h-5 w-5 flex-none place-items-center rounded-full bg-slate-800 text-[10px] font-bold text-white">
                 {i + 1}
               </span>
               <span className="text-xs leading-relaxed text-grey-600">
@@ -389,7 +389,7 @@ export default function VerifikasiAkun({
 
         {/* Status */}
         {(status === MEMBUAT || status === MEMERIKSA) && (
-          <p className="flex items-center gap-2 text-xs font-medium text-primary">
+          <p className="flex items-center gap-2 text-xs font-medium text-slate-800">
             <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
             {status === MEMERIKSA
               ? t("verifikasi.menghubungi", { username: terikat })
@@ -495,7 +495,7 @@ export default function VerifikasiAkun({
                 rows={2}
                 maxLength={500}
                 placeholder={t("verifikasi.phCatatanPengajuan")}
-                className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-grey-800 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-1"
+                className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-grey-800 focus:border-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-800/20 focus:ring-offset-1"
               />
             </label>
             <div className="flex items-center justify-end gap-3">

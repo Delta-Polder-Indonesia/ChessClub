@@ -345,7 +345,7 @@ function PanelKelolaAdmin({ beriTahu }) {
             <select
               value={form.role}
               onChange={(e) => setForm((f) => ({ ...f, role: e.target.value }))}
-              className="w-40 border-0 border-b border-slate-300 bg-transparent px-1 py-1 text-sm outline-none focus:border-primary"
+              className="w-40 border-0 border-b border-slate-300 bg-transparent px-1 py-1 text-sm outline-none focus:border-slate-800"
             >
               <option value="pengurus">Admin Pengurus</option>
               <option value="master">Master Admin</option>

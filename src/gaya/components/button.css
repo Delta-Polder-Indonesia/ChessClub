@@ -15,7 +15,7 @@
   text-decoration: none;
 }
 .btn:focus-visible {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid var(--color-grey-800);
   outline-offset: 2px;
 }
 .btn:disabled {
@@ -36,8 +36,8 @@
 
 /* Variasi utama — primary */
 .btn-utama {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
+  border-color: var(--color-grey-800);
+  color: var(--color-grey-800);
   background: var(--color-paper);
 }
 .btn-utama:hover:not(:disabled) {

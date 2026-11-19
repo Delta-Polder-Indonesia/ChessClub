@@ -777,7 +777,7 @@ function jatahDilaporkan(n, total = 5) {
     track?.getAttribute("aria-valuetext") === teksKemajuan(n, total)
   );
 }
-const isianTrack = () => jatahTrack()?.querySelector(".bg-primary")?.style.width || "";
+const isianTrack = () => jatahTrack()?.firstElementChild?.style.width || "";
 const teksTerkunci = (total = 5) =>
   kamusLanding.harianTerkunciJudul.replace("{total}", String(total));
 const teksDialog = (total = 5) =>

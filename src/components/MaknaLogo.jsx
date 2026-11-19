@@ -7,7 +7,7 @@ export default function MaknaLogo() {
     <section id="makna-logo" className="w-full relative bg-transparent">
       <div className="w-full relative pl-6 md:pl-8 xl:pl-40 pr-6 md:pr-8 xl:pr-40 pb-16 md:pb-16 xl:pb-16 ml-0 mr-0">
         <div className="relative w-full mx-auto md:max-w-[1024px] flex flex-col gap-y-6 md:gap-y-8 lg:gap-y-10">
-          <h2 className="focus:outline-none focus:ring-0 font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-balance text-grey-800">
+          <h2 className="focus:outline-none focus:ring-0 font-serif font-light judul-konten tracking-normal text-balance text-grey-800">
             {t("maknaLogo.judul")}
           </h2>
           <div className="relative w-full overflow-x-auto xl:overflow-x-visible">

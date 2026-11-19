@@ -33,13 +33,13 @@
   transition: transform 0.2s ease;
 }
 .toggle input:checked + .toggle-slider {
-  background: var(--color-primary);
+  background: var(--color-grey-800);
 }
 .toggle input:checked + .toggle-slider::after {
   transform: translateX(1rem);
 }
 .toggle input:focus-visible + .toggle-slider {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid var(--color-grey-800);
   outline-offset: 2px;
 }
 .toggle-label {

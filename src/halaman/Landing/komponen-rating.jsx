@@ -247,8 +247,8 @@ export function KartuUlasan({ t, ulasan: u, padaVote, padat }) {
         </span>
         <button type="button" onClick={() => padaVote?.(u.id, "naik")}
           aria-pressed={u.sayaSuka === true} aria-label={t("landing.rating.suka")}
-          className={`inline-flex items-center gap-1.5 rounded px-2 py-1 font-sans text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${
-            u.sayaSuka === true ? "text-primary" : "text-foregroundGrey hover:text-primary"
+          className={`inline-flex items-center gap-1.5 rounded px-2 py-1 font-sans text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-800/50 ${
+            u.sayaSuka === true ? "text-slate-800" : "text-foregroundGrey hover:text-slate-800"
           }`}>
           <Jempol arah="naik" aktif={u.sayaSuka === true} className="size-5" />
           <span className="tabular-nums">{u.suka}</span>
@@ -390,7 +390,7 @@ export function FormUlasan({ t, bintangAwal = 0, onKirim, onBatal }) {
           </label>
           <input id="ulasan-nama" type="text" value={nama} onChange={(e) => setNama(e.target.value)} maxLength={40}
             placeholder={t("landing.rating.namaPlaceholder")}
-            className="w-full rounded-lg border-2 border-grey-400 bg-transparent px-3 py-2 font-sans text-sm outline-none placeholder:text-foregroundGrey transition-colors focus-visible:border-primary focus-visible:ring-0" />
+            className="w-full rounded-lg border-2 border-grey-400 bg-transparent px-3 py-2 font-sans text-sm outline-none placeholder:text-foregroundGrey transition-colors focus-visible:border-slate-800 focus-visible:ring-0" />
         </div>
         <div className="space-y-1.5">
           <label htmlFor="ulasan-pesan" className={`block font-sans text-sm font-semibold ${error?.field === "pesan" ? "text-destructive" : "text-foreground"}`}>
@@ -405,7 +405,7 @@ export function FormUlasan({ t, bintangAwal = 0, onKirim, onBatal }) {
             aria-invalid={error?.field === "pesan" || undefined}
             aria-describedby={error?.field === "pesan" ? "ulasan-error-pesan" : undefined}
             rows={5} maxLength={600} placeholder={t("landing.rating.pesanPlaceholder")}
-            className={`rounded-lg border-2 bg-transparent px-3 py-2 font-sans text-sm outline-none placeholder:text-foregroundGrey transition-colors focus-visible:ring-0 ${error?.field === "pesan" ? "border-destructive bg-destructive/5 focus-visible:border-destructive" : "border-grey-400 focus-visible:border-primary"}`} />
+            className={`rounded-lg border-2 bg-transparent px-3 py-2 font-sans text-sm outline-none placeholder:text-foregroundGrey transition-colors focus-visible:ring-0 ${error?.field === "pesan" ? "border-destructive bg-destructive/5 focus-visible:border-destructive" : "border-grey-400 focus-visible:border-slate-800"}`} />
           <div className="flex min-h-5 items-start justify-between gap-3">
             {error?.field === "pesan" ? (
               <p id="ulasan-error-pesan" role="alert" className="font-sans text-sm text-destructive">

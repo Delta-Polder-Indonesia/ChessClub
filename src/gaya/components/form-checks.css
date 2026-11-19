@@ -11,7 +11,7 @@
 .form-check input {
   width: 1rem;
   height: 1rem;
-  accent-color: var(--color-primary);
+  accent-color: var(--color-grey-800);
   margin: 0;
 }
 .form-check-label {
@@ -19,6 +19,6 @@
   color: var(--color-grey-700);
 }
 .form-check-input:focus-visible {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid var(--color-grey-800);
   outline-offset: 2px;
 }

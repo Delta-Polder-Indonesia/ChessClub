@@ -81,11 +81,18 @@ export default function RincianTurnamen({ id, jenis, beriTahu, onTutup, onBeruba
       `Status diubah menjadi "${status}".`
     );
 
+  const nilaiTautan = tautan.trim();
+  let urlUji = null;
+  if (/^https:\/\//i.test(nilaiTautan) && URL.canParse(nilaiTautan)) {
+    const url = new URL(nilaiTautan);
+    if (url.protocol === "https:" && !url.username && !url.password) urlUji = url.href;
+  }
+
   const simpanTautan = (e) => {
     e.preventDefault();
-    const nilai = tautan.trim();
-    if (nilai && !/^https:\/\//i.test(nilai)) {
-      beriTahu("Tautan turnamen harus diawali https://", "galat");
+    const nilai = urlUji || "";
+    if (nilaiTautan && !urlUji) {
+      beriTahu("Masukkan URL HTTPS yang valid tanpa kredensial.", "galat");
       return;
     }
     jalankan(
@@ -200,8 +207,8 @@ export default function RincianTurnamen({ id, jenis, beriTahu, onTutup, onBeruba
                   onClick={() => setTabKonten(m.id)}
                   className={`transition-colors duration-200 ${
                     tabKonten === m.id
-                      ? "text-primary"
-                      : "text-slate-800 hover:text-primary"
+                      ? "text-slate-800"
+                      : "text-slate-800 hover:text-slate-800"
                   }`}
                 >
                   {m.label}
@@ -224,7 +231,7 @@ export default function RincianTurnamen({ id, jenis, beriTahu, onTutup, onBeruba
           value={t.status}
           disabled={sibuk === "status"}
           onChange={(e) => ubahStatus(e.target.value)}
-          className="rounded border border-slate-300 bg-white px-2 py-1 text-sm text-slate-800 outline-none focus:border-primary"
+          className="rounded border border-slate-300 bg-white px-2 py-1 text-sm text-slate-800 outline-none focus:border-slate-800"
         >
           {["draf", "pendaftaran", "berlangsung", "selesai", "batal"].map((s) => (
             <option key={s} value={s}>
@@ -261,12 +268,12 @@ export default function RincianTurnamen({ id, jenis, beriTahu, onTutup, onBeruba
             onClick={simpanTautan}
             disabled={sibuk === "tautan"}
           />
-          {/^https:\/\//i.test(tautan) && (
+          {urlUji && (
             <a
-              href={tautan}
+              href={urlUji}
               target="_blank"
               rel="noreferrer noopener"
-              className="px-2 py-2 text-xs font-semibold text-primary hover:underline"
+              className="px-2 py-2 text-xs font-semibold text-slate-800 hover:underline"
             >
               Uji tautan ↗
             </a>
@@ -312,7 +319,7 @@ export default function RincianTurnamen({ id, jenis, beriTahu, onTutup, onBeruba
                       href={p.url}
                       target="_blank"
                       rel="noreferrer noopener"
-                      className="font-semibold text-primary hover:underline"
+                      className="font-semibold text-slate-800 hover:underline"
                     >
                       {p.username} ↗
                     </a>
@@ -455,7 +462,7 @@ export default function RincianTurnamen({ id, jenis, beriTahu, onTutup, onBeruba
                         )}`}
                         target="_blank"
                         rel="noreferrer noopener"
-                        className="font-semibold text-primary hover:underline"
+                        className="font-semibold text-slate-800 hover:underline"
                       >
                         {p.username} ↗
                       </a>
@@ -514,7 +521,7 @@ export default function RincianTurnamen({ id, jenis, beriTahu, onTutup, onBeruba
               <select
                 value={hasil.skor}
                 onChange={(e) => setHasil({ ...hasil, skor: e.target.value })}
-                className="rounded border border-slate-300 px-2.5 py-1.5 text-sm outline-none focus:border-primary"
+                className="rounded border border-slate-300 px-2.5 py-1.5 text-sm outline-none focus:border-slate-800"
               >
                 <option value="1-0">Putih menang</option>
                 <option value="0-1">Hitam menang</option>
@@ -530,7 +537,7 @@ export default function RincianTurnamen({ id, jenis, beriTahu, onTutup, onBeruba
                 <select
                   value={hasil[sisi]}
                   onChange={(e) => setHasil({ ...hasil, [sisi]: e.target.value })}
-                  className="rounded border border-slate-300 px-2.5 py-1.5 text-sm outline-none focus:border-primary"
+                  className="rounded border border-slate-300 px-2.5 py-1.5 text-sm outline-none focus:border-slate-800"
                 >
                   <option value="">— pilih —</option>
                   {t.peserta

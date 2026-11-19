@@ -27,7 +27,7 @@
 }
 .accordion-button[aria-expanded="true"] {
   background: var(--color-grey-50);
-  color: var(--color-primary);
+  color: var(--color-grey-800);
 }
 .accordion-panel {
   padding: 0.75rem 1rem;

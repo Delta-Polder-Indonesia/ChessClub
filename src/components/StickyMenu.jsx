@@ -94,7 +94,7 @@ export default function StickyMenu({ sections, activeId, onSelect }) {
             type="button"
             onClick={() => handleClick(s.id)}
             className={`text-grey-600 hover:text-blue-400 font-semibold flex text-sm flex-1 shrink-0 whitespace-nowrap min-h-[60px] lg:min-h-[62px] items-center justify-center py-4 lg:py-5 px-4 xl:px-6 hover:bg-slate-100 hover:text-slate-600 transition-colors ease-in-out duration-200 border-r ${
-              current === s.id ? "text-primary" : ""
+              current === s.id ? "text-slate-800" : ""
             }`}
           >
             {s.label}

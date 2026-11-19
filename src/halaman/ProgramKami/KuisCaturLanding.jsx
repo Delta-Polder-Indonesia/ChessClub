@@ -126,7 +126,7 @@ export default function KuisCaturLanding() {
         {/* Pengantar — kiri: judul, narasi & aksi utama; kanan: cuplikan soal berdiagram */}
         <section className="w-full border-t border-grey-200 bg-paper">
           <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
-            <h2 className="font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-balance text-grey-800">
+            <h2 className="font-serif font-light judul-konten tracking-normal text-balance text-grey-800">
               {t("kuisLanding.introJudul")}
             </h2>
             <div className="mt-8 grid gap-y-10 md:grid-cols-2 md:items-start md:gap-x-12">
@@ -175,7 +175,7 @@ export default function KuisCaturLanding() {
         {/* Sebelas kategori materi — tabel datar 1px sesuai data daftar.js */}
         <section className="w-full border-t border-grey-200 bg-paper">
           <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
-            <h2 className="font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-balance text-grey-800">
+            <h2 className="font-serif font-light judul-konten tracking-normal text-balance text-grey-800">
               {t("kuisLanding.kategoriJudul")}
             </h2>
             <p className="mt-5 mb-0 max-w-prose text-base leading-relaxed text-pretty text-grey-600">
@@ -223,7 +223,7 @@ export default function KuisCaturLanding() {
         {/* Aturan sesi, peringkat lokal, & tautan ke materi pendalaman */}
         <section className="w-full border-t border-grey-200 bg-paper">
           <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
-            <h2 className="font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-balance text-grey-800">
+            <h2 className="font-serif font-light judul-konten tracking-normal text-balance text-grey-800">
               {t("kuisLanding.caraJudul")}
             </h2>
 
@@ -262,21 +262,21 @@ export default function KuisCaturLanding() {
                 {t("kuisLanding.penutupAwal")}{" "}
                 <Link
                   to={RUTE_EBOOK}
-                  className="font-semibold text-primary underline underline-offset-2 hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                  className="font-semibold text-slate-800 underline underline-offset-2 hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-800 focus-visible:ring-offset-2"
                 >
                   {t("nav.eBookPanduan")}
                 </Link>
                 , {t("kuisLanding.penutupTengah1")}{" "}
                 <Link
                   to={RUTE_PEMBUKAAN}
-                  className="font-semibold text-primary underline underline-offset-2 hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                  className="font-semibold text-slate-800 underline underline-offset-2 hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-800 focus-visible:ring-offset-2"
                 >
                   {t("nav.pembukaan")}
                 </Link>
                 , {t("kuisLanding.penutupTengah2")}{" "}
                 <Link
                   to={RUTE_TEKA_TEKI}
-                  className="font-semibold text-primary underline underline-offset-2 hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                  className="font-semibold text-slate-800 underline underline-offset-2 hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-800 focus-visible:ring-offset-2"
                 >
                   {t("nav.tekaTeki")}
                 </Link>{" "}

@@ -46,7 +46,7 @@ export default function DaftarKontenMedia({ daftar, jenis }) {
                 to={`/media-dan-informasi/${
                   jenis === "berita" ? "berita" : "pengumuman"
                 }/${item.id}`}
-                className="hover:text-primary hover:underline"
+                className="hover:text-slate-800 hover:underline"
               >
                 {item.judul}
               </Link>
@@ -59,7 +59,7 @@ export default function DaftarKontenMedia({ daftar, jenis }) {
                 to={`/media-dan-informasi/${
                   jenis === "berita" ? "berita" : "pengumuman"
                 }/${item.id}`}
-                className="text-sm font-semibold text-primary hover:underline"
+                className="text-sm font-semibold text-slate-800 hover:underline"
               >
                 Baca selengkapnya →
               </Link>

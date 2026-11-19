@@ -33,7 +33,7 @@ function Tautan({ href, children }) {
     <a
       target="_blank"
       rel="noreferrer noopener"
-      className="font-sans text-primary underline decoration-grey-300 underline-offset-4 transition-colors hover:decoration-primary"
+      className="font-sans text-slate-800 underline decoration-grey-300 underline-offset-4 transition-colors hover:decoration-slate-800"
       href={href}
     >
       {children}
@@ -292,7 +292,7 @@ export default function Atribusi() {
         <div className="mx-auto max-w-[1080px]">
           <header className="grid grid-cols-1 gap-6 pb-16 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1fr)] lg:gap-14">
             <div>
-              <h2 className="font-serif text-[clamp(2.4rem,3.6vw,3.4rem)] font-light leading-[1.04] text-balance text-grey-800">
+              <h2 className="font-serif judul-konten font-light text-balance text-grey-800">
                 {t("analisa.atribusi.judulDaftar")}
               </h2>
             </div>
@@ -340,7 +340,7 @@ export default function Atribusi() {
                       href={s.href}
                       target="_blank"
                       rel="noreferrer noopener"
-                      className="flex min-h-11 items-center border-b border-grey-200 text-grey-800 transition-colors hover:text-primary"
+                      className="flex min-h-11 items-center border-b border-grey-200 text-grey-800 transition-colors hover:text-slate-800"
                     >
                       {s.nama}
                     </a>

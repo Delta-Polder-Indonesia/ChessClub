@@ -26,11 +26,11 @@
  * Galeri; sumber aslinya "Alumni Sans", bukan serif).
  */
 export const JUDUL_SEKSI =
-  "font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-grey-800";
+  "font-serif font-light judul-konten tracking-normal text-grey-800";
 
 /** Varian di atas foto/latar gelap. */
 export const JUDUL_SEKSI_TERANG =
-  "font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-white";
+  "font-serif font-light judul-konten tracking-normal text-white";
 /**
  * Paragraf pengantar seksi — token `.section-lead` pada
  * `index.duybiyfa.css` (kelas yang dipakai seksi beranggota `<p
@@ -69,7 +69,7 @@ export const LEAD_SEKSI_TERANG =
  * — bukan angka karangan, tetap token resmi sumber, hanya peran yang berbeda.
  */
 export const LABEL_SEKSI =
-  "inline-flex items-center gap-2 font-sans text-xs uppercase tracking-[0.14em] text-primary";
+  "inline-flex items-center gap-2 font-sans text-xs uppercase tracking-[0.14em] text-slate-800";
 
 /** Varian di atas foto/latar gelap. */
 export const LABEL_SEKSI_TERANG =
@@ -166,7 +166,7 @@ export function TitikLabel({ terang = false }) {
   return (
     <span
       aria-hidden="true"
-      className={`inline-block size-[7px] flex-none rounded-full ${terang ? "bg-white" : "bg-primary"}`}
+      className={`inline-block size-[7px] flex-none rounded-full ${terang ? "bg-white" : "bg-slate-800"}`}
     />
   );
 }

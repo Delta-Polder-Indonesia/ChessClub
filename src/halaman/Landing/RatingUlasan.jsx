@@ -124,12 +124,12 @@ function KaruselUlasan({ t, ulasan, padaVote }) {
               type="button"
               onClick={() => emblaApi?.scrollTo(i)}
               aria-label={t("landing.rating.slide", { n: i + 1 })}
-              className={`inline-flex items-center justify-center p-2 min-w-6 min-h-6 rounded-full transition-all max-sm:bg-transparent focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2`}
+              className={`inline-flex items-center justify-center p-2 min-w-6 min-h-6 rounded-full transition-all max-sm:bg-transparent focus-visible:ring-2 focus-visible:ring-slate-800 focus-visible:ring-offset-2`}
             >
               <span
                 aria-hidden="true"
                 className={`h-1.5 rounded-full ${
-                  i === indeksAktif ? "w-6 bg-primary" : "w-1.5 bg-grey-300"
+                  i === indeksAktif ? "w-6 bg-slate-800" : "w-1.5 bg-grey-300"
                 }`}
               />
             </button>
@@ -201,7 +201,7 @@ export default function RatingUlasan() {
         <div className="min-w-0">
           <h2
             id="judul-daftar-ulasan"
-            className="font-serif font-light text-3xl leading-[1.04] tracking-normal text-grey-800 sm:text-4xl lg:text-[clamp(2.4rem,3.6vw,3.4rem)]"
+            className="font-serif font-light text-grey-800 judul-konten"
           >
             {t("landing.rating.judulSeksi")}
           </h2>
@@ -221,7 +221,7 @@ export default function RatingUlasan() {
                   : t("landing.rating.filterBintangAria", { n: nilai })}
                 aria-pressed={aktif}
                 onClick={() => setFilterBintang(nilai)}
-                className={`inline-flex min-h-9 items-center justify-center rounded-full border px-3 font-sans text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
+                className={`inline-flex min-h-9 items-center justify-center rounded-full border px-3 font-sans text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-800 focus-visible:ring-offset-2 ${
                   aktif
                     ? "border-grey-800 bg-grey-800 text-white"
                     : "border-grey-200 bg-white text-grey-600 hover:border-grey-400 hover:text-foreground"
@@ -266,7 +266,7 @@ export default function RatingUlasan() {
               <button
                 type="button"
                 onClick={bukaHalamanTulis}
-                className="group inline-flex items-center gap-2 py-1 font-sans text-sm font-semibold text-primary transition sm:py-0 sm:text-base"
+                className="group inline-flex items-center gap-2 py-1 font-sans text-sm font-semibold text-slate-800 transition sm:py-0 sm:text-base"
               >
                 <PenSquare className="size-4" aria-hidden="true" />
                 <span>{t("landing.rating.tulisUlasan")}</span>
@@ -315,7 +315,7 @@ export default function RatingUlasan() {
         {total > 10 ? (
           <div className="mt-4 text-center">
             <Link to="/rating-ulasan"
-              className="font-sans text-sm font-medium text-primary hover:underline">
+              className="font-sans text-sm font-medium text-slate-800 hover:underline">
               {t("landing.rating.lihatSemuaUlasan", { n: total })}
             </Link>
           </div>

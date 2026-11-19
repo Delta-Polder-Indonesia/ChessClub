@@ -575,7 +575,7 @@ export default function TekaTekiHarianLanding() {
             >
               <div className="flex items-end justify-between gap-4">
                 <div className="flex min-w-0 flex-col gap-y-1">
-                  <h3 className="font-sans text-sm font-semibold text-primary">
+                  <h3 className="font-sans text-sm font-semibold text-slate-800">
                     {t("landing.harianKartuLabelJatah")}
                   </h3>
                   <p className="flex items-baseline gap-1 font-serif text-2xl font-semibold text-grey-800">
@@ -612,12 +612,12 @@ export default function TekaTekiHarianLanding() {
                 className="relative h-1.5 w-full bg-grey-200"
               >
                 <div
-                  className="absolute inset-y-0 left-0 bg-primary transition-[width] duration-300"
+                  className="absolute inset-y-0 left-0 bg-slate-800 transition-[width] duration-300"
                   style={{ width: `${(jatahTerpakai / BATAS_HARIAN) * 100}%` }}
                 />
                 <span
                   aria-hidden="true"
-                  className="absolute top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 bg-primary"
+                  className="absolute top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 bg-slate-800"
                   style={{ left: `${(jatahTerpakai / BATAS_HARIAN) * 100}%` }}
                 />
               </div>
@@ -647,7 +647,7 @@ export default function TekaTekiHarianLanding() {
                   href={soal.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex min-h-11 items-center px-2 font-sans text-sm font-semibold text-grey-600 underline-offset-4 transition-colors hover:text-primary hover:underline"
+                  className="inline-flex min-h-11 items-center px-2 font-sans text-sm font-semibold text-grey-600 underline-offset-4 transition-colors hover:text-slate-800 hover:underline"
                 >
                   {t("landing.harianSumber")}
                 </a>
@@ -669,7 +669,7 @@ export default function TekaTekiHarianLanding() {
                   <button
                     type="button"
                     onClick={() => setDialogGabung(true)}
-                    className="tombol-kci inline-flex items-center justify-center rounded border border-primary bg-primary px-4 py-2.5 font-sans text-sm font-semibold text-white transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                    className="tombol-kci inline-flex items-center justify-center rounded border border-slate-800 bg-slate-800 px-4 py-2.5 font-sans text-sm font-semibold text-white transition-colors hover:bg-slate-800/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-800 focus-visible:ring-offset-2"
                   >
                     {t("landing.harianGabung")}
                   </button>
@@ -756,7 +756,7 @@ export default function TekaTekiHarianLanding() {
             className="flex min-w-0 flex-col justify-center gap-y-7 xl:col-span-3 xl:min-h-[440px]"
           >
             <header className="flex flex-col gap-y-3">
-              <p className="font-sans text-sm font-semibold text-primary">
+              <p className="font-sans text-sm font-semibold text-slate-800">
                 {t("landing.harianLabel")}
               </p>
               <h3
@@ -776,7 +776,7 @@ export default function TekaTekiHarianLanding() {
                   aria-live="polite"
                   className={`font-sans text-sm font-semibold ${
                     game.selesaiSoal
-                      ? "text-primary"
+                      ? "text-slate-800"
                       : game.pesan?.jenis === "salah"
                         ? "text-red-700"
                         : "text-grey-600"
@@ -789,7 +789,7 @@ export default function TekaTekiHarianLanding() {
                     type="button"
                     onClick={tampilkanPetunjuk}
                     disabled={game.selesaiSoal || game.menungguLawan}
-                    className="min-h-11 rounded border border-grey-200 px-3 py-2 text-sm font-semibold text-grey-800 transition-colors hover:border-primary hover:text-primary disabled:opacity-40"
+                    className="min-h-11 rounded border border-grey-200 px-3 py-2 text-sm font-semibold text-grey-800 transition-colors hover:border-slate-800 hover:text-slate-800 disabled:opacity-40"
                   >
                     {t("landing.harianPetunjuk")}
                   </button>
@@ -802,7 +802,7 @@ export default function TekaTekiHarianLanding() {
                         langkah: soal.langkah,
                       })
                     }
-                    className="min-h-11 rounded border border-grey-200 px-3 py-2 text-sm font-semibold text-grey-800 transition-colors hover:border-primary hover:text-primary"
+                    className="min-h-11 rounded border border-grey-200 px-3 py-2 text-sm font-semibold text-grey-800 transition-colors hover:border-slate-800 hover:text-slate-800"
                   >
                     {t("landing.harianUlangi")}
                   </button>

@@ -32,7 +32,7 @@ function AvatarPengurus({ anggota, alt }) {
     return (
       <span
         aria-hidden="true"
-        className="flex size-24 flex-none items-center justify-center rounded-full bg-grey-100 font-sans text-3xl font-light text-grey-600 md:size-40 md:text-5xl"
+        className="flex size-28 flex-none items-center justify-center rounded-full bg-grey-100 font-sans text-3xl font-light text-grey-600 sm:size-36 lg:size-40 md:text-5xl"
       >
         {anggota.username.slice(0, 1).toUpperCase()}
       </span>
@@ -49,7 +49,7 @@ function AvatarPengurus({ anggota, alt }) {
       decoding="async"
       referrerPolicy="no-referrer"
       onError={() => setGagal(true)}
-      className="size-24 flex-none rounded-full bg-grey-100 object-cover md:size-40"
+      className="size-28 flex-none rounded-full bg-grey-100 object-cover sm:size-36 lg:size-40"
     />
   );
 }
@@ -64,28 +64,30 @@ function AnggotaPengurus({ pengurus, t }) {
   const aria = `${t("pengurus.bukaProfil")} ${pengurus.username}`;
 
   return (
-    <li className="flex min-w-0 flex-col items-center gap-2">
+    <li className="flex w-32 min-w-0 flex-col items-center text-center sm:w-44 lg:w-48">
       <AvatarPengurus
         anggota={pengurus}
         alt={`${pengurus.username}: ${t("landing.arahPengurusAlt")}`}
       />
-      <div className="flex min-w-0 flex-col items-center gap-1">
-        <a
-          href={tautan}
-          target="_blank"
-          rel="noreferrer noopener"
-          aria-label={aria}
-          className="break-words text-center font-sans text-sm font-semibold text-grey-800 transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 md:text-xl"
-        >
-          {pengurus.username}
-        </a>
+      <div className="mt-5 flex w-full min-w-0 flex-col items-center gap-1">
+        <h3 className="max-w-full break-words">
+          <a
+            href={tautan}
+            target="_blank"
+            rel="noreferrer noopener"
+            aria-label={aria}
+            className="break-words text-center font-sans text-base font-semibold text-grey-800 transition-colors hover:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-800 focus-visible:ring-offset-2"
+          >
+            {pengurus.username}
+          </a>
+        </h3>
         <p className="max-w-full break-words text-center font-sans text-xs text-grey-600 md:text-base">
           {subLabel}
         </p>
-        <p className="text-center font-sans text-xs font-medium text-primary md:text-sm">
+        <p className="text-center font-sans text-xs font-medium text-slate-800 md:text-sm">
           {t(`pengurus.peran.${pengurus.kelompok}`)}
         </p>
-        <div className="mt-1 flex items-center justify-center gap-3 font-mono text-xs text-grey-600">
+        <div className="mt-1 flex items-center justify-center flex-wrap gap-x-2 font-mono text-xs text-grey-600">
           <span className="inline-flex items-center gap-1.5">
             <span>{t("pengurus.rating")}</span>
             <strong className="font-semibold text-grey-800">
@@ -97,7 +99,7 @@ function AnggotaPengurus({ pengurus, t }) {
             target="_blank"
             rel="noreferrer noopener"
             aria-label={aria}
-            className="inline-flex size-11 items-center justify-center rounded text-grey-600 transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 md:size-6"
+            className="inline-flex size-11 items-center justify-center rounded-lg text-grey-600 hover:bg-grey-100 transition-colors hover:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-800 focus-visible:ring-offset-2"
           >
             <LinkIcon className="size-4" />
           </a>
@@ -111,14 +113,15 @@ export default function MaestroEdision() {
   const { t } = useI18n();
 
   return (
-    <section className="w-full px-6 py-10 md:px-8 md:py-16 xl:px-0">
-      <div className="mx-auto flex max-w-[1080px] flex-col items-center gap-6 sm:gap-8 xl:max-w-7xl">
-        <header className="px-4 text-center">
-          <h2 className={`${JUDUL_SEKSI} max-sm:text-3xl`}>{t("landing.arahJudul")}</h2>
+    <section aria-labelledby="pengurus-beranda" className="mx-auto w-full max-w-6xl px-4 py-10 md:py-16">
+      <div className="w-full">
+        <header className="mx-auto max-w-2xl space-y-4 text-center">
+          <h2 id="pengurus-beranda" className={JUDUL_SEKSI}>{t("landing.arahJudul")}</h2>
+          <p className="text-lg text-grey-600">{t("landing.arahDeskripsi")}</p>
         </header>
 
         <ul
-          className="grid w-full grid-cols-2 gap-x-3 gap-y-8 text-center sm:grid-cols-3 md:gap-y-12 lg:grid-cols-4 xl:gap-x-8"
+          className="mt-12 flex flex-wrap justify-center gap-x-6 gap-y-10 lg:mt-16 lg:gap-x-8"
           aria-label={t("landing.arahAriaLabel")}
         >
           {SEMUA_PENGURUS.map((pengurus) => (

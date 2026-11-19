@@ -17,7 +17,7 @@ export function Tombol({ anak, onClick, jenis = "biasa", kecil, className, ...si
     biasa:
       "border-slate-300 text-slate-700 hover:bg-slate-100 disabled:opacity-40",
     utama:
-      "border-primary text-primary hover:bg-blue-50 disabled:opacity-40",
+      "border-slate-800 text-slate-800 hover:bg-blue-50 disabled:opacity-40",
     bahaya: "border-slate-300 text-slate-700 hover:bg-slate-100 disabled:opacity-40",
   }[jenis];
   return (
@@ -26,7 +26,7 @@ export function Tombol({ anak, onClick, jenis = "biasa", kecil, className, ...si
       onClick={onClick}
       className={`rounded-md border-2 border-solid font-semibold ${gaya} ${
         kecil ? "px-3 py-1 text-xs" : "px-4 py-2 text-xs"
-      } focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${className || ""}`}
+      } focus-visible:ring-2 focus-visible:ring-slate-800 focus-visible:ring-offset-2 ${className || ""}`}
       {...sisa}
     >
       {anak}
@@ -40,7 +40,7 @@ export function Bidang({ label, invalid, className, ...sisa }) {
       {label}
       <input
         {...sisa}
-        className={`rounded border-2 border-slate-300 px-2.5 py-1.5 text-sm outline-none focus:border-primary ${className || ""}`}
+        className={`rounded border-2 border-slate-300 px-2.5 py-1.5 text-sm outline-none focus:border-slate-800 ${className || ""}`}
         aria-invalid={invalid || undefined}
       />
     </label>
@@ -190,7 +190,7 @@ export function Modal({
   const warnaTombol =
     jenisKonfirmasi === "bahaya"
       ? "border-2 border-slate-500 text-slate-700 hover:bg-slate-100"
-      : "border-2 border-primary text-primary hover:bg-blue-50";
+      : "border-2 border-slate-800 text-slate-800 hover:bg-blue-50";
 
   const bisaKonfirmasi = !isBusy && (!butuhInput || nilai.trim().length > 0);
 
@@ -220,7 +220,7 @@ export function Modal({
               value={nilai}
               placeholder={placeholderInput}
               onChange={(e) => setNilai(e.target.value)}
-className="rounded-md border-2 border-slate-300 px-2.5 py-1.5 text-sm outline-none focus:border-primary"
+className="rounded-md border-2 border-slate-300 px-2.5 py-1.5 text-sm outline-none focus:border-slate-800"
             />
             {catatanInput && (
               <span className="text-xs font-normal text-slate-500">
@@ -431,7 +431,7 @@ export function Kartu({ label, nilai, catatan, warna = "slate" }) {
     slate: "text-slate-900",
     merah: "text-slate-700",
     hijau: "text-slate-700",
-    biru: "text-primary",
+    biru: "text-slate-800",
   }[warna];
   return (
     <div className="flex h-full flex-col pb-3 text-center">

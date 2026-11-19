@@ -27,13 +27,13 @@ body {
    (craft-floor: skill-craft-browser-surfaces). Seleksi teks & kontrol form
    memakai biru brand; caret mengikuti warna teks. */
 ::selection {
-  background-color: var(--color-primary);
+  background-color: var(--color-grey-800);
   color: var(--color-paper);
 }
 
 :root {
-  accent-color: var(--color-primary);
-  caret-color: var(--color-primary);
+  accent-color: var(--color-grey-800);
+  caret-color: var(--color-grey-800);
 }
 
 section[id] {

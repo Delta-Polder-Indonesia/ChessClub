@@ -20,7 +20,7 @@ export default function MediaDanInformasi() {
 
       <PageArtikel lebar>
         {/* ═══ Konten Paragraf Utama ═══ */}
-        <div className="flex w-full flex-col gap-y-4 pt-1 font-serif text-base leading-[1.6] text-grey-800">
+        <div className="flex w-full flex-col gap-y-4 pt-1 font-serif text-grey-800">
           <p className="m-0">
             {t("media.p1")}
           </p>

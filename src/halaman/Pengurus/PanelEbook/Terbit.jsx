@@ -68,7 +68,7 @@ export default function EbookTerbit({ onTerbit, sibuk, kodeBaru, onTutupKodeBaru
             className={`w-52 rounded-md border-2 px-2.5 py-1.5 text-sm outline-none ${
               salahPanggilan
                 ? "border-slate-900 focus:border-slate-900"
-                : "border-slate-300 focus:border-primary"
+                : "border-slate-300 focus:border-slate-800"
             }`}
           />
         </label>
@@ -82,7 +82,7 @@ export default function EbookTerbit({ onTerbit, sibuk, kodeBaru, onTutupKodeBaru
             placeholder="cth. anggota baru, latihan rutin"
             maxLength={120}
             autoComplete="off"
-            className="w-72 rounded-md border-2 border-slate-300 px-2.5 py-1.5 text-sm outline-none focus:border-primary"
+            className="w-72 rounded-md border-2 border-slate-300 px-2.5 py-1.5 text-sm outline-none focus:border-slate-800"
           />
         </label>
         <AlertDialog

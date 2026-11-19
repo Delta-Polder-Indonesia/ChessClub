@@ -167,7 +167,7 @@ export default function PanelAudit({ beriTahu }) {
           <select
             value={hari}
             onChange={(e) => setHari(e.target.value)}
-            className="border-0 border-b border-slate-300 bg-transparent px-1 py-1 text-sm outline-none focus:border-primary"
+            className="border-0 border-b border-slate-300 bg-transparent px-1 py-1 text-sm outline-none focus:border-slate-800"
           >
             <option value="">Semua</option>
             {Array.from({ length: 31 }, (_, i) => i + 1).map((n) => (
@@ -182,7 +182,7 @@ export default function PanelAudit({ beriTahu }) {
           <select
             value={bulan}
             onChange={(e) => setBulan(e.target.value)}
-            className="border-0 border-b border-slate-300 bg-transparent px-1 py-1 text-sm outline-none focus:border-primary"
+            className="border-0 border-b border-slate-300 bg-transparent px-1 py-1 text-sm outline-none focus:border-slate-800"
           >
             <option value="">Semua</option>
             {BULAN.map((b, i) => (

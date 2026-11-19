@@ -46,7 +46,7 @@ export default function BeritaKomunitas() {
             <button
               type="button"
               onClick={() => setPercobaan((n) => n + 1)}
-              className="mt-2 text-sm font-semibold text-primary underline underline-offset-2 hover:text-primary/80"
+              className="mt-2 text-sm font-semibold text-slate-800 underline underline-offset-2 hover:text-slate-800/80"
             >
               {t("common.cobaLagi")}
             </button>

@@ -117,7 +117,7 @@ export function CorporateSidebar({ title, items }) {
             aria-expanded={open}
             className="w-full flex items-center justify-between py-3 text-sm bg-white"
           >
-            <span className="font-medium text-primary border-l-primary border-l-4 pl-4 py-1">
+            <span className="font-medium text-slate-800 border-l-slate-800 border-l-4 pl-4 py-1">
               {current?.label || title}
             </span>
             <MenuIcon className="w-5 h-5 text-slate-600" />
@@ -154,7 +154,7 @@ function SidebarItem({ item, aktif, onPilih, desktop = false }) {
   const kelasMobile =
     "flex w-full py-2 pr-1 pl-4 transition-all duration-300 ease-in-out";
   const kelasAktif = aktif
-    ? "text-primary after:w-1 after:h-full after:bg-primary after:absolute after:left-[-1px] after:top-0 after:z-1 font-bold"
+    ? "text-slate-800 after:w-1 after:h-full after:bg-slate-800 after:absolute after:left-[-1px] after:top-0 after:z-1 font-bold"
     : "text-grey-600 hover:text-grey-800";
   const className = `${desktop ? kelasDesktop : kelasMobile} ${kelasAktif}`;
 
@@ -180,7 +180,7 @@ export function CorporateSection({ id, title, children, className = "", titleCla
     >
       <div className="relative w-full mx-auto grid grid-cols-[1fr] grid-rows-[1fr] gap-y-6 md:gap-y-6 lg:gap-y-6 lg:max-w-[960px] xl:max-w-[1280px]">
         {title && (
-          <h2 className={`focus:outline-none focus:ring-0 font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-balance text-grey-800 ${titleClassName}`}>
+          <h2 className={`focus:outline-none focus:ring-0 font-serif font-light judul-konten tracking-normal text-balance text-grey-800 ${titleClassName}`}>
             {title}
           </h2>
         )}
@@ -262,10 +262,10 @@ export function CorporateNext({ to, title }) {
           <Link to={to} className="flex items-center justify-between gap-4 group transition-colors">
             <div className="flex flex-col">
               <span className="text-xs sm:text-sm text-gray-600">{t("common.selanjutnya")}</span>
-              <span className="text-sm sm:text-base font-semibold text-gray-900 group-hover:text-primary transition-colors line-clamp-1">{title}</span>
+              <span className="text-sm sm:text-base font-semibold text-gray-900 group-hover:text-slate-800 transition-colors line-clamp-1">{title}</span>
             </div>
-            <div className="flex-none flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full group-hover:bg-primary transition-colors">
-              <ArrowRightIcon className="size-4 sm:size-5 text-primary group-hover:text-white" />
+            <div className="flex-none flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full group-hover:bg-slate-800 transition-colors">
+              <ArrowRightIcon className="size-4 sm:size-5 text-slate-800 group-hover:text-white" />
             </div>
           </Link>
         </nav>

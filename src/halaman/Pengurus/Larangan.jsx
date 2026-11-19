@@ -278,7 +278,7 @@ export default function PanelLarangan({
                     checked={semuaTerpilih}
                     onChange={pilihSemua}
                     aria-label="Pilih semua akun"
-                    className="size-4 accent-primary"
+                    className="size-4 accent-slate-800"
                   />
                 </TableHead>
                 <TableHead className="w-10 px-3">#</TableHead>
@@ -301,7 +301,7 @@ export default function PanelLarangan({
                         onChange={(e) =>
                           setTerpilih((s) => ({ ...s, [h.username]: e.target.checked }))}
                         aria-label={`Pilih ${h.username}`}
-                        className="size-4 accent-primary"
+                        className="size-4 accent-slate-800"
                       />
                     </TableCell>
                     <TableCell className="p-3">{index + 1}</TableCell>
@@ -339,7 +339,7 @@ export default function PanelLarangan({
                           type="button"
                           onClick={() => setTargetBuka(h.username)}
                           disabled={sibuk === `buka-${h.username}`}
-                          className="rounded p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-primary disabled:opacity-40"
+                          className="rounded p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800 disabled:opacity-40"
                         >
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
                             <path d="M9 14l6-6M5.586 15H21m-6.414-6.414A3 3 0 1112.828 9H15a3 3 0 110 6h-2.172" />

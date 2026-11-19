@@ -8,7 +8,7 @@ Dokumen ini adalah sumber kebenaran (*single source of truth*) untuk token desai
 
 | Token | Nilai Hex | Peran & Penggunaan |
 |---|---|---|
-| `--color-primary` | `#0B2F9F` | Aksen brand utama: tautan aktif, indikator terpilih, tombol primer (outline/fill aksen) |
+| `--color-primary` | `#0B2F9F` | Khusus fitur catur mandiri. Landing, halaman konten (termasuk Program Kami), Pengurus dan komponen bersama wajib memakai warna netral sebagai pengganti primary, termasuk pada ikon dan indikator fokus. Diperiksa oleh `npm run uji:desain`. |
 | `--color-blue-400` | `#4D7CF5` | Aksen biru terang sekunder / state interaktif |
 | `--color-hero` | `#021624` | Latar gelap hero seksi pembuka (kontras tinggi, berwibawa) |
 | `--color-grey-800` | `#1E293B` | Teks judul utama & body gelap |
@@ -31,6 +31,7 @@ Dokumen ini adalah sumber kebenaran (*single source of truth*) untuk token desai
 - **Font Mono:** Digunakan untuk notasi catur (PGN/FEN), koordinat petak, dan waktu engine.
 
 ### Skala Tipografi:
+Sumber ukuran editorial adalah `src/gaya/konten.css`: gunakan `.judul-konten` untuk judul display, `.teks-lead-kci` untuk pengantar, dan `.prose-kci` untuk paragraf, daftar, serta subjudul artikel. Jangan mengulang ukuran responsif pada halaman.
 - **Display / H1 Hero dan H2 Judul Seksi:** `text-[clamp(2.4rem,3.6vw,3.4rem)]` (38–54px), `font-serif font-light`, `leading-[1.04]`, `text-balance`. Varian `text-white` di atas foto gelap. Satu skala untuk H1 dan H2 alike — hierarki dibentuk oleh **warna dan posisi**, bukan ukuran.
 - **Subjudul di dalam `.prose-kci`:** `1.5rem` (24px), `font-semibold` — hasil `.prose-kci h2`.
 - **H3 Sub-seksi / Kartu:** `1.125rem` s.d. `1.25rem` (18–20px), font-semibold. Label kartu ringkas boleh `0.875rem` (14px).
@@ -42,7 +43,7 @@ Dokumen ini adalah sumber kebenaran (*single source of truth*) untuk token desai
 
 ### Aturan Satu Suara:
 - **Judul display diletakkan DI LUAR `.prose-kci`.** `.prose-kci` hanya untuk isi paragraf. Alasannya struktural, bukan selera: `.prose-kci h2` punya specificity (0,1,1) dan menang atas kelas utilitas seperti `text-xl`, sehingga `text-*` pada `h2` di dalam wrapper itu adalah kode mati. Judul display masuk lewat slot `title` pada `PageArtikel`, atau `h2` yang menjadi saudara `prose-kci` pada komponen seksi (`Sekilas`, `VisiMisi`, `MaknaLogo`, `Tonggak`, `CorporateSection`).
-- Dalam satu halaman, **semua judul seksi memakai gaya persis sama** (`font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-balance text-grey-800`; varian `text-white` di atas foto gelap). Tidak ada seksi dengan ukuran, ketebalan, atau kapitalisasi judul yang berbeda.
+- Dalam satu halaman, **semua judul seksi memakai gaya persis sama** (`font-serif font-light judul-konten tracking-normal text-balance text-grey-800`; varian `text-white` di atas foto gelap). Tidak ada seksi dengan ukuran, ketebalan, atau kapitalisasi judul yang berbeda.
 - **Teks isi memakai satu ukuran** dan **label/meta memakai satu ukuran caption** (`text-[13px]`) di seluruh halaman.
 - Warna teks hanya dari token palet: judul `text-grey-800`, teks sekunder `text-grey-600` — bukan `text-black`/`text-slate-900`/`text-slate-600` yang berada di luar palet. Kartu memakai `bg-paper`, bukan `bg-white` yang lebih terang dari kanvas.
 - **Teks isi rata kiri (start) di seluruh situs** — tidak memakai rata kiri-kanan (justify), yang meninggalkan celah spasi antar-kata tidak merata.

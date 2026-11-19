@@ -145,7 +145,7 @@ export default function PanelTurnamen({ beriTahu, muatUlang, saatBukaRincian }) 
           <select
             value={saring}
             onChange={(e) => setSaring(e.target.value)}
-            className="rounded border border-slate-300 bg-white px-2 py-1 text-sm text-slate-800 outline-none focus:border-primary"
+            className="rounded border border-slate-300 bg-white px-2 py-1 text-sm text-slate-800 outline-none focus:border-slate-800"
           >
             <option value="">Semua turnamen</option>
             {Object.entries(jenis).map(([k, v]) => (
@@ -207,7 +207,7 @@ export default function PanelTurnamen({ beriTahu, muatUlang, saatBukaRincian }) 
                         checked={semuaTerpilih}
                         onChange={pilihSemua}
                         aria-label="Pilih semua turnamen"
-                        className="size-4 accent-primary"
+                        className="size-4 accent-slate-800"
                       />
                     </TableHead>
                     <TableHead>#</TableHead>
@@ -230,7 +230,7 @@ export default function PanelTurnamen({ beriTahu, muatUlang, saatBukaRincian }) 
                             setTerpilih((s) => ({ ...s, [t.id]: e.target.checked }))
                           }
                           aria-label={`Pilih ${t.nama}`}
-                          className="size-4 accent-primary"
+                          className="size-4 accent-slate-800"
                         />
                       </TableCell>
                       <TableCell>{index + 1}</TableCell>
@@ -238,7 +238,7 @@ export default function PanelTurnamen({ beriTahu, muatUlang, saatBukaRincian }) 
                         <button
                           type="button"
                           onClick={() => bukaRincian(t)}
-                          className="font-medium text-primary hover:underline"
+                          className="font-medium text-slate-800 hover:underline"
                         >
                           {t.nama}
                         </button>

@@ -76,13 +76,13 @@ export function PageArtikel({ title, lead, children, lebar = false }) {
           }`}
         >
         {title && (
-          <h2 className="focus:outline-none focus:ring-0 font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-balance text-grey-800">
+          <h2 className="focus:outline-none focus:ring-0 font-serif font-light judul-konten tracking-normal text-balance text-grey-800">
             {title}
           </h2>
         )}
         {lead && (
           <div className="w-full">
-            <div className="text-primary text-base md:text-base">{lead}</div>
+            <div className="teks-lead-kci">{lead}</div>
           </div>
         )}
         <div className="relative w-full overflow-x-auto xl:overflow-x-visible">
@@ -101,10 +101,10 @@ export function MastheadEditorial({ judul, subjudul }) {
     <section className="font-serif relative w-full bg-transparent pt-12 md:pt-12 xl:pt-24">
       <div className="relative z-10 mx-auto max-w-7xl px-6 py-2 md:px-8 md:py-3 xl:px-0">
         <div className="relative mb-6 border-b border-grey-200 pb-3 text-center">
-          <h2 className="mb-2 font-serif text-3xl md:text-4xl leading-tight font-semibold text-grey-800">
+          <h2 className="mb-2 font-serif judul-konten font-light text-grey-800">
             {judul}
           </h2>
-          <p className="m-0 text-sm text-grey-600 italic">{subjudul}</p>
+          <p className="teks-lead-kci m-0 italic">{subjudul}</p>
         </div>
       </div>
     </section>
@@ -240,12 +240,12 @@ export function PageSelanjutnya({ to, judul }) {
               <span className="text-xs sm:text-sm text-grey-600">
                 {t("common.selanjutnya")}
               </span>
-              <span className="text-sm sm:text-base font-semibold text-grey-800 group-hover:text-primary">
+              <span className="text-sm sm:text-base font-semibold text-grey-800 group-hover:text-slate-800">
                 {judul}
               </span>
             </div>
-            <div className="flex-none flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full group-hover:bg-primary">
-              <ArrowRightIcon className="text-primary group-hover:text-white" />
+            <div className="flex-none flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full group-hover:bg-slate-800">
+              <ArrowRightIcon className="text-slate-800 group-hover:text-white" />
             </div>
           </Link>
         </nav>

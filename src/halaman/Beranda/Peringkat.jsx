@@ -122,7 +122,7 @@ function BarisPeringkat({ a, kontrol }) {
             href={a.url || `https://chess.com/member/${a.username}`}
             target="_blank"
             rel="noreferrer noopener"
-            className="text-primary hover:underline"
+            className="text-slate-800 hover:underline"
           >
             {a.username}
           </a>
@@ -182,7 +182,7 @@ export default function Peringkat() {
           href={URL_KLUB}
           target="_blank"
           rel="noreferrer noopener"
-          className="text-primary"
+          className="text-slate-800"
         >
           klub BLUNDER SKUAD di Chess.com
         </a>{" "}
@@ -190,7 +190,7 @@ export default function Peringkat() {
         Keanggotaan memakai roster publik yang sama dengan{" "}
         <Link
           to="/tentang-kami/struktur-grup-catur#keanggotaan"
-          className="text-primary"
+          className="text-slate-800"
         >
           Daftar Anggota
         </Link>{" "}
@@ -206,7 +206,7 @@ export default function Peringkat() {
             value={cari}
             onChange={(e) => ubah(setCari)(e.target.value)}
             placeholder="Nama atau username"
-            className="border-0 border-b border-solid border-grey-300 outline-none py-1 pr-2 text-sm bg-transparent focus:border-primary min-w-[220px]"
+            className="border-0 border-b border-solid border-grey-300 outline-none py-1 pr-2 text-sm bg-transparent focus:border-slate-800 min-w-[220px]"
           />
         </label>
 
@@ -215,7 +215,7 @@ export default function Peringkat() {
           <select
             value={tingkat}
             onChange={(e) => ubah(setTingkat)(e.target.value)}
-            className="border-0 border-b border-solid border-grey-300 outline-none py-1 pl-1 pr-8 text-sm bg-transparent focus:border-primary cursor-pointer"
+            className="border-0 border-b border-solid border-grey-300 outline-none py-1 pl-1 pr-8 text-sm bg-transparent focus:border-slate-800 cursor-pointer"
           >
             <option value="semua">Semua tingkatan</option>
             <option value="tanpa-rating">Tanpa rating</option>
@@ -232,7 +232,7 @@ export default function Peringkat() {
           <select
             value={kontrol}
             onChange={(e) => setKontrol(e.target.value)}
-            className="border-0 border-b border-solid border-grey-300 outline-none py-1 pl-1 pr-8 text-sm bg-transparent focus:border-primary cursor-pointer"
+            className="border-0 border-b border-solid border-grey-300 outline-none py-1 pl-1 pr-8 text-sm bg-transparent focus:border-slate-800 cursor-pointer"
           >
             {OPSI_KONTROL.map((o) => (
               <option key={o.id} value={o.id}>
@@ -249,7 +249,7 @@ export default function Peringkat() {
           <button
             type="button"
             onClick={muatUlang}
-            className="text-sm text-primary underline underline-offset-2 shrink-0"
+            className="text-sm text-slate-800 underline underline-offset-2 shrink-0"
           >
             {t("beranda.muatUlang")}
           </button>
@@ -271,7 +271,7 @@ export default function Peringkat() {
             href={URL_KLUB}
             target="_blank"
             rel="noreferrer noopener"
-            className="text-primary"
+            className="text-slate-800"
           >
             klub BLUNDER SKUAD
           </a>

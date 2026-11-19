@@ -59,7 +59,7 @@ export default function Turnamen() {
               <Link
                 key={index}
                 to={item.to}
-                className="group flex flex-col items-center justify-center p-3 text-center border border-slate-300 hover:border-primary hover:bg-white transition-all duration-150"
+                className="group flex flex-col items-center justify-center p-3 text-center border border-slate-300 hover:border-slate-800 hover:bg-white transition-all duration-150"
               >
                 <img
                   src={gambar(item.img)}
@@ -77,7 +77,7 @@ export default function Turnamen() {
         </nav>
 
         {/* ═══ Konten Artikel Editorial ═══ */}
-        <div className="flex w-full flex-col gap-y-6 pt-1 font-serif text-base leading-[1.6] text-grey-800">
+        <div className="flex w-full flex-col gap-y-6 pt-1 font-serif text-grey-800">
           <p className="m-0">
             Turnamen bukan sekadar ajang mencari pemenang; dalam konteks komunitas
             catur yang hidup, turnamen adalah medium di mana hubungan antaranggota
@@ -269,7 +269,7 @@ export default function Turnamen() {
             >
               Hasil Turnamen
             </h2>
-            <p className="m-0 font-serif text-sm">
+            <p className="m-0 font-serif">
               Rekap hasil turnamen komunitas dipublikasikan pada tabel berikut
               setiap kali sebuah rangkaian selesai. Nama juara diisikan oleh
               pengurus melalui dashboard internal.
@@ -279,14 +279,14 @@ export default function Turnamen() {
               <TabelHasilTurnamen />
             </div>
 
-            <p className="m-0 font-serif text-xs italic text-grey-600">
+            <p className="m-0 font-serif italic text-grey-600">
               Keterangan: Turnamen Bulanan adalah liga yang dimainkan rutin oleh
               anggota. Kursi Empat adalah turnamen mini yang diikuti oleh empat
               pemain. Turnamen Terbuka adalah turnaman langsung dengan ronde
               terjadwal. Untuk detail selengkapnya bisa dilihat di halaman{""}
               <Link
                 to="/keberlanjutan/pertanyaan-umum"
-                className="underline font-semibold text-primary hover:text-grey-800"
+                className="underline font-semibold text-slate-800 hover:text-grey-800"
               >
                 tanya jawab
               </Link>

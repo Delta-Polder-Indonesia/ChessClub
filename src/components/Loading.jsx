@@ -5,7 +5,7 @@ import { useI18n } from "../lib/i18n.jsx";
 export function LoadingSpinner({ label = "Memuat…", className = "" }) {
   return (
     <div className={`flex items-center justify-center gap-3 py-12 ${className}`}>
-      <div className="h-6 w-6 animate-spin rounded-full border-2 border-slate-200 border-t-primary" />
+      <div className="h-6 w-6 animate-spin rounded-full border-2 border-slate-200 border-t-slate-800" />
       <span className="text-sm text-slate-500">{label}</span>
     </div>
   );
@@ -66,7 +66,7 @@ export function PlaceholderHalaman() {
   return (
     <div className="flex min-h-[420px] w-full items-center justify-center px-6 py-16">
       <div className="flex flex-col items-center gap-3">
-        <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-slate-200 border-t-primary" />
+        <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-slate-200 border-t-slate-800" />
         <span className="text-sm text-slate-500">{t("common.memuat")}</span>
       </div>
     </div>
@@ -81,7 +81,7 @@ export function PlaceholderArtikel() {
   const { t } = useI18n();
   return (
     <div className="flex w-full items-center justify-center py-16">
-      <div className="h-6 w-6 animate-spin rounded-full border-2 border-slate-200 border-t-primary" />
+      <div className="h-6 w-6 animate-spin rounded-full border-2 border-slate-200 border-t-slate-800" />
       <span className="sr-only">{t("common.memuat")}</span>
     </div>
   );

@@ -11,8 +11,8 @@ const TAMPILAN = {
     isi: "#9ca3af",
   },
   loading: {
-    lingkar: "var(--color-primary)",
-    isi: "var(--color-primary)",
+    lingkar: "var(--color-grey-800)",
+    isi: "var(--color-grey-800)",
   },
   success: {
     lingkar: "#059669",
@@ -160,7 +160,7 @@ export default function VerificationSpinner({
             "text-sm font-medium",
             status === "success" && "text-emerald-600",
             status === "error" && "text-red-600",
-            status === "loading" && "text-primary",
+            status === "loading" && "text-slate-800",
             status === "idle" && "text-gray-500",
           )}
         >

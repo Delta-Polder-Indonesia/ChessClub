@@ -82,7 +82,7 @@ export default function Beranda() {
           <button
             type="button"
             onClick={() => setPercobaan((n) => n + 1)}
-            className="text-sm font-semibold text-primary underline underline-offset-2 hover:text-primary/80"
+            className="text-sm font-semibold text-slate-800 underline underline-offset-2 hover:text-slate-800/80"
           >
             {t("common.cobaLagi")}
           </button>
@@ -115,7 +115,7 @@ export default function Beranda() {
                           href={t.tautan}
                           target="_blank"
                           rel="noreferrer noopener"
-                          className="font-medium text-primary hover:underline"
+                          className="font-medium text-slate-800 hover:underline"
                           title="Buka turnamen"
                         >
                           {t.nama} <span aria-hidden="true">↗</span>
@@ -123,7 +123,7 @@ export default function Beranda() {
                       ) : href ? (
                         <Link
                           to={href}
-                          className="font-medium text-primary hover:underline"
+                          className="font-medium text-slate-800 hover:underline"
                         >
                           {t.nama}
                         </Link>

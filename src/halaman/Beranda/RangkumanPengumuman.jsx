@@ -49,7 +49,7 @@ export default function RangkumanPengumuman() {
           <button
             type="button"
             onClick={() => setPercobaan((n) => n + 1)}
-            className="mt-2 text-sm font-semibold text-primary underline underline-offset-2 hover:text-primary/80"
+            className="mt-2 text-sm font-semibold text-slate-800 underline underline-offset-2 hover:text-slate-800/80"
           >
             {t("common.cobaLagi")}
           </button>
@@ -62,7 +62,7 @@ export default function RangkumanPengumuman() {
             <div key={p.id} className="w-full border-b-2 border-slate-200 pb-8">
               <div className="w-full">
                 {/* Ditambahkan tracking-wider agar label tanggal tampak rapi */}
-                <p className="m-0 text-primary font-bold text-xs uppercase tracking-wider">
+                <p className="m-0 text-slate-800 font-bold text-xs uppercase tracking-wider">
                   {p.tanggal}
                 </p>
               </div>
@@ -89,7 +89,7 @@ export default function RangkumanPengumuman() {
                       - Tinggi tombol dikurangi dari h-12 ke h-9
                       - Padding horizontal dikurangi dari px-6 ke px-4
                     */
-                    className="text-xs h-9 px-4 gap-1.5 font-semibold leading-relaxed flex items-center justify-center border border-solid border-primary text-primary rounded flex-row"
+                    className="text-xs h-9 px-4 gap-1.5 font-semibold leading-relaxed flex items-center justify-center border border-solid border-slate-800 text-slate-800 rounded flex-row"
                   >
                     <span className="order-1">{t("common.selengkapnya")}</span>
                     {/* Ukuran ikon panah diperkecil dari size-6 ke size-4 */}

@@ -106,9 +106,8 @@ function galatHttp(status, pesan, sebab = null) {
 /** Kode pendek yang mudah disalin, tanpa karakter membingungkan (0/O, 1/I). */
 function buatKode() {
   const abjad = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  const bita = crypto.randomBytes(6);
   let kode = "";
-  for (const b of bita) kode += abjad[b % abjad.length];
+  for (let i = 0; i < 6; i++) kode += abjad[crypto.randomInt(abjad.length)];
   return `KCI-${kode}`;
 }
 

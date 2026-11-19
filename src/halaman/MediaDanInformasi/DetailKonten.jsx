@@ -99,7 +99,7 @@ export default function DetailKonten({ jenis }) {
             <button
               type="button"
               onClick={() => setPercobaan((n) => n + 1)}
-              className="mt-2 text-sm font-semibold text-primary underline underline-offset-2 hover:text-primary/80"
+              className="mt-2 text-sm font-semibold text-slate-800 underline underline-offset-2 hover:text-slate-800/80"
             >
               {t("common.cobaLagi")}
             </button>
@@ -112,7 +112,7 @@ export default function DetailKonten({ jenis }) {
         {item && (
           <article className="space-y-6">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-slate-500">
-              <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
+              <span className="rounded-full bg-slate-800/10 px-2.5 py-0.5 text-xs font-semibold text-slate-800">
                 {jenis === "berita" ? "Berita Komunitas" : "Pengumuman"}
               </span>
               <time dateTime={item.tanggal}>
@@ -155,7 +155,7 @@ export default function DetailKonten({ jenis }) {
             <p className="pt-4">
               <Link
                 to={pathInduk}
-                className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
+                className="inline-flex items-center gap-1 text-sm font-semibold text-slate-800 hover:underline"
               >
                 ← {jenis === "berita" ? "Semua berita" : "Semua pengumuman"}
               </Link>

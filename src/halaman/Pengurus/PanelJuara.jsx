@@ -36,7 +36,7 @@ function tanggal(nilai) {
 }
 
 const kelasIsian =
-  "rounded border border-slate-300 bg-white px-2 py-1 text-sm outline-none focus:border-primary";
+  "rounded border border-slate-300 bg-white px-2 py-1 text-sm outline-none focus:border-slate-800";
 
 /**
  * Input kategori turnamen: kotak teks + panah yang membuka <select> tersembunyi
@@ -342,7 +342,7 @@ export default function PanelJuara({ beriTahu }) {
                       checked={semuaTerpilih}
                       onChange={pilihSemua}
                       aria-label="Pilih semua turnamen"
-                      className="size-4 accent-primary"
+                      className="size-4 accent-slate-800"
                     />
                   </TableHead>
                   <TableHead className="px-3">#</TableHead>
@@ -365,7 +365,7 @@ export default function PanelJuara({ beriTahu }) {
                           setTerpilih((s) => ({ ...s, [t.id]: e.target.checked }))
                         }
                         aria-label={`Pilih ${t.nama}`}
-                        className="size-4 accent-primary"
+                        className="size-4 accent-slate-800"
                       />
                     </TableCell>
                     <TableCell className="p-3">{index + 1}</TableCell>

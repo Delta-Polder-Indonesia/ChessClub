@@ -121,7 +121,7 @@ function KartuEbook({ buku, disorot, terbalik, padaBalik, padaBaca, padaUnduh })
       id={buku.id}
       onClick={padaBalik}
       className={`group block aspect-[2/3] w-full cursor-pointer rounded-lg lg:max-h-[280px] ${
-        disorot ? "ring-4 ring-primary/60 ring-offset-2" : ""
+        disorot ? "ring-4 ring-slate-800/60 ring-offset-2" : ""
       }`}
       aria-label={
         buku.tersedia
@@ -165,7 +165,7 @@ function KartuEbook({ buku, disorot, terbalik, padaBalik, padaBaca, padaUnduh })
                     e.stopPropagation();
                     padaBaca();
                   }}
-                  className="inline-flex items-center justify-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                  className="inline-flex items-center justify-center gap-1.5 rounded-md bg-slate-800 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-slate-800/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-800"
                 >
                   <IkonBaca /> {t("ebookPanduan.baca")}
                 </button>
@@ -175,7 +175,7 @@ function KartuEbook({ buku, disorot, terbalik, padaBalik, padaBaca, padaUnduh })
                     e.stopPropagation();
                     padaUnduh();
                   }}
-                  className="inline-flex items-center justify-center gap-1.5 rounded-md border border-grey-200 bg-white px-3 py-1.5 text-xs font-semibold text-grey-800 transition-colors hover:border-grey-300 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                  className="inline-flex items-center justify-center gap-1.5 rounded-md border border-grey-200 bg-white px-3 py-1.5 text-xs font-semibold text-grey-800 transition-colors hover:border-grey-300 hover:text-slate-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-800"
                 >
                   <IkonUnduh /> {t("ebookPanduan.unduh")}
                 </button>
@@ -431,8 +431,8 @@ export default function EbookPanduan() {
                       onClick={() => setKategoriAktif(k)}
                       className={
                         aktif
-                          ? "flex whitespace-nowrap rounded-full bg-primary px-4 py-2 text-sm text-white transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-                          : "flex whitespace-nowrap rounded-full px-4 py-2 text-sm text-grey-800 transition-colors hover:bg-grey-300/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                          ? "flex whitespace-nowrap rounded-full bg-slate-800 px-4 py-2 text-sm text-white transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-800"
+                          : "flex whitespace-nowrap rounded-full px-4 py-2 text-sm text-grey-800 transition-colors hover:bg-grey-300/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-800"
                       }
                     >
                       {k === "Semua" ? t("ebookPanduan.semua") : k}

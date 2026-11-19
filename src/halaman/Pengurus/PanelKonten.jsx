@@ -138,7 +138,7 @@ function MenuKolom({ tabel }) {
                   type="checkbox"
                   checked={c.getIsVisible()}
                   onChange={() => c.toggleVisibility()}
-                  className="size-4 accent-primary"
+                  className="size-4 accent-slate-800"
                 />
                 {nama[c.id] || c.id}
               </label>
@@ -269,7 +269,7 @@ function FormulirKonten({ konfig, item, onSimpan, onBatal }) {
           <select
             value={data.status}
             onChange={(e) => ubah("status", e.target.value)}
-            className="rounded-md border-2 border-slate-300 px-2.5 py-1.5 text-sm outline-none focus:border-primary"
+            className="rounded-md border-2 border-slate-300 px-2.5 py-1.5 text-sm outline-none focus:border-slate-800"
           >
             <option value="publik">Publik</option>
             <option value="draf">Draf</option>
@@ -292,7 +292,7 @@ function FormulirKonten({ konfig, item, onSimpan, onBatal }) {
           rows={6}
           value={data.isi}
           onChange={(e) => ubah("isi", e.target.value)}
-          className="rounded-md border-2 border-slate-300 px-2.5 py-1.5 text-sm outline-none focus:border-primary"
+          className="rounded-md border-2 border-slate-300 px-2.5 py-1.5 text-sm outline-none focus:border-slate-800"
         />
       </label>
 
@@ -306,7 +306,7 @@ function FormulirKonten({ konfig, item, onSimpan, onBatal }) {
           (animasinya hilang saat kompresi).
         </p>
         <div className="flex flex-wrap items-center gap-2">
-          <label className="cursor-pointer rounded-md border-2 border-primary px-3 py-1.5 text-xs font-semibold text-primary hover:bg-blue-50">
+          <label className="cursor-pointer rounded-md border-2 border-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-800 hover:bg-blue-50">
             {memprosesGambar ? "Memproses…" : data.gambar ? "Ganti gambar" : "Pilih gambar"}
             <input
               type="file"
@@ -457,7 +457,7 @@ function MenuStatus({ nilai, onPilih, labelBaru, onBuatBaru }) {
                 setTerbuka(false);
                 onBuatBaru();
               }}
-              className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm font-semibold text-primary hover:bg-blue-50"
+              className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm font-semibold text-slate-800 hover:bg-blue-50"
             >
               + {labelBaru} baru
             </button>
@@ -586,7 +586,7 @@ function PanelKonten({ konfig, beriTahu, muatUlang }) {
             // pertama (klik tidak memilih apa pun).
             onChange={(e) => table.toggleAllPageRowsSelected(e.target.checked)}
             aria-label="Pilih semua"
-            className="size-4 accent-primary"
+            className="size-4 accent-slate-800"
           />
         ),
         cell: ({ row }) => (
@@ -595,7 +595,7 @@ function PanelKonten({ konfig, beriTahu, muatUlang }) {
             checked={row.getIsSelected()}
             onChange={row.getToggleSelectedHandler()}
             aria-label="Pilih baris"
-            className="size-4 accent-primary"
+            className="size-4 accent-slate-800"
           />
         ),
         enableSorting: false,
@@ -625,7 +625,7 @@ function PanelKonten({ konfig, beriTahu, muatUlang }) {
           <button
             type="button"
             onClick={() => setFormulir({ item: row.original })}
-            className="text-left font-medium text-primary hover:underline"
+            className="text-left font-medium text-slate-800 hover:underline"
           >
             {row.original.judul}
           </button>
@@ -715,7 +715,7 @@ function PanelKonten({ konfig, beriTahu, muatUlang }) {
               onChange={(e) => setCari(e.target.value)}
               placeholder={`Cari judul ${konfig.label.toLowerCase()}…`}
               aria-label={`Cari ${konfig.label.toLowerCase()}`}
-              className="h-9 w-56 rounded-md border-2 border-slate-200 bg-white pl-8 pr-2.5 text-sm text-slate-700 outline-none placeholder:text-slate-400 focus:border-primary"
+              className="h-9 w-56 rounded-md border-2 border-slate-200 bg-white pl-8 pr-2.5 text-sm text-slate-700 outline-none placeholder:text-slate-400 focus:border-slate-800"
             />
           </div>
           <MenuKolom tabel={tabel} />
