@@ -331,7 +331,8 @@ export default function Dashboard() {
         nama: `@${h.username}`,
         subjek: "Pelanggaran fair play",
         teks: h.keterangan || h.alasan || "Diblokir otomatis",
-        dibaca: false,
+        // Catatan fair play bersifat informasional, bukan notifikasi berstatus baca.
+        dibaca: true,
         sumber: h,
       }));
     return [...dariPesan, ...dariEbook, ...dariFairPlay]
@@ -340,10 +341,10 @@ export default function Dashboard() {
       .slice(0, 20);
   }, [notif, notifEbook, hitam]);
 
+  // Badge hanya menghitung item yang memang memiliki status belum dibaca.
+  // Peringatan fair play tetap tampil di daftar, tetapi bukan penghitung badge.
   const jumlahBelumDibaca =
-    (ringkas?.pesan?.belumDibaca ?? 0) +
-    notifEbook.length +
-    (hitam || []).filter((h) => h.sumber === "otomatis").length;
+    (ringkas?.pesan?.belumDibaca ?? 0) + notifEbook.length;
 
   const pilihNotif = useCallback(
     (b) => {

@@ -12,48 +12,427 @@ on:
   pull_request:
   push:
     branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
 
+# Partisi program, audit dependensi, dan Playwright berjalan paralel.
+# Aggregator test menunggu seluruh job agar satu kegagalan selalu memblokir PR.
 jobs:
-  test:
-    name: Test and browser smoke checks
+  v1-build-server:
+    name: V1 build and server tests
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
-
+        uses: actions/checkout@v7
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: "22"
           cache: npm
-
       - name: Install dependencies
-        # The release gate imports build/test-only packages such as Tailwind,
-        # Vite, and jsdom; never let a production NODE_ENV omit them.
         run: npm ci --include=dev
+      - name: Run lint, Wawasan, and build-server partition
+        run: |
+          set -o pipefail
+          if ! { npm run lint && npm run uji:wawasan-profil && node scripts/uji-analisa-ui.mjs && npm run uji:v1:build-server; } 2>&1 | tee /tmp/uji-v1-build-server.log; then
+            SKRIP_TERAKHIR=$(grep -E "^> komunitas-catur@|^Error:|^AssertionError|GAGAL|FAIL|✗" /tmp/uji-v1-build-server.log | tail -n 8 | tr '\n' ' ' | sed 's/::/ /g')
+            RINGKASAN=$(grep -E "✗|❌|GAGAL|FAIL|Error:|AssertionError|ELIFECYCLE|npm error" /tmp/uji-v1-build-server.log | tail -n 25 | tr '\n' ' ' | sed 's/::/ /g')
+            EKOR=$(tail -n 30 /tmp/uji-v1-build-server.log | tr '\n' ' ' | sed 's/::/ /g')
+            echo "::error title=Job v1-build-server gagal (${SKRIP_TERAKHIR})::${RINGKASAN}"
+            echo "::error title=Job v1-build-server ekor log::${EKOR}"
+            exit 1
+          fi
 
-      - name: Run the v1 release gate
-        run: npm run uji:rilis:v1
+  v1-ui-engine:
+    name: V1 UI and engine tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --include=dev
+      - name: Run v1 UI and engine partition
+        run: |
+          set -o pipefail
+          if ! npm run uji:v1:ui-engine 2>&1 | tee /tmp/uji-v1-ui-engine.log; then
+            SKRIP_TERAKHIR=$(grep -E "^> komunitas-catur@" /tmp/uji-v1-ui-engine.log | tail -n 4 | tr '\n' ' ' | sed 's/::/ /g')
+            RINGKASAN=$(grep -E "✗|❌|GAGAL|FAIL|Error:|AssertionError|ELIFECYCLE|npm error" /tmp/uji-v1-ui-engine.log | tail -n 25 | tr '\n' ' ' | sed 's/::/ /g')
+            EKOR=$(tail -n 30 /tmp/uji-v1-ui-engine.log | tr '\n' ' ' | sed 's/::/ /g')
+            echo "::error title=uji:v1:ui-engine gagal (${SKRIP_TERAKHIR})::${RINGKASAN}"
+            echo "::error title=uji:v1:ui-engine ekor log::${EKOR}"
+            exit 1
+          fi
 
+  v1-teka-teki-catur:
+    name: "Program: Teka-teki Catur"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --include=dev
+      - name: Run uji:v1:teka-teki-catur (durasi tercatat)
+        run: |
+          set -o pipefail
+          if ! { time npm run uji:v1:teka-teki-catur; } 2>&1 | tee /tmp/uji-v1-teka-teki-catur.log; then
+            SKRIP_TERAKHIR=$(grep -E "^> komunitas-catur@|^Error:|^AssertionError|GAGAL|FAIL|✗" /tmp/uji-v1-teka-teki-catur.log | tail -n 8 | tr '\n' ' ' | sed 's/::/ /g')
+            RINGKASAN=$(grep -E "✗|❌|GAGAL|FAIL|Error:|AssertionError|ELIFECYCLE|npm error" /tmp/uji-v1-teka-teki-catur.log | tail -n 25 | tr '\n' ' ' | sed 's/::/ /g')
+            EKOR=$(tail -n 30 /tmp/uji-v1-teka-teki-catur.log | tr '\n' ' ' | sed 's/::/ /g')
+            echo "::error title=Program: Teka-teki Catur gagal ($SKRIP_TERAKHIR)::$RINGKASAN"
+            echo "::error title=Program: Teka-teki Catur ekor log::$EKOR"
+            exit 1
+          fi
+  v1-rush-teka-teki:
+    name: "Program: Rush Teka-teki"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --include=dev
+      - name: Run uji:v1:rush (durasi tercatat)
+        run: |
+          set -o pipefail
+          if ! { time npm run uji:v1:rush; } 2>&1 | tee /tmp/uji-v1-rush.log; then
+            SKRIP_TERAKHIR=$(grep -E "^> komunitas-catur@|^Error:|^AssertionError|GAGAL|FAIL|✗" /tmp/uji-v1-rush.log | tail -n 8 | tr '\n' ' ' | sed 's/::/ /g')
+            RINGKASAN=$(grep -E "✗|❌|GAGAL|FAIL|Error:|AssertionError|ELIFECYCLE|npm error" /tmp/uji-v1-rush.log | tail -n 25 | tr '\n' ' ' | sed 's/::/ /g')
+            EKOR=$(tail -n 30 /tmp/uji-v1-rush.log | tr '\n' ' ' | sed 's/::/ /g')
+            echo "::error title=Program: Rush Teka-teki gagal ($SKRIP_TERAKHIR)::$RINGKASAN"
+            echo "::error title=Program: Rush Teka-teki ekor log::$EKOR"
+            exit 1
+          fi
+  v1-teka-teki-harian:
+    name: "Program: Teka-teki Harian"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --include=dev
+      - name: Run uji:v1:teka-teki-harian (durasi tercatat)
+        run: |
+          set -o pipefail
+          if ! { time npm run uji:v1:teka-teki-harian; } 2>&1 | tee /tmp/uji-v1-teka-teki-harian.log; then
+            SKRIP_TERAKHIR=$(grep -E "^> komunitas-catur@|^Error:|^AssertionError|GAGAL|FAIL|✗" /tmp/uji-v1-teka-teki-harian.log | tail -n 8 | tr '\n' ' ' | sed 's/::/ /g')
+            RINGKASAN=$(grep -E "✗|❌|GAGAL|FAIL|Error:|AssertionError|ELIFECYCLE|npm error" /tmp/uji-v1-teka-teki-harian.log | tail -n 25 | tr '\n' ' ' | sed 's/::/ /g')
+            EKOR=$(tail -n 30 /tmp/uji-v1-teka-teki-harian.log | tr '\n' ' ' | sed 's/::/ /g')
+            echo "::error title=Program: Teka-teki Harian gagal ($SKRIP_TERAKHIR)::$RINGKASAN"
+            echo "::error title=Program: Teka-teki Harian ekor log::$EKOR"
+            exit 1
+          fi
+  v1-kuis-catur:
+    name: "Program: Kuis Catur"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --include=dev
+      - name: Run uji:v1:kuis-catur (durasi tercatat)
+        run: |
+          set -o pipefail
+          if ! { time npm run uji:v1:kuis-catur; } 2>&1 | tee /tmp/uji-v1-kuis-catur.log; then
+            SKRIP_TERAKHIR=$(grep -E "^> komunitas-catur@|^Error:|^AssertionError|GAGAL|FAIL|✗" /tmp/uji-v1-kuis-catur.log | tail -n 8 | tr '\n' ' ' | sed 's/::/ /g')
+            RINGKASAN=$(grep -E "✗|❌|GAGAL|FAIL|Error:|AssertionError|ELIFECYCLE|npm error" /tmp/uji-v1-kuis-catur.log | tail -n 25 | tr '\n' ' ' | sed 's/::/ /g')
+            EKOR=$(tail -n 30 /tmp/uji-v1-kuis-catur.log | tr '\n' ' ' | sed 's/::/ /g')
+            echo "::error title=Program: Kuis Catur gagal ($SKRIP_TERAKHIR)::$RINGKASAN"
+            echo "::error title=Program: Kuis Catur ekor log::$EKOR"
+            exit 1
+          fi
+  v1-report-analisa:
+    name: "Program: Report Analisa"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --include=dev
+      - name: Run uji:v1:report-analisa (durasi tercatat)
+        run: |
+          set -o pipefail
+          if ! { time npm run uji:v1:report-analisa; } 2>&1 | tee /tmp/uji-v1-report-analisa.log; then
+            SKRIP_TERAKHIR=$(grep -E "^> komunitas-catur@|^Error:|^AssertionError|GAGAL|FAIL|✗" /tmp/uji-v1-report-analisa.log | tail -n 8 | tr '\n' ' ' | sed 's/::/ /g')
+            RINGKASAN=$(grep -E "✗|❌|GAGAL|FAIL|Error:|AssertionError|ELIFECYCLE|npm error" /tmp/uji-v1-report-analisa.log | tail -n 25 | tr '\n' ' ' | sed 's/::/ /g')
+            EKOR=$(tail -n 30 /tmp/uji-v1-report-analisa.log | tr '\n' ' ' | sed 's/::/ /g')
+            echo "::error title=Program: Report Analisa gagal ($SKRIP_TERAKHIR)::$RINGKASAN"
+            echo "::error title=Program: Report Analisa ekor log::$EKOR"
+            exit 1
+          fi
+  v1-pembukaan:
+    name: "Program: Pembukaan"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --include=dev
+      - name: Run uji:v1:pembukaan (durasi tercatat)
+        run: |
+          set -o pipefail
+          if ! { time npm run uji:v1:pembukaan; } 2>&1 | tee /tmp/uji-v1-pembukaan.log; then
+            SKRIP_TERAKHIR=$(grep -E "^> komunitas-catur@|^Error:|^AssertionError|GAGAL|FAIL|✗" /tmp/uji-v1-pembukaan.log | tail -n 8 | tr '\n' ' ' | sed 's/::/ /g')
+            RINGKASAN=$(grep -E "✗|❌|GAGAL|FAIL|Error:|AssertionError|ELIFECYCLE|npm error" /tmp/uji-v1-pembukaan.log | tail -n 25 | tr '\n' ' ' | sed 's/::/ /g')
+            EKOR=$(tail -n 30 /tmp/uji-v1-pembukaan.log | tr '\n' ' ' | sed 's/::/ /g')
+            echo "::error title=Program: Pembukaan gagal ($SKRIP_TERAKHIR)::$RINGKASAN"
+            echo "::error title=Program: Pembukaan ekor log::$EKOR"
+            exit 1
+          fi
+  v1-lawan-bot:
+    name: "Program: Lawan Bot"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --include=dev
+      - name: Run uji:v1:lawan-bot (durasi tercatat)
+        run: |
+          set -o pipefail
+          if ! { time npm run uji:v1:lawan-bot; } 2>&1 | tee /tmp/uji-v1-lawan-bot.log; then
+            SKRIP_TERAKHIR=$(grep -E "^> komunitas-catur@|^Error:|^AssertionError|GAGAL|FAIL|✗" /tmp/uji-v1-lawan-bot.log | tail -n 8 | tr '\n' ' ' | sed 's/::/ /g')
+            RINGKASAN=$(grep -E "✗|❌|GAGAL|FAIL|Error:|AssertionError|ELIFECYCLE|npm error" /tmp/uji-v1-lawan-bot.log | tail -n 25 | tr '\n' ' ' | sed 's/::/ /g')
+            EKOR=$(tail -n 30 /tmp/uji-v1-lawan-bot.log | tr '\n' ' ' | sed 's/::/ /g')
+            echo "::error title=Program: Lawan Bot gagal ($SKRIP_TERAKHIR)::$RINGKASAN"
+            echo "::error title=Program: Lawan Bot ekor log::$EKOR"
+            exit 1
+          fi
+  v1-ebook-panduan:
+    name: "Program: E-Book & Panduan"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --include=dev
+      - name: Run uji:v1:ebook-panduan (durasi tercatat)
+        run: |
+          set -o pipefail
+          if ! { time npm run uji:v1:ebook-panduan; } 2>&1 | tee /tmp/uji-v1-ebook-panduan.log; then
+            SKRIP_TERAKHIR=$(grep -E "^> komunitas-catur@|^Error:|^AssertionError|GAGAL|FAIL|✗" /tmp/uji-v1-ebook-panduan.log | tail -n 8 | tr '\n' ' ' | sed 's/::/ /g')
+            RINGKASAN=$(grep -E "✗|❌|GAGAL|FAIL|Error:|AssertionError|ELIFECYCLE|npm error" /tmp/uji-v1-ebook-panduan.log | tail -n 25 | tr '\n' ' ' | sed 's/::/ /g')
+            EKOR=$(tail -n 30 /tmp/uji-v1-ebook-panduan.log | tr '\n' ' ' | sed 's/::/ /g')
+            echo "::error title=Program: E-Book & Panduan gagal ($SKRIP_TERAKHIR)::$RINGKASAN"
+            echo "::error title=Program: E-Book & Panduan ekor log::$EKOR"
+            exit 1
+          fi
+  v1-latihan-repertoar:
+    name: "Program: Latihan Repertoar"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --include=dev
+      - name: Run uji:v1:latihan-repertoar (durasi tercatat)
+        run: |
+          set -o pipefail
+          if ! { time npm run uji:v1:latihan-repertoar; } 2>&1 | tee /tmp/uji-v1-latihan-repertoar.log; then
+            SKRIP_TERAKHIR=$(grep -E "^> komunitas-catur@|^Error:|^AssertionError|GAGAL|FAIL|✗" /tmp/uji-v1-latihan-repertoar.log | tail -n 8 | tr '\n' ' ' | sed 's/::/ /g')
+            RINGKASAN=$(grep -E "✗|❌|GAGAL|FAIL|Error:|AssertionError|ELIFECYCLE|npm error" /tmp/uji-v1-latihan-repertoar.log | tail -n 25 | tr '\n' ' ' | sed 's/::/ /g')
+            EKOR=$(tail -n 30 /tmp/uji-v1-latihan-repertoar.log | tr '\n' ' ' | sed 's/::/ /g')
+            echo "::error title=Program: Latihan Repertoar gagal ($SKRIP_TERAKHIR)::$RINGKASAN"
+            echo "::error title=Program: Latihan Repertoar ekor log::$EKOR"
+            exit 1
+          fi
+  v1-hand-brain:
+    name: "Program: Hand & Brain"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --include=dev
+      - name: Run uji:v1:hand-brain (durasi tercatat)
+        run: |
+          set -o pipefail
+          if ! { time npm run uji:v1:hand-brain; } 2>&1 | tee /tmp/uji-v1-hand-brain.log; then
+            SKRIP_TERAKHIR=$(grep -E "^> komunitas-catur@|^Error:|^AssertionError|GAGAL|FAIL|✗" /tmp/uji-v1-hand-brain.log | tail -n 8 | tr '\n' ' ' | sed 's/::/ /g')
+            RINGKASAN=$(grep -E "✗|❌|GAGAL|FAIL|Error:|AssertionError|ELIFECYCLE|npm error" /tmp/uji-v1-hand-brain.log | tail -n 25 | tr '\n' ' ' | sed 's/::/ /g')
+            EKOR=$(tail -n 30 /tmp/uji-v1-hand-brain.log | tr '\n' ' ' | sed 's/::/ /g')
+            echo "::error title=Program: Hand & Brain gagal ($SKRIP_TERAKHIR)::$RINGKASAN"
+            echo "::error title=Program: Hand & Brain ekor log::$EKOR"
+            exit 1
+          fi
+  v1-turing-test:
+    name: "Program: Turing Test"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --include=dev
+      - name: Run uji:v1:turing-test (durasi tercatat)
+        run: |
+          set -o pipefail
+          if ! { time npm run uji:v1:turing-test; } 2>&1 | tee /tmp/uji-v1-turing-test.log; then
+            SKRIP_TERAKHIR=$(grep -E "^> komunitas-catur@|^Error:|^AssertionError|GAGAL|FAIL|✗" /tmp/uji-v1-turing-test.log | tail -n 8 | tr '\n' ' ' | sed 's/::/ /g')
+            RINGKASAN=$(grep -E "✗|❌|GAGAL|FAIL|Error:|AssertionError|ELIFECYCLE|npm error" /tmp/uji-v1-turing-test.log | tail -n 25 | tr '\n' ' ' | sed 's/::/ /g')
+            EKOR=$(tail -n 30 /tmp/uji-v1-turing-test.log | tr '\n' ' ' | sed 's/::/ /g')
+            echo "::error title=Program: Turing Test gagal ($SKRIP_TERAKHIR)::$RINGKASAN"
+            echo "::error title=Program: Turing Test ekor log::$EKOR"
+            exit 1
+          fi
+  dependency-audit:
+    name: Dependency audit (all dependencies)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --include=dev
+      - name: Audit production and development dependencies
+        run: npm audit --audit-level=high
+
+  test:
+    name: Test and browser smoke checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    needs: [v1-build-server, v1-ui-engine, v1-teka-teki-catur, v1-rush-teka-teki, v1-teka-teki-harian, v1-kuis-catur, v1-report-analisa, v1-pembukaan, v1-lawan-bot, v1-ebook-panduan, v1-latihan-repertoar, v1-hand-brain, v1-turing-test, dependency-audit, e2e]
+    if: always()
+    steps:
+      - name: Verify all CI partitions succeeded
+        env:
+          V1_BUILD_SERVER: ${{ needs.v1-build-server.result }}
+          V1_UI_ENGINE: ${{ needs.v1-ui-engine.result }}
+          V1_TEKA_TEKI_CATUR: ${{ needs.v1-teka-teki-catur.result }}
+          V1_RUSH_TEKA_TEKI: ${{ needs.v1-rush-teka-teki.result }}
+          V1_TEKA_TEKI_HARIAN: ${{ needs.v1-teka-teki-harian.result }}
+          V1_KUIS_CATUR: ${{ needs.v1-kuis-catur.result }}
+          V1_REPORT_ANALISA: ${{ needs.v1-report-analisa.result }}
+          V1_PEMBUKAAN: ${{ needs.v1-pembukaan.result }}
+          V1_LAWAN_BOT: ${{ needs.v1-lawan-bot.result }}
+          V1_EBOOK_PANDUAN: ${{ needs.v1-ebook-panduan.result }}
+          V1_LATIHAN_REPERTOAR: ${{ needs.v1-latihan-repertoar.result }}
+          V1_HAND_BRAIN: ${{ needs.v1-hand-brain.result }}
+          V1_TURING_TEST: ${{ needs.v1-turing-test.result }}
+          DEPENDENCY_AUDIT: ${{ needs.dependency-audit.result }}
+          E2E_RESULT: ${{ needs.e2e.result }}
+        run: |
+          HASIL=" V1_BUILD_SERVER=$V1_BUILD_SERVER V1_UI_ENGINE=$V1_UI_ENGINE V1_TEKA_TEKI_CATUR=$V1_TEKA_TEKI_CATUR V1_RUSH_TEKA_TEKI=$V1_RUSH_TEKA_TEKI V1_TEKA_TEKI_HARIAN=$V1_TEKA_TEKI_HARIAN V1_KUIS_CATUR=$V1_KUIS_CATUR=$V1_KUIS_CATUR V1_REPORT_ANALISA=$V1_REPORT_ANALISA V1_PEMBUKAAN=$V1_PEMBUKAAN V1_LAWAN_BOT=$V1_LAWAN_BOT V1_EBOOK_PANDUAN=$V1_EBOOK_PANDUAN V1_LATIHAN_REPERTOAR=$V1_LATIHAN_REPERTOAR V1_HAND_BRAIN=$V1_HAND_BRAIN V1_TURING_TEST=$V1_TURING_TEST DEPENDENCY_AUDIT=$DEPENDENCY_AUDIT E2E_RESULT=$E2E_RESULT"
+          if [[ "$V1_BUILD_SERVER" == "success" && "$V1_UI_ENGINE" == "success" && "$V1_TEKA_TEKI_CATUR" == "success" && "$V1_RUSH_TEKA_TEKI" == "success" && "$V1_TEKA_TEKI_HARIAN" == "success" && "$V1_KUIS_CATUR" == "success" && "$V1_REPORT_ANALISA" == "success" && "$V1_PEMBUKAAN" == "success" && "$V1_LAWAN_BOT" == "success" && "$V1_EBOOK_PANDUAN" == "success" && "$V1_LATIHAN_REPERTOAR" == "success" && "$V1_HAND_BRAIN" == "success" && "$V1_TURING_TEST" == "success" && "$DEPENDENCY_AUDIT" == "success" && "$E2E_RESULT" == "success" ]]; then
+            echo "Seluruh partisi program, audit dependensi, dan pengujian browser berhasil."
+          else
+            echo "::error title=Gerbang CI gagal::$HASIL"
+            exit 1
+          fi
+
+  e2e:
+    name: Browser tests (Playwright)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --include=dev
+      - name: Build production application
+        run: npm run build
+      - name: Restore Chromium download cache
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: playwright-${{ runner.os }}-
       - name: Install Chromium for Playwright
-        # `--with-deps` shells out to `apt-get update`, which stalls on
-        # azure.archive.ubuntu.com (actions/runner-images#11347) and burns the
-        # job's 15-minute budget. ubuntu-latest already ships Chromium's system
-        # libraries, so only the browser download is needed. The step timeout
-        # keeps a CDN hang from eating the rest of the job.
         timeout-minutes: 5
         run: npx playwright install chromium
-
-      - name: Run public browser smoke tests
-        run: npm run uji:e2e
-
+      - name: Run browser tests
+        run: |
+          set -o pipefail
+          if ! npm run uji:e2e 2>&1 | tee /tmp/e2e.log; then
+            EKOR=$(tail -n 35 /tmp/e2e.log | tr '\n' ' ' | sed 's/::/ /g')
+            echo "::error title=uji:e2e gagal::${EKOR}"
+            exit 1
+          fi
       - name: Upload Playwright report on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: playwright-report
           path: playwright-report/

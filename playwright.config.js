@@ -2,7 +2,8 @@ import { defineConfig, devices } from "@playwright/test";
 
 /**
  * Smoke test browser untuk alur publik yang paling penting.
- * Server Vite dinyalakan otomatis saat `npm run uji:e2e` dijalankan.
+ * CI memakai hasil build produksi melalui Vite Preview; lokal tetap memakai
+ * server development agar siklus uji tetap cepat.
  */
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -32,14 +33,13 @@ export default defineConfig({
     { name: "mobile-chromium", use: { ...devices["Pixel 5"] } },
   ],
   webServer: {
-    command: "npm run dev -- --host 127.0.0.1 --port 4173",
+    command: process.env.CI
+      ? "npm run preview -- --host 127.0.0.1 --port 4173 --strictPort"
+      : "npm run dev -- --host 127.0.0.1 --port 4173",
     url: "http://127.0.0.1:4173",
     reuseExistingServer: !process.env.CI,
-    // Di luar CI server dev perlu boot dari nol; beri kelonggaran agar
-    // "cold start" Vite (terutama instal node_modules dan pre-bundle deps
-    // yang menahan request "/" pertama sampai optimizer selesai) tidak
-    // keburu timeout sebelum server siap melayani. Mesin lambat/antivirus
-    // aktif bisa memakan waktu lebih dari satu menit untuk langkah ini.
+    // Server development lokal dapat memerlukan waktu boot dan pre-bundle
+    // lebih lama; di CI Vite Preview melayani hasil build yang sudah tersedia.
     timeout: 180_000,
   },
 });

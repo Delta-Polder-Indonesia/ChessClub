@@ -691,14 +691,15 @@ export function daftarkanRute(router, { mulaiPada }) {
 
   router.post("/api/pengurus/masuk", async (req, _param, konteks) => {
     pastikanAdmin(req);
-    const bodi = await bacaBodi(req);
-    const username = bodi.username || konteks.pengguna || "pengurus";
+    // Identitas riwayat harus berasal dari sesi yang diverifikasi server.
+    // Body request tidak boleh memilih akun yang dicatat.
+    const admin = dapatkanAdminDariRequest(req);
+    const username = admin?.username || "pengurus";
     const userAgent = req.headers["user-agent"] || "";
     const entri = await catatRiwayatMasuk({
       username,
       ip: konteks.ip,
       userAgent,
-      catatan: bodi.catatan,
     });
     await logAudit("dashboard-access", {
       username,

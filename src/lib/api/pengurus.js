@@ -241,15 +241,9 @@ export async function loginAdmin(username, password) {
 
 /* -------------------------------------------------------- riwayat masuk */
 
-/**
- * Catat aksi login masuk admin ke server.
- * @param {string} username - Akun Chess.com
- */
-export async function catatMasukPengurus(username) {
-  return apiPengurus("/masuk", {
-    metode: "POST",
-    bodi: { username },
-  });
+/** Catat akses dashboard; identitas diambil dan diverifikasi oleh server. */
+export async function catatMasukPengurus() {
+  return apiPengurus("/masuk", { metode: "POST" });
 }
 
 /**
