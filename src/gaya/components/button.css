@@ -118,3 +118,49 @@
   min-width: 36px;
   padding-inline: 0;
 }
+
+
+/* Tampilan monokrom untuk tombol dan kontrol pencarian Pengurus. */
+.pengurus-root button:not([data-ukuran-bebas]),
+.pengurus-portal button:not([data-ukuran-bebas]) {
+  border: 1px solid #111;
+  background-color: #fff;
+  color: #111;
+  box-shadow: none;
+}
+
+.pengurus-root button:not([data-ukuran-bebas]):hover:not(:disabled),
+.pengurus-portal button:not([data-ukuran-bebas]):hover:not(:disabled) {
+  border-color: #111;
+  background-color: #fff;
+  color: #111;
+}
+
+.pengurus-root button:not([data-ukuran-bebas]):focus-visible,
+.pengurus-portal button:not([data-ukuran-bebas]):focus-visible,
+.pengurus-root input:is([type="search"], [type="text"]),
+.pengurus-root select,
+.pengurus-portal input:is([type="search"], [type="text"]),
+.pengurus-portal select {
+  border-color: #111;
+  background-color: #fff;
+  color: #111;
+  box-shadow: none;
+  outline-color: #111;
+  color-scheme: light;
+}
+
+.pengurus-root input:is([type="search"], [type="text"]):focus,
+.pengurus-root select:focus,
+.pengurus-portal input:is([type="search"], [type="text"]):focus,
+.pengurus-portal select:focus {
+  border-color: #111;
+  outline: 1px solid #111;
+  outline-offset: 1px;
+}
+
+.pengurus-root input:is([type="search"], [type="text"])::placeholder,
+.pengurus-portal input:is([type="search"], [type="text"])::placeholder {
+  color: #555;
+  opacity: 1;
+}
