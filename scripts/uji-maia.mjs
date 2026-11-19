@@ -93,16 +93,16 @@ hasil("bobot model ada di public/engines/maia3/", fdModel !== null, BERKAS_MODEL
 if (fdModel !== null) {
   try {
     const ukuran = ukuranModel;
-  // 45 MB: bukan pengecekan ukuran yang kaku, melainkan penangkal bobot
-  // yang setengah terunduh atau pointer Git LFS yang belum terganti.
-  hasil("ukuran bobot wajar (40–60 MB)", 40e6 < ukuran && ukuran < 60e6, `${(ukuran / 1e6).toFixed(1)} MB`);
-  const kepala = Buffer.alloc(Math.min(1 << 20, ukuran));
+    // 45 MB: bukan pengecekan ukuran yang kaku, melainkan penangkal bobot
+    // yang setengah terunduh atau pointer Git LFS yang belum terganti.
+    hasil("ukuran bobot wajar (40–60 MB)", 40e6 < ukuran && ukuran < 60e6, `${(ukuran / 1e6).toFixed(1)} MB`);
+    const kepala = Buffer.alloc(Math.min(1 << 20, ukuran));
     readSync(fdModel, kepala, 0, kepala.length, 0);
     const panjangEkor = Math.min(1 << 22, ukuran);
     const ekor = Buffer.alloc(panjangEkor);
     readSync(fdModel, ekor, 0, ekor.length, ukuran - panjangEkor);
-  for (const nama of ["tokens", "elo_self", "elo_oppo", "logits_move", "logits_value"]) {
-    hasil(`kontrak model memuat "${nama}"`, kepala.includes(nama) || ekor.includes(nama));
+    for (const nama of ["tokens", "elo_self", "elo_oppo", "logits_move", "logits_value"]) {
+      hasil(`kontrak model memuat "${nama}"`, kepala.includes(nama) || ekor.includes(nama));
     }
   } finally {
     closeSync(fdModel);
