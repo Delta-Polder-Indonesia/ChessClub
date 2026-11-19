@@ -100,3 +100,21 @@
   background: var(--color-grey-100);
   border-color: var(--color-grey-200);
 }
+
+/* Standar ukuran kontrol aksi khusus dashboard Pengurus.
+   Semua tombol aksi memiliki tinggi 36px; lebar tetap mengikuti konten.
+   Tombol baris pesan dikecualikan karena seluruh baris adalah area klik. */
+.pengurus-root button:not([data-ukuran-bebas]),
+.pengurus-portal button:not([data-ukuran-bebas]) {
+  box-sizing: border-box;
+  height: 36px;
+  min-height: 36px;
+  padding-block: 0;
+}
+
+.pengurus-root button:where([aria-label], :has(> svg:only-child)),
+.pengurus-portal button:where([aria-label], :has(> svg:only-child)) {
+  width: 36px;
+  min-width: 36px;
+  padding-inline: 0;
+}
