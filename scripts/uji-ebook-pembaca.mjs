@@ -124,8 +124,9 @@ uji("sumberEbook: berkas statis dulu, lalu proxy tanpa tiket", () => {
   benar(parsed.searchParams.get("tiket") === null, "membaca via proxy tidak boleh menuntut tiket");
   benar(parsed.searchParams.get("unduh") === null, "membaca tidak boleh meminta attachment");
   for (const url of daftar) {
-    benar(!url.includes("media.githubusercontent.com"), "GitHub Media tidak boleh masuk bundle browser");
-    benar(!/^https?:/i.test(url), `sumber tidak same-origin: ${url}`);
+    const parsedUrl = new URL(url, "https://contoh.id");
+    benar(parsedUrl.origin === "https://contoh.id", `sumber tidak same-origin: ${url}`);
+    benar(parsedUrl.hostname !== "media.githubusercontent.com", "GitHub Media tidak boleh masuk bundle browser");
   }
 });
 
@@ -153,8 +154,9 @@ uji("e-book bertanda tidak tersedia tidak dilayani", () => {
 uji("urutan sumber server: storage → statis → GitHub Media", () => {
   const daftar = sumberEbookServer(NAMA_CONTOH, { asal: "https://contoh.vercel.app" });
   benar(daftar.length >= 2, "minimal dua sumber");
+  const urlTerakhir = new URL(daftar[daftar.length - 1]);
   benar(
-    daftar[daftar.length - 1].includes("media.githubusercontent.com"),
+    urlTerakhir.hostname === "media.githubusercontent.com",
     "GitHub Media harus menjadi pilihan terakhir"
   );
   benar(
