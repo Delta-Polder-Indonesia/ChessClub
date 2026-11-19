@@ -24,9 +24,7 @@ const BATAS_AUDIT = Object.freeze({
 const RETENSI_HARI = 90;
 
 function teksAudit(nilai, batas, keadaan) {
-  const teks = String(nilai)
-    .replace(/[\u0000-\u001f\u007f]/g, " ")
-    .replace(KODE_EBOOK, "[kode akses disamarkan]");
+  const teks = String(nilai).replace(KODE_EBOOK, "[kode akses disamarkan]");
   const panjang = Math.min(teks.length, batas, keadaan.sisaKarakter);
   keadaan.sisaKarakter -= panjang;
   return teks.slice(0, panjang);
@@ -112,7 +110,7 @@ export async function logAudit(aksi, rincian = {}) {
       peristiwa,
       ...rincianAman,
     };
-    while (Buffer.byteLength(JSON.stringify(entri), "utf8") > BATAS_AUDIT.payload) {
+    while (Buffer.byteLength(JSON.stringify(entri), "utf8") + 1 > BATAS_AUDIT.payload) {
       const terakhir = Object.keys(rincianAman).at(-1);
       if (!terakhir) break;
       delete rincianAman[terakhir];
