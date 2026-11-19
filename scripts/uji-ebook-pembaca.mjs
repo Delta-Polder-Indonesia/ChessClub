@@ -153,8 +153,9 @@ uji("e-book bertanda tidak tersedia tidak dilayani", () => {
 uji("urutan sumber server: storage → statis → GitHub Media", () => {
   const daftar = sumberEbookServer(NAMA_CONTOH, { asal: "https://contoh.vercel.app" });
   benar(daftar.length >= 2, "minimal dua sumber");
+  const urlTerakhir = new URL(daftar[daftar.length - 1]);
   benar(
-    daftar[daftar.length - 1].includes("media.githubusercontent.com"),
+    urlTerakhir.hostname === "media.githubusercontent.com",
     "GitHub Media harus menjadi pilihan terakhir"
   );
   benar(
