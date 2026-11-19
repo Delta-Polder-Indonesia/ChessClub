@@ -123,8 +123,9 @@ export function Modal({
   catatanInput = "",
   onKonfirmasi,
   onBatal,
-  sibuk = false,
+  sibuk,
 }) {
+  const isBusy = sibuk ?? false;
   const [nilai, setNilai] = useState(nilaiBawaanInput);
   const inputRef = useRef(null);
   const wadahRef = useRef(null);
@@ -152,7 +153,7 @@ export function Modal({
     if (!terbuka) return;
     const tadi = document.activeElement;
     const onEsc = (e) => {
-      if (e.key === "Escape" && !sibuk) onBatal?.();
+      if (e.key === "Escape" && !isBusy) onBatal?.();
     };
     // Focus trap: Tab/Shift+Tab berputar di dalam dialog, tidak keluar
     // ke halaman di belakangnya.
@@ -182,7 +183,7 @@ export function Modal({
       // Kembalikan fokus ke elemen pemicu setelah dialog ditutup.
       if (tadi && typeof tadi.focus === "function") tadi.focus();
     };
-  }, [terbuka, sibuk, onBatal]);
+  }, [terbuka, isBusy, onBatal]);
 
   if (!terbuka) return null;
 
@@ -191,7 +192,7 @@ export function Modal({
       ? "border-2 border-slate-500 text-slate-700 hover:bg-slate-100"
       : "border-2 border-primary text-primary hover:bg-blue-50";
 
-  const bisaKonfirmasi = !sibuk && (!butuhInput || nilai.trim().length > 0);
+  const bisaKonfirmasi = !isBusy && (!butuhInput || nilai.trim().length > 0);
 
   return (
     <div
@@ -199,7 +200,7 @@ export function Modal({
       role="dialog"
       aria-modal="true"
       aria-label={judul}
-      onClick={() => !sibuk && onBatal?.()}
+      onClick={() => !isBusy && onBatal?.()}
     >
       <div
         ref={wadahRef}
@@ -232,7 +233,7 @@ className="rounded-md border-2 border-slate-300 px-2.5 py-1.5 text-sm outline-no
           <button
             type="button"
             onClick={onBatal}
-            disabled={sibuk}
+            disabled={isBusy}
             className="rounded-md border-2 border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:opacity-40"
           >
             {labelBatal}
@@ -245,7 +246,7 @@ className="rounded-md border-2 border-slate-300 px-2.5 py-1.5 text-sm outline-no
             disabled={!bisaKonfirmasi}
             className={`rounded-md px-4 py-2 text-xs font-semibold disabled:opacity-40 ${warnaTombol}`}
           >
-            {sibuk ? "Memproses…" : labelKonfirmasi}
+            {isBusy ? "Memproses…" : labelKonfirmasi}
           </button>
         </div>
       </div>
@@ -363,13 +364,14 @@ export function Sheet({
   anak,
   kaki,
   onTutup,
-  sibuk = false,
+  sibuk,
   children,
 }) {
+  const isBusy = sibuk ?? false;
   useEffect(() => {
     if (!terbuka) return;
     const onEsc = (e) => {
-      if (e.key === "Escape" && !sibuk) onTutup?.();
+      if (e.key === "Escape" && !isBusy) onTutup?.();
     };
     // Kunci gulir halaman di belakang panel selama terbuka.
     const tadi = document.body.style.overflow;
@@ -379,7 +381,7 @@ export function Sheet({
       document.body.style.overflow = tadi;
       document.removeEventListener("keydown", onEsc);
     };
-  }, [terbuka, sibuk, onTutup]);
+  }, [terbuka, isBusy, onTutup]);
 
   // Panel SELALU ter-render dan hanya digeser lewat transisi transform,
   // sehingga geraknya halus baik saat dibuka maupun ditutup (bukan
@@ -390,7 +392,7 @@ export function Sheet({
       className={`fixed inset-0 z-[70] transition-opacity duration-300 ${
         terbuka ? "opacity-100" : "pointer-events-none opacity-0"
       }`}
-      onClick={() => !sibuk && onTutup?.()}
+      onClick={() => !isBusy && onTutup?.()}
     >
       <div className="absolute inset-0 bg-slate-900/40" />
       <div
@@ -407,7 +409,7 @@ export function Sheet({
           <button
             type="button"
             onClick={onTutup}
-            disabled={sibuk}
+            disabled={isBusy}
             aria-label="Tutup panel"
             className="flex size-8 shrink-0 items-center justify-center rounded-md border border-slate-300 text-slate-600 hover:bg-slate-100 disabled:opacity-40"
           >
