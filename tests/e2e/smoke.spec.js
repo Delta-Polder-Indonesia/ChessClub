@@ -720,7 +720,7 @@ test("galat memuat peringkat anggota bisa dimuat ulang", async ({ page }) => {
   });
   // Cadangan roster publik Chess.com juga harus dipalsukan gagal — tanpa ini
   // browser mengirim permintaan sungguhan keluar dari lingkungan uji.
-  await page.route(/api\.chess\.com\/pub\//, (route) =>
+  await page.route(/^https:\/\/api\.chess\.com\/pub\//, (route) =>
     route.fulfill({ status: 503, contentType: "application/json", body: "{}" })
   );
 

@@ -14,7 +14,7 @@
  *
  * Jalankan: node scripts/uji-analisa-ui.mjs
  */
-import { readFileSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -393,7 +393,8 @@ const PGN_UJI = '[Event "Kelas Catur Komunitas"]\n[White "Andini"]\n[Black "Baga
 
 /* ------------------------------------------------ bundel halaman (esbuild) */
 
-const berkasBundel = path.join(tmpdir(), "kci-uji-analisa-ui.cjs");
+const direktoriSementara = mkdtempSync(path.join(tmpdir(), "kci-uji-analisa-ui-"));
+const berkasBundel = path.join(direktoriSementara, "bundel.cjs");
 await build({
   stdin: {
     contents: MASUK,
@@ -2191,7 +2192,9 @@ console.error = consoleErrorAsli;
 dom.window.close();
 console.log(`\n${lulus} pemeriksaan lulus, ${gagal} gagal.`);
 if (gagal) {
-  writeFileSync(path.join(tmpdir(), "kci-uji-analisa-ui.html"), domSiap.documentElement?.innerHTML ?? "");
+  writeFileSync(path.join(direktoriSementara, "diagnostik.html"), domSiap.documentElement?.innerHTML ?? "", { flag: "wx", mode: 0o600 });
+  console.error(`Artefak diagnostik: ${path.join(direktoriSementara, "diagnostik.html")}`);
   process.exit(1);
 }
+rmSync(direktoriSementara, { recursive: true, force: true });
 process.exit(0);
