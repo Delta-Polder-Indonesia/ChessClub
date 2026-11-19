@@ -76,7 +76,7 @@ export default function Dashboard() {
   const [memuat, setMemuat] = useState(true);
   // Muat awal gagal total → tampilkan kotak galat + tombol coba lagi,
   // bukan area konten kosong yang hanya ditemani toast 8 detik.
-  const [galatMuat, setGalatMuat] = useState(false);
+  const [galatMuat, setGalatMuat] = useState(null);
   const [kabar, setKabar] = useState(null);
   const [menuProfile, setMenuProfile] = useState(false);
   const [tabPengaturan, setTabPengaturan] = useState(false);
@@ -143,7 +143,7 @@ export default function Dashboard() {
 
   const muatUlang = useCallback(async () => {
     setMemuat(true);
-    setGalatMuat(false);
+    setGalatMuat(null);
     try {
       const [r, a, h] = await Promise.all([
         apiPengurus("/ringkasan"),
@@ -157,7 +157,9 @@ export default function Dashboard() {
       tanganiGalat(e);
       // 401/403 sudah ditangani tanganiGalat (keluar/toast); kegagalan lain
       // pada muat awal perlu kotak galat permanen yang bisa dicoba lagi.
-      if (e?.status !== 401 && e?.status !== 403) setGalatMuat(true);
+      if (e?.status !== 401 && e?.status !== 403) {
+        setGalatMuat({ pesan: e?.message || "", cobaDetik: e?.cobaDetik || 0 });
+      }
     } finally {
       setMemuat(false);
     }
@@ -550,7 +552,11 @@ export default function Dashboard() {
           {tab === "anggota" && (
             galatMuat && !memuat && !anggota.length ? (
               <KotakGalatMuat
-                pesan="Daftar anggota gagal dimuat. Periksa koneksi lalu coba lagi."
+                pesan={
+                  galatMuat.pesan ||
+                  "Daftar anggota gagal dimuat. Periksa koneksi lalu coba lagi."
+                }
+                cobaDetik={galatMuat.cobaDetik}
                 onCobaLagi={muatUlang}
               />
             ) : (
@@ -560,7 +566,11 @@ export default function Dashboard() {
           {tab === "larangan" && (
             galatMuat && !memuat && !hitam.length ? (
               <KotakGalatMuat
-                pesan="Daftar larangan gagal dimuat. Periksa koneksi lalu coba lagi."
+                pesan={
+                  galatMuat.pesan ||
+                  "Daftar larangan gagal dimuat. Periksa koneksi lalu coba lagi."
+                }
+                cobaDetik={galatMuat.cobaDetik}
                 onCobaLagi={muatUlang}
               />
             ) : (

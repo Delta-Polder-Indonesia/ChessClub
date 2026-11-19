@@ -147,7 +147,7 @@ function ringkasPerangkat(ua) {
 export default function PanelRiwayatMasuk({ beriTahu }) {
   const [riwayat, setRiwayat] = useState([]);
   const [memuat, setMemuat] = useState(true);
-  const [galat, setGalat] = useState(false);
+  const [galat, setGalat] = useState(null);
   const [cari, setCari] = useState("");
   const [filterWaktu, setFilterWaktu] = useState("semua");
   const [filterAkun, setFilterAkun] = useState("semua");
@@ -157,13 +157,13 @@ export default function PanelRiwayatMasuk({ beriTahu }) {
 
   const muatData = useCallback(async () => {
     setMemuat(true);
-    setGalat(false);
+    setGalat(null);
     try {
       const data = await ambilRiwayatMasuk();
       setRiwayat(Array.isArray(data) ? data : []);
     } catch (e) {
       beriTahu?.(e.message || "Gagal memuat riwayat masuk.", "galat");
-      setGalat(true);
+      setGalat({ pesan: e.message || "", cobaDetik: e.cobaDetik || 0 });
     } finally {
       setMemuat(false);
     }
@@ -504,7 +504,11 @@ export default function PanelRiwayatMasuk({ beriTahu }) {
         <SkeletonTabel jumlahBaris={5} />
       ) : galat ? (
         <KotakGalatMuat
-          pesan="Riwayat masuk gagal dimuat. Periksa koneksi lalu coba lagi."
+          pesan={
+            galat.pesan ||
+            "Riwayat masuk gagal dimuat. Periksa koneksi lalu coba lagi."
+          }
+          cobaDetik={galat.cobaDetik}
           onCobaLagi={muatData}
         />
       ) : riwayat.length === 0 ? (

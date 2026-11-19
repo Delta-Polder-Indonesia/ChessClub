@@ -50,7 +50,10 @@ export default function PanelTurnamen({ beriTahu, muatUlang, saatBukaRincian }) 
       setJenis(j.jenis);
       setDaftar(d);
     } catch (e) {
-      setGalatMuat(e.message || "Gagal memuat data turnamen.");
+      setGalatMuat({
+        pesan: e.message || "Gagal memuat data turnamen.",
+        cobaDetik: e.cobaDetik || 0,
+      });
     } finally {
       setMemuat(false);
     }
@@ -202,7 +205,11 @@ export default function PanelTurnamen({ beriTahu, muatUlang, saatBukaRincian }) 
       {!buatBaru && (
         <>
           {galatMuat ? (
-            <KotakGalatMuat pesan={galatMuat} onCobaLagi={muat} />
+            <KotakGalatMuat
+              pesan={galatMuat.pesan}
+              cobaDetik={galatMuat.cobaDetik}
+              onCobaLagi={muat}
+            />
           ) : memuat ? (
             <SkeletonTabel jumlahBaris={4} />
           ) : tampil.length === 0 ? (

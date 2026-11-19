@@ -48,7 +48,7 @@ function unduhCsv(baris) {
 export default function PanelAudit({ beriTahu }) {
   const [data, setData] = useState([]);
   const [memuat, setMemuat] = useState(true);
-  const [galat, setGalat] = useState(false);
+  const [galat, setGalat] = useState(null);
   const [aksi, setAksi] = useState("");
   const [username, setUsername] = useState("");
   // Nilai filter yang BENAR-BENAR dikirim ke server — hanya berubah saat
@@ -61,7 +61,7 @@ export default function PanelAudit({ beriTahu }) {
 
   const muat = useCallback(async () => {
     setMemuat(true);
-    setGalat(false);
+    setGalat(null);
     try {
       const q = new URLSearchParams();
       if (filterKirim.aksi) q.set("aksi", filterKirim.aksi);
@@ -72,7 +72,7 @@ export default function PanelAudit({ beriTahu }) {
       setData(Array.isArray(isi) ? isi : []);
     } catch (e) {
       beriTahu?.(e?.message || "Gagal memuat jejak audit.", "galat");
-      setGalat(true);
+      setGalat({ pesan: e?.message || "", cobaDetik: e?.cobaDetik || 0 });
     } finally {
       setMemuat(false);
     }
@@ -211,7 +211,11 @@ export default function PanelAudit({ beriTahu }) {
         <SkeletonTabel jumlahBaris={5} />
       ) : galat ? (
         <KotakGalatMuat
-          pesan="Jejak audit gagal dimuat. Periksa koneksi lalu coba lagi."
+          pesan={
+            galat.pesan ||
+            "Jejak audit gagal dimuat. Periksa koneksi lalu coba lagi."
+          }
+          cobaDetik={galat.cobaDetik}
           onCobaLagi={muat}
         />
       ) : (

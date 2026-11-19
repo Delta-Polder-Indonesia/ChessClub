@@ -210,6 +210,7 @@ export async function apiPengurus(jalur, { metode = "GET", bodi } = {}) {
       galat: data.galat,
       status: res.status,
       kodePesan: data.pesan ? null : "gagalStatus",
+      cobaDetik: Number(res.headers.get("retry-after")) || 0,
     });
   }
   return data;

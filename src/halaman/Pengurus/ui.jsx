@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { MoreHorizontal, Pencil, Trash2, X } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2, TriangleAlert, X } from "lucide-react";
 import { TooltipLabel as TooltipLabelAsli } from "../../components/ui/tooltip.jsx";
 
 /**
@@ -12,7 +12,7 @@ import { TooltipLabel as TooltipLabelAsli } from "../../components/ui/tooltip.js
  * gampang rusak saat hot-reload.
  */
 
-export function Tombol({ anak, onClick, jenis = "biasa", kecil, className, ...sisa }) {
+export function Tombol({ anak, children, onClick, jenis = "biasa", kecil, className, ...sisa }) {
   // Gaya tombol berasal dari satu pintu CSS (src/gaya/components/button.css),
   // bukan kelas Tailwind lokal, agar tombol dashboard dan halaman lain seragam.
   const variasi = {
@@ -27,7 +27,9 @@ export function Tombol({ anak, onClick, jenis = "biasa", kecil, className, ...si
       className={`btn ${variasi} ${kecil ? "btn-kecil" : "btn-rapat"} ${className || ""}`}
       {...sisa}
     >
-      {anak}
+      {/* Banyak pemanggil menulis <Tombol>Coba lagi</Tombol> sebagai children,
+          bukan prop anak; sebelumnya teks itu hilang dan tombolnya kosong. */}
+      {anak ?? children}
     </button>
   );
 }
@@ -97,22 +99,123 @@ export const KELAS_KEPALA_TABEL =
  * plus tombol coba lagi. Tanpa ini, kegagalan muat hanya menghasilkan toast
  * 8 detik lalu tabel kosong dibaca sebagai "belum ada data" (menyesatkan).
  */
-export function KotakGalatMuat({ pesan, onCobaLagi, className = "" }) {
+/**
+ * Dialog batas permintaan (HTTP 429). Bentuknya mengikuti dialog konfirmasi
+ * pada referensi: ikon di kiri, judul, uraian, tombol di kanan. Warna tetap
+ * netral — tidak ada merah/hijau, tidak ada bayangan, sesuai hukum Pengurus.
+ *
+ * `sisa` dihitung mundur dari header Retry-After. Tombol coba lagi baru aktif
+ * ketika hitungan habis, supaya pengguna tidak menembak server yang masih
+ * menolak dan memanjangkan masa tunggu.
+ */
+export function DialogBatasPermintaan({ pesan, detik = 0, onCobaLagi, onTutup }) {
+  const [sisa, setSisa] = useState(detik);
+
+  useEffect(() => setSisa(detik), [detik]);
+
+  useEffect(() => {
+    if (sisa <= 0) return undefined;
+    const t = setTimeout(() => setSisa((n) => Math.max(0, n - 1)), 1000);
+    return () => clearTimeout(t);
+  }, [sisa]);
+
+  const bolehCobaLagi = sisa <= 0 && Boolean(onCobaLagi);
+  // Pesan server sudah memuat "Coba lagi dalam N detik."; angka itu dibuang
+  // karena dialog menghitung mundur sendiri. Tanpa ini kalimatnya berulang.
+  const deskripsi = String(pesan || "")
+    .replace(/\s*Coba lagi dalam \d+ detik\.?/i, "")
+    .trim();
+
   return (
     <div
-      className={`flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3 ${className}`}
+      className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-900/40 p-4"
+      role="alertdialog"
+      aria-modal="true"
+      aria-label="Batas permintaan tercapai"
     >
-      <p className="text-sm font-medium text-slate-700">{pesan}</p>
-      {onCobaLagi && (
-        <Tombol
-          jenis="biasa"
-          onClick={onCobaLagi}
-          className="shrink-0"
-        >
-          Coba Lagi
-        </Tombol>
-      )}
+      <div className="w-full max-w-md rounded-lg border border-slate-300 bg-white p-5">
+        <div className="flex items-start gap-4">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-300 text-slate-700">
+            <TriangleAlert size={18} aria-hidden="true" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <h3 className="text-base font-bold text-slate-900">
+              Batas permintaan tercapai
+            </h3>
+            <p className="mt-1 text-sm leading-6 text-slate-600">
+              {deskripsi || "Server menolak permintaan sementara waktu."}
+            </p>
+            <p className="mt-1 text-sm font-medium text-slate-700">
+              {sisa > 0
+                ? `Dapat dicoba lagi dalam ${sisa} detik.`
+                : "Sudah dapat dicoba lagi."}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onTutup}
+            aria-label="Tutup dialog"
+            className="btn btn-ikon shrink-0"
+          >
+            <X size={16} aria-hidden="true" />
+          </button>
+        </div>
+        <div className="mt-5 flex justify-end gap-2">
+          <button type="button" onClick={onTutup} className="btn btn-biasa btn-rapat">
+            Tutup
+          </button>
+          <button
+            type="button"
+            onClick={onCobaLagi}
+            disabled={!bolehCobaLagi}
+            className="btn btn-padat btn-rapat"
+          >
+            Coba lagi
+          </button>
+        </div>
+      </div>
     </div>
+  );
+}
+
+/**
+ * Kotak galat muat data panel. Galat biasa tampil sebagai baris netral;
+ * galat 429 (batas permintaan) tampil sebagai dialog bertimer. Menutup dialog
+ * tidak menghilangkan informasi: barisnya tetap ada dengan tombol coba lagi.
+ */
+export function KotakGalatMuat({ pesan, cobaDetik = 0, onCobaLagi, className = "" }) {
+  const [dialogDitutup, setDialogDitutup] = useState(false);
+
+  useEffect(() => setDialogDitutup(false), [cobaDetik]);
+
+  return (
+    <>
+      {cobaDetik > 0 && !dialogDitutup && (
+        <DialogBatasPermintaan
+          pesan={pesan}
+          detik={cobaDetik}
+          onCobaLagi={
+            onCobaLagi
+              ? () => {
+                  setDialogDitutup(true);
+                  onCobaLagi();
+                }
+              : undefined
+          }
+          onTutup={() => setDialogDitutup(true)}
+        />
+      )}
+      <div
+        className={`flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3 ${className}`}
+      >
+        <p className="text-sm font-medium text-slate-700">{pesan}</p>
+        {onCobaLagi && (
+          <Tombol jenis="biasa" onClick={onCobaLagi} className="shrink-0">
+            Coba Lagi
+          </Tombol>
+        )}
+      </div>
+    </>
   );
 }
 
@@ -232,10 +335,8 @@ export function Modal({
 
   if (!terbuka) return null;
 
-  const warnaTombol =
-    jenisKonfirmasi === "bahaya"
-      ? "border-2 border-slate-900 text-slate-900 hover:bg-slate-100"
-      : "border-2 border-primary text-primary hover:bg-slate-100";
+  const kelasTombol =
+    jenisKonfirmasi === "bahaya" ? "btn btn-bahaya btn-rapat" : "btn btn-padat btn-rapat";
 
   const bisaKonfirmasi = !isBusy && (!butuhInput || nilai.trim().length > 0);
 
@@ -289,7 +390,7 @@ className="rounded-md border-2 border-slate-300 px-2.5 py-1.5 text-sm outline-no
               onKonfirmasi?.(butuhInput ? nilai.trim() : undefined)
             }
             disabled={!bisaKonfirmasi}
-            className={`rounded-md px-4 py-2 text-xs font-semibold disabled:opacity-40 ${warnaTombol}`}
+            className={kelasTombol}
           >
             {isBusy ? "Memproses…" : labelKonfirmasi}
           </button>

@@ -29,6 +29,7 @@ export class GalatApi extends Error {
       kode = null,
       perluVerifikasi = false,
       kodePesan = null,
+      cobaDetik = 0,
       cause = undefined,
     } = {}
   ) {
@@ -42,6 +43,9 @@ export class GalatApi extends Error {
     this.kode = kode;
     this.perluVerifikasi = perluVerifikasi;
     this.kodePesan = kodePesan;
+    // 429: sisa detik dari header Retry-After. Dipakai dialog batas permintaan
+    // untuk menghitung mundur, bukan untuk menebak dari kalimat server.
+    this.cobaDetik = Number(cobaDetik) || 0;
   }
 }
 
