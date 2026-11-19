@@ -13,12 +13,10 @@
 const NAMA_DB = "MaiaChessClub";
 const NAMA_SIMPAN = "model";
 const KUNCI_MODEL = "maia3";
-const PATH_MODEL_SAH = "/engines/maia3/maia3_simplified.onnx";
-const AWALAN_ORT_SAH = "/engines/ort/";
-
+// Aset ditentukan oleh lokasi worker, bukan oleh pengirim pesan init.
+const urlModel = new URL("./maia3_simplified.onnx", self.location.href).href;
+const jalurOrt = new URL("../ort/", self.location.href).href;
 let sesi = null;
-let jalurOrt = "./ort/";
-let urlModel = null;
 let versiModel = "3";
 
 function kirim(pesan, pindah) {
@@ -29,35 +27,11 @@ function keadaan(status, tambahan) {
   kirim(Object.assign({ jenis: "keadaan", status }, tambahan || {}));
 }
 
-function urlAsetSameOrigin(persetujuan, nilaiAwal) {
-  if (typeof nilaiAwal !== "string" || !nilaiAwal) throw new Error("URL aset tidak sah");
-  let alamat;
-  try {
-    alamat = new URL(nilaiAwal, persetujuan);
-  } catch {
-    throw new Error("URL aset tidak sah");
-  }
-  if (alamat.origin !== self.location.origin) throw new Error("URL aset lintas-origin ditolak");
-  return alamat;
-}
-
 function validasiInit(pesan) {
-  if (!pesan || typeof pesan !== "object") throw new Error("Pesan init tidak sah");
-  const model = urlAsetSameOrigin(self.location.href, pesan.urlModel);
-  if (model.pathname !== PATH_MODEL_SAH && !model.pathname.endsWith("/maia3_simplified.onnx")) {
-    throw new Error("Berkas model tidak diizinkan");
+  if (new URL(pesan.urlModel, self.location.href).href !== urlModel ||
+      new URL(pesan.jalurOrt || jalurOrt, self.location.href).href !== jalurOrt) {
+    throw new Error("URL aset Maia tidak diizinkan");
   }
-
-  let ort;
-  try {
-    ort = urlAsetSameOrigin(self.location.href, pesan.jalurOrt || jalurOrt);
-  } catch {
-    throw new Error("Jalur runtime tidak sah");
-  }
-  if (!ort.pathname.startsWith(AWALAN_ORT_SAH)) throw new Error("Jalur runtime tidak diizinkan");
-
-  urlModel = model.href;
-  jalurOrt = ort.pathname.endsWith("/") ? ort.pathname : `${ort.pathname}/`;
   versiModel = typeof pesan.versiModel === "string" && /^[a-zA-Z0-9_.-]{1,64}$/.test(pesan.versiModel)
     ? pesan.versiModel
     : "3";
@@ -124,7 +98,7 @@ async function unduhModel() {
   if (!jawab.ok) throw new Error(`HTTP ${jawab.status} saat mengunduh model`);
 
   const balik = new URL(jawab.url || urlModel);
-  if (balik.origin !== self.location.origin || balik.pathname !== PATH_MODEL_SAH) {
+  if (balik.href !== urlModel) {
     throw new Error("Respons model lintas-origin tidak diterima");
   }
 

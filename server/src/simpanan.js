@@ -84,9 +84,8 @@ export async function tulisJson(berkas, isi) {
   const sementara = `${berkas}.${process.pid}.${crypto.randomBytes(16).toString("hex")}.tmp`;
   const teks = JSON.stringify(isi, null, 2) + "\n";
 
-  let fd;
+  let fd = await fsp.open(sementara, "wx", 0o600);
   try {
-    fd = await fsp.open(sementara, "wx", 0o600);
     await fd.writeFile(teks, "utf8");
     await fd.sync(); // pastikan benar-benar sampai disk
     await fd.close();

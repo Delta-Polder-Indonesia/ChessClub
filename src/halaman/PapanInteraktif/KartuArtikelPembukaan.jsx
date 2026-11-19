@@ -8,9 +8,6 @@ import { useMemo } from "react";
  */
 function bersihTeksArtikel(teks) {
   return String(teks || "")
-    .replace(/<!--[^]*?-->/g, "")
-    .replace(/<ref[^>]*\/?>/gi, "")
-    .replace(/<\/ref>/gi, "")
     .replace(/\[\[(?:[^\]|]*\|)?([^\]]*)\]\]/g, "$1")
     .replace(/\{\{[^{}]*\}\}/g, "")
     .replace(/'{2,}/g, "")
@@ -24,7 +21,14 @@ function bersihTeksArtikel(teks) {
 /** Pecah ringkasan Wikibooks menjadi blok tersusun. */
 function susunBlokArtikel(teks) {
   const blok = [];
-  for (const mentah of String(teks || "").split(/\r?\n/)) {
+  // Abaikan komentar wiki sebelum memecah paragraf, termasuk komentar multibaris.
+  const potongan = String(teks || "").split("<!--");
+  const terlihat = potongan.map((bagian, i) => {
+    if (!i) return bagian;
+    const akhir = bagian.indexOf("-->");
+    return akhir < 0 ? "" : bagian.slice(akhir + 3);
+  }).join(" ");
+  for (const mentah of terlihat.split(/\r?\n/)) {
     const baris = bersihTeksArtikel(mentah);
     if (!baris) continue;
     const judul = /^(={2,6})\s*(.*?)\s*\1$/.exec(baris);
