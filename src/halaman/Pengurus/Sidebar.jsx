@@ -45,7 +45,7 @@ export default function Sidebar({ tab, setTab, terbuka, halamanEbook, onPilihEbo
           return (
             <Fragment key={kunci}>
             {tampilLabelGrup && (
-              <p className="px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-[0.1em] text-slate-400">
+              <p className="px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">
                 {grup}
               </p>
             )}

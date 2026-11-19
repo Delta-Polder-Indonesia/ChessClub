@@ -1,105 +1,92 @@
-# Audit UI Referensi → Dashboard Pengurus
+# Audit UI Referensi: Dashboard Pengurus
 
-Audit repo `kgdash116/Camera-Surveillance-Dashboard--Cloud-Technologies` ("Guard Up")
-dan adaptasi pola UI-nya ke panel **Pengurus** ChessClub: tabel anggota, daftar
-larangan, daftar admin, dan **Pengaturan Master**.
+Catatan audit repo `kgdash116/Camera-Surveillance-Dashboard--Cloud-Technologies`
+("Guard Up") dan adaptasi pola UI-nya ke panel Pengurus ChessClub: tabel anggota,
+daftar larangan, daftar admin, dan Pengaturan Master.
 
----
-
-## 1. Repo referensi: apa isinya
+## 1. Isi repo referensi
 
 | Aspek | Referensi (Guard Up) | ChessClub |
 |---|---|---|
 | Build | CRA (`react-scripts`) | Vite 6 |
-| Komponen | MUI v5 + `@mui/x-data-grid` v6 + Chakra + Nivo | Tailwind v4 + shadcn + TanStack Table |
-| Auth/data | AWS Amplify + Cognito | Backend Node sendiri (`server/`) + JWT |
+| Komponen | MUI v5, `@mui/x-data-grid` v6, Chakra, Nivo | Tailwind v4, primitif `src/components/ui/`, TanStack Table |
+| Auth/data | AWS Amplify + Cognito | Backend Node sendiri (`server/`) dengan JWT |
 | Tema | gelap bawaan `#141b2d`, aksen hijau `#4cceac` | terang, `--color-primary #0B2F9F` |
 | Font | Source Sans Pro | Geist Variable |
 
-**Kesimpulan:** stack-nya tidak bisa dipakai langsung. Tidak ada dependensi baru
-yang ditambahkan — MUI/Amplify/CRA sengaja **tidak** diadopsi. Yang diambil hanya
-**pola visual & hierarki informasi**.
+Stack referensi tidak dipakai langsung. Tidak ada dependensi baru yang ditambahkan;
+MUI, Amplify, dan CRA tidak diadopsi. Yang diambil hanya pola visual dan hierarki
+informasi, lalu diterapkan dengan komponen yang sudah ada.
 
 ## 2. Pola yang diadaptasi
 
-| Pola referensi | Diadaptasi menjadi | File |
+| Pola referensi | Bentuk di ChessClub | Berkas |
 |---|---|---|
-| `Header` judul + subjudul aksen | `KepalaPanel` (judul `text-lg` bold + subjudul `text-sm` primary + slot `aksi`) | `ui.jsx` |
-| Pill *Access Level* Admin/Staff | `Lencana` (hijau/biru/merah/abu, ring 1px) | `ui.jsx` |
-| DataGrid: header berwarna, footer rentang baris + pemilih baris | `TabelData` dibungkus kartu: bilah atas "Menampilkan 1–10 dari N", header `bg-slate-50` uppercase, footer `bg-slate-50` | `TabelData.jsx` |
-| Banner "Add Users" (bilah judul berwarna + isi form + tombol simpan di tengah) | Kartu "Tambah Admin Baru" dengan bilah judul `bg-primary` | `Pengaturan.jsx` |
+| Header berisi judul dan subjudul aksen | `KepalaPanel`: judul `text-lg` bold, subjudul `text-sm` primary, slot `aksi` | `ui.jsx` |
+| Pill Access Level (Admin/Staff) | `Lencana` dengan empat warna (hijau, biru, merah, abu) | `ui.jsx` |
+| DataGrid: header berwarna, footer rentang baris dan pemilih baris | `TabelData` dibungkus kartu: bilah atas "Menampilkan 1-10 dari N", header kolom `bg-slate-50` uppercase, footer `bg-slate-50` | `TabelData.jsx` |
+| Banner "Add Users" | Kartu "Tambah Admin Baru" dengan bilah judul `bg-primary` | `Pengaturan.jsx` |
+| Label grup menu sidebar | `grup` di `MENU_SIDEBAR` menjadi judul kecil uppercase (Utama, Komunitas, Konten, E-Book) | `SidebarData.js`, `Sidebar.jsx` |
 | Display box halaman Settings | Kartu "Akun Saat Ini" dengan baris `divide-y` | `Pengaturan.jsx` |
-| Search bar Topbar (kotak terisi) | Kotak pencarian `bg-slate-100` → putih saat fokus, di Anggota & Larangan | `Anggota.jsx`, `Larangan.jsx` |
-| Label grup menu sidebar | `grup` di `MENU_SIDEBAR` → judul kecil uppercase (Utama / Komunitas / Konten / E-Book) | `SidebarData.js`, `Sidebar.jsx` |
-| Kartu ringkasan statistik | `Kartu` jadi kartu putih ber-border + `shadow-sm`; dipakai di Ringkasan, Kelola Admin, Riwayat Masuk | `ui.jsx`, `RingkasanDashboard.jsx`, `RiwayatMasuk.jsx` |
-| Badge status berikon pada tabel | Lencana status Terverifikasi (hijau), Terblokir/Fair-Play (merah), Sumber Otomatis (biru) | `Anggota.jsx`, `Larangan.jsx` |
+| Search bar Topbar | Kotak pencarian `bg-slate-100` yang menjadi putih saat fokus, dipakai di Anggota dan Larangan | `Anggota.jsx`, `Larangan.jsx` |
+| Kartu ringkasan statistik | `Kartu` menjadi kartu putih ber-border `slate-200` dengan `shadow-sm` | `ui.jsx`, `RingkasanDashboard.jsx`, `RiwayatMasuk.jsx` |
+| Badge status pada tabel | Lencana status Terverifikasi (hijau), Terblokir dan Fair Play (merah), Sumber Otomatis (biru) | `Anggota.jsx`, `Larangan.jsx` |
 
-## 3. Yang sengaja **tidak** diambil
+## 3. Yang tidak diambil
 
-- **Blok identitas + badge role di sidebar, dan sidebar Pengaturan** — tidak dipakai.
-  Sidebar utama hanya mendapat **label grup menu**; susunan, ikon, dan animasi menu
-  tetap versi lama.
-- **Tema gelap & aksen hijau neon** — bertabrakan dengan `DESIGN.md` (tema terang,
-  primary biru `#0B2F9F`).
-- **Gradien ungu/pink pada header DataGrid** — dilarang `DESIGN.md`.
-- **MUI `<Switch>` / DataGrid** — menambah dependensi besar; padanan terdekat sudah
-  ada (`select` role, TanStack Table).
-- **Nivo chart, FullCalendar, FAQ accordion** — di luar cakupan tabel & pengaturan.
+- Tema gelap dan aksen hijau neon. `DESIGN.md` menetapkan tema terang dengan primary
+  `#0B2F9F`.
+- Gradien ungu dan pink pada header DataGrid. Dilarang `DESIGN.md`.
+- MUI Switch dan DataGrid. Menambah dependensi besar; padanannya sudah ada (`select`
+  role, TanStack Table).
+- Blok identitas dan badge role di sidebar, serta sidebar Pengaturan. Sidebar hanya
+  mendapat label grup; susunan, ikon, dan animasinya tetap versi lama.
+- Nivo chart, FullCalendar, dan FAQ accordion. Di luar cakupan tabel dan pengaturan.
 
-## 4. Perubahan per file
+## 4. Perubahan per berkas
 
-- `ui.jsx` — `Tombol.utama` kini filled primary, `Tombol.bahaya` outline merah;
-  `Kartu` jadi kartu; tambah `KepalaPanel` & `Lencana`.
-- `TabelData.jsx` — chrome kartu + bilah jumlah baris + footer pagination;
-  `labelItem` dinaikkan ke bilah atas.
-- `Anggota.jsx`, `Larangan.jsx` — `KepalaPanel`, kotak pencarian, tabel dalam kartu,
-  header kolom uppercase, lencana status.
-- `Pengaturan.jsx` — kartu ringkasan admin, form Tambah Admin gaya banner, panel
-  Akun & Password ditata dua kolom, lencana role, `KepalaPanel` per panel.
-  Header dan sidebar Pengaturan **tidak diubah**.
-- `RiwayatMasuk.jsx` — `KepalaPanel` + statistik memakai `Kartu`.
-- `Audit.jsx` — `KepalaPanel`, filter dalam kartu.
-- `SidebarData.js` / `Sidebar.jsx` — field `grup` + label kelompok menu (satu baris
-  kecil per kelompok, hanya saat sidebar terbuka).
-- `RingkasanDashboard.jsx` — kartu aktivitas memakai `Kartu` (tanpa border ganda).
-- `Pesan.jsx`, `PanelTurnamen.jsx`, `PanelJuara.jsx`, `PanelKonten.jsx`, `PanelEbook.jsx`
-  — judul panel konsisten lewat `KepalaPanel`; lencana status konten jadi pill.
+- `ui.jsx`: `Tombol.utama` menjadi primary terisi, `Tombol.bahaya` menjadi outline
+  merah; `Kartu` menjadi kartu; tambah `KepalaPanel` dan `Lencana`.
+- `TabelData.jsx`: chrome kartu, bilah jumlah baris, footer pagination, header kolom
+  uppercase.
+- `SidebarData.js` dan `Sidebar.jsx`: field `grup` dan satu label kelompok per menu,
+  hanya tampil saat sidebar terbuka.
+- `Anggota.jsx` dan `Larangan.jsx`: `KepalaPanel`, kotak pencarian, tabel dalam kartu,
+  lencana status.
+- `Pengaturan.jsx`: `KepalaPanel` di tiap panel, kartu ringkasan admin, form Tambah
+  Admin bentuk banner, panel Akun dan Password dua kolom, lencana role. Header dan
+  sidebar Pengaturan tidak diubah.
+- `RiwayatMasuk.jsx`: `KepalaPanel` dan statistik memakai `Kartu`.
+- `Audit.jsx`: `KepalaPanel`, filter dalam kartu.
+- `RingkasanDashboard.jsx`: kartu aktivitas memakai `Kartu`.
+- `Pesan.jsx`, `PanelTurnamen.jsx`, `PanelJuara.jsx`, `PanelKonten.jsx`,
+  `PanelEbook.jsx`: judul panel lewat `KepalaPanel`; lencana status konten menjadi pill.
 
-## 5. Kepatuhan `DESIGN.md`
+## 5. Kepatuhan aturan
 
-- Sidebar utama hanya ditambah label grup (`grup` di `SidebarData.js`); tidak ada
-  blok identitas, perubahan susunan menu, atau perubahan animasi. Sidebar Pengaturan
-  dan `Dashboard.jsx` (shell) tetap versi lama.
-- Token brand dipakai apa adanya (`primary`, slate, white) — tanpa hex baru.
-- Tidak ada `text-[11px]`/`text-[10px]` baru; beberapa yang lama di file tersentuh
+- Token brand dipakai apa adanya (`primary`, slate, white). Tidak ada hex baru.
+- Tidak ada `text-[11px]` atau `text-[10px]` baru. Nilai lama pada berkas tersentuh
   dinaikkan ke `text-xs` (12px).
-- Radius `rounded-md`/`rounded-lg`, border 1px `slate-200`, `shadow-sm`, tanpa glow/gradien.
-- Identifier & komentar berbahasa Indonesia.
+- Radius `rounded-md` dan `rounded-lg`, border 1px `slate-200`, `shadow-sm`, tanpa
+  gradien dan glow.
+- Label grup sidebar memakai `text-slate-500` agar kontras teks 12px lolos WCAG AA
+  (4.76:1 di atas putih).
+- Identifier dan komentar berbahasa Indonesia.
 
 ## 6. Verifikasi
 
 ```
-npm run lint                     → 0 error, 0 warning
-node scripts/uji-standar-desain.mjs → tidak ada penyimpangan baru
-node scripts/uji-impor-css.mjs   → 38 lulus
-node scripts/uji-rute.mjs        → 52 rute selaras
-node scripts/uji-integritas-suite.mjs → 11 lulus
-npx vite build                   → sukses
+npm run lint                          lulus, 0 error dan 0 warning
+node scripts/uji-standar-desain.mjs   tidak ada penyimpangan baru
+node scripts/uji-impor-css.mjs        38 lulus
+node scripts/uji-rute.mjs             52 rute selaras
+node scripts/uji-integritas-suite.mjs 11 lulus
+npx vite build                        sukses
 ```
 
-## 7. Pratinjau lokal
+## 7. Batasan
 
-Backend (`:8787`) dan Vite (`:5173`) dijalankan untuk pratinjau:
-
-- URL: `/pengurus`
-- Login: `master` / `MasterChess2026!` (khusus sandbox ini, diset lewat env
-  `KCI_ADMIN_USER` / `KCI_ADMIN_PASSWORD`; tidak ditulis ke berkas repo)
-- Data contoh admin (`sekretaris`, `bendahara`, `wasit1`) hanya ada di
-  `data/rahasia/admins.json` yang di-ignore Git.
-
-## 8. Catatan
-
-- Roster Chess.com tidak dapat ditarik dari sandbox (hanya host allowlist yang
-  bisa diakses), jadi tabel Anggota bisa tampil kosong/galat muat di pratinjau —
-  tata letaknya tetap terlihat.
-- Belum di-commit dan belum di-push.
+- Verifikasi visual di browser tidak dilakukan pada sesi ini. Pratinjau dev server
+  tersedia di `/pengurus`, tetapi penilaian tampilan akhir belum diverifikasi mata.
+- Roster Chess.com tidak bisa ditarik dari sandbox karena host `api.chess.com`
+  diblokir, sehingga tabel Anggota bisa tampil kosong atau gagal muat.
