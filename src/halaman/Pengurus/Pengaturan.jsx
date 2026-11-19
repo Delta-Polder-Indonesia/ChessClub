@@ -193,7 +193,7 @@ function PanelKelolaAdmin({ beriTahu }) {
         accessorKey: "role",
         header: "Role",
         cell: ({ row }) => (
-          <Lencana warna={row.original.role === "master" ? "hijau" : "biru"}>
+          <Lencana>
             {row.original.role === "master" ? "MASTER" : "PENGURUS"}
           </Lencana>
         ),
@@ -301,7 +301,7 @@ function PanelKelolaAdmin({ beriTahu }) {
             catatan="Semua akun dashboard"
             sorotan
           />
-          <Kartu label="Master Admin" nilai={masterCount} warna="hijau" />
+          <Kartu label="Master Admin" nilai={masterCount} />
           <Kartu label="Admin Pengurus" nilai={pengurusCount} />
         </div>
         <p className="mt-3 text-xs leading-5 text-slate-500">
@@ -496,7 +496,7 @@ function PanelAkun({ beriTahu }) {
             </div>
             <div className="flex items-center justify-between gap-3 px-4 py-2.5">
               <span className="text-slate-500">Role</span>
-              <Lencana warna={isMaster ? "hijau" : "biru"}>
+              <Lencana>
                 {isMaster ? "MASTER ADMIN" : "ADMIN PENGURUS"}
               </Lencana>
             </div>

@@ -44,17 +44,7 @@ const STATUS = {
 
 function Lencana({ status }) {
   const s = STATUS[status] || STATUS.draf;
-  const gaya =
-    status === "publik"
-      ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
-      : "bg-slate-100 text-slate-700 ring-slate-200";
-  return (
-    <span
-      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-inset ${gaya}`}
-    >
-      {s.teks}
-    </span>
-  );
+  return <span className="text-sm text-slate-700">{s.teks}</span>;
 }
 
 /**
@@ -323,7 +313,7 @@ function FormulirKonten({ konfig, item, onSimpan, onBatal }) {
           (animasinya hilang saat kompresi).
         </p>
         <div className="flex flex-wrap items-center gap-2">
-          <label className="cursor-pointer rounded-md border-2 border-primary px-3 py-1.5 text-xs font-semibold text-primary hover:bg-blue-50">
+          <label className="cursor-pointer rounded-md border-2 border-primary px-3 py-1.5 text-xs font-semibold text-primary hover:bg-slate-100">
             {memprosesGambar ? "Memproses…" : data.gambar ? "Ganti gambar" : "Pilih gambar"}
             <input
               type="file"
@@ -474,7 +464,7 @@ function MenuStatus({ nilai, onPilih, labelBaru, onBuatBaru }) {
                 setTerbuka(false);
                 onBuatBaru();
               }}
-              className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm font-semibold text-primary hover:bg-blue-50"
+              className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm font-semibold text-primary hover:bg-slate-100"
             >
               + {labelBaru} baru
             </button>

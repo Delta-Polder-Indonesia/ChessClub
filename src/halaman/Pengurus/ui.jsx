@@ -19,7 +19,7 @@ export function Tombol({ anak, onClick, jenis = "biasa", kecil, className, ...si
     utama:
       "border-primary bg-primary text-white hover:bg-blue-800 disabled:opacity-40",
     bahaya:
-      "border-red-300 text-red-700 hover:bg-red-50 disabled:opacity-40",
+      "border-slate-900 text-slate-900 hover:bg-slate-100 disabled:opacity-40",
   }[jenis];
   return (
     <button
@@ -58,25 +58,13 @@ export function KepalaPanel({ judul, subjudul, aksi }) {
 }
 
 /**
- * Lencana status/role — adaptasi pill "Access Level" (Admin hijau / Staff
- * biru) pada tabel Users dashboard referensi. Warna netral terang agar
- * lolos kontras di tema terang ChessClub:
- *   hijau  → terverifikasi / master
- *   biru   → pengurus / info
- *   merah  → terblokir / bahaya
- *   abu    → netral
+ * Lencana status/role. Netral tanpa hue: halaman Pengurus tidak memakai
+ * warna semantik (hijau/merah/kuning) sebagai penanda status. Status dibaca
+ * dari teksnya, bukan dari warnanya.
  */
-export function Lencana({ anak, warna = "abu", ikon }) {
-  const gaya = {
-    hijau: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-    biru: "bg-blue-50 text-blue-800 ring-blue-200",
-    merah: "bg-red-50 text-red-700 ring-red-200",
-    abu: "bg-slate-100 text-slate-700 ring-slate-200",
-  }[warna];
+export function Lencana({ anak, ikon }) {
   return (
-    <span
-      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-inset ${gaya}`}
-    >
+    <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700 ring-1 ring-inset ring-slate-200">
       {ikon}
       {anak}
     </span>
@@ -249,8 +237,8 @@ export function Modal({
 
   const warnaTombol =
     jenisKonfirmasi === "bahaya"
-      ? "border-2 border-slate-500 text-slate-700 hover:bg-slate-100"
-      : "border-2 border-primary text-primary hover:bg-blue-50";
+      ? "border-2 border-slate-900 text-slate-900 hover:bg-slate-100"
+      : "border-2 border-primary text-primary hover:bg-slate-100";
 
   const bisaKonfirmasi = !isBusy && (!butuhInput || nilai.trim().length > 0);
 
@@ -486,24 +474,18 @@ export function Sheet({
   );
 }
 
-export function Kartu({ label, nilai, catatan, warna = "slate", sorotan = false }) {
-  const warnaTeks = {
-    slate: "text-slate-900",
-    merah: "text-red-700",
-    hijau: "text-emerald-700",
-    biru: "text-primary",
-  }[warna];
+export function Kartu({ label, nilai, catatan, sorotan = false }) {
   return (
     <div
       className={`flex h-full flex-col rounded-lg border px-4 py-4 text-center ${
         sorotan
-          ? "border-primary/20 bg-blue-50 shadow-sm"
+          ? "border-primary bg-white shadow-sm"
           : "border-slate-200 bg-white shadow-sm"
       }`}
     >
       <p
         className={`truncate font-bold leading-tight ${
-          sorotan ? "text-3xl text-primary" : `text-2xl ${warnaTeks}`
+          sorotan ? "text-3xl text-primary" : "text-2xl text-slate-900"
         }`}
         title={typeof nilai === "string" ? nilai : undefined}
       >

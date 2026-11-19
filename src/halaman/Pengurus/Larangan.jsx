@@ -322,7 +322,7 @@ export default function PanelLarangan({
                       </div>
                     </TableCell>
                     <TableCell className="p-3">
-                      <Lencana warna={h.alasan === "fair_play_violations" ? "merah" : "abu"}>
+                      <Lencana>
                         {h.alasan === "fair_play_violations" ? "Fair Play" : "Keputusan Pengurus"}
                       </Lencana>
                       {h.keterangan && (
@@ -332,7 +332,7 @@ export default function PanelLarangan({
                       )}
                     </TableCell>
                     <TableCell className="p-3">
-                      <Lencana warna={isOtomatis ? "biru" : "abu"}>
+                      <Lencana>
                         {isOtomatis ? "Otomatis" : "Pengurus"}
                       </Lencana>
                     </TableCell>

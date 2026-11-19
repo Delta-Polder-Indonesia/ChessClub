@@ -110,7 +110,29 @@ Belum dikerjakan, menunggu keputusan: `localhost` putus saat pengembangan.
 Usulan perbaikannya target proxy `http://127.0.0.1:8787` di `vite.config.js` dan
 penetapan `keepAliveTimeout` serta `headersTimeout` di `server/src/server.js`.
 
-## 8. Batasan
+## 8. Larangan warna status di Pengurus
+
+Seluruh lencana status dan angka statistik di panel Pengurus dibuat netral. Alasan
+dan pemetaannya:
+
+| Sebelum | Sesudah |
+|---|---|
+| `Publik` hijau (`bg-emerald-50 text-emerald-700`) | teks `text-slate-700` |
+| `Terverifikasi` hijau, `Terblokir` merah | lencana abu `bg-slate-100 text-slate-700` |
+| `MASTER` hijau, `PENGURUS` biru | lencana abu |
+| Angka statistik merah/hijau/biru | `text-slate-900`, sorotan memakai `text-primary` |
+| Tombol destruktif merah | border dan teks `slate-900` |
+
+`Lencana` dan `Kartu` di `ui.jsx` tidak lagi menerima prop `warna`, sehingga varian
+berwarna tidak bisa dipakai ulang tanpa mengubah komponennya lebih dulu. Aturan ini
+dicatat sebagai larangan keras di `.agents/skills/kci-anti-slop/SKILL.md` bagian 4b,
+dicerminkan ke `.opencode/skills/kci-anti-slop/SKILL.md`.
+
+Yang tidak diubah: `LencanaBan` dan `CentangBiru` di `src/components/Lencana.jsx`
+masih memakai warna karena dipakai bersama halaman publik (Peringkat, Keanggotaan).
+Mengubahnya mengubah halaman di luar Pengurus, jadi perlu keputusan terpisah.
+
+## 9. Batasan
 
 - Verifikasi visual di browser tidak dilakukan pada sesi ini. Pratinjau dev server
   tersedia di `/pengurus`, tetapi penilaian tampilan akhir belum diverifikasi mata.

@@ -392,7 +392,7 @@ export default function PanelAnggota({
                     <TableCell className="p-3">
                       {kenaBanBaris ? (
                         <div>
-                          <Lencana warna="merah">
+                          <Lencana>
                             {a.alasanStatus === "fair_play_violations" ? "Fair Play" : "Terblokir"}
                           </Lencana>
                           {a.peringatan && (
@@ -402,7 +402,7 @@ export default function PanelAnggota({
                           )}
                         </div>
                       ) : a.terverifikasi ? (
-                        <Lencana warna="hijau">Terverifikasi</Lencana>
+                        <Lencana>Terverifikasi</Lencana>
                       ) : (
                         "—"
                       )}

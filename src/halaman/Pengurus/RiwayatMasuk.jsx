@@ -396,7 +396,7 @@ export default function PanelRiwayatMasuk({ beriTahu }) {
         subjudul="Mencatat login admin: akun, waktu, perangkat, dan alamat IP"
         aksi={
           <>
-            <Lencana warna="abu">{riwayat.length} catatan</Lencana>
+            <Lencana>{riwayat.length} catatan</Lencana>
             <Tombol
               anak={memuat ? "Memuat…" : "Muat Ulang"}
               onClick={muatData}
@@ -426,13 +426,11 @@ export default function PanelRiwayatMasuk({ beriTahu }) {
           label="Akun Pengurus"
           nilai={akunUnik.length}
           catatan="Akun admin unik"
-          warna="biru"
         />
         <Kartu
           label="Hari Ini"
           nilai={jumlahHariIni}
           catatan="Aktivitas masuk hari ini"
-          warna="hijau"
         />
         <Kartu
           label="Masuk Terakhir"

@@ -74,6 +74,38 @@ KCI memakai serif untuk bacaan utama, Geist untuk kontrol fungsional, dan mono u
 
 Gunakan warna untuk identitas, hierarki, atau status yang nyata. Jangan menambah warna hanya untuk mengisi ruang.
 
+### 4b. Larangan keras: warna semantik di dashboard Pengurus
+
+Halaman Pengurus (`src/halaman/Pengurus/`) adalah antarmuka operasional, bukan
+halaman pemasaran. Di sana warna **tidak boleh** menjadi penanda status atau peran.
+
+Dilarang, tanpa perkecualian:
+
+- Lencana, pill, chip, atau badge berwarna untuk status (`Publik`, `Draf`,
+  `Terverifikasi`, `Terblokir`, `MASTER`, `PENGURUS`, `Aktif`, `Selesai`).
+  Contoh yang dilarang: `bg-emerald-50 text-emerald-700`, `bg-red-50 text-red-700`,
+  `bg-amber-50`, `bg-blue-50` sebagai penanda status.
+- Angka statistik berwarna (merah untuk larangan, hijau untuk konten, biru untuk
+  anggota). Angka memakai `text-slate-900`.
+- Tombol destruktif berwarna merah. Bobot aksi dibedakan lewat ketebalan border
+  dan teks `slate-900`, bukan hue.
+- Latar berwarna muda sebagai penanda kondisi kartu.
+
+Yang tetap boleh: aksen brand `--color-primary #0B2F9F` untuk tautan aktif, tombol
+utama, dan garis sorotan; teks `slate` untuk seluruh hierarki; ikon status yang
+sudah menjadi komponen bersama di luar Pengurus (mis. `LencanaBan`) tidak diubah
+dari sini karena dipakai halaman publik.
+
+Status ditulis sebagai teks. Warna bukan satu-satunya penanda status
+(`DESIGN.md` §10). Bila butuh membedakan, gunakan teks, ketebalan huruf, atau
+posisi, bukan hue.
+
+Komitmen: pola lencana berwarna di dashboard Pengurus tidak dibuat lagi pada
+perubahan berikutnya, termasuk oleh agen yang membaca skill ini. Bila menemukan
+pola lama seperti itu, laporkan dan ganti dengan teks netral sebelum menambah
+gaya baru.
+
+
 ## 5. Layout dan card yang dilarang
 
 - Copy-paste landing page: hero generik, metrik besar, lalu grid fitur identik.
