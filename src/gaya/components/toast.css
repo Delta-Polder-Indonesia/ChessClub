@@ -21,7 +21,6 @@
   font-size: 0.875rem;
   font-weight: 500;
   line-height: 1.5;
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   pointer-events: auto;
   animation: slideIn 0.3s ease;
 }

@@ -41,7 +41,7 @@
   background: var(--color-paper);
 }
 .btn-utama:hover:not(:disabled) {
-  background: #eef2ff;
+  background: var(--color-grey-100);
   border-color: #0B2F9F;
 }
 

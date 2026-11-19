@@ -116,7 +116,12 @@ baseline, jadi tidak bisa diredam dengan `npm run desain:baseline`. Pemeriksa
 membaca `className` termasuk template literal dan kelas yang terpecah beberapa
 baris, menolak warna hex arbitrer, menolak `boxShadow` pada style inline, dan
 menolak nilai warna literal pada atribut SVG (kecuali `none`, `currentColor`,
-`transparent`, `inherit`). Memindahkan gaya ke CSS juga tidak menyelamatkan:
+`transparent`, `inherit`). Hal yang sama berlaku untuk CSS: warna ditulis sebagai token, tint di luar
+palet (indigo `#eef2ff`, sky `#f0f9ff`/`#0c4a6e`) dan `box-shadow` pada primitif
+komponen sudah dihapus. Menulis warna mentah baru di `.css` sama saja membuat
+sampah yang sama dengan menulisnya di `className`.
+
+Memindahkan gaya ke CSS juga tidak menyelamatkan:
 berkas `.css` di area itu ikut dipindai aturan hex global. Memperlunak
 atau menghapus pemeriksaannya butuh persetujuan pemilik repo.
 

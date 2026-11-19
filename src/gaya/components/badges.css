@@ -14,12 +14,12 @@
   color: var(--color-grey-700);
 }
 .badge-primary {
-  background: #eef2ff;
+  background: var(--color-grey-100);
   color: var(--color-primary);
 }
 .badge-info {
-  background: #f0f9ff;
-  color: #0c4a6e;
+  background: var(--color-grey-50);
+  color: var(--color-grey-700);
 }
 .badge-soft {
   background: var(--color-grey-50);

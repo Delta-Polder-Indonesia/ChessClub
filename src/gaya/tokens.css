@@ -23,9 +23,15 @@
   --color-grey-100: #f1f5f9;
   --color-grey-200: #e2e8f0;
   --color-grey-300: #cbd5e1;
+  /* 400/700/900 dulu tidak didefinisikan padahal dipakai `border-grey-400`,
+     `text-grey-700`, dan `text-grey-900`; kelasnya diam-diam tidak bergaya.
+     Nilainya tetap ramp slate, sama seperti langkah lain. */
+  --color-grey-400: #94a3b8;
   --color-grey-500: #64748b;
   --color-grey-600: #475569;
+  --color-grey-700: #334155;
   --color-grey-800: #1e293b;
+  --color-grey-900: #0f172a;
   /* Kanvas utama & permukaan kartu (DESIGN.md §1: --color-paper).
      Nilai diselaraskan ke halaman sumber: `--ks-paper: oklch(97.8% 0 0)`
      pada `kinpaku_tokens.czfxn__5.css` ≈ #f8f8f8. Sebelumnya #ffffff,

@@ -17,6 +17,8 @@ Dokumen ini adalah sumber kebenaran (*single source of truth*) untuk token desai
 | `--color-paper` | `#FFFFFF` | Latar kanvas utama & permukaan kartu |
 
 ### Aturan Warna:
+- **Warna di berkas CSS wajib memakai token.** Berkas `.css` tidak menulis warna mentah di luar token; tint di luar palet (mis. indigo `#EEF2FF`, sky `#F0F9FF`/`#0C4A6E`) sudah dihapus dari `src/gaya/components/` dan diganti `--color-grey-50/100/600`. Pengecualian: `--chart-*`, warna papan catur di `papan-cg.css`, dan tema papan Analisa (DESIGN.md §11).
+- **Ramp netral lengkap.** `--color-grey-400/700/900` kini didefinisikan di `tokens.css`; sebelumnya `border-grey-400`, `text-grey-700`, dan `text-grey-900` dipakai di halaman tetapi tokennya tidak ada sehingga kelas itu tidak menghasilkan gaya.
 - **Dilarang keras:** Gradien ungu/pink/biru, teks gradasi (`bg-gradient-to-r text-transparent`), dan efek bayangan pendar/glow (`shadow-[0_0_20px_...]`).
 - Semua kombinasi warna teks dan latar wajib lolos uji kontras **WCAG AA** ($\ge 4.5:1$ untuk body, $\ge 3:1$ untuk teks besar).
 - **Palet grafik** (komponen `ui/chart`, `tools/GrafikTools`): `--chart-1` `#0B2F9F` · `--chart-2` `#4D7CF5` · `--chart-3` `#FFDC58` · `--chart-4` `#FF6B6B` · `#7FBC8C` sebagai `--chart-5`.
@@ -67,7 +69,7 @@ Dokumen ini adalah sumber kebenaran (*single source of truth*) untuk token desai
 
 - **Batas (Border):** Garis tegas `1px` (`border border-slate-200` atau `border-slate-300`).
 - **Radius:** `rounded` (4px) atau `rounded-lg` (8px). Hindari bentuk pill raksasa atau `rounded-3xl` yang kekanak-kanakan.
-- **Elevasi & Bayangan:** Gunakan bayangan netral tipis (`shadow-sm`) atau cukup border `1px` datar (*flat restrained*). Khusus dashboard Pengurus (`src/halaman/Pengurus/`): **tanpa bayangan sama sekali**, termasuk pada dialog dan dropdown; lihat §1.
+- **Elevasi & Bayangan:** Gunakan bayangan netral tipis (`shadow-sm`) atau cukup border `1px` datar (*flat restrained*). Khusus dashboard Pengurus (`src/halaman/Pengurus/`): **tanpa bayangan sama sekali**, termasuk pada dialog dan dropdown; lihat §1. Primitif CSS di `src/gaya/components/` (dropdown, modal, popover, toast) kini juga tanpa `box-shadow` — bidangnya dibedakan lewat border 1px — dan cincin fokus `form-input` memakai `outline`, bukan bayangan.
 - **Rating & ulasan — aturan khusus:** Kartu ulasan harus datar tanpa efek mengambang/bayangan. Waktu relatif (mis. “2 hari yang lalu”) tampil sebagai teks polos, bukan badge/chip/pill atau latar berwarna. Tombol suka/tidak suka tidak memakai latar kapsul/kartu, termasuk saat hover/aktif; state aktif hanya mengubah warna ikon jempol dan angka. Indikator fokus keyboard tetap dipertahankan.
 
 ---

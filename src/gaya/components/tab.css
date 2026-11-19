@@ -23,7 +23,7 @@
 .tab-button.active {
   border-bottom-color: var(--color-primary);
   color: var(--color-primary);
-  background: #eef2ff;
+  background: var(--color-grey-100);
 }
 .tab-button:focus-visible {
   outline: 2px solid var(--color-primary);

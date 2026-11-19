@@ -26,12 +26,12 @@
 .step.completed .step-number {
   border-color: var(--color-primary);
   color: var(--color-primary);
-  background: #eef2ff;
+  background: var(--color-grey-100);
 }
 .step.active .step-number {
   border-color: var(--color-primary);
   color: var(--color-primary);
-  background: #eef2ff;
+  background: var(--color-grey-100);
 }
 .step-label {
   color: var(--color-grey-700);
