@@ -9,7 +9,7 @@ import { ArrowRightIcon } from "./icons.jsx";
  * Bentuknya sengaja dibuat menonjol — hijau pekat, tebal, bershadow — supaya
  * pembaca yang tidak sempat membaca tulisan tetap mengenalinya sebagai tombol.
  * Angka hijau diambil dari tombol utama chessopeningquiz.com (#81b64c/#5d9948);
- * bayangan dan radiusnya menyamai `.primary-btn` di situs itu.
+ * bayangan dan radiusnya menyamai tombol utama di situs itu.
  *
  * Ikon panah selalu ikut, jadi tiap pintu terlihat sama. Lebar bawaan `w-full`
  * di layar kecil dan menyesuaikan isi di `md` ke atas; lewat `className` bisa

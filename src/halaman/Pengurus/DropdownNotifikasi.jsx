@@ -39,7 +39,7 @@ export default function DropdownNotifikasi({
           <button
             type="button"
             onClick={onTandaiSemua}
-            className="text-xs font-semibold text-primary hover:underline"
+            className="text-xs font-semibold text-slate-800 hover:underline"
           >
             Tandai semua dibaca
           </button>
@@ -130,7 +130,7 @@ export default function DropdownNotifikasi({
         <button
           type="button"
           onClick={onBuka}
-          className="w-full rounded-md px-3 py-2 text-center text-xs font-semibold text-primary hover:bg-slate-50"
+          className="w-full rounded-md px-3 py-2 text-center text-xs font-semibold text-slate-800 hover:bg-slate-50"
         >
           Lihat semua →
         </button>

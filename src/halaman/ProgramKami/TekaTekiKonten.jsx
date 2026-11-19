@@ -67,7 +67,7 @@ export default function TekaTekiKonten() {
                   <span>{t("tipsTekaTeki.pengantarCaption")}</span>
                   <Link
                     to={RUTE_SOAL_CONTOH}
-                    className="w-fit font-sans font-semibold text-primary underline underline-offset-2 hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                    className="w-fit font-sans font-semibold text-slate-800 underline underline-offset-2 hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-800 focus-visible:ring-offset-2"
                   >
                     {t("tipsTekaTeki.pengantarTautan")}
                   </Link>

@@ -119,8 +119,8 @@ function NavItemDesktop({ item, onNavigate, scrolled, pathname, kanan = false })
         className={`flex items-center gap-1 transition-colors duration-200 ${
           scrolled
             ? aktif
-              ? "text-primary"
-              : "text-slate-800 hover:text-primary"
+              ? "text-slate-800"
+              : "text-slate-800 hover:text-slate-800"
             : "text-white hover:text-blue-400"
         }`}
       >
@@ -149,7 +149,7 @@ function NavItemDesktop({ item, onNavigate, scrolled, pathname, kanan = false })
               key={child.title}
               className="relative group/item transition-all duration-200 ease-in-out text-[#64748B] hover:text-[#1E293B]"
             >
-              <div className={`${item.kolom ? "px-4 py-2.5" : "px-6 py-2"} w-full border-0 border-l-4 border-solid border-white hover:border-primary transition-all duration-200 ease-in-out flex items-center justify-between gap-2`}>
+              <div className={`${item.kolom ? "px-4 py-2.5" : "px-6 py-2"} w-full border-0 border-l-4 border-solid border-white hover:border-slate-800 transition-all duration-200 ease-in-out flex items-center justify-between gap-2`}>
                 <Link
                   to={child.path}
                   title={t(child.title)}
@@ -193,7 +193,7 @@ function NavItemDesktop({ item, onNavigate, scrolled, pathname, kanan = false })
                           onNavigate();
                           tutupSemua();
                         }}
-                        className="block pl-10 py-2 border-0 border-l-4 border-solid border-white hover:border-primary text-inherit hover:text-inherit font-normal text-sm transition-all duration-200"
+                        className="block pl-10 py-2 border-0 border-l-4 border-solid border-white hover:border-slate-800 text-inherit hover:text-inherit font-normal text-sm transition-all duration-200"
                       >
                         {t(subchild.title)}
                       </Link>
@@ -273,7 +273,7 @@ function MobileDrawer({ open, onClose, onNavigate, pemicu }) {
                 <ul className="flex flex-col pb-4">
                   {item.children.map((child) => (
                     <li key={child.title}>
-                      <div className="flex items-center border-l-4 border-solid border-white hover:border-primary transition-all duration-200">
+                      <div className="flex items-center border-l-4 border-solid border-white hover:border-slate-800 transition-all duration-200">
                         <Link
                           to={child.path}
                           title={t(child.title)}
@@ -281,7 +281,7 @@ function MobileDrawer({ open, onClose, onNavigate, pemicu }) {
                             onNavigate();
                             onClose();
                           }}
-                          className="flex-1 pl-4 py-2 text-sm font-normal text-[#64748B] hover:text-primary"
+                          className="flex-1 pl-4 py-2 text-sm font-normal text-[#64748B] hover:text-slate-800"
                         >
                           {t(child.title)}
                         </Link>
@@ -313,7 +313,7 @@ function MobileDrawer({ open, onClose, onNavigate, pemicu }) {
                                   onNavigate();
                                   onClose();
                                 }}
-                                className="block pl-4 py-2 text-sm font-normal text-[#64748B] hover:text-primary border-l-4 border-solid border-slate-100 hover:border-primary transition-all duration-200"
+                                className="block pl-4 py-2 text-sm font-normal text-[#64748B] hover:text-slate-800 border-l-4 border-solid border-slate-100 hover:border-slate-800 transition-all duration-200"
                               >
                                 {t(subchild.title)}
                               </Link>
@@ -346,7 +346,7 @@ function MobileDrawer({ open, onClose, onNavigate, pemicu }) {
           to="/pendaftaran-anggota"
           title={t("common.daftarAnggota")}
           onClick={onClose}
-          className="btn-registrasi text-center text-xs rounded-full px-4 py-2 border border-solid border-primary text-primary"
+          className="btn-registrasi text-center text-xs rounded-full px-4 py-2 border border-solid border-slate-800 text-slate-800"
         >
           {t("common.daftarAnggota")}
         </Link>
@@ -405,7 +405,7 @@ function SearchOverlay({ open, onClose, onNavigate, pemicu }) {
             const r = results[0];
             if (r) bukaHasil(r);
           }}
-          className="flex items-center gap-4 border-b-2 border-solid border-primary pb-4"
+          className="flex items-center gap-4 border-b-2 border-solid border-slate-800 pb-4"
         >
           <input
             autoFocus
@@ -419,7 +419,7 @@ function SearchOverlay({ open, onClose, onNavigate, pemicu }) {
           <button
             type="submit"
             aria-label={t("header.searchButton")}
-            className="flex-none border-2 border-solid border-primary rounded-full size-12 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all duration-200"
+            className="flex-none border-2 border-solid border-slate-800 rounded-full size-12 flex items-center justify-center text-slate-800 hover:bg-slate-800 hover:text-white transition-all duration-200"
           >
             <ArrowRightIcon />
           </button>
@@ -433,7 +433,7 @@ function SearchOverlay({ open, onClose, onNavigate, pemicu }) {
                   <Link
                     to={r.path}
                     onClick={() => bukaHasil(r)}
-                    className="block border-l-4 border-solid border-white hover:border-primary transition-all duration-200 px-4 py-2 text-slate-700 hover:text-primary"
+                    className="block border-l-4 border-solid border-white hover:border-slate-800 transition-all duration-200 px-4 py-2 text-slate-700 hover:text-slate-800"
                   >
                     {r.label}
                   </Link>
@@ -551,7 +551,7 @@ export default function Header() {
                 <Link
                   to="/pendaftaran-anggota"
                   title={t("common.daftarAnggota")}
-                  className="btn-registrasi text-xs rounded-full px-4 py-2 border border-solid border-slate-200 hover:border-primary hover:bg-primary transition-all duration-100 ease-in-out hover:text-white text-white"
+                  className="btn-registrasi text-xs rounded-full px-4 py-2 border border-solid border-slate-200 hover:border-slate-800 hover:bg-slate-800 transition-all duration-100 ease-in-out hover:text-white text-white"
                 >
                   {t("common.daftarAnggota")}
                 </Link>

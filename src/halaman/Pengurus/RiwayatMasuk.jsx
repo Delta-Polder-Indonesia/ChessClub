@@ -431,7 +431,7 @@ export default function PanelRiwayatMasuk({ beriTahu }) {
           <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
             Akun Pengurus
           </p>
-          <p className="mt-1 text-2xl font-bold text-primary">
+          <p className="mt-1 text-2xl font-bold text-slate-800">
             {akunUnik.length}
           </p>
           <p className="mt-0.5 text-xs text-slate-500">Akun admin unik</p>
@@ -471,7 +471,7 @@ export default function PanelRiwayatMasuk({ beriTahu }) {
             value={cari}
             onChange={(e) => setCari(e.target.value)}
             placeholder="contoh: admin atau IP"
-            className="w-64 border-0 border-b border-slate-300 bg-transparent px-1 py-1 text-sm outline-none focus:border-primary"
+            className="w-64 border-0 border-b border-slate-300 bg-transparent px-1 py-1 text-sm outline-none focus:border-slate-800"
           />
         </label>
 
@@ -480,7 +480,7 @@ export default function PanelRiwayatMasuk({ beriTahu }) {
           <select
             value={filterAkun}
             onChange={(e) => setFilterAkun(e.target.value)}
-            className="border-0 border-b border-slate-300 bg-transparent px-1 py-1 text-sm outline-none focus:border-primary"
+            className="border-0 border-b border-slate-300 bg-transparent px-1 py-1 text-sm outline-none focus:border-slate-800"
           >
             <option value="semua">Semua Akun ({akunUnik.length})</option>
             {akunUnik.map((u) => (
@@ -496,7 +496,7 @@ export default function PanelRiwayatMasuk({ beriTahu }) {
           <select
             value={filterWaktu}
             onChange={(e) => setFilterWaktu(e.target.value)}
-            className="border-0 border-b border-slate-300 bg-transparent px-1 py-1 text-sm outline-none focus:border-primary"
+            className="border-0 border-b border-slate-300 bg-transparent px-1 py-1 text-sm outline-none focus:border-slate-800"
           >
             <option value="semua">Semua Waktu</option>
             <option value="hari-ini">Hari Ini</option>

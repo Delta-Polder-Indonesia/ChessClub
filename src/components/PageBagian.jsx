@@ -82,7 +82,7 @@ export function PageArtikel({ title, lead, children, lebar = false }) {
         )}
         {lead && (
           <div className="w-full">
-            <div className="text-primary text-base md:text-base">{lead}</div>
+            <div className="text-slate-800 text-base md:text-base">{lead}</div>
           </div>
         )}
         <div className="relative w-full overflow-x-auto xl:overflow-x-visible">
@@ -240,12 +240,12 @@ export function PageSelanjutnya({ to, judul }) {
               <span className="text-xs sm:text-sm text-grey-600">
                 {t("common.selanjutnya")}
               </span>
-              <span className="text-sm sm:text-base font-semibold text-grey-800 group-hover:text-primary">
+              <span className="text-sm sm:text-base font-semibold text-grey-800 group-hover:text-slate-800">
                 {judul}
               </span>
             </div>
-            <div className="flex-none flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full group-hover:bg-primary">
-              <ArrowRightIcon className="text-primary group-hover:text-white" />
+            <div className="flex-none flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full group-hover:bg-slate-800">
+              <ArrowRightIcon className="text-slate-800 group-hover:text-white" />
             </div>
           </Link>
         </nav>

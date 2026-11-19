@@ -49,7 +49,7 @@ export default function Footer() {
         {SPONSORS.length > 0 && (
           <section className="w-full flex flex-col gap-6">
             <div className="flex items-center gap-3">
-              <span className="inline-block w-1 h-5 bg-primary" aria-hidden="true" />
+              <span className="inline-block w-1 h-5 bg-slate-800" aria-hidden="true" />
               <h2 className="text-sm md:text-base font-semibold text-slate-800 m-0">
                 Sponsor
               </h2>
@@ -108,7 +108,7 @@ export default function Footer() {
                 rel="noreferrer noopener"
                 title={s.name}
                 aria-label={s.name}
-                className="inline-flex items-center justify-center min-w-12 h-12 rounded-full text-slate-700 hover:text-primary transition-colors"
+                className="inline-flex items-center justify-center min-w-12 h-12 rounded-full text-slate-700 hover:text-slate-800 transition-colors"
               >
                 {s.img ? (
                   // logo.svg tidak masuk manifest gambar karena berupa SVG.
@@ -147,7 +147,7 @@ export default function Footer() {
               {link.href.startsWith("/") ? (
                 <Link
                   to={link.href}
-                  className="py-1 text-slate-700 hover:text-primary hover:underline font-medium md:py-0"
+                  className="py-1 text-slate-700 hover:text-slate-800 hover:underline font-medium md:py-0"
                   title={link.title}
                 >
                   {link.title}
@@ -155,7 +155,7 @@ export default function Footer() {
               ) : (
                 <a
                   href={link.href}
-                  className="py-1 text-slate-700 hover:text-primary hover:underline font-medium md:py-0"
+                  className="py-1 text-slate-700 hover:text-slate-800 hover:underline font-medium md:py-0"
                   title={link.title}
                 >
                   {link.title}

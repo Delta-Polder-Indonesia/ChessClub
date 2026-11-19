@@ -177,14 +177,14 @@ export default function RushTekaTekiLanding() {
                 {t("rushLanding.penutupAwal")}{" "}
                 <Link
                   to={RUTE_TEKA_TEKI}
-                  className="font-semibold text-primary underline underline-offset-2 hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                  className="font-semibold text-slate-800 underline underline-offset-2 hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-800 focus-visible:ring-offset-2"
                 >
                   {t("nav.tekaTeki")}
                 </Link>{" "}
                 {t("rushLanding.penutupTengah")}{" "}
                 <Link
                   to={RUTE_ANALISA}
-                  className="font-semibold text-primary underline underline-offset-2 hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                  className="font-semibold text-slate-800 underline underline-offset-2 hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-800 focus-visible:ring-offset-2"
                 >
                   {t("rushLanding.tautanAnalisa")}
                 </Link>{" "}

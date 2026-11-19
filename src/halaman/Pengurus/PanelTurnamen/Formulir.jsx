@@ -75,7 +75,7 @@ export default function FormulirTurnamen({ jenis, onSimpan, onBatal }) {
           <select
             value={data.jenis}
             onChange={(e) => ubah("jenis", e.target.value)}
-            className="rounded border-2 border-slate-300 px-2.5 py-1.5 text-sm outline-none focus:border-primary"
+            className="rounded border-2 border-slate-300 px-2.5 py-1.5 text-sm outline-none focus:border-slate-800"
           >
             {kunciJenis.map((k) => (
               <option key={k} value={k}>
@@ -162,7 +162,7 @@ export default function FormulirTurnamen({ jenis, onSimpan, onBatal }) {
           value={data.deskripsi}
           onChange={(e) => ubah("deskripsi", e.target.value)}
           placeholder="Format, peraturan khusus, atau info tambahan untuk peserta…"
-          className="rounded border-2 border-slate-300 px-2.5 py-1.5 text-sm outline-none focus:border-primary"
+          className="rounded border-2 border-slate-300 px-2.5 py-1.5 text-sm outline-none focus:border-slate-800"
         />
       </label>
 

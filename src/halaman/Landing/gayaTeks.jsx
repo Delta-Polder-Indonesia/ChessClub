@@ -69,7 +69,7 @@ export const LEAD_SEKSI_TERANG =
  * — bukan angka karangan, tetap token resmi sumber, hanya peran yang berbeda.
  */
 export const LABEL_SEKSI =
-  "inline-flex items-center gap-2 font-sans text-xs uppercase tracking-[0.14em] text-primary";
+  "inline-flex items-center gap-2 font-sans text-xs uppercase tracking-[0.14em] text-slate-800";
 
 /** Varian di atas foto/latar gelap. */
 export const LABEL_SEKSI_TERANG =
@@ -166,7 +166,7 @@ export function TitikLabel({ terang = false }) {
   return (
     <span
       aria-hidden="true"
-      className={`inline-block size-[7px] flex-none rounded-full ${terang ? "bg-white" : "bg-primary"}`}
+      className={`inline-block size-[7px] flex-none rounded-full ${terang ? "bg-white" : "bg-slate-800"}`}
     />
   );
 }

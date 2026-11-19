@@ -105,7 +105,7 @@ function MenuKolom({ tabel }) {
                   type="checkbox"
                   checked={c.getIsVisible()}
                   onChange={c.getToggleVisibilityHandler()}
-                  className="size-3.5 accent-primary"
+                  className="size-3.5 accent-slate-800"
                 />
                 <span>{typeof c.columnDef.header === "string" ? c.columnDef.header : c.id}</span>
               </label>
@@ -235,7 +235,7 @@ export default function TabelData({
               <select
                 value={ukuranHalaman}
                 onChange={(e) => setUkuranHalaman(Number(e.target.value))}
-                className="border-0 border-b border-slate-300 bg-transparent px-1 py-1 text-sm outline-none focus:border-primary"
+                className="border-0 border-b border-slate-300 bg-transparent px-1 py-1 text-sm outline-none focus:border-slate-800"
               >
                 <option value={10}>10</option>
                 <option value={25}>25</option>

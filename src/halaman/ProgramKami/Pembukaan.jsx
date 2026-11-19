@@ -335,7 +335,7 @@ function KatalogBuku({ t, angka }) {
         onChange={(kejadian) => setKueri(kejadian.target.value)}
         placeholder={t("bukuPembukaan.katalogPlaceholder")}
         aria-label={t("bukuPembukaan.katalogPlaceholder")}
-        className="w-full rounded border border-grey-300 bg-white px-4 py-2.5 font-sans text-sm text-grey-800 outline-none placeholder:text-grey-500 focus:border-primary"
+        className="w-full rounded border border-grey-300 bg-white px-4 py-2.5 font-sans text-sm text-grey-800 outline-none placeholder:text-grey-500 focus:border-slate-800"
       />
       <p aria-live="polite" className="m-0 mt-2 font-sans text-xs text-grey-600">
         {t("bukuPembukaan.katalogJumlah", {

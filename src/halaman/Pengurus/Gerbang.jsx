@@ -93,7 +93,7 @@ export default function Gerbang({ onMasuk }) {
           </p>
         </div>
 
-        <div className="relative mt-6 flex items-center gap-2 border-b border-slate-300 transition-colors focus-within:border-primary">
+        <div className="relative mt-6 flex items-center gap-2 border-b border-slate-300 transition-colors focus-within:border-slate-800">
           <User className="h-4 w-4 shrink-0 text-slate-400" />
           <input
             id="gerbang-user"
@@ -108,13 +108,13 @@ export default function Gerbang({ onMasuk }) {
           />
           <label
             htmlFor="gerbang-user"
-            className="pointer-events-none absolute left-6 top-1/2 -translate-y-1/2 text-sm font-medium text-slate-400 transition-all duration-150 peer-focus:top-0 peer-focus:translate-y-0 peer-focus:text-xs peer-focus:font-semibold peer-focus:text-primary peer-[:not(:placeholder-shown)]:top-0 peer-[:not(:placeholder-shown)]:translate-y-0 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:font-semibold peer-[:not(:placeholder-shown)]:text-slate-700"
+            className="pointer-events-none absolute left-6 top-1/2 -translate-y-1/2 text-sm font-medium text-slate-400 transition-all duration-150 peer-focus:top-0 peer-focus:translate-y-0 peer-focus:text-xs peer-focus:font-semibold peer-focus:text-slate-800 peer-[:not(:placeholder-shown)]:top-0 peer-[:not(:placeholder-shown)]:translate-y-0 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:font-semibold peer-[:not(:placeholder-shown)]:text-slate-700"
           >
             Username
           </label>
         </div>
 
-        <div className="relative mt-5 flex items-center gap-2 border-b border-slate-300 transition-colors focus-within:border-primary">
+        <div className="relative mt-5 flex items-center gap-2 border-b border-slate-300 transition-colors focus-within:border-slate-800">
           <LockKeyhole className="h-4 w-4 shrink-0 text-slate-400" />
           <input
             id="gerbang-sandi"
@@ -127,7 +127,7 @@ export default function Gerbang({ onMasuk }) {
           />
           <label
             htmlFor="gerbang-sandi"
-            className="pointer-events-none absolute left-6 top-1/2 -translate-y-1/2 text-sm font-medium text-slate-400 transition-all duration-150 peer-focus:top-0 peer-focus:translate-y-0 peer-focus:text-xs peer-focus:font-semibold peer-focus:text-primary peer-[:not(:placeholder-shown)]:top-0 peer-[:not(:placeholder-shown)]:translate-y-0 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:font-semibold peer-[:not(:placeholder-shown)]:text-slate-700"
+            className="pointer-events-none absolute left-6 top-1/2 -translate-y-1/2 text-sm font-medium text-slate-400 transition-all duration-150 peer-focus:top-0 peer-focus:translate-y-0 peer-focus:text-xs peer-focus:font-semibold peer-focus:text-slate-800 peer-[:not(:placeholder-shown)]:top-0 peer-[:not(:placeholder-shown)]:translate-y-0 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:font-semibold peer-[:not(:placeholder-shown)]:text-slate-700"
           >
             Password
           </label>
@@ -136,7 +136,7 @@ export default function Gerbang({ onMasuk }) {
             onClick={() => setLihat((v) => !v)}
             tabIndex={-1}
             aria-label={lihat ? "Sembunyikan password" : "Lihat password"}
-            className="shrink-0 text-slate-500 hover:text-primary"
+            className="shrink-0 text-slate-500 hover:text-slate-800"
           >
             {lihat ? (
               <Eye className="h-[18px] w-[18px]" />

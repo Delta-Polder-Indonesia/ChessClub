@@ -425,7 +425,7 @@ export default function TampilanPendaftaran({
                         href={kartuPemain.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex flex-none items-center gap-1 text-xs font-medium text-primary hover:underline"
+                        className="flex flex-none items-center gap-1 text-xs font-medium text-slate-800 hover:underline"
                       >
                         {t("pendaftaran.profil")}
                         <ExternalLink className="h-3 w-3" aria-hidden="true" />
@@ -438,7 +438,7 @@ export default function TampilanPendaftaran({
                     <button
                       type="button"
                       onClick={() => window.open(URL_KLUB, "_blank", "noopener,noreferrer")}
-                      className="text-primary hover:underline font-medium inline-block mt-1"
+                      className="text-slate-800 hover:underline font-medium inline-block mt-1"
                     >
                       {t("pendaftaran.bukaKlub")}
                     </button>
@@ -490,7 +490,7 @@ export default function TampilanPendaftaran({
                     <button
                       type="button"
                       onClick={() => setStep("akun")}
-                      className="ml-1 text-xs text-primary hover:underline font-semibold"
+                      className="ml-1 text-xs text-slate-800 hover:underline font-semibold"
                     >
                       {t("pendaftaran.ubah")}
                     </button>
@@ -534,7 +534,7 @@ export default function TampilanPendaftaran({
                       <button
                         type="button"
                         onClick={() => setStep("data-diri")}
-                        className="font-semibold text-primary hover:underline"
+                        className="font-semibold text-slate-800 hover:underline"
                       >
                         {t("pendaftaran.lewatiVerifikasi")}
                       </button>
@@ -558,7 +558,7 @@ export default function TampilanPendaftaran({
               </h2>
               <p className="text-grey-600 max-w-md text-sm sm:text-base leading-relaxed">
                 {akunSiapAwal}
-                <span className="text-primary font-semibold">
+                <span className="text-slate-800 font-semibold">
                   {username}
                 </span>
                 {akunSiapAkhir}
@@ -644,7 +644,7 @@ export default function TampilanPendaftaran({
                         key={l.kunci}
                         className={`w-2.5 h-2.5 rounded-full transition ${
                           i <= diriStep
-                            ? "bg-primary"
+                            ? "bg-slate-800"
                             : "bg-grey-200"
                         }`}
                       ></span>
@@ -682,7 +682,7 @@ export default function TampilanPendaftaran({
                       placeholder={LANGKAH_DATADIRI[diriStep].placeholder}
                     />
                     {/* Gaya label memotong garis */}
-                    <label htmlFor={`pendaftaran-${LANGKAH_DATADIRI[diriStep].kunci}`} className="pointer-events-none absolute left-3 top-0 -translate-y-1/2 bg-white px-1 text-xs text-grey-600 transition-all peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:text-sm sm:peer-placeholder-shown:text-base peer-focus:top-0 peer-focus:-translate-y-1/2 peer-focus:text-xs peer-focus:text-primary">
+                    <label htmlFor={`pendaftaran-${LANGKAH_DATADIRI[diriStep].kunci}`} className="pointer-events-none absolute left-3 top-0 -translate-y-1/2 bg-white px-1 text-xs text-grey-600 transition-all peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:text-sm sm:peer-placeholder-shown:text-base peer-focus:top-0 peer-focus:-translate-y-1/2 peer-focus:text-xs peer-focus:text-slate-800">
                       {LANGKAH_DATADIRI[diriStep].label} *
                     </label>
                   </div>
@@ -740,7 +740,7 @@ export default function TampilanPendaftaran({
                       <span
                         key={l.kunci}
                         className={`w-2.5 h-2.5 rounded-full transition ${
-                          i <= kontakStep ? "bg-primary" : "bg-grey-200"
+                          i <= kontakStep ? "bg-slate-800" : "bg-grey-200"
                         }`}
                       ></span>
                     ))}
@@ -777,7 +777,7 @@ export default function TampilanPendaftaran({
                       placeholder={LANGKAH_KONTAK[kontakStep].placeholder}
                     />
                     {/* Gaya label memotong garis */}
-                    <label htmlFor={`pendaftaran-${LANGKAH_KONTAK[kontakStep].kunci}`} className="pointer-events-none absolute left-3 top-0 -translate-y-1/2 bg-white px-1 text-xs text-grey-600 transition-all peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:text-sm sm:peer-placeholder-shown:text-base peer-focus:top-0 peer-focus:-translate-y-1/2 peer-focus:text-xs peer-focus:text-primary">
+                    <label htmlFor={`pendaftaran-${LANGKAH_KONTAK[kontakStep].kunci}`} className="pointer-events-none absolute left-3 top-0 -translate-y-1/2 bg-white px-1 text-xs text-grey-600 transition-all peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:text-sm sm:peer-placeholder-shown:text-base peer-focus:top-0 peer-focus:-translate-y-1/2 peer-focus:text-xs peer-focus:text-slate-800">
                       {LANGKAH_KONTAK[kontakStep].label}{" "}
                       {LANGKAH_KONTAK[kontakStep].opsional ? t("pendaftaran.opsional") : "*"}
                     </label>
@@ -839,7 +839,7 @@ export default function TampilanPendaftaran({
                     name="setuju"
                     checked={form.setuju}
                     onChange={(e) => onUbah("setuju", e.target.checked)}
-                    className={`mt-1 h-4 w-4 shrink-0 ${form.setuju ? "accent-primary" : "accent-primary"}`}
+                    className={`mt-1 h-4 w-4 shrink-0 ${form.setuju ? "accent-slate-800" : "accent-slate-800"}`}
                   />
                   <span>{teksSetuju}</span>
                 </label>
@@ -859,7 +859,7 @@ export default function TampilanPendaftaran({
                     <span
                       className={
                         verifikasi?.tiket
-                          ? "text-primary font-semibold"
+                          ? "text-slate-800 font-semibold"
                           : statusVerifikasi === "pengajuan"
                             ? "text-grey-800 font-semibold"
                             : "text-grey-600 font-semibold"
@@ -876,7 +876,7 @@ export default function TampilanPendaftaran({
                         onUlangiVerifikasi?.();
                         setStep("password");
                       }}
-                      className="text-xs font-semibold text-primary hover:underline"
+                      className="text-xs font-semibold text-slate-800 hover:underline"
                     >
                       {t("pendaftaran.ulangiVerifikasi")}
                     </button>

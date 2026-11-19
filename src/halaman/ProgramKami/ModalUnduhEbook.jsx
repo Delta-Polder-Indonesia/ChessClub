@@ -279,7 +279,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
                   tiket: tercatat.tiketUnduh,
                 })}
                 download
-                className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-primary bg-primary px-4 text-xs font-semibold text-white shadow-none transition-colors hover:bg-blue-400"
+                className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-slate-800 bg-slate-800 px-4 text-xs font-semibold text-white shadow-none transition-colors hover:bg-blue-400"
               >
                 <IkonUnduh />
                 {t("unduhEbook.unduhLagi")}
@@ -352,7 +352,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
                       setNama(e.target.value);
                       bersihkanGalat();
                     }}
-                    className="h-10 rounded-lg border border-grey-300 bg-white text-xs font-semibold text-grey-800 shadow-none focus-visible:ring-0 focus-visible:border-primary placeholder:text-grey-500 placeholder:font-normal"
+                    className="h-10 rounded-lg border border-grey-300 bg-white text-xs font-semibold text-grey-800 shadow-none focus-visible:ring-0 focus-visible:border-slate-800 placeholder:text-grey-500 placeholder:font-normal"
                   />
                 </Field>
 
@@ -369,7 +369,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
                       setAkun(e.target.value);
                       bersihkanGalat();
                     }}
-                    className="h-10 rounded-lg border border-grey-300 bg-white text-xs font-semibold text-grey-800 shadow-none focus-visible:ring-0 focus-visible:border-primary placeholder:text-grey-500 placeholder:font-normal"
+                    className="h-10 rounded-lg border border-grey-300 bg-white text-xs font-semibold text-grey-800 shadow-none focus-visible:ring-0 focus-visible:border-slate-800 placeholder:text-grey-500 placeholder:font-normal"
                   />
                 </Field>
 
@@ -388,7 +388,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
                         setKode(e.target.value.toUpperCase());
                         bersihkanGalat();
                       }}
-                      className="h-10 rounded-lg border border-grey-300 bg-white text-xs font-mono font-semibold tracking-wider text-grey-800 shadow-none focus-visible:ring-0 focus-visible:border-primary placeholder:text-grey-500 placeholder:font-sans placeholder:font-normal"
+                      className="h-10 rounded-lg border border-grey-300 bg-white text-xs font-mono font-semibold tracking-wider text-grey-800 shadow-none focus-visible:ring-0 focus-visible:border-slate-800 placeholder:text-grey-500 placeholder:font-sans placeholder:font-normal"
                     />
                   </Field>
                 )}
@@ -400,7 +400,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
               <Button
                 type="submit"
                 disabled={sibuk}
-                className={`h-10 w-full gap-2 rounded-lg border border-primary bg-primary text-xs font-semibold text-white shadow-none transition-colors hover:bg-blue-400 disabled:opacity-50 ${salah ? "border-red-600 bg-white text-red-600" : "text-white"}`}
+                className={`h-10 w-full gap-2 rounded-lg border border-slate-800 bg-slate-800 text-xs font-semibold text-white shadow-none transition-colors hover:bg-blue-400 disabled:opacity-50 ${salah ? "border-red-600 bg-white text-red-600" : "text-white"}`}
               >
                 {punyaKode ? <IkonUnduh /> : <IkonKirim />}
                 {sibuk
@@ -420,7 +420,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
                     <button
                       type="button"
                       onClick={() => gantiMode(false)}
-                      className="font-semibold underline underline-offset-4 hover:text-primary"
+                      className="font-semibold underline underline-offset-4 hover:text-slate-800"
                     >
                       {t("unduhEbook.mintaKodeDiSini")}
                     </button>
@@ -431,7 +431,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
                     <button
                       type="button"
                       onClick={() => gantiMode(true)}
-                      className="font-semibold underline underline-offset-4 hover:text-primary"
+                      className="font-semibold underline underline-offset-4 hover:text-slate-800"
                     >
                       {t("unduhEbook.masukkanKode")}
                     </button>

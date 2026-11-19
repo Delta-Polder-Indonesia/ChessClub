@@ -214,7 +214,7 @@ function PopupProfil({ a, tutup, bahasa }) {
                     href={a.url}
                     target="_blank"
                     rel="noreferrer noopener"
-                    className="text-primary underline underline-offset-2 hover:text-primary"
+                    className="text-slate-800 underline underline-offset-2 hover:text-slate-800"
                   >
                     {a.username}
                   </a>
@@ -233,7 +233,7 @@ function PopupProfil({ a, tutup, bahasa }) {
               href={a.urlKlub}
               target="_blank"
               rel="noreferrer noopener"
-              className="font-semibold text-primary underline underline-offset-2"
+              className="font-semibold text-slate-800 underline underline-offset-2"
             >
               {namaKlub(a.klubChess)}
             </a>
@@ -247,7 +247,7 @@ function PopupProfil({ a, tutup, bahasa }) {
             </p>
             <Link
               to={`/pendaftaran-anggota/${encodeURIComponent(a.username)}`}
-              className="mt-2 inline-block font-semibold text-primary underline underline-offset-2"
+              className="mt-2 inline-block font-semibold text-slate-800 underline underline-offset-2"
             >
               {t("keanggotaan.lengkapiData")}
             </Link>
@@ -301,7 +301,7 @@ function BarisAnggota({ a, no, lihatProfil, bahasa }) {
             type="button"
             onClick={() => lihatProfil(a)}
             aria-label={`${t("keanggotaan.lihatProfil")}: ${a.nama || a.username}`}
-            className="inline-flex items-center gap-0.5 text-left font-medium text-slate-900 underline decoration-slate-300 decoration-dotted underline-offset-4 transition-colors hover:text-primary hover:decoration-primary"
+            className="inline-flex items-center gap-0.5 text-left font-medium text-slate-900 underline decoration-slate-300 decoration-dotted underline-offset-4 transition-colors hover:text-slate-800 hover:decoration-slate-800"
           >
             {a.nama || a.username}
             {a.terverifikasi && <CentangBiru />}
@@ -428,7 +428,7 @@ export default function DaftarAnggota() {
                 size="sm"
                 loading={menyegarkan}
                 onClick={() => muatUlang()}
-                className="h-auto gap-0 p-0 text-xs font-semibold text-primary underline underline-offset-2 hover:bg-transparent"
+                className="h-auto gap-0 p-0 text-xs font-semibold text-slate-800 underline underline-offset-2 hover:bg-transparent"
               >
                 {t("keanggotaan.muatUlang")}
               </Button>
@@ -441,7 +441,7 @@ export default function DaftarAnggota() {
                 href={sumberKlub.urlKlub}
                 target="_blank"
                 rel="noreferrer noopener"
-                className="font-semibold text-primary underline underline-offset-2"
+                className="font-semibold text-slate-800 underline underline-offset-2"
               >
                 {namaKlub(sumberKlub.klubChess)}
               </a>
@@ -462,7 +462,7 @@ export default function DaftarAnggota() {
           <p className="mt-1">{t("keanggotaan.tandaTanyaPenjelasan")}</p>
           <Link
             to="/pendaftaran-anggota"
-            className="mt-2 inline-block font-semibold text-primary underline underline-offset-2"
+            className="mt-2 inline-block font-semibold text-slate-800 underline underline-offset-2"
           >
             {t("keanggotaan.lengkapiData")}
           </Link>

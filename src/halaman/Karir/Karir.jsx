@@ -381,7 +381,7 @@ export default function Karir() {
             </div>
           ) : null}
           {status === "siap" && anggota.length === 0 ? (
-            <p className="p-6 text-sm text-grey-600">{t("beranda.peringkatKosong1")}<a href={URL_KLUB} target="_blank" rel="noreferrer noopener" className="text-primary underline">BLUNDER SKUAD</a>{t("beranda.peringkatKosong2")}</p>
+            <p className="p-6 text-sm text-grey-600">{t("beranda.peringkatKosong1")}<a href={URL_KLUB} target="_blank" rel="noreferrer noopener" className="text-slate-800 underline">BLUNDER SKUAD</a>{t("beranda.peringkatKosong2")}</p>
           ) : null}
           {anggota.length > 0 && hasil.length === 0 ? (
             <p className="p-6 text-sm text-grey-600">{t("beranda.peringkatKlubTidakAdaHasil")}</p>
@@ -439,7 +439,7 @@ export default function Karir() {
                             <div className="flex min-w-0 flex-1 items-start gap-4">
                               <div className="min-w-0 max-w-40 flex-1 sm:max-w-64">
                                 {a.username ? (
-                                  <a href={a.url || `https://www.chess.com/member/${a.username}`} target="_blank" rel="noreferrer noopener" aria-label={t("beranda.peringkatKlubLihatProfil", { username: namaTampil(a) })} className="block h-6 font-light hover:text-primary hover:underline">
+                                  <a href={a.url || `https://www.chess.com/member/${a.username}`} target="_blank" rel="noreferrer noopener" aria-label={t("beranda.peringkatKlubLihatProfil", { username: namaTampil(a) })} className="block h-6 font-light hover:text-slate-800 hover:underline">
                                     <LabelPemain anggota={a} />
                                   </a>
                                 ) : <LabelPemain anggota={a} />}

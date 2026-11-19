@@ -16,7 +16,7 @@
   transition: color 0.15s ease;
 }
 .breadcrumb-link:hover {
-  color: var(--color-primary);
+  color: var(--color-grey-800);
   text-decoration: underline;
 }
 .breadcrumb-separator {

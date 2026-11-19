@@ -122,7 +122,7 @@
   background: var(--color-grey-50);
 }
 .tabel-peringkat tbody tr:hover {
-  background: color-mix(in srgb, var(--color-primary) 6%, white);
+  background: color-mix(in srgb, var(--color-grey-800) 6%, white);
 }
 
 /* Kolom angka: rata kanan & lebar tetap agar sejajar seperti aslinya. */
@@ -172,7 +172,7 @@
   white-space: nowrap;
 }
 .tabel-peringkat .kol-akun a {
-  color: var(--color-primary);
+  color: var(--color-grey-800);
   text-decoration: none;
 }
 .tabel-peringkat .kol-akun a:hover {

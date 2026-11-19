@@ -71,7 +71,7 @@
 
 .prose-kci .identitas-pengurus > a {
   overflow-wrap: anywhere;
-  color: var(--color-primary);
+  color: var(--color-grey-800);
   font-size: 15px;
   line-height: 23px;
   font-weight: 600;
@@ -129,7 +129,7 @@
 }
 
 .prose-kci .sumber-pengurus a {
-  color: var(--color-primary);
+  color: var(--color-grey-800);
   font-weight: 600;
   text-underline-offset: 2px;
 }

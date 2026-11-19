@@ -63,7 +63,7 @@ export default function AnalisaLanding() {
                 className="h-full w-full object-cover object-top"
               />
             </div>
-            <figcaption className="mt-2 border-l-2 border-primary pl-3 text-xs leading-relaxed text-grey-600">
+            <figcaption className="mt-2 border-l-2 border-slate-800 pl-3 text-xs leading-relaxed text-grey-600">
               <span className="block font-bold uppercase text-grey-800">{t("analisaLanding.demoJudul")}</span>
               <span className="block">{t("analisaLanding.demoTantangan")}</span>
               <span className="block italic">{t("analisaLanding.demoFooter")}</span>
@@ -88,7 +88,7 @@ export default function AnalisaLanding() {
         </div>
 
         <section aria-labelledby="analisa-belajar" className="pt-5">
-          <p className="mb-1 text-[13px] font-semibold text-primary">{t("analisaLanding.belajarLabel")}</p>
+          <p className="mb-1 text-[13px] font-semibold text-slate-800">{t("analisaLanding.belajarLabel")}</p>
           <h2 id="analisa-belajar">{t("analisaLanding.belajarJudul")}</h2>
 
           <div className="grid w-full grid-cols-1 gap-4 lg:grid-cols-2">

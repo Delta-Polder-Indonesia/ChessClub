@@ -33,7 +33,7 @@ export function tautanAkun(akun) {
       href={`https://www.chess.com/member/${encodeURIComponent(id)}`}
       target="_blank"
       rel="noopener noreferrer"
-      className="text-primary hover:underline"
+      className="text-slate-800 hover:underline"
     >
       @{id}
     </a>

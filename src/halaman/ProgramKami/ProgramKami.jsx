@@ -51,7 +51,7 @@ export default function ProgramKami() {
           {PROGRAM.map(([kunci, bidak, notasi, jalur]) => (
             <li key={kunci} className="flex min-w-0 flex-col gap-4 rounded-3xl border border-grey-200 bg-grey-50 p-6">
               <div aria-hidden="true" className="flex items-center justify-between gap-2 rounded-2xl border border-grey-200 bg-white p-4">
-                <span className="grid size-12 place-items-center rounded-xl bg-grey-100 text-3xl text-primary">{bidak}</span>
+                <span className="grid size-12 place-items-center rounded-xl bg-grey-100 text-3xl text-slate-800">{bidak}</span>
                 <span className="font-mono text-sm text-grey-600">{notasi}</span>
               </div>
               <div>
@@ -59,7 +59,7 @@ export default function ProgramKami() {
                 <p className="mt-1 leading-relaxed text-grey-600">{t(`program.kartu.${kunci}.deskripsi`)}</p>
               </div>
               {jalur && (
-                <Link to={`/program-kami/${jalur}`} className="mt-auto inline-flex w-fit items-center gap-2 rounded text-sm font-semibold text-primary hover:underline focus-visible:ring-2 focus-visible:ring-primary">
+                <Link to={`/program-kami/${jalur}`} className="mt-auto inline-flex w-fit items-center gap-2 rounded text-sm font-semibold text-slate-800 hover:underline focus-visible:ring-2 focus-visible:ring-slate-800">
                   {t("common.selengkapnya")}<span className="sr-only">: {t(`program.kartu.${kunci}.judul`)}</span>
                   <ArrowRightIcon className="size-4" />
                 </Link>

@@ -95,7 +95,7 @@ export default function ProtectedRoute({ children }) {
               <button
                 type="button"
                 onClick={periksa}
-                className="rounded-md border-2 border-primary px-4 py-1.5 text-xs font-semibold text-primary hover:bg-blue-50"
+                className="rounded-md border-2 border-slate-800 px-4 py-1.5 text-xs font-semibold text-slate-800 hover:bg-blue-50"
               >
                 Coba lagi
               </button>

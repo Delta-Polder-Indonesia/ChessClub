@@ -76,7 +76,7 @@ function AnggotaPengurus({ pengurus, t }) {
             target="_blank"
             rel="noreferrer noopener"
             aria-label={aria}
-            className="break-words text-center font-sans text-base font-semibold text-grey-800 transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            className="break-words text-center font-sans text-base font-semibold text-grey-800 transition-colors hover:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-800 focus-visible:ring-offset-2"
           >
             {pengurus.username}
           </a>
@@ -84,7 +84,7 @@ function AnggotaPengurus({ pengurus, t }) {
         <p className="max-w-full break-words text-center font-sans text-xs text-grey-600 md:text-base">
           {subLabel}
         </p>
-        <p className="text-center font-sans text-xs font-medium text-primary md:text-sm">
+        <p className="text-center font-sans text-xs font-medium text-slate-800 md:text-sm">
           {t(`pengurus.peran.${pengurus.kelompok}`)}
         </p>
         <div className="mt-1 flex items-center justify-center flex-wrap gap-x-2 font-mono text-xs text-grey-600">
@@ -99,7 +99,7 @@ function AnggotaPengurus({ pengurus, t }) {
             target="_blank"
             rel="noreferrer noopener"
             aria-label={aria}
-            className="inline-flex size-11 items-center justify-center rounded-lg text-grey-600 hover:bg-grey-100 transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            className="inline-flex size-11 items-center justify-center rounded-lg text-grey-600 hover:bg-grey-100 transition-colors hover:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-800 focus-visible:ring-offset-2"
           >
             <LinkIcon className="size-4" />
           </a>

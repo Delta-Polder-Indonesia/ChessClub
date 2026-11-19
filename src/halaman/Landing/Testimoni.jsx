@@ -25,7 +25,7 @@ function Monogram({ nama }) {
   return (
     <span
       aria-hidden="true"
-      className="flex size-11 flex-none items-center justify-center rounded-full border border-grey-200 bg-grey-100 font-sans text-sm font-semibold text-primary"
+      className="flex size-11 flex-none items-center justify-center rounded-full border border-grey-200 bg-grey-100 font-sans text-sm font-semibold text-slate-800"
     >
       {inisial(nama)}
     </span>
@@ -55,7 +55,7 @@ function KutipUnggulan({ t }) {
   return (
     <figure
       aria-label={t("landing.testimoniLeadAria")}
-      className="m-0 flex flex-col gap-6 border-l-4 border-primary pl-6 md:pl-8"
+      className="m-0 flex flex-col gap-6 border-l-4 border-slate-800 pl-6 md:pl-8"
     >
       <blockquote className="m-0">
         <p className="max-w-3xl font-serif text-3xl font-medium italic leading-snug text-grey-800 text-pretty">

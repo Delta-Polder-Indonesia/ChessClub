@@ -24,13 +24,13 @@
   justify-content: center;
 }
 .step.completed .step-number {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
+  border-color: var(--color-grey-800);
+  color: var(--color-grey-800);
   background: #eef2ff;
 }
 .step.active .step-number {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
+  border-color: var(--color-grey-800);
+  color: var(--color-grey-800);
   background: #eef2ff;
 }
 .step-label {

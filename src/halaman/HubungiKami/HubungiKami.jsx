@@ -316,10 +316,10 @@ export default function HubungiKami() {
         .border-accent {
           border-color: #f13024;
         }
-        .bg-primary\\/60 {
+        .bg-slate-800\\/60 {
           background-color: rgba(19, 20, 36, 0.6);
         }
-        .bg-primary\\/30 {
+        .bg-slate-800\\/30 {
           background-color: rgba(19, 20, 36, 0.3);
         }
         .h1 {
@@ -409,8 +409,8 @@ export default function HubungiKami() {
 
           {/* ==================================================== HOME */}
           {activeTab === "home" && (
-            <div className="bg-primary/60 h-full">
-              <div className="w-full h-full bg-linear-to-r from-primary/10 via-black/30 to-black/10">
+            <div className="bg-slate-800/60 h-full">
+              <div className="w-full h-full bg-linear-to-r from-slate-800/10 via-black/30 to-black/10">
                 <div className="text-center flex flex-col justify-center xl:pt-40 xl:text-left h-full container mx-auto">
                   <motion.h1
                     variants={fadeIn("down", 0.2)}
@@ -476,7 +476,7 @@ export default function HubungiKami() {
 
           {/* =================================================== ABOUT */}
           {activeTab === "about" && (
-            <div className="h-full bg-primary/30 py-32 text-center xl:text-left overflow-y-auto overflow-x-hidden">
+            <div className="h-full bg-slate-800/30 py-32 text-center xl:text-left overflow-y-auto overflow-x-hidden">
               <Circles />
 
               <motion.div
@@ -607,7 +607,7 @@ export default function HubungiKami() {
 
           {/* ================================================ SERVICES */}
           {activeTab === "services" && (
-            <div className="h-full bg-primary/30 py-36 flex items-center">
+            <div className="h-full bg-slate-800/30 py-36 flex items-center">
               <Circles />
               <div className="container mx-auto">
                 <div className="flex flex-col xl:flex-row gap-x-8">
@@ -650,7 +650,7 @@ export default function HubungiKami() {
 
           {/* ==================================================== WORK */}
           {activeTab === "work" && (
-            <div className="h-full bg-primary/30 py-36 flex items-center">
+            <div className="h-full bg-slate-800/30 py-36 flex items-center">
               <Circles />
               <div className="container mx-auto">
                 <div className="flex flex-col xl:flex-row gap-x-8">
@@ -693,7 +693,7 @@ export default function HubungiKami() {
 
           {/* ============================================ TESTIMONIALS */}
           {activeTab === "testimonials" && (
-            <div className="h-full bg-primary/30 py-32 text-center">
+            <div className="h-full bg-slate-800/30 py-32 text-center">
               <div className="container mx-auto h-full flex flex-col justify-center">
                 <motion.h2
                   variants={fadeIn("up", 0.2)}
@@ -719,7 +719,7 @@ export default function HubungiKami() {
 
           {/* ================================================= CONTACT */}
           {activeTab === "contact" && (
-            <div className="h-full bg-primary/30 overflow-y-auto" id="hubungi-kami">
+            <div className="h-full bg-slate-800/30 overflow-y-auto" id="hubungi-kami">
               <div className="container mx-auto py-8 xl:py-12 text-center xl:text-left flex min-h-full overflow-hidden">
                 <div className="relative flex flex-col w-full max-w-[700px] m-auto">
                   <motion.h2

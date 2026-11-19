@@ -59,7 +59,7 @@ export default function Turnamen() {
               <Link
                 key={index}
                 to={item.to}
-                className="group flex flex-col items-center justify-center p-3 text-center border border-slate-300 hover:border-primary hover:bg-white transition-all duration-150"
+                className="group flex flex-col items-center justify-center p-3 text-center border border-slate-300 hover:border-slate-800 hover:bg-white transition-all duration-150"
               >
                 <img
                   src={gambar(item.img)}
@@ -286,7 +286,7 @@ export default function Turnamen() {
               terjadwal. Untuk detail selengkapnya bisa dilihat di halaman{""}
               <Link
                 to="/keberlanjutan/pertanyaan-umum"
-                className="underline font-semibold text-primary hover:text-grey-800"
+                className="underline font-semibold text-slate-800 hover:text-grey-800"
               >
                 tanya jawab
               </Link>

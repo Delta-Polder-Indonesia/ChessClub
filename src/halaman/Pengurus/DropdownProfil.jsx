@@ -56,7 +56,7 @@ export default function DropdownProfil({
               href={`https://www.chess.com/member/${encodeURIComponent(pengguna)}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-primary hover:underline"
+              className="text-slate-800 hover:underline"
               onClick={(e) => e.stopPropagation()}
             >
               {pengguna}

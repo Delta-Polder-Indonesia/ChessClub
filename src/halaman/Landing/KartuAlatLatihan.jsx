@@ -48,9 +48,9 @@ function BarisAlat({ alat }) {
   return (
     <Link
       to={alat.to}
-      className="group flex items-center gap-4 px-2 py-4 transition-colors hover:bg-grey-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+      className="group flex items-center gap-4 px-2 py-4 transition-colors hover:bg-grey-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-800 focus-visible:ring-offset-2"
     >
-      <span className="flex size-10 flex-none items-center justify-center text-primary">
+      <span className="flex size-10 flex-none items-center justify-center text-slate-800">
         <Ikon className="size-10" aria-hidden="true" />
       </span>
       <span className="flex min-w-0 flex-1 flex-col gap-1">
@@ -59,7 +59,7 @@ function BarisAlat({ alat }) {
       </span>
       {/* `ArrowRightIcon` hanya menerima `className`, jadi penanda dekoratifnya
           diletakkan pada pembungkus, bukan pada SVG-nya. */}
-      <span aria-hidden="true" className="flex-none text-grey-600 transition-colors group-hover:text-primary">
+      <span aria-hidden="true" className="flex-none text-grey-600 transition-colors group-hover:text-slate-800">
         <ArrowRightIcon className="size-5" />
       </span>
       {/* Tidak ditampilkan, tapi kata kerja aksinya dibawa ke nama aksesibel

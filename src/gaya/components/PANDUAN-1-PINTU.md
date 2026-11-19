@@ -80,14 +80,14 @@ Jika Anda butuh gaya yang belum ada, **jangan** buat CSS inline atau file CSS ba
 
 ### Aturan 1: Hanya palet slate, tidak ada warna "make up"
 
-Dilarang keras memakai warna di luar palet slate (`slate-50` sampai `slate-900`) dan primary (`#0B2F9F`).
+Dilarang keras memakai warna di luar palet slate (`slate-50` sampai `slate-900`).
 
 | Dilarang | Gunakan Ini |
 |----------|-------------|
 | `text-red-600`, `bg-red-50`, `border-red-300` | `text-slate-700`, `bg-slate-50`, `border-slate-300` |
 | `text-amber-700`, `bg-amber-100` | `text-slate-700`, `bg-slate-100` |
 | `text-emerald-700`, `bg-emerald-100` | `text-slate-700`, `bg-slate-100` |
-| Gradien ungu/pink/biru | Warna solid slate atau primary |
+| Gradien ungu/pink/biru | Warna solid slate |
 | Glow/shadow pendar (`shadow-[0_0_20px_...]`) | `shadow-sm` atau border 1px datar |
 
 ### Aturan 2: Tidak ada inline style yang menimpa gaya komponen

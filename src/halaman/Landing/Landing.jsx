@@ -143,14 +143,14 @@ function LandingHero({ t }) {
             // ini; tanpa konteks, pembaca layar (dan audit
             // identical-links-same-purpose) tidak bisa membedakan tujuannya.
             aria-label={`${t("common.selengkapnya")}: ${t("nav.tentangKami")}`}
-            className="inline-flex items-center gap-2 border border-white font-sans text-white font-semibold text-sm px-6 py-3 rounded hover:bg-white hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black/40"
+            className="inline-flex items-center gap-2 border border-white font-sans text-white font-semibold text-sm px-6 py-3 rounded hover:bg-white hover:text-slate-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black/40"
           >
             {t("common.selengkapnya")}
             <ArrowRightIcon className="size-4 -rotate-45" />
           </Link>
           <Link
             to="/tentang-kami/struktur-grup-catur"
-            className="inline-flex items-center gap-2 border border-white font-sans text-white font-semibold text-sm px-6 py-3 rounded hover:bg-white hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black/40"
+            className="inline-flex items-center gap-2 border border-white font-sans text-white font-semibold text-sm px-6 py-3 rounded hover:bg-white hover:text-slate-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black/40"
           >
             {t("landing.ketuaPengurus")}
             <ArrowRightIcon className="size-4 -rotate-45" />
@@ -345,7 +345,7 @@ function CardCarousel({ index, setIndex, t }) {
             <Link
               key="lihat-semua-ebook-mobile"
               to={k.to}
-              className="flex min-h-[112px] items-center justify-between gap-4 rounded-xl bg-primary px-5 py-4 text-white shadow-sm transition-transform active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 sm:col-span-2"
+              className="flex min-h-[112px] items-center justify-between gap-4 rounded-xl bg-slate-800 px-5 py-4 text-white shadow-sm transition-transform active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-800 focus-visible:ring-offset-2 sm:col-span-2"
             >
               <span className="min-w-0">
                 <span className="block font-sans text-lg font-semibold leading-tight">{k.judul}</span>
@@ -360,7 +360,7 @@ function CardCarousel({ index, setIndex, t }) {
               key={`ebook-mobile-${i}`}
               to={k.to}
               title={k.judul}
-              className="group flex min-w-0 flex-col overflow-hidden rounded-xl border border-grey-200 bg-white shadow-sm transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+              className="group flex min-w-0 flex-col overflow-hidden rounded-xl border border-grey-200 bg-white shadow-sm transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-800 focus-visible:ring-offset-2"
             >
               <div className="relative aspect-square overflow-hidden bg-grey-100 p-2.5 sm:aspect-[4/5]">
                 <img
@@ -373,13 +373,13 @@ function CardCarousel({ index, setIndex, t }) {
                 />
               </div>
               <div className="flex min-h-[112px] flex-1 flex-col p-3">
-                <span className="mb-1.5 font-mono text-[0.68rem] font-medium uppercase tracking-[0.08em] text-primary">
+                <span className="mb-1.5 font-mono text-[0.68rem] font-medium uppercase tracking-[0.08em] text-slate-800">
                   {k.desk}
                 </span>
                 <h3 className="line-clamp-3 font-sans text-sm font-semibold leading-snug text-grey-800">
                   {k.judul}
                 </h3>
-                <span className="mt-auto flex items-center justify-end pt-2 text-grey-500 group-hover:text-primary" aria-hidden="true">
+                <span className="mt-auto flex items-center justify-end pt-2 text-grey-500 group-hover:text-slate-800" aria-hidden="true">
                   <ArrowRightIcon className="size-4 -rotate-45" />
                 </span>
               </div>
@@ -407,7 +407,7 @@ function CardCarousel({ index, setIndex, t }) {
                   title={k.judul}
                   tabIndex={terlihat ? undefined : -1}
                   aria-hidden={!terlihat || undefined}
-                  className="flex-none w-[320px] h-[168px] pt-[18px] px-[18px] pb-[14px] rounded-lg border gap-[14px] flex flex-col items-center justify-center text-center relative cursor-pointer bg-primary border-primary text-white hover:bg-primary/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                  className="flex-none w-[320px] h-[168px] pt-[18px] px-[18px] pb-[14px] rounded-lg border gap-[14px] flex flex-col items-center justify-center text-center relative cursor-pointer bg-slate-800 border-slate-800 text-white hover:bg-slate-800/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-800 focus-visible:ring-offset-2"
                 >
                   <h3 className="font-sans text-[1.0625rem] font-semibold leading-[1.35] text-balance text-white">
                     {k.judul}
@@ -428,8 +428,8 @@ function CardCarousel({ index, setIndex, t }) {
                 aria-hidden={!terlihat || undefined}
                 className={`flex-none w-[320px] h-[168px] pt-[18px] px-[18px] pb-[14px] rounded-lg border gap-[14px] flex flex-col justify-between relative cursor-pointer ${
                   isActive
-                    ? "bg-primary border-primary text-white"
-                    : "bg-white border-grey-200 text-grey-800 hover:bg-primary hover:border-primary group"
+                    ? "bg-slate-800 border-slate-800 text-white"
+                    : "bg-white border-grey-200 text-grey-800 hover:bg-slate-800 hover:border-slate-800 group"
                 }`}
               >
                 <h3
@@ -457,7 +457,7 @@ function CardCarousel({ index, setIndex, t }) {
           aria-label={t("landing.sebelumnya")}
           disabled={aktif <= 0}
           onClick={() => setIndex((i) => Math.max(0, i - 1))}
-          className="w-10 h-10 flex items-center justify-center bg-white border border-grey-300 rounded-lg hover:bg-primary hover:border-primary transition-colors group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-white disabled:hover:border-grey-300"
+          className="w-10 h-10 flex items-center justify-center bg-white border border-grey-300 rounded-lg hover:bg-slate-800 hover:border-slate-800 transition-colors group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-800 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-white disabled:hover:border-grey-300"
         >
           <ArrowRightIcon className="size-6 text-grey-600 rotate-180 group-hover:text-white transition-colors" />
         </button>
@@ -466,7 +466,7 @@ function CardCarousel({ index, setIndex, t }) {
           aria-label={t("landing.selanjutnya")}
           disabled={aktif >= n - 1}
           onClick={() => setIndex((i) => Math.min(n - 1, i + 1))}
-          className="w-10 h-10 flex items-center justify-center bg-white border border-grey-300 rounded-lg hover:bg-primary hover:border-primary transition-colors group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-white disabled:hover:border-grey-300"
+          className="w-10 h-10 flex items-center justify-center bg-white border border-grey-300 rounded-lg hover:bg-slate-800 hover:border-slate-800 transition-colors group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-800 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-white disabled:hover:border-grey-300"
         >
           <ArrowRightIcon className="size-6 text-grey-600 group-hover:text-white transition-colors" />
         </button>
@@ -483,7 +483,7 @@ function BagianGambarKartu({ t }) {
       <div className="relative mx-auto flex w-full max-w-[1500px] flex-col gap-8 px-4 sm:px-6 md:flex-row md:items-center md:gap-12 md:px-[clamp(22px,4vw,56px)]">
         <CardGambar index={index} t={t} />
         <div className="flex w-full flex-col">
-        <p className="mb-2 font-mono text-xs font-medium uppercase tracking-[0.14em] text-primary md:hidden">
+        <p className="mb-2 font-mono text-xs font-medium uppercase tracking-[0.14em] text-slate-800 md:hidden">
           {t("landing.pustakaJudul")}
         </p>
         <h2 className="font-serif font-extralight text-[clamp(1.65rem,7.5vw,2.5rem)] leading-[1.08] tracking-normal text-grey-800 lg:text-[clamp(1.5rem,4.4vw,3.25rem)] lg:whitespace-nowrap">
@@ -581,7 +581,7 @@ function HarapanTerimaKasih({ t }) {
                 type="button"
                 onClick={() => setPratinjau(true)}
                 aria-label={t("landing.harapanBukaFoto")}
-                className="block cursor-zoom-in rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                className="block cursor-zoom-in rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-800"
               >
                 <img
                   {...sumberFoto}
@@ -642,7 +642,7 @@ function AjakanBergabung({ t }) {
       <div className="mx-auto max-w-4xl flex flex-col items-center">
         <div className="flex flex-col items-center gap-[14px] text-center">
           <h2 className={`${JUDUL_SEKSI} max-sm:text-3xl`}>
-            {t("landing.ajakanJudul")} <em className="text-primary not-italic">{t("landing.ajakanJudulAccent")}</em>
+            {t("landing.ajakanJudul")} <em className="text-slate-800 not-italic">{t("landing.ajakanJudulAccent")}</em>
           </h2>
           <p className={LEAD_SEKSI}>{t("landing.ajakanDeskripsi")}</p>
         </div>

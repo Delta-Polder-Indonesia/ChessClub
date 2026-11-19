@@ -33,7 +33,7 @@ function Tautan({ href, children }) {
     <a
       target="_blank"
       rel="noreferrer noopener"
-      className="font-sans text-primary underline decoration-grey-300 underline-offset-4 transition-colors hover:decoration-primary"
+      className="font-sans text-slate-800 underline decoration-grey-300 underline-offset-4 transition-colors hover:decoration-slate-800"
       href={href}
     >
       {children}
@@ -340,7 +340,7 @@ export default function Atribusi() {
                       href={s.href}
                       target="_blank"
                       rel="noreferrer noopener"
-                      className="flex min-h-11 items-center border-b border-grey-200 text-grey-800 transition-colors hover:text-primary"
+                      className="flex min-h-11 items-center border-b border-grey-200 text-grey-800 transition-colors hover:text-slate-800"
                     >
                       {s.nama}
                     </a>

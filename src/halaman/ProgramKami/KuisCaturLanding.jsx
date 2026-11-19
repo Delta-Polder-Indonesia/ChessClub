@@ -262,21 +262,21 @@ export default function KuisCaturLanding() {
                 {t("kuisLanding.penutupAwal")}{" "}
                 <Link
                   to={RUTE_EBOOK}
-                  className="font-semibold text-primary underline underline-offset-2 hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                  className="font-semibold text-slate-800 underline underline-offset-2 hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-800 focus-visible:ring-offset-2"
                 >
                   {t("nav.eBookPanduan")}
                 </Link>
                 , {t("kuisLanding.penutupTengah1")}{" "}
                 <Link
                   to={RUTE_PEMBUKAAN}
-                  className="font-semibold text-primary underline underline-offset-2 hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                  className="font-semibold text-slate-800 underline underline-offset-2 hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-800 focus-visible:ring-offset-2"
                 >
                   {t("nav.pembukaan")}
                 </Link>
                 , {t("kuisLanding.penutupTengah2")}{" "}
                 <Link
                   to={RUTE_TEKA_TEKI}
-                  className="font-semibold text-primary underline underline-offset-2 hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                  className="font-semibold text-slate-800 underline underline-offset-2 hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-800 focus-visible:ring-offset-2"
                 >
                   {t("nav.tekaTeki")}
                 </Link>{" "}

@@ -13,9 +13,9 @@
   background: var(--color-grey-100);
   color: var(--color-grey-700);
 }
-.badge-primary {
-  background: #eef2ff;
-  color: var(--color-primary);
+.badge-netral {
+  background: var(--color-grey-100);
+  color: var(--color-grey-800);
 }
 .badge-info {
   background: #f0f9ff;

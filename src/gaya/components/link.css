@@ -1,6 +1,6 @@
 /* Link — tautan teks */
 .link {
-  color: var(--color-primary);
+  color: var(--color-grey-800);
   text-decoration: underline;
   text-underline-offset: 2px;
   font-size: 0.875rem;
@@ -11,7 +11,7 @@
   color: #0B2F9F;
 }
 .link:focus-visible {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid var(--color-grey-800);
   outline-offset: 2px;
 }
 .link-secondary {

@@ -13,7 +13,7 @@ export default function VisiMisi() {
             {t("visimisi.visi")}
           </h2>
           <div className="w-full">
-            <div className="text-primary text-base md:text-base">
+            <div className="text-slate-800 text-base md:text-base">
               {t("visimisi.visiLead")}
             </div>
           </div>
@@ -35,7 +35,7 @@ export default function VisiMisi() {
             {t("visimisi.misi")}
           </h2>
           <div className="w-full">
-            <div className="text-primary text-base md:text-base">
+            <div className="text-slate-800 text-base md:text-base">
               {t("visimisi.misiLead")}
             </div>
           </div>

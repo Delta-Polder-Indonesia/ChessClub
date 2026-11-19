@@ -29,8 +29,8 @@
   cursor: not-allowed;
 }
 .pagination-button.active {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
+  background: var(--color-grey-800);
+  border-color: var(--color-grey-800);
   color: var(--color-paper);
 }
 .pagination-page {

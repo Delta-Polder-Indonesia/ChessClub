@@ -44,7 +44,7 @@ export default function EbookPermintaan({ minta, cariMinta, onCariMinta, sibuk, 
           onChange={(e) => onCariMinta(e.target.value)}
           placeholder="Cari nama / akun…"
           aria-label="Cari permintaan"
-          className="w-56 rounded-md border-2 border-slate-300 px-2.5 py-1.5 text-sm outline-none focus:border-primary"
+          className="w-56 rounded-md border-2 border-slate-300 px-2.5 py-1.5 text-sm outline-none focus:border-slate-800"
         />
       </div>
       {tersaring.length === 0 ? (

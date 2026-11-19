@@ -8,7 +8,7 @@ Dokumen ini adalah sumber kebenaran (*single source of truth*) untuk token desai
 
 | Token | Nilai Hex | Peran & Penggunaan |
 |---|---|---|
-| `--color-primary` | `#0B2F9F` | Aksen brand utama: tautan aktif, indikator terpilih, tombol primer (outline/fill aksen) |
+| `--color-primary` | `#0B2F9F` | Khusus fitur catur mandiri. Landing, halaman konten (termasuk Program Kami), Pengurus dan komponen bersama wajib memakai warna netral sebagai pengganti primary, termasuk pada ikon dan indikator fokus. Diperiksa oleh `npm run uji:desain`. |
 | `--color-blue-400` | `#4D7CF5` | Aksen biru terang sekunder / state interaktif |
 | `--color-hero` | `#021624` | Latar gelap hero seksi pembuka (kontras tinggi, berwibawa) |
 | `--color-grey-800` | `#1E293B` | Teks judul utama & body gelap |

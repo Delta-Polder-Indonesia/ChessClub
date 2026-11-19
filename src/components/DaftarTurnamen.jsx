@@ -139,7 +139,7 @@ function Klasemen({ id, k }) {
         <button
           type="button"
           onClick={() => setPercobaan((n) => n + 1)}
-          className="mt-2 font-sans text-xs font-semibold uppercase text-primary underline underline-offset-2 hover:text-grey-800"
+          className="mt-2 font-sans text-xs font-semibold uppercase text-slate-800 underline underline-offset-2 hover:text-grey-800"
         >
           {t("common.cobaLagi")}
         </button>
@@ -277,7 +277,7 @@ function KartuTurnamen({ t, k, bahasa }) {
                 href={t.tautan}
                 target="_blank"
                 rel="noreferrer noopener"
-                className="hover:text-primary hover:underline"
+                className="hover:text-slate-800 hover:underline"
               >
                 {t.nama} <span aria-hidden="true">↗</span>
               </a>
@@ -319,7 +319,7 @@ function KartuTurnamen({ t, k, bahasa }) {
           <button
             type="button"
             onClick={() => setBukaDaftar((nilai) => !nilai)}
-            className="rounded border border-primary bg-transparent px-4 py-2 text-xs font-semibold text-primary transition-colors hover:bg-primary hover:text-white"
+            className="rounded border border-slate-800 bg-transparent px-4 py-2 text-xs font-semibold text-slate-800 transition-colors hover:bg-slate-800 hover:text-white"
           >
             {k.tombolDaftar}
           </button>
@@ -327,7 +327,7 @@ function KartuTurnamen({ t, k, bahasa }) {
         <button
           type="button"
           onClick={() => setBuka((b) => !b)}
-          className="px-4 py-1.5 font-sans text-xs font-semibold uppercase text-grey-800 hover:text-primary"
+          className="px-4 py-1.5 font-sans text-xs font-semibold uppercase text-grey-800 hover:text-slate-800"
         >
           {buka ? k.tutupRincian : k.lihat}
         </button>
@@ -336,7 +336,7 @@ function KartuTurnamen({ t, k, bahasa }) {
             href={t.tautan}
             target="_blank"
             rel="noreferrer noopener"
-            className="font-sans text-xs font-semibold uppercase text-grey-800 hover:text-primary hover:underline"
+            className="font-sans text-xs font-semibold uppercase text-grey-800 hover:text-slate-800 hover:underline"
           >
             {k.bukaTurnamen} ↗
           </a>
@@ -359,13 +359,13 @@ function KartuTurnamen({ t, k, bahasa }) {
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="namauser"
                 autoComplete="off"
-                className="border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-primary"
+                className="border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-slate-800"
               />
             </label>
             <button
               type="submit"
               disabled={mengirim || !username.trim()}
-              className="rounded border border-primary bg-transparent px-4 py-2 text-xs font-semibold text-primary transition-colors hover:bg-primary hover:text-white disabled:opacity-40"
+              className="rounded border border-slate-800 bg-transparent px-4 py-2 text-xs font-semibold text-slate-800 transition-colors hover:bg-slate-800 hover:text-white disabled:opacity-40"
             >
               {mengirim ? k.mengirim : k.kirimPengajuan}
             </button>
@@ -429,7 +429,7 @@ export default function DaftarTurnamen({ jenis }) {
             <button
               type="button"
               onClick={() => setPercobaan((n) => n + 1)}
-              className="mt-2 font-sans text-xs font-semibold uppercase text-primary underline underline-offset-2 hover:text-grey-800"
+              className="mt-2 font-sans text-xs font-semibold uppercase text-slate-800 underline underline-offset-2 hover:text-grey-800"
             >
               {t("common.cobaLagi")}
             </button>

@@ -68,13 +68,13 @@ export default class ErrorBoundary extends Component {
               <button
                 type="button"
                 onClick={() => window.location.reload()}
-                className="rounded border border-primary bg-transparent px-6 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary hover:text-white"
+                className="rounded border border-slate-800 bg-transparent px-6 py-2.5 text-sm font-semibold text-slate-800 transition-colors hover:bg-slate-800 hover:text-white"
               >
                 Muat Ulang Halaman
               </button>
               <a
                 href="/"
-                className="rounded-full border border-slate-300 px-6 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:border-primary hover:text-primary"
+                className="rounded-full border border-slate-300 px-6 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:border-slate-800 hover:text-slate-800"
               >
                 Kembali ke Beranda
               </a>

@@ -4,7 +4,7 @@ import path from "node:path";
 const AKAR = path.resolve(import.meta.dirname, "..");
 const BASELINE = path.join(AKAR, "scripts", "baseline-standar-desain.json");
 const TULIS = process.argv.includes("--tulis-baseline");
-const EKSTENSI = new Set([".jsx", ".js", ".css"]);
+const EKSTENSI = new Set([".jsx", ".js", ".css", ".tsx", ".ts", ".svg", ".mjs"]);
 const AREA_KONTEN = [
   "src/halaman/Atribusi/",
   "src/halaman/HubungiKami/",
@@ -170,6 +170,21 @@ function hitungUntukAturan(isi, pola, diizinkan, _file) {
   );
 }
 
+// Halaman penjelas ProgramKami tetap konten. Hanya implementasi alat catur
+// dan temanya yang bebas memilih primary; komponen bersama tetap netral.
+const fiturCaturMandiri = /^src\/(?:halaman\/(?:Analisa|HandBrain|LatihanRepertoar|ManusiaVsMesin|PapanInteraktif|QuizCatur|TekaTeki|TekaTekiHarian|TekaTekiRush|TuringTest)\/|components\/chess\/|gaya\/(?:analisa-theme|papan-cg)\.css$)/;
+function cekPrimary(relatif, isi) {
+  if (fiturCaturMandiri.test(relatif) || relatif.startsWith("src/lib/terjemahan/")) return;
+  const kode = isi.replace(/\/\*[\s\S]*?\*\//g, (s) => s.replace(/[^\n]/g, " "));
+  for (const [i, baris] of kode.split("\n").entries()) {
+    // Token masih harus tersedia untuk utilitas pada fitur catur.
+    const cek = relatif === "src/gaya/tokens.css" ? baris.replace(/^\s*--color-primary\s*:/, "") : baris;
+    if (!cek.trimStart().startsWith("//") && /(?:[\w-]+-primary\b|--primary\b|["'`]primary["'`])/i.test(cek)) {
+      throw new Error(`${relatif}:${i + 1}: warna primary dilarang di luar fitur catur; gunakan warna netral.`);
+    }
+  }
+}
+
 function hitung() {
   const hasil = {};
   for (const penuh of daftarBerkas(path.join(AKAR, "src"))) {
@@ -181,6 +196,8 @@ function hitung() {
     // hanya di area konten; aturan svg-inline-catur hanya di area catur.
     if (!periksaArea && !Object.keys(aturanGlobal).length) continue;
     const isi = fs.readFileSync(penuh, "utf8");
+    cekPrimary(relatif, isi);
+    if (![".js", ".jsx", ".css"].includes(path.extname(penuh))) continue; // Cakupan baseline editorial lama.
     const temuan = {};
 
     // Aturan editorial + svg-inline.

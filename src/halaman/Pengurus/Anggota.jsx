@@ -314,7 +314,7 @@ export default function PanelAnggota({
                     checked={semuaTerpilih}
                     onChange={pilihSemua}
                     aria-label="Pilih semua anggota"
-                    className="size-4 accent-primary"
+                    className="size-4 accent-slate-800"
                   />
                 </TableHead>
                 <TableHead className="w-10 px-3">#</TableHead>
@@ -339,7 +339,7 @@ export default function PanelAnggota({
                         onChange={(e) =>
                           setTerpilih((s) => ({ ...s, [a.username]: e.target.checked }))}
                         aria-label={`Pilih ${a.username}`}
-                        className="size-4 accent-primary"
+                        className="size-4 accent-slate-800"
                       />
                     </TableCell>
                     <TableCell className="p-3">{index + 1}</TableCell>
