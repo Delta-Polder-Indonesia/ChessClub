@@ -27,19 +27,15 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --include=dev
-      - name: Lint
-        run: npm run lint
-      - name: Run Wawasan regression tests
-        run: npm run uji:wawasan-profil && node scripts/uji-analisa-ui.mjs
-      - name: Run v1 build and server partition
+      - name: Run lint, Wawasan, and build-server partition
         run: |
           set -o pipefail
-          if ! npm run uji:v1:build-server 2>&1 | tee /tmp/uji-v1-build-server.log; then
-            SKRIP_TERAKHIR=$(grep -E "^> komunitas-catur@" /tmp/uji-v1-build-server.log | tail -n 4 | tr '\n' ' ' | sed 's/::/ /g')
+          if ! { npm run lint && npm run uji:wawasan-profil && node scripts/uji-analisa-ui.mjs && npm run uji:v1:build-server; } 2>&1 | tee /tmp/uji-v1-build-server.log; then
+            SKRIP_TERAKHIR=$(grep -E "^> komunitas-catur@|^Error:|^AssertionError|GAGAL|FAIL|✗" /tmp/uji-v1-build-server.log | tail -n 8 | tr '\n' ' ' | sed 's/::/ /g')
             RINGKASAN=$(grep -E "✗|❌|GAGAL|FAIL|Error:|AssertionError|ELIFECYCLE|npm error" /tmp/uji-v1-build-server.log | tail -n 25 | tr '\n' ' ' | sed 's/::/ /g')
             EKOR=$(tail -n 30 /tmp/uji-v1-build-server.log | tr '\n' ' ' | sed 's/::/ /g')
-            echo "::error title=uji:v1:build-server gagal (${SKRIP_TERAKHIR})::${RINGKASAN}"
-            echo "::error title=uji:v1:build-server ekor log::${EKOR}"
+            echo "::error title=Job v1-build-server gagal (${SKRIP_TERAKHIR})::${RINGKASAN}"
+            echo "::error title=Job v1-build-server ekor log::${EKOR}"
             exit 1
           fi
 
