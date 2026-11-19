@@ -77,7 +77,7 @@ export default function Gerbang({ onMasuk }) {
   };
 
   return (
-    <div className="mx-auto flex min-h-[70vh] max-w-md items-center px-6">
+    <div className="pengurus-root mx-auto flex min-h-[70vh] max-w-md items-center px-6">
       <form
         onSubmit={masuk}
         className="mt-10 w-full rounded-xl border border-slate-200 bg-white p-8"
