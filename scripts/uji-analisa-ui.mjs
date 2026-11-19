@@ -1167,16 +1167,35 @@ uji("navigasi papan ketik tidak merobohkan halaman", !!domSiap.querySelector(".a
   // Komponen memanggil fetch global (bukan window.fetch), jadi keduanya
   // harus di-stub agar deterministik tanpa jaringan.
   const fetchAsli = globalThis.fetch;
-  const fetchPalsu = (url) => {
-    const u = String(url);
-    let host = "";
+  const uraikanUrl = (url) => {
     try {
-      host = new URL(u).hostname;
+      return new URL(String(url));
     } catch {
-      host = "";
+      return null;
     }
-    if (u.includes("api.chess.com")) {
-      if (u.includes("/games/archives")) {
+  };
+  const hostLichessDiizinkan = (hostname) =>
+    hostname === "lichess.org" || hostname.endsWith(".lichess.org");
+
+  uji(
+    "stub Chess.com hanya mengenali hostname resmi",
+    uraikanUrl("https://api.chess.com/pub/player/contoh/games/archives")?.hostname === "api.chess.com" &&
+      uraikanUrl("https://api.chess.com.attacker.test/games/archives")?.hostname !== "api.chess.com" &&
+      uraikanUrl("https://attacker.test/?next=api.chess.com")?.hostname !== "api.chess.com"
+  );
+  uji(
+    "stub Lichess hanya mengenali domain resmi",
+    hostLichessDiizinkan(uraikanUrl("https://lichess.org/api/games/user/contoh")?.hostname ?? "") &&
+      hostLichessDiizinkan(uraikanUrl("https://export.lichess.org/api/games")?.hostname ?? "") &&
+      !hostLichessDiizinkan(uraikanUrl("https://lichess.org.attacker.test/api/games")?.hostname ?? "") &&
+      !hostLichessDiizinkan(uraikanUrl("https://attacker.test/?next=lichess.org")?.hostname ?? "")
+  );
+  const fetchPalsu = (url) => {
+    const parsed = uraikanUrl(url);
+    if (!parsed) return fetchAsli(url);
+    const { hostname, pathname } = parsed;
+    if (hostname === "api.chess.com") {
+      if (/^\/pub\/player\/[^/]+\/games\/archives$/.test(pathname)) {
         return Promise.resolve({
           ok: true,
           status: 200,
@@ -1210,7 +1229,7 @@ uji("navigasi papan ketik tidak merobohkan halaman", !!domSiap.querySelector(".a
         text: () => Promise.resolve(""),
       });
     }
-    if (host === "lichess.org" || host === "www.lichess.org") {
+    if (hostLichessDiizinkan(hostname)) {
       return Promise.resolve({
         ok: true,
         status: 200,
