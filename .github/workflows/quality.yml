@@ -9,58 +9,110 @@ on:
 permissions:
   contents: read
 
-# Rantai uji dibagi menjadi dua job yang berjalan paralel.
-#
-# Mengapa: job tunggal ini dulu memakai `timeout-minutes: 15`, padahal gerbang
-# rilis (`npm run uji:rilis:v1`) sudah memakan ~8,5 menit. Sisa ~6,5 menit tidak
-# pernah cukup untuk 60 uji Playwright × 2 project (desktop + mobile) dengan
-# `retries: 2` di CI, sehingga tiap run berakhir `cancelled` di
-# 15m17s–15m22s — tanpa satu pun galat aplikasi. Memecah menjadi dua job membuat
-# anggaran waktunya masing-masing jujur dan umpan balik lebih cepat.
+# Tiga pecahan gerbang rilis berjalan paralel. Job test dipertahankan sebagai
+# required-check aggregator untuk proteksi branch main; Playwright tetap
+# berjalan independen sejak awal.
 jobs:
-  test:
-    # Nama job sengaja dipertahankan: kalau `main` melindungi check bernama
-    # "Quality checks / Test and browser smoke checks", nama baru akan membuat
-    # PR menggantung selamanya di status "expected".
-    name: Test and browser smoke checks
+  v1-build-server:
+    name: V1 build and server tests
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version: "22"
           cache: npm
-
       - name: Install dependencies
-        # The release gate imports build/test-only packages such as Tailwind,
-        # Vite, and jsdom; never let a production NODE_ENV omit them.
         run: npm ci --include=dev
-
       - name: Lint
-        # `eslint . --max-warnings 0` — bersih di seluruh repo, jadi jadikan
-        # gerbang: tanpa langkah ini gaya kode longgar lolos tanpa suara.
         run: npm run lint
-
       - name: Run Wawasan regression tests
-        # Run the focused logic and mounted-UI tests before the release gate.
-        # This keeps Wawasan regressions visible even if npm audit blocks the gate.
         run: npm run uji:wawasan-profil && node scripts/uji-analisa-ui.mjs
-
-      - name: Run the v1 release gate
+      - name: Run v1 build and server partition
         run: |
           set -o pipefail
-          if ! npm run uji:rilis:v1 2>&1 | tee /tmp/rilis-v1.log; then
-            SKRIP_TERAKHIR=$(grep -E "^> komunitas-catur@" /tmp/rilis-v1.log | tail -n 3 | tr '\n' ' ' | sed 's/::/ /g')
-            RINGKASAN=$(grep -E "✗|❌|GAGAL|FAIL|Error:|AssertionError|ELIFECYCLE|npm error" /tmp/rilis-v1.log | tail -n 25 | tr '\n' ' ' | sed 's/::/ /g')
-            EKOR=$(tail -n 30 /tmp/rilis-v1.log | tr '\n' ' ' | sed 's/::/ /g')
-            echo "::error title=uji:rilis:v1 gagal (${SKRIP_TERAKHIR})::${RINGKASAN}"
-            echo "::error title=uji:rilis:v1 ekor log::${EKOR}"
+          if ! npm run uji:v1:build-server 2>&1 | tee /tmp/uji-v1-build-server.log; then
+            SKRIP_TERAKHIR=$(grep -E "^> komunitas-catur@" /tmp/uji-v1-build-server.log | tail -n 4 | tr '\n' ' ' | sed 's/::/ /g')
+            RINGKASAN=$(grep -E "✗|❌|GAGAL|FAIL|Error:|AssertionError|ELIFECYCLE|npm error" /tmp/uji-v1-build-server.log | tail -n 25 | tr '\n' ' ' | sed 's/::/ /g')
+            EKOR=$(tail -n 30 /tmp/uji-v1-build-server.log | tr '\n' ' ' | sed 's/::/ /g')
+            echo "::error title=uji:v1:build-server gagal (${SKRIP_TERAKHIR})::${RINGKASAN}"
+            echo "::error title=uji:v1:build-server ekor log::${EKOR}"
             exit 1
           fi
+
+  v1-ui-engine:
+    name: V1 UI and engine tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --include=dev
+      - name: Run v1 UI and engine partition
+        run: |
+          set -o pipefail
+          if ! npm run uji:v1:ui-engine 2>&1 | tee /tmp/uji-v1-ui-engine.log; then
+            SKRIP_TERAKHIR=$(grep -E "^> komunitas-catur@" /tmp/uji-v1-ui-engine.log | tail -n 4 | tr '\n' ' ' | sed 's/::/ /g')
+            RINGKASAN=$(grep -E "✗|❌|GAGAL|FAIL|Error:|AssertionError|ELIFECYCLE|npm error" /tmp/uji-v1-ui-engine.log | tail -n 25 | tr '\n' ' ' | sed 's/::/ /g')
+            EKOR=$(tail -n 30 /tmp/uji-v1-ui-engine.log | tr '\n' ' ' | sed 's/::/ /g')
+            echo "::error title=uji:v1:ui-engine gagal (${SKRIP_TERAKHIR})::${RINGKASAN}"
+            echo "::error title=uji:v1:ui-engine ekor log::${EKOR}"
+            exit 1
+          fi
+
+  v1-fitur-puzzle:
+    name: V1 puzzle feature tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --include=dev
+      - name: Run v1 puzzle feature partition
+        run: |
+          set -o pipefail
+          if ! npm run uji:v1:fitur-puzzle 2>&1 | tee /tmp/uji-v1-fitur-puzzle.log; then
+            SKRIP_TERAKHIR=$(grep -E "^> komunitas-catur@" /tmp/uji-v1-fitur-puzzle.log | tail -n 4 | tr '\n' ' ' | sed 's/::/ /g')
+            RINGKASAN=$(grep -E "✗|❌|GAGAL|FAIL|Error:|AssertionError|ELIFECYCLE|npm error" /tmp/uji-v1-fitur-puzzle.log | tail -n 25 | tr '\n' ' ' | sed 's/::/ /g')
+            EKOR=$(tail -n 30 /tmp/uji-v1-fitur-puzzle.log | tr '\n' ' ' | sed 's/::/ /g')
+            echo "::error title=uji:v1:fitur-puzzle gagal (${SKRIP_TERAKHIR})::${RINGKASAN}"
+            echo "::error title=uji:v1:fitur-puzzle ekor log::${EKOR}"
+            exit 1
+          fi
+
+  test:
+    name: Test and browser smoke checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    needs: [v1-build-server, v1-ui-engine, v1-fitur-puzzle]
+    if: always()
+    steps:
+      - name: Verify all v1 partitions succeeded
+        env:
+          BUILD_SERVER: ${{ needs.v1-build-server.result }}
+          UI_ENGINE: ${{ needs.v1-ui-engine.result }}
+          FITUR_PUZZLE: ${{ needs.v1-fitur-puzzle.result }}
+        run: |
+          if [[ "$BUILD_SERVER" != "success" || "$UI_ENGINE" != "success" || "$FITUR_PUZZLE" != "success" ]]; then
+            echo "::error title=Gerbang rilis v1 gagal::build-server=$BUILD_SERVER, ui-engine=$UI_ENGINE, fitur-puzzle=$FITUR_PUZZLE"
+            exit 1
+          fi
+          echo "Ketiga pecahan gerbang rilis v1 berhasil."
 
   e2e:
     name: Browser tests (Playwright)
@@ -69,32 +121,22 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version: "22"
           cache: npm
-
       - name: Install dependencies
         run: npm ci --include=dev
-
       - name: Restore Chromium download cache
         uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
           restore-keys: playwright-${{ runner.os }}-
-
       - name: Install Chromium for Playwright
-        # `--with-deps` shells out to `apt-get update`, which stalls on
-        # azure.archive.ubuntu.com (actions/runner-images#11347) and burns the
-        # job's time budget. ubuntu-latest already ships Chromium's system
-        # libraries, so only the browser download is needed. The step timeout
-        # keeps a CDN hang from eating the rest of the job.
         timeout-minutes: 5
         run: npx playwright install chromium
-
       - name: Run browser tests
         run: |
           set -o pipefail
@@ -103,7 +145,6 @@ jobs:
             echo "::error title=uji:e2e gagal::${EKOR}"
             exit 1
           fi
-
       - name: Upload Playwright report on failure
         if: failure()
         uses: actions/upload-artifact@v4
