@@ -1,7 +1,7 @@
 /* Port dari Brilliant-Chess (MIT, © 2025 Delo) — jangan sunting massal tanpa cek README. */
+import { TooltipLabel } from "../../../../components/ui/tooltip.jsx";
 function Pause(props) {
-  return <svg
-    title={props.title}
+  return <TooltipLabel label={props.title}><svg
     aria-label={props.title}
     className={props.class}
     onClick={props.click}
@@ -53,7 +53,7 @@ function Pause(props) {
                </g>
             </g>
          </g>
-      </svg>;
+      </svg></TooltipLabel>;
 }
 export {
   Pause as default
