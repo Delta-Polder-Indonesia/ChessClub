@@ -162,7 +162,8 @@ export default function KontrolLangkah({
                   {onBukaAnalisa && (
                     <TooltipLabel label={t("tekaTeki.analisa")}>
                       <span tabIndex={!selesai || memuat || memuatKoleksi ? 0 : undefined} aria-label={t("tekaTeki.analisa")} className="block min-w-0">
-                        type="button"
+                        <button
+                          type="button"
                         data-aksi="buka-analisa"
                         onClick={onBukaAnalisa}
                         disabled={!selesai || memuat || memuatKoleksi}
