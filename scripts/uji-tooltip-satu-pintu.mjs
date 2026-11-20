@@ -151,16 +151,14 @@ for (const { file, status, isi } of inventaris) {
 }
 
 // ── Evaluasi central export ─────────────────────────────────────────
-let centralExport = null;
-try {
-  const pusat = baca(CENTRAL);
+const pusat = baca(CENTRAL);
   const hasArrow = /TooltipPrimitive\.Arrow/.test(pusat);
   const hasRadix = /@radix-ui\/react-tooltip/.test(pusat);
   const hasLabel = /function TooltipLabel/.test(pusat);
   const exportLine = (pusat.match(/export\s*\{[^}]*\}/) || [""])[0];
   const exposesPrimitive = /export\s*\{[^}]*\bTooltip\b/.test(pusat) && /TooltipTrigger/.test(exportLine);
   centralExport = { hasArrow, hasRadix, hasLabel, exposesPrimitive, exportLine };
-} catch {}
+const centralExport = { hasArrow, hasRadix, hasLabel, exposesPrimitive, exportLine };
 
 // ── Laporan inventaris ─────────────────────────────────────────────
 console.log(`Inventaris src/: total ${semuaSrc.length} file jsx/js`);
