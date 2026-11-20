@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * Kontrak arsitektur tooltip: satu mesin Radix, tanpa tooltip global berbasis
- * DOM atau atribut title native pada komponen Teka-Teki yang telah dimigrasi.
+ * Kontrak arsitektur tooltip: satu API Radix untuk komponen bersama, Analisa,
+ * dan Teka-Teki; tanpa mesin global DOM atau title native pada area migrasi.
  */
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
@@ -110,4 +110,4 @@ assert.match(pkg.scripts["uji:tools"], /uji:tooltip-satu-pintu/, "Gerbang uji to
 const ujiBrowser = baca("tests/e2e/analisa-tooltip.spec.js");
 assert.match(ujiBrowser, /data-slot="tooltip-arrow"/, "Uji browser harus memverifikasi elemen panah Radix");
 
-console.log("OK — satu mesin tooltip Radix, pemanggil Teka-Teki terhubung, atribut title duplikat dihapus, dan panah diuji.");
+console.log("OK — tooltip Radix dipakai komponen bersama, Analisa, dan Teka-Teki; mesin global dihapus dan panah diuji.");
