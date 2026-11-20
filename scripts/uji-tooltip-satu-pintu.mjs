@@ -25,7 +25,7 @@ function walk(dir, out = []) {
     const p = path.join(dir, e);
     const rel = path.relative(ROOT, p).replaceAll("\\", "/");
     // skip cache/build tapi src tidak punya itu
-    if (e === "node_modules" || e === ".git" || e.startsWith(".")) continue;
+    if (e === "node_modules" || e === ".git") continue;
     const st = statSync(p);
     if (st.isDirectory()) walk(p, out);
     else if (/\.(jsx|js|ts|tsx|mjs|cjs)$/.test(e)) out.push(rel);
@@ -34,27 +34,36 @@ function walk(dir, out = []) {
   return out;
 }
 
-function getChangedSet() {
-  try {
-    const out = execSync("git diff --name-only origin/main...HEAD", { cwd: ROOT, encoding: "utf8" }).trim();
-    return new Set(out ? out.split("\n").map((s) => s.trim()).filter(Boolean) : []);
-  } catch {
-    return new Set();
+function getChangeSets() {
+  // Diff yang gagal harus menggagalkan audit, bukan menyamar sebagai tanpa perubahan.
+  const out = execSync("git diff --name-status --find-renames origin/main...HEAD", {
+    cwd: ROOT,
+    encoding: "utf8",
+  }).trim();
+  const changed = new Set();
+  const added = new Set();
+  for (const baris of out ? out.split("\n") : []) {
+    const kolom = baris.split("\t");
+    const status = kolom[0] || "";
+    const file = kolom[kolom.length - 1]?.trim();
+    if (!file) continue;
+    changed.add(file);
+    if (status.startsWith("A")) added.add(file);
   }
+  return { changed, added };
 }
 function getUntrackedSet() {
-  try {
-    const out = execSync("git ls-files --others --exclude-standard", { cwd: ROOT, encoding: "utf8" }).trim();
-    return new Set(out ? out.split("\n").map((s) => s.trim()).filter(Boolean) : []);
-  } catch {
-    return new Set();
-  }
+  const out = execSync("git ls-files --others --exclude-standard", {
+    cwd: ROOT,
+    encoding: "utf8",
+  }).trim();
+  return new Set(out ? out.split("\n").map((s) => s.trim()).filter(Boolean) : []);
 }
 
 const semuaSrc = walk(SRC)
-  .filter((p) => p.startsWith("src/") && /\.(jsx|js|ts|tsx)$/.test(p))
+  .filter((p) => p.startsWith("src/"))
   .sort();
-const changedSet = getChangedSet();
+const { changed: changedSet, added: addedSet } = getChangeSets();
 const untrackedSet = getUntrackedSet();
 
 const inventaris = [];
@@ -63,7 +72,7 @@ for (const f of semuaSrc) {
   let status, isi = null;
   try {
     isi = readFileSync(path.join(ROOT, f), "utf8");
-    if (untrackedSet.has(f)) { status = "NEW"; baru++; }
+    if (untrackedSet.has(f) || addedSet.has(f)) { status = "NEW"; baru++; }
     else if (changedSet.has(f)) { status = "CHANGED"; changed++; }
     else { status = "VERIFIED"; verified++; }
   } catch {
@@ -71,7 +80,7 @@ for (const f of semuaSrc) {
   }
   inventaris.push({ file: f, status, isi });
 }
-const unverified = 0; // direpresentasikan bila walk gagal, saat ini 0
+const unverified = inventaris.filter(({ status }) => status === "UNVERIFIED").length;
 
 // ── Helper deteksi ───────────────────────────────────────────────────
 const PENGECUALIAN_SIDEBAR = new Set(["src/components/ui/sidebar.jsx"]);
@@ -145,6 +154,7 @@ for (const { file, status, isi } of inventaris) {
       // Untuk DashboardAkun, title native tidak ada, jadi aman.
     }
   }
+  if (!/\.(jsx|js|ts|tsx|mjs|cjs|html|svg)$/.test(file)) continue;
   const native = findNativeTitleViolations(file, isi);
   const prim = findPrimitiveViolations(file, isi);
   temuan.push(...native, ...prim);
@@ -318,18 +328,20 @@ const ujiBrowser = baca("tests/e2e/analisa-tooltip.spec.js");
 assert.match(ujiBrowser, /data-slot="tooltip-arrow"/, "Uji browser harus memverifikasi elemen panah Radix");
 
 // ── Keputusan akhir berbasis inventaris ────────────────────────────
-// Inventaris 32 title native di luar kontrak inti adalah tech-debt
-// truncation (LatihanRepertoar, ManusiaVsMesin, Galeri dll.) — dilaporkan
-// sebagai WARN agar tidak memerahkan CI sebelum migrasi bertahap.
-// FAIL hanya bila kontrak inti gagal (assert di atas sudah exit 1).
-if (readError > 0) {
-  console.error(`INCOMPLETE: ${readError} file READ_ERROR — pemindaian tidak lengkap.`);
+if (readError > 0 || unverified > 0) {
+  console.error(`INCOMPLETE: ${readError} READ_ERROR, ${unverified} UNVERIFIED — pemindaian tidak lengkap.`);
   process.exit(2);
 }
-if (temuan.length > 0) {
-  console.warn(`WARN: ${temuan.length} title native di luar kontrak inti terdeteksi (truncation/legacy) — dicatat untuk migrasi bertahap, tidak gagalkan CI.`);
-  // Tidak exit 1 di sini — kontrak inti sudah dijaga assert di atas.
+const temuanBerubah = temuan.filter(({ file }) => changedSet.has(file));
+const temuanLegacy = temuan.filter(({ file }) => !changedSet.has(file));
+if (temuanBerubah.length > 0) {
+  console.error(`FAIL: ${temuanBerubah.length} temuan tooltip pada file yang diubah oleh PR:`);
+  for (const t of temuanBerubah) console.error(`  - ${t.file}:${t.line} [${t.kategori}] ${t.snippet}`);
+  process.exit(1);
+}
+if (temuanLegacy.length > 0) {
+  console.warn(`WARN: ${temuanLegacy.length} temuan tooltip lama pada file yang tidak diubah PR; dicatat sebagai pekerjaan migrasi terpisah.`);
 }
 
-console.log("OK — tooltip Radix dipakai komponen bersama, Analisa, dan Teka-Teki; mesin global dihapus dan panah diuji.");
-console.log(`Inventaris: ${verified} VERIFIED, ${changed} CHANGED, ${baru} NEW — semua file src/ berhasil dipindai.`);
+console.log("OK — kontrak tooltip pusat lulus; seluruh file src/ telah diinventarisasi dan file PR yang berubah bebas dari temuan native/primitive.");
+console.log(`Inventaris src/: ${semuaSrc.length} file | ${verified} VERIFIED | ${changed} CHANGED | ${baru} NEW | ${readError} READ_ERROR | ${unverified} UNVERIFIED.`);

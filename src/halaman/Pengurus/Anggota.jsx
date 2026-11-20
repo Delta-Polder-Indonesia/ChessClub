@@ -354,22 +354,25 @@ export default function PanelAnggota({
                               target="_blank"
                               rel="noopener noreferrer"
                               className="truncate text-sm font-medium text-slate-900 hover:underline min-w-0"
-                              title={`@${a.username}`}
                             >
                               @{a.username}
                             </a>
                             {kenaBanBaris && <span className="shrink-0"><LencanaBan /></span>}
                           </div>
-                          <p className="text-sm text-slate-500 truncate block max-w-[200px]" title={a.nama || a.panggilan || ""}>
-                            {a.nama || a.panggilan || "—"}
-                          </p>
+                          <TooltipLabel side="right" label={a.nama || a.panggilan || ""}>
+                            <p tabIndex={0} className="text-sm text-slate-500 truncate block max-w-[200px]">
+                              {a.nama || a.panggilan || "—"}
+                            </p>
+                          </TooltipLabel>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell className="p-3 w-[140px] min-w-[120px] max-w-[160px] overflow-hidden">
-                      <p className="text-sm text-slate-600 truncate" title={a.kota || ""}>
-                        {a.kota || "—"}
-                      </p>
+                      <TooltipLabel side="right" label={a.kota || ""}>
+                        <p tabIndex={0} className="text-sm text-slate-600 truncate">
+                          {a.kota || "—"}
+                        </p>
+                      </TooltipLabel>
                     </TableCell>
                     <TableCell className="p-3">
                       {a.elo ? (
