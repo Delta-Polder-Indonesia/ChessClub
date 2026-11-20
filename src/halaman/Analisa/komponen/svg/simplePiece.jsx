@@ -1,6 +1,7 @@
 /* Port dari Brilliant-Chess (MIT, © 2025 Delo) — jangan sunting massal tanpa cek README. */
 import { BISHOP, KNIGHT, PAWN, QUEEN, ROOK, WHITE } from "chess.js";
 import { getPropsDataset } from "./getPropsDataset.js";
+import { TooltipLabel } from "../../../../components/ui/tooltip.jsx";
 function Pawn({ color, size }) {
   return <svg
     fill={color === WHITE ? "#ffffff" : "#000000"}
@@ -107,7 +108,7 @@ function Queen({ color, size }) {
 function SimplePieceSVG({ piece, color, size, dataset, className, style, draggable, title }) {
   const propsDataset = getPropsDataset(dataset ?? {});
   const pieceProps = { color, size };
-  return <div title={title} draggable={draggable} {...propsDataset} className={className} style={style}>
+  return <TooltipLabel label={title}><div draggable={draggable} {...propsDataset} className={className} style={style}>
             {(() => {
     switch (piece) {
       case PAWN:
@@ -122,7 +123,7 @@ function SimplePieceSVG({ piece, color, size, dataset, className, style, draggab
         return <Queen {...pieceProps} />;
     }
   })()}
-        </div>;
+        </div></TooltipLabel>;
 }
 export {
   SimplePieceSVG as default

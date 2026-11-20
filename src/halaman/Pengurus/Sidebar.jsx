@@ -10,7 +10,7 @@
 
 import { useState } from "react";
 import { MENU_SIDEBAR } from "./SidebarData.js";
-import { TooltipLabel } from "./ui.jsx";
+import { TooltipLabel } from "@/components/ui/tooltip.jsx";
 
 export default function Sidebar({ tab, setTab, terbuka, halamanEbook, onPilihEbook }) {
   const [bukaSub, setBukaSub] = useState({});
@@ -40,7 +40,7 @@ export default function Sidebar({ tab, setTab, terbuka, halamanEbook, onPilihEbo
 
           return (
             <div key={kunci}>
-              <TooltipLabel label={terbuka ? undefined : label}>
+              <TooltipLabel side="right" label={terbuka ? undefined : label}>
                 <button
                   type="button"
                   onClick={() => {

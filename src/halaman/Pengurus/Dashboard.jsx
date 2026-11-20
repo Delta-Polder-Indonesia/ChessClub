@@ -23,7 +23,8 @@ import DropdownPesan from "./DropdownPesan.jsx";
 import Mail from "../Analisa/komponen/svg/mail.jsx";
 import DropdownProfil from "./DropdownProfil.jsx";
 import RingkasanDashboard from "./RingkasanDashboard.jsx";
-import { KotakGalatMuat, SkeletonTabel, TooltipLabel } from "./ui.jsx";
+import { KotakGalatMuat, SkeletonTabel } from "./ui.jsx";
+import { TooltipLabel } from "@/components/ui/tooltip.jsx";
 import Marquee from "../../components/ui/marquee.jsx";
 
 // Judul header mengikuti menu sidebar yang sedang aktif (kunci → label),
@@ -416,7 +417,7 @@ export default function Dashboard() {
       <header className="bg-white border-b border-slate-200 px-6 py-3 shrink-0">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-4">
-            <TooltipLabel label={sidebarTerbuka ? "Tutup sidebar" : "Buka sidebar"}>
+            <TooltipLabel side="right" label={sidebarTerbuka ? "Tutup sidebar" : "Buka sidebar"}>
               <button onClick={() => setSidebarTerbuka((s) => !s)}
                 className="p-2 rounded-md hover:bg-slate-100 transition-colors duration-150">
               {sidebarTerbuka ? (
@@ -451,7 +452,7 @@ export default function Dashboard() {
           <div className="flex items-center gap-2">
             {/* Lonceng notifikasi */}
             <div className="relative" ref={notifRef}>
-              <TooltipLabel label="Notifikasi pesan masuk">
+              <TooltipLabel side="right" label="Notifikasi pesan masuk">
                 <button onClick={() => { setMenuProfile(false); setMenuPesan(false); setMenuNotif((v) => !v); }}
                   className="relative p-2 rounded-md hover:bg-slate-100 transition-colors duration-150"
                   aria-haspopup="true" aria-expanded={menuNotif}>
@@ -473,7 +474,7 @@ export default function Dashboard() {
 
             {/* Amplop pesan masuk */}
             <div className="relative" ref={pesanRef}>
-              <TooltipLabel label="Pesan masuk">
+              <TooltipLabel side="right" label="Pesan masuk">
                 <button onClick={() => { setMenuProfile(false); setMenuNotif(false); setMenuPesan((v) => !v); }}
                 className="relative p-2 rounded-md hover:bg-slate-100 transition-colors duration-150"
                 aria-haspopup="true" aria-expanded={menuPesan}>
@@ -492,7 +493,7 @@ export default function Dashboard() {
 
             {/* Profil + dropdown */}
             <div className="relative" ref={profileRef}>
-              <TooltipLabel label={pengguna ? `Masuk sebagai ${pengguna}` : ""}>
+              <TooltipLabel side="right" label={pengguna ? `Masuk sebagai ${pengguna}` : ""}>
                 <button onClick={() => setMenuProfile((v) => !v)}
                   aria-label={pengguna ? `Masuk sebagai ${pengguna}` : "Profil pengurus"}
                   className="flex items-center gap-3 rounded-md px-2 py-1.5 hover:bg-slate-100 transition-colors duration-150 focus:outline-none">

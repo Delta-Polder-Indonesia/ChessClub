@@ -24,4 +24,4 @@
 @import "./tab.css";
 @import "./toast.css";
 @import "./toggle.css";
-@import "../tooltip.css";
+/* tooltip.css dimuat satu kali dari src/index.css untuk dipakai lintas aplikasi. */

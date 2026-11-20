@@ -1,8 +1,8 @@
 /* Port dari Brilliant-Chess (MIT, © 2025 Delo) — jangan sunting massal tanpa cek README. */
+import { TooltipLabel } from "../../../../components/ui/tooltip.jsx";
 function SkipGame(props) {
-  return <svg
+  return <TooltipLabel label={props.title}><svg
     onClick={props.click}
-    title={props.title}
     aria-label={props.title}
     className={props.class}
     version="1.1"
@@ -58,7 +58,7 @@ function SkipGame(props) {
                </g>
             </g>
          </g>
-      </svg>;
+      </svg></TooltipLabel>;
 }
 export {
   SkipGame as default

@@ -1,7 +1,6 @@
-/* Tooltip bersama (Radix): palet gelap netral dan panah mengikuti sisi
-   yang dihitung otomatis oleh Popper. State tampil/sembunyi dikelola Radix. */
+/* Gaya tooltip UI bersama Radix; panah CSS khusus dipakai tooltip data pada grafik. */
 .aegov-tooltip {
-  --tooltip-bg: #0F172A;
+  --tooltip-bg: #2E333A;
   --tooltip-fg: #F8FAFC;
 
   max-width: min(24rem, calc(100vw - 1.5rem));

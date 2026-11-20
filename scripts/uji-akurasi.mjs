@@ -381,10 +381,22 @@ hasil("ply tanpa eval → akurasi null, bukan 0", acc(PLY_TANPA_EVAL) === null, 
     "tanpa NaN di panel meski ada ply tanpa eval & FEN rusak",
     teks.includes("97.8") && teks.includes("96.4") && !teks.includes("NaN")
   );
+  const pemicuAkurasi = [...el.querySelectorAll('[data-slot="tooltip-trigger"]')].find(
+    (pemicu) => pemicu.textContent.trim() === "Akurasi"
+  );
+  if (pemicuAkurasi) {
+    await act(async () => {
+      pemicuAkurasi.focus();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+  }
+  const tooltipMetode = [...document.querySelectorAll('[role="tooltip"]')].some(
+    (node) => /win chance/.test(node.textContent)
+  );
   hasil(
-    "label baris Akurasi menerangkan metodenya lewat title",
-    Boolean(el.querySelector('[title*="win chance"]')),
-    "title tidak memuat keterangan metode"
+    "label baris Akurasi menerangkan metodenya lewat TooltipLabel",
+    tooltipMetode,
+    "konten TooltipLabel tidak muncul setelah pemicu menerima fokus"
   );
 }
 
@@ -453,20 +465,25 @@ console.log("\n== GameRating: rating per fase ==");
     endgame: { w: [90], b: [] }, // <3 langkah → "-"
   };
   const n = renderRating({ w: 91.7, b: 37.5 }, phases);
-  const judul = [...n.querySelectorAll("[title]")].map((x) => x.getAttribute("title"));
+  const labelFase = [...n.querySelectorAll('[data-slot="tooltip-trigger"][role="img"]')]
+    .map((pemicu) => pemicu.getAttribute("aria-label"));
   hasil(
-    'fase pembukaan putih: judul "Pembukaan: akurasi 90.0%"',
-    judul.some((t) => t === "Pembukaan: akurasi 90.0%"),
-    JSON.stringify(judul)
+    'fase pembukaan putih: label aksesibel "Pembukaan: akurasi 90.0%"',
+    labelFase.includes("Pembukaan: akurasi 90.0%"),
+    JSON.stringify(labelFase)
   );
   hasil(
-    'fase pembukaan hitam: judul "Pembukaan: akurasi 37.5%"',
-    judul.some((t) => t === "Pembukaan: akurasi 37.5%")
+    'fase pembukaan hitam: label aksesibel "Pembukaan: akurasi 37.5%"',
+    labelFase.includes("Pembukaan: akurasi 37.5%"),
+    JSON.stringify(labelFase)
+  );
+  const fasePendek = n.querySelectorAll(
+    '[data-slot="tooltip-trigger"][aria-label="Belum cukup langkah untuk menilai fase ini."]'
   );
   hasil(
-    "4 fase pendek (tengah/akhir, 2 warna) → ikon '-'",
-    n.querySelectorAll('span[title="Belum cukup langkah untuk menilai fase ini."]').length === 4,
-    `dapat ${n.querySelectorAll('span[title="Belum cukup langkah untuk menilai fase ini."]').length}`
+    "4 fase pendek (tengah/akhir, 2 warna) → ikon '-' dengan label aksesibel",
+    fasePendek.length === 4 && [...fasePendek].every((pemicu) => pemicu.textContent.trim() === "-"),
+    `dapat ${fasePendek.length}`
   );
 }
 

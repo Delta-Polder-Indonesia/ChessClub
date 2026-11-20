@@ -1,5 +1,6 @@
 /* Port dari Brilliant-Chess (MIT, © 2025 Delo) — jangan sunting massal tanpa cek README. */
 import { getPropsDataset } from "./getPropsDataset.js";
+import { TooltipLabel } from "../../../../components/ui/tooltip.jsx";
 function Brilliant({ size }) {
   return <svg
     width={size}
@@ -1238,7 +1239,7 @@ function Forced({ size }) {
 function RatingSVG({ rating, size, dataset, draggable, className, style, title }) {
   const propsDataset = getPropsDataset(dataset ?? {});
   const ratingProps = { size };
-  return <div title={title} draggable={draggable} {...propsDataset} className={className} style={style}>
+  return <TooltipLabel label={title}><div draggable={draggable} {...propsDataset} data-rating-icon={rating === "critical" ? "best" : rating} className={className} style={style}>
             {(() => {
     switch (rating) {
       case "brilliant":
@@ -1274,7 +1275,7 @@ function RatingSVG({ rating, size, dataset, draggable, className, style, title }
         return <Forced {...ratingProps} />;
     }
   })()}
-        </div>;
+        </div></TooltipLabel>;
 }
 export {
   RatingSVG as default

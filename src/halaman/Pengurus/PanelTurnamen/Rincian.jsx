@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { apiPengurus } from "../../../lib/api/index.js";
-import { Tombol, Bidang, Modal, SkeletonTabel, TooltipLabel } from "../ui.jsx";
+import { Tombol, Bidang, Modal, SkeletonTabel } from "../ui.jsx";
+import { TooltipLabel } from "@/components/ui/tooltip.jsx";
 import { Lencana } from "./Lencana.jsx";
 import { LABEL_STATUS, akunMasihBaru } from "./bagianData.js";
 
@@ -468,7 +469,7 @@ export default function RincianTurnamen({ id, jenis, beriTahu, onTutup, onBeruba
                       </a>
                     </td>
                     <td>
-                      <TooltipLabel label="Keluarkan peserta">
+                      <TooltipLabel side="right" label="Keluarkan peserta">
                         <button
                           type="button"
                           aria-label={`Keluarkan ${p.panggilan || p.username}`}
@@ -599,7 +600,7 @@ export default function RincianTurnamen({ id, jenis, beriTahu, onTutup, onBeruba
                       </td>
                       <td className="text-slate-800">{h.hitam}</td>
                       <td>
-                        <TooltipLabel label="Hapus hasil">
+                        <TooltipLabel side="right" label="Hapus hasil">
                           <button
                             type="button"
                             aria-label={`Hapus hasil partai ${i + 1}`}
@@ -662,7 +663,7 @@ export default function RincianTurnamen({ id, jenis, beriTahu, onTutup, onBeruba
                     <td className="font-medium text-slate-800">
                       {k.panggilan}
                       {!k.resmi && (
-                        <TooltipLabel label="Belum memenuhi minimal partai">
+                        <TooltipLabel side="right" label="Belum memenuhi minimal partai">
                           <span
                             aria-label="Belum memenuhi minimal partai"
                             className="ml-1 inline-flex h-4 w-4 cursor-help items-center justify-center rounded-full border border-black align-middle text-[10px] font-bold text-black"

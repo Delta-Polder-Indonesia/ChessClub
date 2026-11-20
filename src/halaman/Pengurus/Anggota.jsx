@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { apiPengurus } from "../../lib/api/index.js";
 import { LencanaBan } from "../../components/Lencana.jsx";
-import { Tombol, Avatar, Modal, MenuAksi, TooltipLabel } from "./ui.jsx";
+import { Tombol, Avatar, Modal, MenuAksi } from "./ui.jsx";
+import { TooltipLabel } from "@/components/ui/tooltip.jsx";
 import {
   Table,
   TableBody,
@@ -353,22 +354,25 @@ export default function PanelAnggota({
                               target="_blank"
                               rel="noopener noreferrer"
                               className="truncate text-sm font-medium text-slate-900 hover:underline min-w-0"
-                              title={`@${a.username}`}
                             >
                               @{a.username}
                             </a>
                             {kenaBanBaris && <span className="shrink-0"><LencanaBan /></span>}
                           </div>
-                          <p className="text-sm text-slate-500 truncate block max-w-[200px]" title={a.nama || a.panggilan || ""}>
-                            {a.nama || a.panggilan || "—"}
-                          </p>
+                          <TooltipLabel side="right" label={a.nama || a.panggilan || ""}>
+                            <p tabIndex={a.nama || a.panggilan ? 0 : undefined} className="text-sm text-slate-500 truncate block max-w-[200px]">
+                              {a.nama || a.panggilan || "—"}
+                            </p>
+                          </TooltipLabel>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell className="p-3 w-[140px] min-w-[120px] max-w-[160px] overflow-hidden">
-                      <p className="text-sm text-slate-600 truncate" title={a.kota || ""}>
-                        {a.kota || "—"}
-                      </p>
+                      <TooltipLabel side="right" label={a.kota || ""}>
+                        <p tabIndex={a.kota ? 0 : undefined} className="text-sm text-slate-600 truncate">
+                          {a.kota || "—"}
+                        </p>
+                      </TooltipLabel>
                     </TableCell>
                     <TableCell className="p-3">
                       {a.elo ? (
@@ -386,7 +390,7 @@ export default function PanelAnggota({
                           </span>
                           {a.peringatan && (
                             <p className="mt-0.5 text-xs text-slate-500 max-w-[200px] truncate">
-                              <TooltipLabel label={a.peringatan}>{a.peringatan}</TooltipLabel>
+                              <TooltipLabel side="right" label={a.peringatan}>{a.peringatan}</TooltipLabel>
                             </p>
                           )}
                         </div>

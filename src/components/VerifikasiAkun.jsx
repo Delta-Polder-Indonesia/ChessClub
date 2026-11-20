@@ -32,6 +32,7 @@ import {
   TriangleAlert,
 } from "lucide-react";
 import { Button } from "./ui/button.jsx";
+import { TooltipLabel } from "./ui/tooltip.jsx";
 import {
   ajukanVerifikasiManual,
   mulaiLoginChessCom,
@@ -331,34 +332,40 @@ export default function VerifikasiAkun({
                 kode || t("verifikasi.kodeBelumTersedia")
               )}
             </code>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={handleSalin}
-              disabled={!kode}
-              aria-label={t("verifikasi.salinKodeVerifikasi")}
-              title={t("verifikasi.salinKode")}
-            >
-              {sudahDisalin ? (
-                <Check className="h-4 w-4 text-emerald-600" aria-hidden="true" />
-              ) : (
-                <Copy className="h-4 w-4" aria-hidden="true" />
-              )}
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => {
-                setPesan("");
-                setPercobaan(0);
-                mintaUlangKode({ paksa: true });
-              }}
-              disabled={status === MEMBUAT}
-              aria-label={t("verifikasi.buatKodeBaru")}
-              title={t("verifikasi.buatKodeBaru")}
-            >
-              <RefreshCw className="h-4 w-4" aria-hidden="true" />
-            </Button>
+            <TooltipLabel label={t("verifikasi.salinKode")}>
+              <span className="inline-flex">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={handleSalin}
+                  disabled={!kode}
+                  aria-label={t("verifikasi.salinKodeVerifikasi")}
+                >
+                  {sudahDisalin ? (
+                    <Check className="h-4 w-4 text-emerald-600" aria-hidden="true" />
+                  ) : (
+                    <Copy className="h-4 w-4" aria-hidden="true" />
+                  )}
+                </Button>
+              </span>
+            </TooltipLabel>
+            <TooltipLabel label={t("verifikasi.buatKodeBaru")}>
+              <span className="inline-flex">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => {
+                    setPesan("");
+                    setPercobaan(0);
+                    mintaUlangKode({ paksa: true });
+                  }}
+                  disabled={status === MEMBUAT}
+                  aria-label={t("verifikasi.buatKodeBaru")}
+                >
+                  <RefreshCw className="h-4 w-4" aria-hidden="true" />
+                </Button>
+              </span>
+            </TooltipLabel>
           </div>
         </div>
 

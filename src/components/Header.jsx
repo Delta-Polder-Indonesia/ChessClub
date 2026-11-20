@@ -108,7 +108,6 @@ function NavItemDesktop({ item, onNavigate, scrolled, pathname, kanan = false })
     >
       <Link
         to={item.path}
-        title={judul}
         aria-haspopup={item.children ? "menu" : undefined}
         aria-expanded={item.children ? terbuka : undefined}
         onFocus={() => item.children && setTerbuka(true)}
@@ -152,7 +151,6 @@ function NavItemDesktop({ item, onNavigate, scrolled, pathname, kanan = false })
               <div className={`${item.kolom ? "px-4 py-2.5" : "px-6 py-2"} w-full border-0 border-l-4 border-solid border-white hover:border-slate-800 transition-all duration-200 ease-in-out flex items-center justify-between gap-2`}>
                 <Link
                   to={child.path}
-                  title={t(child.title)}
                   onClick={() => {
                     onNavigate();
                     tutupSemua();
@@ -188,7 +186,6 @@ function NavItemDesktop({ item, onNavigate, scrolled, pathname, kanan = false })
                     >
                       <Link
                         to={subchild.path}
-                        title={t(subchild.title)}
                         onClick={() => {
                           onNavigate();
                           tutupSemua();
@@ -245,7 +242,6 @@ function MobileDrawer({ open, onClose, onNavigate, pemicu }) {
               <div className="flex items-center justify-between py-4">
                 <Link
                   to={item.path}
-                  title={t(item.title)}
                   onClick={() => {
                     onNavigate();
                     onClose();
@@ -276,7 +272,6 @@ function MobileDrawer({ open, onClose, onNavigate, pemicu }) {
                       <div className="flex items-center border-l-4 border-solid border-white hover:border-slate-800 transition-all duration-200">
                         <Link
                           to={child.path}
-                          title={t(child.title)}
                           onClick={() => {
                             onNavigate();
                             onClose();
@@ -308,7 +303,6 @@ function MobileDrawer({ open, onClose, onNavigate, pemicu }) {
                             <li key={subchild.title}>
                               <Link
                                 to={subchild.path}
-                                title={t(subchild.title)}
                                 onClick={() => {
                                   onNavigate();
                                   onClose();
@@ -331,7 +325,7 @@ function MobileDrawer({ open, onClose, onNavigate, pemicu }) {
         <ul className="flex flex-col gap-4 text-sm text-slate-700">
           {MENU_ATAS.map((l) => (
             <li key={l.title}>
-              <Link to={l.path} title={t(l.title)} onClick={onClose} className="block py-1.5">
+              <Link to={l.path} onClick={onClose} className="block py-1.5">
                 {t(l.title)}
               </Link>
             </li>
@@ -344,7 +338,6 @@ function MobileDrawer({ open, onClose, onNavigate, pemicu }) {
         </ul>
         <Link
           to="/pendaftaran-anggota"
-          title={t("common.daftarAnggota")}
           onClick={onClose}
           className="btn-registrasi text-center text-xs rounded-full px-4 py-2 border border-solid border-slate-800 text-slate-800"
         >
@@ -459,7 +452,6 @@ function TombolBahasa({ warna = "text-white" }) {
   return (
     <button
       type="button"
-      title={t("common.pilihBahasa")}
       aria-label={`${t("common.pilihBahasa")}, ${bahasa.toUpperCase()}`}
       onClick={() => setBahasa(bahasa === "en" ? "id" : "en")}
       className={`bg-transparent border-0 flex items-center gap-2 py-1.5 text-xs ${warna} cursor-pointer`}
@@ -516,7 +508,6 @@ export default function Header() {
               sudah menjadi nama akses elemen ini secara otomatis. */}
           <Link
             to="/"
-            title="Logo Komunitas Catur Indonesia"
             className="flex-none flex items-center gap-4 md:gap-6"
           >
             <Logo
@@ -538,7 +529,6 @@ export default function Header() {
                     <li key={l.title} className="py-2">
                       <Link
                         to={l.path}
-                        title={t(l.title)}
                         className="text-sm hover:text-blue-400 transition-colors duration-200"
                       >
                         {t(l.title)}
@@ -550,7 +540,6 @@ export default function Header() {
               <li>
                 <Link
                   to="/pendaftaran-anggota"
-                  title={t("common.daftarAnggota")}
                   className="btn-registrasi text-xs rounded-full px-4 py-2 border border-solid border-slate-200 hover:border-slate-800 hover:bg-slate-800 transition-all duration-100 ease-in-out hover:text-white text-white"
                 >
                   {t("common.daftarAnggota")}

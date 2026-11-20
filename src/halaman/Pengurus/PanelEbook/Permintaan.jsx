@@ -7,7 +7,8 @@ import {
   TableHeader,
   TableRow,
 } from "../../../components/ui/table.jsx";
-import { MenuAksi, TooltipLabel } from "../ui.jsx";
+import { MenuAksi } from "../ui.jsx";
+import { TooltipLabel } from "@/components/ui/tooltip.jsx";
 import { Check, X } from "lucide-react";
 
 /**
@@ -73,7 +74,7 @@ export default function EbookPermintaan({ minta, cariMinta, onCariMinta, sibuk, 
                   <TableCell className="font-medium text-slate-900">{m.nama}</TableCell>
                   <TableCell>{tautanAkun(m.akunChess)}</TableCell>
                   <TableCell className="max-w-[200px] truncate text-xs text-slate-500">
-                    <TooltipLabel label={m.judul || ""}>
+                    <TooltipLabel side="right" label={m.judul || ""}>
                       {m.judul || "—"}
                     </TooltipLabel>
                   </TableCell>

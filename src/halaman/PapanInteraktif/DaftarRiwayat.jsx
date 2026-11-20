@@ -16,6 +16,7 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import RatingSVG from "../Analisa/komponen/svg/rating.jsx";
+import { TooltipLabel } from "../../components/ui/tooltip.jsx";
 import PratinjauLangkah from "./PratinjauLangkah.jsx";
 
 const UKURAN_PRATINJAU = 250;
@@ -24,12 +25,11 @@ const UKURAN_PRATINJAU = 250;
 function IkonRating({ rating, t }) {
   if (!rating) return null;
   return (
-    <span
-      className="ml-0.5 inline-flex shrink-0 self-center"
-      title={t ? t(`analisa.penilaian.${rating}`) : undefined}
-    >
-      <RatingSVG rating={rating} size={13} />
-    </span>
+    <TooltipLabel label={t ? t(`analisa.penilaian.${rating}`) : undefined}>
+      <span className="ml-0.5 inline-flex shrink-0 self-center">
+        <RatingSVG rating={rating} size={13} />
+      </span>
+    </TooltipLabel>
   );
 }
 

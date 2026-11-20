@@ -5,6 +5,7 @@
 import { useEffect, useState } from "react";
 import { Clapperboard, ExternalLink, MonitorPlay } from "lucide-react";
 import { useI18n } from "../../../lib/i18n.jsx";
+import { TooltipLabel } from "../../../components/ui/tooltip.jsx";
 import { tanggalVideoSah, tautanSumberVideo, urlVideoSah } from "../services/videoAman.js";
 
 export default function PanelVideo({
@@ -65,14 +66,14 @@ export default function PanelVideo({
                   {(videoJudulSoal || videoTurnamen) && (
                     <div className="rounded-md border border-[#312e2b] bg-[#1e1c18] px-3 py-2 space-y-0.5">
                       {videoJudulSoal && (
-                        <p className="text-xs font-semibold text-white truncate" title={videoJudulSoal}>
-                          {videoJudulSoal}
-                        </p>
+                        <TooltipLabel label={videoJudulSoal}>
+                          <p tabIndex={0} className="text-xs font-semibold text-white truncate">{videoJudulSoal}</p>
+                        </TooltipLabel>
                       )}
                       {videoTurnamen && (
-                        <p className="text-xs text-gray-400 truncate" title={videoTurnamen}>
-                          {videoTurnamen}
-                        </p>
+                        <TooltipLabel label={videoTurnamen}>
+                          <p tabIndex={0} className="text-xs text-gray-400 truncate">{videoTurnamen}</p>
+                        </TooltipLabel>
                       )}
                     </div>
                   )}

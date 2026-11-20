@@ -5,6 +5,7 @@
 import React from "react";
 import { useI18n } from "../../../lib/i18n.jsx";
 import { ChessPiece } from "../../../components/chess/ChessPiece.jsx";
+import { TooltipLabel } from "../../../components/ui/tooltip.jsx";
 
 export default function PanelUtama({
   memuat = false,
@@ -51,7 +52,9 @@ export default function PanelUtama({
               ) : teksPembukaan ? (
                 <div className="flex-shrink-0 min-w-0 border-b border-[#312e2b] bg-[#1e1c18] px-4 py-2 flex items-baseline gap-2">
                   <span className="text-[10px] font-semibold text-gray-300 uppercase tracking-wider flex-shrink-0">{t("papan.pembukaan")}</span>
-                  <span className="text-[11px] font-medium text-gray-300 truncate min-w-0" title={teksPembukaan}>{teksPembukaan}</span>
+                  <TooltipLabel label={teksPembukaan}>
+                    <span tabIndex={0} className="text-[11px] font-medium text-gray-300 truncate min-w-0">{teksPembukaan}</span>
+                  </TooltipLabel>
                 </div>
               ) : null}
 

@@ -1,7 +1,7 @@
 /* Port dari Brilliant-Chess (MIT, © 2025 Delo) — jangan sunting massal tanpa cek README. */
+import { TooltipLabel } from "../../../../components/ui/tooltip.jsx";
 function Play(props) {
-  return <svg
-    title={props.title}
+  return <TooltipLabel label={props.title}><svg
     aria-label={props.title}
     onClick={props.click}
     className={props.class}
@@ -17,7 +17,7 @@ function Play(props) {
 			c17.632-12.152,27.3-28.508,27.296-46.076C383.414,229.456,373.594,213.1,355.938,200.956z" />
 				</g>
 			</g>
-		</svg>;
+		</svg></TooltipLabel>;
 }
 export {
   Play as default

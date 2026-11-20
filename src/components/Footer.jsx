@@ -61,7 +61,6 @@ export default function Footer() {
                   <img
                     src={s.src}
                     alt={s.name}
-                    title={s.name}
                     width={160}
                     height={40}
                     className="h-8 md:h-10 w-auto object-contain"
@@ -106,7 +105,6 @@ export default function Footer() {
                 href={s.href}
                 target="_blank"
                 rel="noreferrer noopener"
-                title={s.name}
                 aria-label={s.name}
                 className="inline-flex items-center justify-center min-w-12 h-12 rounded-full text-slate-700 hover:text-slate-800 transition-colors"
               >
@@ -148,7 +146,6 @@ export default function Footer() {
                 <Link
                   to={link.href}
                   className="py-1 text-slate-700 hover:text-slate-800 hover:underline font-medium md:py-0"
-                  title={link.title}
                 >
                   {link.title}
                 </Link>
@@ -156,7 +153,6 @@ export default function Footer() {
                 <a
                   href={link.href}
                   className="py-1 text-slate-700 hover:text-slate-800 hover:underline font-medium md:py-0"
-                  title={link.title}
                 >
                   {link.title}
                 </a>

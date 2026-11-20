@@ -548,6 +548,7 @@ function pasangDomBaru(jalur, bahasa) {
 
   globalThis.window = window;
   globalThis.document = dok;
+  globalThis.getComputedStyle = window.getComputedStyle.bind(window);
   globalThis.localStorage = window.localStorage;
   globalThis.fetch = window.fetch;
   if (!globalThis.navigator) globalThis.navigator = window.navigator;

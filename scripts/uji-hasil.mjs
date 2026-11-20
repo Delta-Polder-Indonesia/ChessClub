@@ -276,9 +276,13 @@ function isiSelFase(baris, sisi) {
   const sel = Array.from(baris.querySelectorAll("div.flex.items-center.justify-center"));
   const d = sel[sisi];
   if (!d) return null;
-  const ikon = d.querySelector("div[title]");
-  const strip = d.querySelector("span");
-  return { adaIkon: Boolean(ikon), judul: ikon?.getAttribute("title") ?? null, strip: strip?.textContent ?? null };
+  const ikon = d.querySelector('[role="img"][aria-label]');
+  const strip = d.querySelector("span[aria-label]");
+  return {
+    adaIkon: Boolean(ikon),
+    judul: ikon?.getAttribute("aria-label") ?? null,
+    strip: strip?.textContent ?? null,
+  };
 }
 const fPembukaan = isiSelFase(barisFase("analisa.ringkasan.pembukaan"), 0);
 const fPembukaanH = isiSelFase(barisFase("analisa.ringkasan.pembukaan"), 1);

@@ -4,7 +4,8 @@ import {
   hapusRiwayatMasuk,
   bersihkanRiwayatMasuk,
 } from "../../lib/api/index.js";
-import { Tombol, Modal, Avatar, KotakGalatMuat, SkeletonTabel, TooltipLabel } from "./ui.jsx";
+import { Tombol, Modal, Avatar, KotakGalatMuat, SkeletonTabel } from "./ui.jsx";
+import { TooltipLabel } from "@/components/ui/tooltip.jsx";
 import TabelData from "./TabelData.jsx";
 
 /* ========================================================
@@ -338,7 +339,7 @@ export default function PanelRiwayatMasuk({ beriTahu }) {
         id: "perangkat",
         header: "Perangkat",
         cell: (info) => (
-          <TooltipLabel label={info.row.original.userAgent || info.getValue()}>
+          <TooltipLabel side="right" label={info.row.original.userAgent || info.getValue()}>
             <span
               className="block max-w-[160px] truncate text-xs text-slate-600"
             >
@@ -363,7 +364,7 @@ export default function PanelRiwayatMasuk({ beriTahu }) {
         enableSorting: false,
         enableHiding: false,
         cell: ({ row }) => (
-          <TooltipLabel label="Hapus entri riwayat ini">
+          <TooltipLabel side="right" label="Hapus entri riwayat ini">
             <Tombol
               anak="Hapus"
               kecil

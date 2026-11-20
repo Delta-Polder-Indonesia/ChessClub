@@ -29,7 +29,6 @@ export default function Hero({
           srcSet={foto.srcSet}
           sizes={foto.sizes}
           alt={imageAlt ?? judul}
-          title={judul}
           width={foto.width ?? 828}
           height={foto.height ?? 462}
           className="w-full h-full object-cover"
@@ -51,7 +50,7 @@ export default function Hero({
             <span key={`${c.label}-${i}`} className="flex items-center gap-2">
               {i > 0 && <span>/</span>}
               {c.to ? (
-                <Link to={c.to} title={c.label} className="hover:underline">
+                <Link to={c.to} className="hover:underline">
                   {c.label}
                 </Link>
               ) : (

@@ -217,6 +217,7 @@ function siapkanGlobal() {
 
   globalThis.window = window;
   globalThis.document = window.document;
+  globalThis.getComputedStyle = window.getComputedStyle.bind(window);
   globalThis.localStorage = window.localStorage;
   if (!globalThis.navigator) globalThis.navigator = window.navigator;
   globalThis.ResizeObserver = PengamatPalsu;
@@ -826,7 +827,7 @@ judul("lanjut otomatis berhenti saat pemain meninjau solusi");
   const soal = problems.find((p) => p.type === "Mate in One");
   // Aktifkan mode lanjut otomatis lewat tombol aksi.
   await bukaNomor(soal.problemid);
-  const tombolAuto = tombolJudul(kamus.lanjutOtomatis);
+  const tombolAuto = dok.querySelector('[data-aksi="toggle-otomatis"]');
   uji(
     "tombol lanjut otomatis ada dan mulai nonaktif",
     !!tombolAuto && tombolAuto.getAttribute("aria-pressed") === "false"
@@ -855,7 +856,7 @@ judul("lanjut otomatis berhenti saat pemain meninjau solusi");
     masihSoalSama,
     "papan berpindah ke soal lain"
   );
-  const tombolAuto2 = tombolJudul(kamus.lanjutOtomatis);
+  const tombolAuto2 = dok.querySelector('[data-aksi="toggle-otomatis"]');
   if (tombolAuto2?.getAttribute("aria-pressed") === "true") klikEl(tombolAuto2);
   await tunggu(60);
   uji(
