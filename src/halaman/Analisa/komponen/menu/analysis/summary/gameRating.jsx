@@ -51,7 +51,7 @@ function RatingIcon({ titleText, ratingPhase, t }) {
     return <TooltipLabel label={label}><span tabIndex={0} aria-label={label} className="text-sm text-foregroundGrey">-</span></TooltipLabel>;
   }
   const label = t("analisa.ringkasan.akurasiFase", { fase: titleText, angka: accuracy });
-  return <TooltipLabel label={label}><div title={label} tabIndex={0} role="img" aria-label={label} className="inline-flex"><RatingSVG draggable rating={rating} size={18} /></div></TooltipLabel>;
+  return <TooltipLabel label={label}><div tabIndex={0} role="img" aria-label={label} className="inline-flex"><RatingSVG draggable rating={rating} size={18} /></div></TooltipLabel>;
 }
 function GameRating(props) {
   const { accuracy, accuracyPhases, reducedSummary } = props;
