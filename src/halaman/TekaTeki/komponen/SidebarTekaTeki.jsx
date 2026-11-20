@@ -171,7 +171,8 @@ export default function SidebarTekaTeki({ kol }) {
                 </form>
                 <TooltipLabel label={t("tekaTeki.petunjuk")}>
                   <span tabIndex={0} aria-label={t("tekaTeki.petunjuk")} className="flex w-full">
-                    type="button"
+                    <button
+                      type="button"
                     onClick={kol.hint}
                     disabled={!kol.bisaHint}
                     className="w-full bg-[#363431] hover:bg-[#45423e] text-white font-semibold py-2.5 px-3 rounded-md text-sm transition flex items-center justify-center gap-2 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-[#363431]"
