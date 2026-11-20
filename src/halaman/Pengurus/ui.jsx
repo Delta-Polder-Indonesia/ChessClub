@@ -1,7 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { MoreHorizontal, Pencil, Trash2, X } from "lucide-react";
-import { TooltipLabel as TooltipLabelAsli } from "../../components/ui/tooltip.jsx";
 
 /**
  * Komponen kecil yang dipakai bersama oleh Dashboard dan PanelTurnamen.
@@ -494,17 +493,4 @@ export function NotifikasiError({ pesan, onCobaLagi, sibuk = false }) {
   );
 }
 
-/**
- * TooltipLabel — 1 pintu untuk semua tooltip di halaman pengurus.
- * Pakai komponen ini untuk mengganti atribut HTML `title` bawaan browser
- * yang tampilannya tidak konsisten di setiap halaman.
- *
- * Contoh pakai:
- *   <TooltipLabel label="Tutup sidebar">
- *     <button>...</button>
- *   </TooltipLabel>
- */
-export function TooltipLabel({ children, label, side = "right" }) {
-  if (!label) return children;
-  return <TooltipLabelAsli children={children} label={label} side={side} />;
-}
+
