@@ -1,7 +1,14 @@
+/**
+ * Satu pintu tooltip — API pusat untuk seluruh situs.
+ * Halaman/komponen harus pakai `TooltipLabel`; `Tooltip*` primitive hanya
+ * untuk `src/components/ui/sidebar.jsx` (SIDEBAR_EXCEPTION terukur karena
+ * butuh hidden+align pada collapsed state). Chart pakai Recharts Tooltip
+ * (`src/components/ui/chart.jsx`, `src/components/tools/GrafikTools.jsx`)
+ * sebagai CHART_EXCEPTION. Tidak ada title native di file ini.
+ */
 "use client"
 
 import * as TooltipPrimitive from "@radix-ui/react-tooltip"
-
 
 import { cn } from "@/lib/utils"
 
