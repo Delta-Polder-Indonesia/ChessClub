@@ -59,29 +59,33 @@ function getUntrackedSet() {
   }).trim();
   return new Set(out ? out.split("\n").map((s) => s.trim()).filter(Boolean) : []);
 }
+function getTrackedSet() {
+  const out = execSync("git ls-files -z", { cwd: ROOT, encoding: "utf8" });
+  return new Set(out.split("\0").map((s) => s.replaceAll("\\", "/")).filter(Boolean));
+}
 
 const semuaSrc = walk(SRC)
   .filter((p) => p.startsWith("src/"))
   .sort();
 const { changed: changedSet, added: addedSet } = getChangeSets();
 const untrackedSet = getUntrackedSet();
+const trackedSet = getTrackedSet();
 
 const inventaris = [];
-let verified = 0, changed = 0, baru = 0, readError = 0;
+let verified = 0, changed = 0, baru = 0, readError = 0, unverified = 0;
 for (const f of semuaSrc) {
   let status, isi = null;
   try {
     isi = readFileSync(path.join(ROOT, f), "utf8");
     if (untrackedSet.has(f) || addedSet.has(f)) { status = "NEW"; baru++; }
     else if (changedSet.has(f)) { status = "CHANGED"; changed++; }
-    else { status = "VERIFIED"; verified++; }
+    else if (trackedSet.has(f)) { status = "VERIFIED"; verified++; }
+    else { status = "UNVERIFIED"; unverified++; }
   } catch {
     status = "READ_ERROR"; readError++;
   }
   inventaris.push({ file: f, status, isi });
 }
-const unverified = inventaris.filter(({ status }) => status === "UNVERIFIED").length;
-
 // ── Helper deteksi ───────────────────────────────────────────────────
 const PENGECUALIAN_SIDEBAR = new Set(["src/components/ui/sidebar.jsx"]);
 const PENGECUALIAN_CHART = new Set([
