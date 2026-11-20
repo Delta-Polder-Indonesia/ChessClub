@@ -153,7 +153,6 @@ export default function Footer() {
                 <a
                   href={link.href}
                   className="py-1 text-slate-700 hover:text-slate-800 hover:underline font-medium md:py-0"
-                  title={link.title}
                 >
                   {link.title}
                 </a>
