@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { apiPengurus } from "../../lib/api/index.js";
-import { Tombol, Modal, Avatar, TooltipLabel } from "./ui.jsx";
+import { Tombol, Modal, Avatar } from "./ui.jsx";
+import { TooltipLabel } from "@/components/ui/tooltip.jsx";
 import {
   Table,
   TableBody,
@@ -323,7 +324,7 @@ export default function PanelLarangan({
                       </span>
                       {h.keterangan && (
                         <p className="mt-0.5 text-sm text-slate-500 max-w-[240px] truncate">
-                          <TooltipLabel label={h.keterangan}>{h.keterangan}</TooltipLabel>
+                          <TooltipLabel side="right" label={h.keterangan}>{h.keterangan}</TooltipLabel>
                         </p>
                       )}
                     </TableCell>
@@ -334,7 +335,7 @@ export default function PanelLarangan({
                     </TableCell>
                     <TableCell className="p-3">{formatTanggal(h.diblokirPada)}</TableCell>
                     <TableCell className="w-24 p-3">
-                      <TooltipLabel label="Cabut larangan">
+                      <TooltipLabel side="right" label="Cabut larangan">
                         <button
                           type="button"
                           onClick={() => setTargetBuka(h.username)}
