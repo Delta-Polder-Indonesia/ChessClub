@@ -185,10 +185,16 @@ export function pratinjauEbook({ akar = process.cwd() } = {}) {
     const kandidat = [urlStorageEbook(nama), urlGithubMediaEbook(nama)].filter(Boolean);
     for (const sumber of kandidat) {
       try {
+        // SSRF guard: hanya https + host publik
+        try {
+          const u = new URL(sumber);
+          if (!/^https:$/.test(u.protocol)) continue;
+          const h = u.hostname.toLowerCase();
+          if (h === "localhost" || h === "127.0.0.1" || /^10\./.test(h) || /^192\.168\./.test(h)) continue;
+        } catch { continue; }
         const kepala = { Accept: "application/pdf,*/*" };
         if (req.headers.range) kepala.Range = req.headers.range;
-         
-        const hulu = await fetch(sumber, { headers: kepala, redirect: "follow" });
+        const hulu = await fetch(sumber, { headers: kepala, redirect: "error" });
         if (!hulu.ok || !hulu.body) continue;
 
         kepalaDasar();

@@ -241,6 +241,9 @@ export const konfigurasi = {
   get berkasRiwayatMasuk() {
     return path.join(this.dirData, "riwayat-masuk.json");
   },
+  get berkasTiketTerpakai() {
+    return path.join(this.dirData, "rahasia", "tiket-terpakai.json");
+  },
 
   /**
    * Login dengan akun Chess.com (OAuth 2.0).

@@ -84,17 +84,31 @@ function ChartStyle({ id, config }) {
     return null;
   }
 
+  // Sanitasi warna untuk cegah CSS injection via chartConfig
+  const safeId = String(id).replace(/[^a-zA-Z0-9_-]/g, "");
+  const sanitizeColor = (c) => {
+    const s = String(c).trim();
+    if (/^#[0-9a-fA-F]{3,8}$/.test(s)) return s;
+    if (/^var\(--[a-zA-Z0-9_-]+\)$/.test(s)) return s;
+    if (/^rgba?\(/i.test(s) || /^hsla?\(/i.test(s)) {
+      if (/[;{}<>]/.test(s)) return null;
+      return s;
+    }
+    if (/^[a-z]+$/i.test(s) && !/[;{}<>]/.test(s)) return s;
+    return null;
+  };
   return (
     <style
       dangerouslySetInnerHTML={{
         __html: Object.entries(THEMES)
           .map(
             ([theme, prefix]) => `
-${prefix} [data-chart=${id}] {
+${prefix} [data-chart=${safeId}] {
 ${colorConfig
   .map(([key, itemConfig]) => {
-    const color = itemConfig.theme?.[theme] || itemConfig.color;
-    return color ? `  --color-${key}: ${color};` : null;
+    const safeKey = String(key).replace(/[^a-zA-Z0-9_-]/g, "");
+    const color = sanitizeColor(itemConfig.theme?.[theme] || itemConfig.color);
+    return color ? `  --color-${safeKey}: ${color};` : null;
   })
   .join("\n")}
 }

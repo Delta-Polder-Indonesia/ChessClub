@@ -70,14 +70,15 @@ async function kunciKonkurensi() {
     aktif += 1;
     return;
   }
+  // Tunggu giliran — tiket dipindahtangankan oleh lepasKonkurensi tanpa
+  // menurunkan aktif lebih dulu, mencegah celah race yang melebihi batas.
   await new Promise((r) => antrean.push(r));
-  aktif += 1;
 }
 
 function lepasKonkurensi() {
-  aktif -= 1;
   const lanjut = antrean.shift();
   if (lanjut) lanjut();
+  else aktif -= 1;
 }
 
 /* --------------------------------------------------------------- utilitas */

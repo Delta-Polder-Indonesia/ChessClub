@@ -49,6 +49,7 @@
 import crypto from "node:crypto";
 import { konfigurasi } from "./konfigurasi.js";
 import { periksaUsername } from "../../src/lib/identitas.js";
+import { buatRepo } from "./simpanan.js";
 
 const OAUTH_DASAR = "https://oauth.chess.com";
 
@@ -184,16 +185,37 @@ export function buatPkce() {
   return { verifier, challenge };
 }
 
-/* ------------------------------------------------- tiket sudah dipakai */
+/* ------------------------------------------------- tiket sudah dipakai — persisten */
 
-/** jti -> waktu kedaluwarsa (ms). Best effort per proses; lihat catatan di atas. */
+/**
+ * jti -> waktu kedaluwarsa (ms).
+ * Diperluas dari in-memory ke persistent (file/Supabase) agar replay lintas
+ * instance & cold-start tertangani. Map tetap untuk hot-path, file untuk durability.
+ */
+const repoTiketTerpakai = buatRepo(konfigurasi.berkasTiketTerpakai, {});
 const tiketDipakai = new Map();
 const MAKS_LEDGER = 20_000;
+
+// Muat ledger persisten saat startup (best-effort, jangan gagalkan boot)
+let tiketTerpakaiDimuat = false;
+async function muatTiketTerpakai() {
+  if (tiketTerpakaiDimuat) return;
+  tiketTerpakaiDimuat = true;
+  try {
+    const data = await repoTiketTerpakai.baca();
+    if (data && typeof data === "object" && !Array.isArray(data)) {
+      const kini = Date.now();
+      for (const [k, v] of Object.entries(data)) {
+        if (typeof v === "number" && v > kini) tiketDipakai.set(k, v);
+      }
+    }
+  } catch (_e) { /* ledger belum ada — abaikan */ }
+}
+muatTiketTerpakai();
 
 function catatTiketDipakai(jti, kedaluwarsaMs) {
   if (!jti) return;
   if (tiketDipakai.size >= MAKS_LEDGER) {
-    // Buang entri terlama lebih dulu agar ledger tidak tumbuh tanpa batas.
     for (const [k, v] of tiketDipakai) {
       if (v < Date.now()) tiketDipakai.delete(k);
       if (tiketDipakai.size < MAKS_LEDGER * 0.9) break;
@@ -201,6 +223,21 @@ function catatTiketDipakai(jti, kedaluwarsaMs) {
     }
   }
   tiketDipakai.set(jti, kedaluwarsaMs);
+  // Persist async — jangan blokir request, tapi pastikan tidak hilang di restart
+  repoTiketTerpakai.ubah((data) => {
+    const kini = Date.now();
+    const baru = { ...(data && typeof data === "object" ? data : {}) };
+    // bersihkan kedaluwarsa
+    for (const k of Object.keys(baru)) if (baru[k] <= kini) delete baru[k];
+    baru[jti] = kedaluwarsaMs;
+    // batasi ukuran persisten juga
+    const keys = Object.keys(baru);
+    if (keys.length > MAKS_LEDGER) {
+      const sorted = keys.sort((a, b) => baru[a] - baru[b]);
+      for (let i = 0; i < keys.length - MAKS_LEDGER; i++) delete baru[sorted[i]];
+    }
+    return { data: baru };
+  }).catch(() => {});
 }
 
 const jam = setInterval(() => {
@@ -213,8 +250,7 @@ export function statistikSesi() {
   return {
     modusTiket: "tanpa-keadaan (HMAC, berlaku lintas instance)",
     tiketDipakaiTercatat: tiketDipakai.size,
-    // Dicatat apa adanya: lingkup ledger sekali pakai masih per instance.
-    lingkupLedgerTiket: "per-instance (best effort lintas instance)",
+    lingkupLedgerTiket: "persistent (file/Supabase, sinkron lintas instance)",
   };
 }
 
