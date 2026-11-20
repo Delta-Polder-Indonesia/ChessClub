@@ -21,6 +21,7 @@ const komponenTekaTeki = [
 ];
 
 const pusat = baca("src/components/ui/tooltip.jsx");
+assert.doesNotMatch(baca("src/MainApp.jsx"), /GlobalTitleTooltip/, "Root aplikasi masih memasang mesin tooltip global");
 assert.match(pusat, /@radix-ui\/react-tooltip/, "Tooltip bersama harus memakai Radix UI");
 assert.match(pusat, /TooltipPrimitive\.Arrow/, "Tooltip bersama harus selalu menyediakan panah");
 assert.match(pusat, /function TooltipLabel/, "TooltipLabel harus menjadi API ringkas bersama");
