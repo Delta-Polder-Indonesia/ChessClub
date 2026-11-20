@@ -39,6 +39,26 @@ for (const nama of [
   assert.match(baca(nama), /TooltipLabel/, `${nama}: tooltip interaktif belum memakai pintu bersama`);
 }
 
+const komponenAnalisa = [
+  "src/halaman/Analisa/komponen/svg/play.jsx",
+  "src/halaman/Analisa/komponen/svg/pause.jsx",
+  "src/halaman/Analisa/komponen/svg/nextMove.jsx",
+  "src/halaman/Analisa/komponen/svg/skipGame.jsx",
+  "src/halaman/Analisa/komponen/svg/rating.jsx",
+  "src/halaman/Analisa/komponen/svg/result.jsx",
+  "src/halaman/Analisa/komponen/svg/simplePiece.jsx",
+  "src/halaman/Analisa/komponen/svg/piece.jsx",
+  "src/halaman/Analisa/komponen/Gambar.jsx",
+  "src/halaman/Analisa/akun/KartuAkun.jsx",
+  "src/halaman/PapanInteraktif/DaftarRiwayat.jsx",
+];
+
+for (const nama of komponenAnalisa) {
+  const isi = baca(nama);
+  assert.match(isi, /components\\/ui\\/tooltip\\.jsx/, `${nama}: belum memakai tooltip Radix bersama`);
+  assert.doesNotMatch(isi, /\\btitle\\s*=/, `${nama}: masih membuat tooltip native melalui atribut title`);
+}
+
 const komponenTekaTeki = [
   "src/halaman/TekaTeki/PapanTekaTeki.jsx",
   "src/halaman/TekaTeki/komponen/KontrolLangkah.jsx",
