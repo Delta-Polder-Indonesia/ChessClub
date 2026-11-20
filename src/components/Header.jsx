@@ -325,7 +325,7 @@ function MobileDrawer({ open, onClose, onNavigate, pemicu }) {
         <ul className="flex flex-col gap-4 text-sm text-slate-700">
           {MENU_ATAS.map((l) => (
             <li key={l.title}>
-              <Link to={l.path} title={t(l.title)} onClick={onClose} className="block py-1.5">
+              <Link to={l.path} onClick={onClose} className="block py-1.5">
                 {t(l.title)}
               </Link>
             </li>
