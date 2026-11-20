@@ -1,156 +1,255 @@
-import { useEffect } from "react";
+import { useEffect, useId } from "react";
 
 /**
- * Satu pintu tooltip untuk seluruh keluarga papan interaktif.
- * Mengubah setiap [title] native menjadi tooltip ber-CSS sama
- * (.aegov-tooltip, --tooltip-bg: #2A2C32 dari src/gaya/tooltip.css)
- * dipakai di: Teka-teki Catur, Rush, Teka-teki Harian, Kuis Catur,
- * Report Analisa, Pembukaan, Lawan Bot, E-Book, Latihan Repertoar,
- * Hand & Brain, Turing Test — tanpa perlu edit tiap file.
- *
- * Dipasang sekali di MainApp; menangani elemen dinamis via delegasi.
+ * Mengganti tooltip native dari atribut title dengan satu tampilan bersama.
+ * Event delegation menjaga dukungan untuk elemen yang dirender secara dinamis.
  */
 export default function GlobalTitleTooltip() {
-  useEffect(() => {
-    let tipEl = null;
-    let active = null;
-    let hideTimer = null;
+  const idTooltip = `global-title-tooltip-${useId()}`;
 
-    function ensureEl() {
-      if (tipEl) return tipEl;
-      tipEl = document.createElement("div");
-      tipEl.className = "aegov-tooltip";
-      tipEl.setAttribute("role", "tooltip");
-      tipEl.style.position = "fixed";
-      tipEl.style.left = "0";
-      tipEl.style.top = "0";
-      tipEl.style.pointerEvents = "none";
-      tipEl.style.opacity = "0";
-      tipEl.style.visibility = "hidden";
-      tipEl.style.zIndex = "9999";
-      tipEl.style.transition = "opacity 120ms ease";
-      document.body.appendChild(tipEl);
-      return tipEl;
+  useEffect(() => {
+    let elemenTooltip = null;
+    let aktif = null;
+    let pemicuPointer = null;
+    let pemicuFokus = null;
+    let pewaktuSembunyi = null;
+    let idFrame = null;
+
+    const SELEKTOR = "[title], [data-title-saved]";
+    const ambilTeks = (elemen) =>
+      elemen?.getAttribute?.("title") ?? elemen?.getAttribute?.("data-title-saved") ?? "";
+    const cariPemicu = (elemen) => elemen?.closest?.(SELEKTOR) || null;
+
+    function pastikanElemen() {
+      if (elemenTooltip) return elemenTooltip;
+
+      elemenTooltip = document.createElement("div");
+      elemenTooltip.id = idTooltip;
+      elemenTooltip.className = "aegov-tooltip";
+      elemenTooltip.setAttribute("role", "tooltip");
+      elemenTooltip.style.position = "fixed";
+      elemenTooltip.style.left = "0";
+      elemenTooltip.style.top = "0";
+      elemenTooltip.style.pointerEvents = "none";
+      elemenTooltip.style.opacity = "0";
+      elemenTooltip.style.visibility = "hidden";
+      elemenTooltip.style.zIndex = "9999";
+      elemenTooltip.style.transition = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
+        ? "none"
+        : "opacity 120ms ease";
+      document.body.appendChild(elemenTooltip);
+      return elemenTooltip;
     }
 
-    function place(target) {
-      const el = ensureEl();
-      const r = target.getBoundingClientRect();
-      el.style.visibility = "hidden";
-      el.style.opacity = "0";
-      requestAnimationFrame(() => {
-        const w = el.offsetWidth;
-        const h = el.offsetHeight;
-        let left = r.left + r.width / 2 - w / 2;
-        let top = r.top - h - 8;
-        left = Math.max(8, Math.min(left, window.innerWidth - w - 8));
-        if (top < 8) top = r.bottom + 8;
-        el.style.left = `${left}px`;
-        el.style.top = `${top}px`;
-        el.style.visibility = "visible";
-        el.style.opacity = "1";
+    function batalkanFrame() {
+      if (idFrame === null) return;
+      cancelAnimationFrame(idFrame);
+      idFrame = null;
+    }
+
+    function pulihkanTarget() {
+      if (!aktif) return;
+
+      const { pemicu, judulAsli } = aktif;
+      aktif = null;
+
+      if (pemicu.getAttribute("data-title-saved") === judulAsli) {
+        pemicu.removeAttribute("data-title-saved");
+      }
+      // Jangan menimpa title baru yang mungkin sudah ditulis React saat tooltip aktif.
+      if (!pemicu.hasAttribute("title")) {
+        pemicu.setAttribute("title", judulAsli);
+      }
+
+      const daftarId = (pemicu.getAttribute("aria-describedby") || "")
+        .split(/\s+/)
+        .filter((id) => id && id !== idTooltip);
+      if (daftarId.length) pemicu.setAttribute("aria-describedby", daftarId.join(" "));
+      else pemicu.removeAttribute("aria-describedby");
+    }
+
+    function sembunyikan() {
+      pulihkanTarget();
+      batalkanFrame();
+
+      if (pewaktuSembunyi !== null) clearTimeout(pewaktuSembunyi);
+      pewaktuSembunyi = null;
+
+      if (!elemenTooltip) return;
+      elemenTooltip.style.opacity = "0";
+      pewaktuSembunyi = setTimeout(() => {
+        pewaktuSembunyi = null;
+        if (!aktif && elemenTooltip) {
+          elemenTooltip.style.visibility = "hidden";
+          elemenTooltip.textContent = "";
+        }
+      }, 120);
+    }
+
+    function aturPosisi(pemicu) {
+      const elemen = pastikanElemen();
+
+      if (pewaktuSembunyi !== null) clearTimeout(pewaktuSembunyi);
+      pewaktuSembunyi = null;
+      batalkanFrame();
+
+      idFrame = requestAnimationFrame(() => {
+        idFrame = null;
+        if (!aktif || aktif.pemicu !== pemicu || !pemicu.isConnected || !elemenTooltip) return;
+
+        const batasElemen = pemicu.getBoundingClientRect();
+        const lebar = elemenTooltip.offsetWidth;
+        const tinggi = elemenTooltip.offsetHeight;
+        const batasKanan = document.documentElement.clientWidth || window.innerWidth;
+        const batasBawah = document.documentElement.clientHeight || window.innerHeight;
+        const jarak = 8;
+
+        let left = batasElemen.left + batasElemen.width / 2 - lebar / 2;
+        left = Math.max(jarak, Math.min(left, batasKanan - lebar - jarak));
+
+        let top = batasElemen.top - tinggi - jarak;
+        if (top < jarak) top = batasElemen.bottom + jarak;
+        if (top + tinggi > batasBawah - jarak) {
+          top = Math.max(jarak, batasBawah - tinggi - jarak);
+        }
+
+        elemen.style.left = `${left}px`;
+        elemen.style.top = `${top}px`;
+        elemen.style.visibility = "visible";
+        elemen.style.opacity = "1";
       });
     }
 
-    const SEL = "[title], [data-title-saved]";
-    const getText = (el) =>
-      el.getAttribute("title") || el.getAttribute("data-title-saved") || "";
-    const findTrigger = (el) => el?.closest?.(SEL) || null;
+    function tampilkan(pemicu) {
+      const teks = ambilTeks(pemicu);
+      if (!teks.trim()) return;
 
-    function show(target) {
-      const text = getText(target);
-      if (!text) return;
-      if (!target.hasAttribute("data-title-saved")) {
-        target.setAttribute("data-title-saved", text);
-        target.removeAttribute("title");
-      }
-      active = target;
-      const el = ensureEl();
-      el.textContent = text;
-      place(target);
-    }
-
-    function hide(restore = true) {
-      if (hideTimer) clearTimeout(hideTimer);
-      if (tipEl) {
-        tipEl.style.opacity = "0";
-        hideTimer = setTimeout(() => {
-          if (tipEl) tipEl.style.visibility = "hidden";
-        }, 120);
-      }
-      if (restore && active) {
-        const saved = active.getAttribute("data-title-saved");
-        if (saved != null) {
-          active.setAttribute("title", saved);
-          active.removeAttribute("data-title-saved");
+      if (aktif?.pemicu === pemicu) {
+        const judulBaru = pemicu.getAttribute("title");
+        if (judulBaru !== null) {
+          aktif.judulAsli = judulBaru;
+          pemicu.setAttribute("data-title-saved", judulBaru);
+          pemicu.removeAttribute("title");
         }
-        active = null;
-      } else if (!restore && active) {
-        active = null;
-      }
-    }
-
-    function onOver(e) {
-      const t = findTrigger(e.target);
-      if (!t) {
-        if (active && e.relatedTarget && active.contains(e.relatedTarget)) return;
-        if (active && e.target && active.contains(e.target)) return;
-        if (active && findTrigger(e.relatedTarget) === active) return;
+        elemenTooltip.textContent = teks;
+        aturPosisi(pemicu);
         return;
       }
-      if (active === t) return;
-      if (active) hide(false);
-      show(t);
+
+      pulihkanTarget();
+      if (pewaktuSembunyi !== null) clearTimeout(pewaktuSembunyi);
+      pewaktuSembunyi = null;
+      batalkanFrame();
+
+      const judulAsli = pemicu.getAttribute("title");
+      if (judulAsli === null) return;
+
+      pemicu.setAttribute("data-title-saved", judulAsli);
+      pemicu.removeAttribute("title");
+
+      const daftarId = new Set(
+        (pemicu.getAttribute("aria-describedby") || "").split(/\s+/).filter(Boolean),
+      );
+      daftarId.add(idTooltip);
+      pemicu.setAttribute("aria-describedby", [...daftarId].join(" "));
+
+      aktif = { pemicu, judulAsli: judulAsli };
+      const elemen = pastikanElemen();
+      elemen.textContent = teks;
+      elemen.style.visibility = "hidden";
+      elemen.style.opacity = "0";
+      aturPosisi(pemicu);
     }
 
-    function onOut(e) {
-      const next = findTrigger(e.relatedTarget);
-      if (active && e.relatedTarget && active.contains(e.relatedTarget)) return;
-      if (next && next === active) return;
-      if (!next && active) {
-        const from = findTrigger(e.target);
-        if (from === active && !next) hide();
-        else if (!from && active && !active.contains(e.relatedTarget)) hide();
+    function perbaruiTargetAktif() {
+      if (pemicuPointer && !pemicuPointer.isConnected) pemicuPointer = null;
+      if (pemicuFokus && !pemicuFokus.isConnected) pemicuFokus = null;
+
+      const pemicu = pemicuFokus || pemicuPointer;
+      if (pemicu) tampilkan(pemicu);
+      else sembunyikan();
+    }
+
+    function saatPointerMasuk(e) {
+      const pemicu = cariPemicu(e.target);
+      if (!pemicu || pemicu === pemicuPointer) return;
+      pemicuPointer = pemicu;
+      perbaruiTargetAktif();
+    }
+
+    function saatPointerKeluar(e) {
+      const dari = cariPemicu(e.target);
+      const ke = cariPemicu(e.relatedTarget);
+      if (dari === ke) return;
+      if (dari && dari === pemicuPointer) {
+        pemicuPointer = ke;
+        perbaruiTargetAktif();
       }
     }
 
-    function onFocusIn(e) {
-      const t = findTrigger(e.target);
-      if (t) show(t);
-    }
-    function onFocusOut() {
-      if (active) hide();
+    function saatFokusMasuk(e) {
+      pemicuFokus = cariPemicu(e.target);
+      perbaruiTargetAktif();
     }
 
-    function onScroll() {
-      if (active) place(active);
+    function saatFokusKeluar(e) {
+      const dari = cariPemicu(e.target);
+      const ke = cariPemicu(e.relatedTarget);
+      if (dari === ke) return;
+      if (dari && dari === pemicuFokus) {
+        pemicuFokus = ke;
+        perbaruiTargetAktif();
+      }
     }
 
-    document.addEventListener("pointerover", onOver, true);
-    document.addEventListener("pointerout", onOut, true);
-    document.addEventListener("focusin", onFocusIn, true);
-    document.addEventListener("focusout", onFocusOut, true);
-    window.addEventListener("scroll", onScroll, true);
-    window.addEventListener("resize", onScroll, true);
+    function saatGulirAtauUbahUkuran() {
+      if (!aktif) return;
+      if (!aktif.pemicu.isConnected) {
+        if (pemicuPointer === aktif.pemicu) pemicuPointer = null;
+        if (pemicuFokus === aktif.pemicu) pemicuFokus = null;
+        perbaruiTargetAktif();
+        return;
+      }
+      aturPosisi(aktif.pemicu);
+    }
+
+    document.addEventListener("pointerover", saatPointerMasuk, true);
+    document.addEventListener("pointerout", saatPointerKeluar, true);
+    document.addEventListener("focusin", saatFokusMasuk, true);
+    document.addEventListener("focusout", saatFokusKeluar, true);
+    window.addEventListener("scroll", saatGulirAtauUbahUkuran, true);
+    window.addEventListener("resize", saatGulirAtauUbahUkuran);
+
+    const pengamat = new MutationObserver(() => {
+      let pemicuTerputus = false;
+      if (pemicuPointer && !pemicuPointer.isConnected) {
+        pemicuPointer = null;
+        pemicuTerputus = true;
+      }
+      if (pemicuFokus && !pemicuFokus.isConnected) {
+        pemicuFokus = null;
+        pemicuTerputus = true;
+      }
+      if (pemicuTerputus) perbaruiTargetAktif();
+    });
+    pengamat.observe(document.body, { childList: true, subtree: true });
 
     return () => {
-      document.removeEventListener("pointerover", onOver, true);
-      document.removeEventListener("pointerout", onOut, true);
-      document.removeEventListener("focusin", onFocusIn, true);
-      document.removeEventListener("focusout", onFocusOut, true);
-      window.removeEventListener("scroll", onScroll, true);
-      window.removeEventListener("resize", onScroll, true);
-      if (tipEl?.parentNode) tipEl.parentNode.removeChild(tipEl);
-      tipEl = null;
-      if (active) {
-        const saved = active.getAttribute("data-title-saved");
-        if (saved != null) {
-          active.setAttribute("title", saved);
-          active.removeAttribute("data-title-saved");
-        }
-      }
+      document.removeEventListener("pointerover", saatPointerMasuk, true);
+      document.removeEventListener("pointerout", saatPointerKeluar, true);
+      document.removeEventListener("focusin", saatFokusMasuk, true);
+      document.removeEventListener("focusout", saatFokusKeluar, true);
+      window.removeEventListener("scroll", saatGulirAtauUbahUkuran, true);
+      window.removeEventListener("resize", saatGulirAtauUbahUkuran);
+      pengamat.disconnect();
+      batalkanFrame();
+      if (pewaktuSembunyi !== null) clearTimeout(pewaktuSembunyi);
+      pewaktuSembunyi = null;
+      pulihkanTarget();
+      if (elemenTooltip?.parentNode) elemenTooltip.parentNode.removeChild(elemenTooltip);
+      elemenTooltip = null;
     };
-  }, []);
+  }, [idTooltip]);
 
   return null;
 }

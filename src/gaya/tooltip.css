@@ -1,10 +1,7 @@
-/* Tooltip bersama (Radix): 1 pintu untuk seluruh halaman program.
-   Dipakai oleh: Teka-teki Catur, Rush, Teka-teki Harian, Kuis Catur,
-   Report Analisa, Pembukaan, Lawan Bot, E-Book & Panduan,
-   Latihan Repertoar, Hand & Brain, Turing Test — semua lewat
-   src/index.css (bukan per halaman). Warna #2A2C32. */
+/* Tooltip bersama (Radix dan title native): satu gaya lintas aplikasi.
+   Warna diselaraskan dengan tujuan PR #287. */
 .aegov-tooltip {
-  --tooltip-bg: #2A2C32;
+  --tooltip-bg: #2E333A;
   --tooltip-fg: #F8FAFC;
 
   max-width: min(24rem, calc(100vw - 1.5rem));
