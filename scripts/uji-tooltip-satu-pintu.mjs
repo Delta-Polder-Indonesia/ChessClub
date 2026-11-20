@@ -11,6 +11,34 @@ import { fileURLToPath } from "node:url";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const baca = (nama) => readFileSync(path.join(ROOT, nama), "utf8");
 
+const komponenBersama = [
+  "src/components/PanelEngine.jsx",
+  "src/components/Hero.jsx",
+  "src/components/Footer.jsx",
+  "src/components/Header.jsx",
+  "src/components/RecruitmentCareer.jsx",
+  "src/components/KartuKomentator.jsx",
+  "src/components/VerifikasiAkun.jsx",
+  "src/components/ui/sidebar.jsx",
+];
+
+for (const nama of komponenBersama) {
+  const isi = baca(nama);
+  const polaNative = nama === "src/components/RecruitmentCareer.jsx"
+    ? /<img[^>]*\\btitle\\s*=/
+    : /\\btitle\\s*=/;
+  assert.doesNotMatch(isi, polaNative, `${nama}: masih memakai title native sebagai jalur tooltip`);
+}
+
+for (const nama of [
+  "src/components/PanelEngine.jsx",
+  "src/components/KartuKomentator.jsx",
+  "src/components/VerifikasiAkun.jsx",
+  "src/components/ui/sidebar.jsx",
+]) {
+  assert.match(baca(nama), /TooltipLabel/, `${nama}: tooltip interaktif belum memakai pintu bersama`);
+}
+
 const komponenTekaTeki = [
   "src/halaman/TekaTeki/PapanTekaTeki.jsx",
   "src/halaman/TekaTeki/komponen/KontrolLangkah.jsx",
