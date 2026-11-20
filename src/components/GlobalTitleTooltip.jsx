@@ -9,6 +9,8 @@ export default function GlobalTitleTooltip() {
 
   useEffect(() => {
     let elemenTooltip = null;
+    let elemenTeks = null;
+    let elemenPanah = null;
     let aktif = null;
     let pemicuPointer = null;
     let pemicuFokus = null;
@@ -27,6 +29,12 @@ export default function GlobalTitleTooltip() {
       elemenTooltip.id = idTooltip;
       elemenTooltip.className = "aegov-tooltip";
       elemenTooltip.setAttribute("role", "tooltip");
+      elemenTeks = document.createElement("span");
+      elemenTeks.className = "aegov-tooltip-text";
+      elemenPanah = document.createElement("span");
+      elemenPanah.className = "aegov-tooltip-arrow";
+      elemenPanah.setAttribute("aria-hidden", "true");
+      elemenTooltip.append(elemenTeks, elemenPanah);
       elemenTooltip.style.position = "fixed";
       elemenTooltip.style.left = "0";
       elemenTooltip.style.top = "0";
@@ -107,14 +115,31 @@ export default function GlobalTitleTooltip() {
         let left = batasElemen.left + batasElemen.width / 2 - lebar / 2;
         left = Math.max(jarak, Math.min(left, batasKanan - lebar - jarak));
 
+        let sisi = "top";
         let top = batasElemen.top - tinggi - jarak;
-        if (top < jarak) top = batasElemen.bottom + jarak;
+        if (top < jarak) {
+          sisi = "bottom";
+          top = batasElemen.bottom + jarak;
+        }
         if (top + tinggi > batasBawah - jarak) {
-          top = Math.max(jarak, batasBawah - tinggi - jarak);
+          const ruangAtas = batasElemen.top - jarak;
+          const ruangBawah = batasBawah - batasElemen.bottom - jarak;
+          if (ruangAtas >= ruangBawah) {
+            sisi = "top";
+            top = Math.max(jarak, batasElemen.top - tinggi - jarak);
+          } else {
+            sisi = "bottom";
+            top = Math.min(batasElemen.bottom + jarak, batasBawah - tinggi - jarak);
+          }
         }
 
+        const tengahPemicu = batasElemen.left + batasElemen.width / 2 - left;
+        elemen.dataset.side = sisi;
         elemen.style.left = `${left}px`;
         elemen.style.top = `${top}px`;
+        elemenPanah.style.left = `${Math.max(8, Math.min(tengahPemicu - 4, lebar - 16))}px`;
+        elemenPanah.style.top = sisi === "bottom" ? "-4px" : "auto";
+        elemenPanah.style.bottom = sisi === "top" ? "-4px" : "auto";
         elemen.style.visibility = "visible";
         elemen.style.opacity = "1";
       });
@@ -131,7 +156,7 @@ export default function GlobalTitleTooltip() {
           pemicu.setAttribute("data-title-saved", judulBaru);
           pemicu.removeAttribute("title");
         }
-        elemenTooltip.textContent = teks;
+        elemenTeks.textContent = teks;
         aturPosisi(pemicu);
         return;
       }
@@ -155,7 +180,7 @@ export default function GlobalTitleTooltip() {
 
       aktif = { pemicu, judulAsli: judulAsli };
       const elemen = pastikanElemen();
-      elemen.textContent = teks;
+      elemenTeks.textContent = teks;
       elemen.style.visibility = "hidden";
       elemen.style.opacity = "0";
       aturPosisi(pemicu);
