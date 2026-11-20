@@ -24,4 +24,7 @@
 @import "./tab.css";
 @import "./toast.css";
 @import "./toggle.css";
-@import "../tooltip.css";
+/* tooltip.css tidak di-import di sini lagi — 1 pintu lewat src/index.css
+   supaya warna #2A2C32 konsisten di semua halaman program (Teka-teki,
+   Rush, Harian, Kuis, Analisa, Pembukaan, Lawan Bot, E-Book, Repertoar,
+   Hand & Brain, Turing Test). */
