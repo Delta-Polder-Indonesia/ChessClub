@@ -360,7 +360,7 @@ export default function PanelAnggota({
                             {kenaBanBaris && <span className="shrink-0"><LencanaBan /></span>}
                           </div>
                           <TooltipLabel side="right" label={a.nama || a.panggilan || ""}>
-                            <p tabIndex={0} className="text-sm text-slate-500 truncate block max-w-[200px]">
+                            <p tabIndex={a.nama || a.panggilan ? 0 : undefined} className="text-sm text-slate-500 truncate block max-w-[200px]">
                               {a.nama || a.panggilan || "—"}
                             </p>
                           </TooltipLabel>
@@ -369,7 +369,7 @@ export default function PanelAnggota({
                     </TableCell>
                     <TableCell className="p-3 w-[140px] min-w-[120px] max-w-[160px] overflow-hidden">
                       <TooltipLabel side="right" label={a.kota || ""}>
-                        <p tabIndex={0} className="text-sm text-slate-600 truncate">
+                        <p tabIndex={a.kota ? 0 : undefined} className="text-sm text-slate-600 truncate">
                           {a.kota || "—"}
                         </p>
                       </TooltipLabel>
