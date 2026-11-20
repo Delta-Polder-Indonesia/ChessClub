@@ -285,16 +285,12 @@ const tungguSasaran = (wadah, tujuan) =>
 
 /** SVG hasil di petak, bukan atribut title yang tidak lagi dipakai setelah migrasi TooltipLabel. */
 function ikonDalamPetak(wadah, petak) {
-  return wadah.querySelector(`[data-petak="${petak}"] > div svg`);
+  return wadah.querySelector(`[data-petak="${petak}"] [data-rating-icon] svg`);
 }
 
 /** Semua SVG lencana skakmat merah yang ter-render di dalam wadah. */
 function lencanaSkakmat(wadah) {
-  return [...wadah.querySelectorAll("[data-petak] > div svg")].filter((svg) => {
-    const latar = svg.querySelector("ellipse[style], circle[style]");
-    const gaya = (latar?.getAttribute("style") || "").replace(/\s/g, "");
-    return gaya.includes("#e02828") || gaya.includes("224,40,40");
-  });
+  return [...wadah.querySelectorAll('[data-petak] [data-result-icon="defeat"] svg')];
 }
 
 /* --------------------------------------------- 2. render PapanTekaTeki */

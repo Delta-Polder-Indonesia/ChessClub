@@ -1239,7 +1239,7 @@ function Forced({ size }) {
 function RatingSVG({ rating, size, dataset, draggable, className, style, title }) {
   const propsDataset = getPropsDataset(dataset ?? {});
   const ratingProps = { size };
-  return <TooltipLabel label={title}><div draggable={draggable} {...propsDataset} className={className} style={style}>
+  return <TooltipLabel label={title}><div draggable={draggable} {...propsDataset} data-rating-icon={rating} className={className} style={style}>
             {(() => {
     switch (rating) {
       case "brilliant":

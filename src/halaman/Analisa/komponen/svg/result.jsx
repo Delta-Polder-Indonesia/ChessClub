@@ -229,7 +229,7 @@ function Resign({ size }) {
 function ResultSVG({ result, size, dataset, draggable, className, style, title }) {
   const propsDataset = getPropsDataset(dataset ?? {});
   const ratingProps = { size };
-  return <TooltipLabel label={title}><div draggable={draggable} {...propsDataset} className={className} style={style}>
+  return <TooltipLabel label={title}><div draggable={draggable} {...propsDataset} data-result-icon={result} className={className} style={style}>
             {(() => {
     switch (result) {
       case "victory":
