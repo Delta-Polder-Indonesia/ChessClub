@@ -217,6 +217,7 @@ function siapkanGlobal() {
 
   globalThis.window = window;
   globalThis.document = window.document;
+  globalThis.getComputedStyle = window.getComputedStyle.bind(window);
   globalThis.localStorage = window.localStorage;
   if (!globalThis.navigator) globalThis.navigator = window.navigator;
   globalThis.ResizeObserver = PengamatPalsu;
