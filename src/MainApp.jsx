@@ -1,7 +1,6 @@
 import { lazy, Suspense } from "react";
 import App from "./App.jsx";
 import { I18nProvider } from "./lib/I18nProvider.jsx";
-import GlobalTitleTooltip from "./components/GlobalTitleTooltip.jsx";
 import ErrorBoundary from "./components/ErrorBoundary.jsx";
 import { HelmetProvider } from "react-helmet-async";
 import { BrowserRouter } from "react-router-dom";
@@ -20,7 +19,6 @@ export default function MainApp() {
         <BrowserRouter basename={basisRouter()}>
           <I18nProvider>
             <App />
-            <GlobalTitleTooltip />
             <Suspense fallback={null}>
               <SpeedInsightsDeferred />
             </Suspense>
