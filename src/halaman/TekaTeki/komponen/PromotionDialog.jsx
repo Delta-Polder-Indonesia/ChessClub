@@ -18,6 +18,7 @@ import { useCallback, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useI18n } from "../../../lib/i18n.jsx";
 import { ChessPiece } from "../../../components/chess/ChessPiece.jsx";
+import { TooltipLabel } from "../../../components/ui/tooltip.jsx";
 import { KUCI_NAMA_PROMOSI, PILIHAN_PROMOSI } from "../../../lib/pilihanPapan.js";
 
 export default function PromotionDialog({
@@ -106,13 +107,13 @@ export default function PromotionDialog({
         <p className="text-sm font-semibold text-slate-700">{judul}</p>
         <div className="flex gap-2">
           {PILIHAN_PROMOSI.map((p, i) => (
-            <button
+            <TooltipLabel label={t(KUCI_NAMA_PROMOSI[p])}>
+<button
               key={p}
               type="button"
               onClick={() => pilih(p)}
               aria-label={t(KUCI_NAMA_PROMOSI[p])}
-              title={t(KUCI_NAMA_PROMOSI[p])}
-              data-promosi={p}
+data-promosi={p}
               className={`flex h-14 w-14 items-center justify-center rounded-md bg-slate-100 p-1.5 transition hover:bg-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
                 i === 0 ? "" : ""
               }`}
@@ -123,6 +124,7 @@ export default function PromotionDialog({
                 className="h-full w-full"
               />
             </button>
+</TooltipLabel>
           ))}
         </div>
         <button
