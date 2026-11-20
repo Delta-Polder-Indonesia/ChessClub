@@ -108,12 +108,12 @@ export default function PromotionDialog({
         <div className="flex gap-2">
           {PILIHAN_PROMOSI.map((p, i) => (
             <TooltipLabel label={t(KUCI_NAMA_PROMOSI[p])}>
-<button
+            <button
               key={p}
               type="button"
               onClick={() => pilih(p)}
               aria-label={t(KUCI_NAMA_PROMOSI[p])}
-data-promosi={p}
+              data-promosi={p}
               className={`flex h-14 w-14 items-center justify-center rounded-md bg-slate-100 p-1.5 transition hover:bg-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
                 i === 0 ? "" : ""
               }`}
@@ -124,7 +124,7 @@ data-promosi={p}
                 className="h-full w-full"
               />
             </button>
-</TooltipLabel>
+            </TooltipLabel>
           ))}
         </div>
         <button
