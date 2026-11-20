@@ -7,7 +7,8 @@ import {
   TableHeader,
   TableRow,
 } from "../../../components/ui/table.jsx";
-import { Tombol, MenuAksi, TooltipLabel } from "../ui.jsx";
+import { Tombol, MenuAksi } from "../ui.jsx";
+import { TooltipLabel } from "@/components/ui/tooltip.jsx";
 import { Copy, Trash2 } from "lucide-react";
 
 /**
@@ -65,7 +66,7 @@ export default function EbookKode({ kode, kini, sibuk, onSalin, onHapus, onMuat 
                       <span className="text-xs">Kedaluwarsa</span>
                     ) : (
                       <span className="text-xs">
-                        <TooltipLabel label={`Sisa ${sisaMenit(k.kedaluwarsa, kini)} menit lagi`}>
+                        <TooltipLabel side="right" label={`Sisa ${sisaMenit(k.kedaluwarsa, kini)} menit lagi`}>
                           Aktif · {sisaMenit(k.kedaluwarsa, kini)} mnt
                         </TooltipLabel>
                       </span>
@@ -75,7 +76,7 @@ export default function EbookKode({ kode, kini, sibuk, onSalin, onHapus, onMuat 
                   <TableCell className="whitespace-nowrap text-xs">{formatWaktu(k.kedaluwarsa)}</TableCell>
                   <TableCell className="text-center text-xs">{k.jumlahUnduhan || 0}×</TableCell>
                   <TableCell className="max-w-[180px] truncate text-xs text-slate-500">
-                    <TooltipLabel label={k.catatan || ""}>
+                    <TooltipLabel side="right" label={k.catatan || ""}>
                       {k.catatan || "—"}
                     </TooltipLabel>
                   </TableCell>
