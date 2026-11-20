@@ -292,8 +292,8 @@ function ikonDalamPetak(wadah, petak) {
 function lencanaSkakmat(wadah) {
   return [...wadah.querySelectorAll("[data-petak] > div svg")].filter((svg) => {
     const latar = svg.querySelector("ellipse[style], circle[style]");
-    const gaya = latar?.getAttribute("style") || "";
-    return /#e02828|224,\\s*40,\\s*40/i.test(gaya);
+    const gaya = (latar?.getAttribute("style") || "").replace(/\\s/g, "");
+    return gaya.includes("#e02828") || gaya.includes("224,40,40");
   });
 }
 
