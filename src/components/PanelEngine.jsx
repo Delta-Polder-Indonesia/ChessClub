@@ -1,5 +1,6 @@
 import { Chess } from "chess.js";
 import { PILIHAN_KECEPATAN } from "./panelEngineData.js";
+import { TooltipLabel } from "./ui/tooltip.jsx";
 
 /**
  * Deret SAN → daftar objek bernomor untuk navigasi & rendering interaktif.
@@ -118,19 +119,20 @@ export default function PanelEngine({
         </p>
         <div className="flex items-center gap-1.5">
           {nyala && (
-            <select
-              value={kecepatan}
-              onChange={(e) => setKecepatan(Number(e.target.value))}
-              aria-label={t("papan.engineKedalaman")}
-              title={t("papan.engineKedalaman")}
-              className={g.pilih}
-            >
-              {PILIHAN_KECEPATAN.map(([ms, kunci]) => (
-                <option key={ms} value={ms}>
-                  {t(kunci)}
-                </option>
-              ))}
-            </select>
+            <TooltipLabel label={t("papan.engineKedalaman")}>
+              <select
+                value={kecepatan}
+                onChange={(e) => setKecepatan(Number(e.target.value))}
+                aria-label={t("papan.engineKedalaman")}
+                className={g.pilih}
+              >
+                {PILIHAN_KECEPATAN.map(([ms, kunci]) => (
+                  <option key={ms} value={ms}>
+                    {t(kunci)}
+                  </option>
+                ))}
+              </select>
+            </TooltipLabel>
           )}
           {!tanpaTombol && (
             <button
@@ -197,9 +199,9 @@ export default function PanelEngine({
             </span>
             {/* PV — di luar kotak, sejajar horizontal. */}
             {hasil.pvSan.length > 0 && (
-              <p
-                className={`min-w-0 flex-1 truncate ${g.pv}`}
-                title={barisanSan(fen, hasil.pvSan)}
+              <TooltipLabel label={barisanSan(fen, hasil.pvSan)}>
+                <p
+                  className={`min-w-0 flex-1 truncate ${g.pv}`}
               >
                 {onMainkan ? (
                   parseBarisanSan(fen, hasil.pvSan).map((langkah, idx) => (
@@ -210,7 +212,7 @@ export default function PanelEngine({
                           type="button"
                           onClick={() => onMainkan(langkah.san)}
                           className="font-bold text-[#81b64c] hover:underline cursor-pointer"
-                          title={`Mainkan ${langkah.san}`}
+                          aria-label={`Mainkan ${langkah.san}`}
                         >
                           {langkah.san}
                         </button>
@@ -222,7 +224,8 @@ export default function PanelEngine({
                 ) : (
                   barisanSan(fen, hasil.pvSan)
                 )}
-              </p>
+                </p>
+              </TooltipLabel>
             )}
           </div>
         </div>
