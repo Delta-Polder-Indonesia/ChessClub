@@ -80,8 +80,15 @@ assert.doesNotMatch(
 
 for (const nama of komponenPengurus) {
   const isi = baca(nama);
-  assert.match(isi, /import \\{ TooltipLabel \\} from ["']@\\/components\\/ui\\/tooltip\\.jsx["']/, `${nama}: belum mengimpor TooltipLabel pusat secara langsung`);
-  assert.doesNotMatch(isi, /<TooltipLabel(?![^>]*\\bside=)/, `${nama}: default posisi tooltip Pengurus belum dipertahankan`);
+  assert.ok(
+    isi.includes('import { TooltipLabel } from "@/components/ui/tooltip.jsx";'),
+    `${nama}: belum mengimpor TooltipLabel pusat secara langsung`,
+  );
+  const pemicu = isi.match(/<TooltipLabel[^>]*>/g) || [];
+  assert.ok(
+    pemicu.length > 0 && pemicu.every((tag) => tag.includes('side="right"')),
+    `${nama}: default posisi tooltip Pengurus belum dipertahankan`,
+  );
 }
 
 const komponenTekaTeki = [
