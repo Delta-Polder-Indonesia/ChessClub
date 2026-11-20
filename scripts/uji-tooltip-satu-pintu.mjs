@@ -59,6 +59,31 @@ for (const nama of komponenAnalisa) {
   assert.doesNotMatch(isi, /\btitle\s*=/, `${nama}: masih membuat tooltip native melalui atribut title`);
 }
 
+const komponenPengurus = [
+  "src/halaman/Pengurus/Sidebar.jsx",
+  "src/halaman/Pengurus/PanelEbook/Kode.jsx",
+  "src/halaman/Pengurus/RingkasanDashboard.jsx",
+  "src/halaman/Pengurus/PanelEbook/Unduhan.jsx",
+  "src/halaman/Pengurus/PanelEbook/Permintaan.jsx",
+  "src/halaman/Pengurus/Dashboard.jsx",
+  "src/halaman/Pengurus/Larangan.jsx",
+  "src/halaman/Pengurus/RiwayatMasuk.jsx",
+  "src/halaman/Pengurus/Anggota.jsx",
+  "src/halaman/Pengurus/PanelTurnamen/Rincian.jsx",
+];
+
+assert.doesNotMatch(
+  baca("src/halaman/Pengurus/ui.jsx"),
+  /TooltipLabel/,
+  "Facade TooltipLabel lokal Pengurus masih menjadi pintu kedua",
+);
+
+for (const nama of komponenPengurus) {
+  const isi = baca(nama);
+  assert.match(isi, /import \\{ TooltipLabel \\} from ["']@\\/components\\/ui\\/tooltip\\.jsx["']/, `${nama}: belum mengimpor TooltipLabel pusat secara langsung`);
+  assert.doesNotMatch(isi, /<TooltipLabel(?![^>]*\\bside=)/, `${nama}: default posisi tooltip Pengurus belum dipertahankan`);
+}
+
 const komponenTekaTeki = [
   "src/halaman/TekaTeki/PapanTekaTeki.jsx",
   "src/halaman/TekaTeki/komponen/KontrolLangkah.jsx",
