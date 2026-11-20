@@ -1,5 +1,4 @@
-/* Tooltip bersama (Radix dan title native): satu gaya lintas aplikasi.
-   Warna diselaraskan dengan tujuan PR #287. */
+/* Gaya tooltip UI bersama Radix; panah CSS khusus dipakai tooltip data pada grafik. */
 .aegov-tooltip {
   --tooltip-bg: #2E333A;
   --tooltip-fg: #F8FAFC;
