@@ -36,16 +36,13 @@ export default function GlobalTitleTooltip() {
     function place(target) {
       const el = ensureEl();
       const r = target.getBoundingClientRect();
-      // ukur dulu agar lebar diketahui
       el.style.visibility = "hidden";
       el.style.opacity = "0";
-      // posisi: di atas target, tengah
       requestAnimationFrame(() => {
         const w = el.offsetWidth;
         const h = el.offsetHeight;
         let left = r.left + r.width / 2 - w / 2;
         let top = r.top - h - 8;
-        // clamp ke viewport
         left = Math.max(8, Math.min(left, window.innerWidth - w - 8));
         if (top < 8) top = r.bottom + 8;
         el.style.left = `${left}px`;
@@ -55,12 +52,18 @@ export default function GlobalTitleTooltip() {
       });
     }
 
+    const SEL = "[title], [data-title-saved]";
+    const getText = (el) =>
+      el.getAttribute("title") || el.getAttribute("data-title-saved") || "";
+    const findTrigger = (el) => el?.closest?.(SEL) || null;
+
     function show(target) {
-      const text = target.getAttribute("title");
+      const text = getText(target);
       if (!text) return;
-      // simpan agar native tidak muncul
-      target.setAttribute("data-title-saved", text);
-      target.removeAttribute("title");
+      if (!target.hasAttribute("data-title-saved")) {
+        target.setAttribute("data-title-saved", text);
+        target.removeAttribute("title");
+      }
       active = target;
       const el = ensureEl();
       el.textContent = text;
@@ -82,14 +85,17 @@ export default function GlobalTitleTooltip() {
           active.removeAttribute("data-title-saved");
         }
         active = null;
+      } else if (!restore && active) {
+        active = null;
       }
     }
 
     function onOver(e) {
-      const t = e.target.closest?.("[title]");
+      const t = findTrigger(e.target);
       if (!t) {
-        // keluar dari target aktif?
-        if (active && !active.contains(e.relatedTarget)) hide();
+        if (active && e.relatedTarget && active.contains(e.relatedTarget)) return;
+        if (active && e.target && active.contains(e.target)) return;
+        if (active && findTrigger(e.relatedTarget) === active) return;
         return;
       }
       if (active === t) return;
@@ -98,16 +104,18 @@ export default function GlobalTitleTooltip() {
     }
 
     function onOut(e) {
-      const t = e.target.closest?.("[title]");
-      // jika related masih di dalam elemen yang sama, jangan hide
-      const to = e.relatedTarget;
-      if (active && to && active.contains(to)) return;
-      if (t && active === t) return;
-      if (active) hide();
+      const next = findTrigger(e.relatedTarget);
+      if (active && e.relatedTarget && active.contains(e.relatedTarget)) return;
+      if (next && next === active) return;
+      if (!next && active) {
+        const from = findTrigger(e.target);
+        if (from === active && !next) hide();
+        else if (!from && active && !active.contains(e.relatedTarget)) hide();
+      }
     }
 
     function onFocusIn(e) {
-      const t = e.target.closest?.("[title]");
+      const t = findTrigger(e.target);
       if (t) show(t);
     }
     function onFocusOut() {
