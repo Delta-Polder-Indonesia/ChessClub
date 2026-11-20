@@ -23,5 +23,6 @@ test("tooltip bilah navigasi Analisa hanya tampil saat bilah menciut", async ({ 
 
   await expect(tooltip).toBeVisible();
   await expect(tooltip).toHaveClass(/aegov-tooltip/);
+  await expect(tooltip.locator('[data-slot="tooltip-arrow"]')).toBeVisible();
   await expect(tooltip).toContainText(label);
 });
