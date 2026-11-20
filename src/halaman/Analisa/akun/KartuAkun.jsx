@@ -15,6 +15,7 @@
  */
 import { useEffect, useState } from "react";
 import { useI18n } from "../../../lib/i18n.jsx";
+import { TooltipLabel } from "../../../components/ui/tooltip.jsx";
 import { useKartuPemain } from "../../../lib/pemainCatur.js";
 import { ambilDaftarPartai, bacaRevisiBasis } from "../basisData.js";
 import Profile from "../komponen/svg/profile.jsx";
@@ -122,17 +123,18 @@ export default function KartuAkun({ platform, username, aktif = false, onPilih, 
           )}
         </span>
         <span className="min-w-0 flex-1 truncate text-sm font-bold text-foreground">{user}</span>
-        <button
-          type="button"
-          title={t("analisa.akun.batal")}
-          onClick={(e) => {
-            e.stopPropagation();
-            onHapus?.();
-          }}
-          className="grid h-6 w-6 cursor-pointer place-items-center rounded-borderRoundness text-foregroundGrey transition-colors hover:bg-backgroundBoxBoxHover hover:text-lossRed"
-        >
-          <Trash className="h-[15px] w-[15px]" />
-        </button>
+        <TooltipLabel label={t("analisa.akun.batal")}>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onHapus?.();
+            }}
+            className="grid h-6 w-6 cursor-pointer place-items-center rounded-borderRoundness text-foregroundGrey transition-colors hover:bg-backgroundBoxBoxHover hover:text-lossRed"
+          >
+            <Trash className="h-[15px] w-[15px]" />
+          </button>
+        </TooltipLabel>
       </div>
 
       {/* Baris statistik Bullet/Blitz/Rapid */}
