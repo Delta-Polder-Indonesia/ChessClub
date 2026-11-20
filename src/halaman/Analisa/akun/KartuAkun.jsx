@@ -130,6 +130,7 @@ export default function KartuAkun({ platform, username, aktif = false, onPilih, 
               e.stopPropagation();
               onHapus?.();
             }}
+            aria-label={t("analisa.akun.batal")}
             className="grid h-6 w-6 cursor-pointer place-items-center rounded-borderRoundness text-foregroundGrey transition-colors hover:bg-backgroundBoxBoxHover hover:text-lossRed"
           >
             <Trash className="h-[15px] w-[15px]" />
