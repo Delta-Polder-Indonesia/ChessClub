@@ -45,6 +45,13 @@ data/riwayat-masuk.json
 # Snapshot roster anggota (dibuat otomatis oleh server dari Chess.com)
 data/roster-anggota.json
 
+# Artefak audit Vercel — besar (600KB+) dan bukan source, jangan commit
+audit-vercel.json
+
+# E-book PDF tidak boleh ter-commit (besar, privat); gunakan storage privat
+public/ebooks/*.pdf
+public/ebooks/*.PDF
+
 # Folder kerja sementara agen/skrip lokal (PNG mentah, skrip uji sekali pakai)
 .cache/
 

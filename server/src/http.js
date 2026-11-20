@@ -50,7 +50,11 @@ export function pasangCors(req, res) {
   const daftar = konfigurasi.asalDiizinkan;
 
   if (!daftar.length) {
-    // Pengembangan: izinkan semua.
+    // Pengembangan: izinkan semua. Di produksi, jangan wildcard — tolak
+    // cross-origin bila daftar izin kosong (fail-closed, lihat periksaProduksi).
+    if (konfigurasi.produksi && asal) {
+      return false;
+    }
     res.setHeader("Access-Control-Allow-Origin", asal || "*");
   } else if (asal && daftar.includes(asal)) {
     res.setHeader("Access-Control-Allow-Origin", asal);
@@ -123,8 +127,15 @@ export function bacaBodi(req, maks = konfigurasi.maksBodiBita) {
 /* --------------------------------------------------------- batas laju */
 
 const ember = new Map(); // kunci -> { jumlah, reset }
+const EMBER_MAKS = 10000;
 
 export function lewatBatas(kunci, maks, jendelaMs = konfigurasi.batas.jendelaMs) {
+  // Batasi memori: IP spoofing tidak boleh membuat Map tumbuh tanpa batas
+  if (ember.size > EMBER_MAKS) {
+    const kini = Date.now();
+    for (const [k, v] of ember) if (kini > v.reset) ember.delete(k);
+    if (ember.size > EMBER_MAKS) ember.clear();
+  }
   const sekarang = Date.now();
   const item = ember.get(kunci);
 
@@ -170,6 +181,7 @@ const JENDELA_GAGAL_ADMIN_MS = 15 * 60 * 1000;
  * @returns {{ sisaGagal: number, terkunci: boolean, cobaLagiDetik: number }}
  */
 export function catatPercobaanAdmin(ip, sukses) {
+  batasiGagalAdmin();
   const kunci = `admin-gagal|${ip}`;
   const kini = Date.now();
   let data = gagalAdmin.get(kunci);
@@ -212,6 +224,15 @@ export function statusKunciAdmin(ip) {
 }
 
 const gagalAdmin = new Map();
+const GAGAL_ADMIN_MAKS = 5000;
+// Batasi Map brute-force untuk cegah memory exhaustion via IP spoofing
+function batasiGagalAdmin() {
+  if (gagalAdmin.size > GAGAL_ADMIN_MAKS) {
+    const kini = Date.now();
+    for (const [k, v] of gagalAdmin) if (kini > v.reset) gagalAdmin.delete(k);
+    if (gagalAdmin.size > GAGAL_ADMIN_MAKS) gagalAdmin.clear();
+  }
+}
 const pembersihGagalAdmin = setInterval(() => {
   const kini = Date.now();
   for (const [k, v] of gagalAdmin) if (kini > v.reset) gagalAdmin.delete(k);
@@ -259,10 +280,31 @@ export function alamatIp(req) {
 
 /* ----------------------------------------------------------- CSRF token */
 
-/** CSRF token per sesi (disimpan di memori, umur 24 jam). */
-const csrfToken = new Map(); // token -> { kedaluwarsa }
-
+/**
+ * CSRF token stateless (HMAC) — valid di instance mana pun (Vercel serverless).
+ * Legacy Map tetap didukung transisi agar token lama yang sudah diterbitkan
+ * masih valid sampai kedaluwarsa.
+ */
+const csrfToken = new Map(); // legacy: token -> { kedaluwarsa }
 const CSRF_UMUR_MS = 24 * 60 * 60 * 1000; // 24 jam
+const CSRF_KONTEKS = "kci/csrf/v1";
+const CSRF_AWALAN = "kci-csrf-v1";
+
+const csrfKunciCache = new Map();
+function csrfKunci() {
+  const cacheKey = CSRF_KONTEKS;
+  if (csrfKunciCache.has(cacheKey)) return csrfKunciCache.get(cacheKey);
+  const rahasia = konfigurasi.jwtSecret;
+  if (!rahasia || String(rahasia).length < 16) {
+    // Fallback sementara: pakai Map-only bila secret belum siap (mis. test)
+    return null;
+  }
+  const k = Buffer.from(
+    crypto.hkdfSync("sha256", Buffer.from(String(rahasia)), Buffer.alloc(0), Buffer.from(CSRF_KONTEKS), 32)
+  );
+  csrfKunciCache.set(cacheKey, k);
+  return k;
+}
 
 const pembersihCsrf = setInterval(() => {
   const kini = Date.now();
@@ -270,16 +312,46 @@ const pembersihCsrf = setInterval(() => {
 }, 60_000);
 pembersihCsrf.unref?.();
 
-/** Generate CSRF token baru. */
+/** Generate CSRF token baru (stateless HMAC, fallback ke Map bila secret lemah). */
 export function buatCsrfToken() {
+  const kunci = csrfKunci();
+  if (kunci) {
+    const payload = {
+      r: crypto.randomBytes(16).toString("base64url"),
+      x: Date.now() + CSRF_UMUR_MS,
+    };
+    const isi = Buffer.from(JSON.stringify(payload)).toString("base64url");
+    const sig = crypto.createHmac("sha256", kunci).update(`${CSRF_KONTEKS}.${isi}`).digest("base64url");
+    return `${CSRF_AWALAN}.${isi}.${sig}`;
+  }
+  // fallback legacy (test env tanpa secret kuat)
   const token = crypto.randomBytes(32).toString("hex");
   csrfToken.set(token, { kedaluwarsa: Date.now() + CSRF_UMUR_MS });
   return token;
 }
 
-/** Validasi CSRF token. */
+/** Validasi CSRF token (stateless HMAC + legacy Map). */
 export function validasiCsrfToken(token) {
   if (!token || typeof token !== "string") return false;
+  // 1) Coba stateless HMAC
+  if (token.startsWith(CSRF_AWALAN + ".")) {
+    const kunci = csrfKunci();
+    if (!kunci) return false;
+    const parts = token.split(".");
+    if (parts.length !== 3) return false;
+    const [, isi, sig] = parts;
+    try {
+      const harapan = crypto.createHmac("sha256", kunci).update(`${CSRF_KONTEKS}.${isi}`).digest();
+      const diberi = Buffer.from(sig, "base64url");
+      if (diberi.length !== harapan.length || !crypto.timingSafeEqual(harapan, diberi)) return false;
+      const payload = JSON.parse(Buffer.from(isi, "base64url").toString("utf8"));
+      if (!payload || typeof payload.x !== "number" || Date.now() > payload.x) return false;
+      return true;
+    } catch {
+      return false;
+    }
+  }
+  // 2) Fallback legacy Map (transisi)
   const data = csrfToken.get(token);
   if (!data) return false;
   if (Date.now() > data.kedaluwarsa) {
@@ -343,9 +415,14 @@ export function terbitkanJwt(username, role = "pengurus", tokenVersion = 0) {
 
 /** Bandingkan plaintext dengan hash bcrypt. */
 export async function cocokkanPassword(plain, hash) {
-  // Bila hash bukan format bcrypt (bentuk $2b$...), bandingkan langsung
-  // (kompatibilitas dengan password plaintext lama).
   if (!hash || !hash.startsWith("$2")) {
+    // Plaintext legacy: di produksi ditolak tegas (fail-closed), di dev
+    // masih diizinkan dengan peringatan agar migrasi tidak diam-diam.
+    if (konfigurasi.produksi) {
+      console.error("[kci] Password plaintext terdeteksi di produksi — ditolak. Migrasi ke bcrypt wajib.");
+      return false;
+    }
+    console.warn("[kci] Password plaintext terdeteksi — segera migrasi ke bcrypt (sementara masih diizinkan di dev).");
     return samaAman(String(plain), String(hash));
   }
   return bcrypt.compare(String(plain), hash);

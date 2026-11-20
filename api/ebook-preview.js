@@ -33,15 +33,38 @@ export const config = { maxDuration: 60 };
 const sumberTerpilih = new Map();
 
 /** Origin situs ini (dipakai untuk mencoba berkas statis /ebooks/…). */
+function isPrivateHost(hostname) {
+  const h = String(hostname).toLowerCase();
+  if (h === "localhost" || h === "127.0.0.1" || h === "::1" || h === "0.0.0.0") return true;
+  if (/^10\./.test(h) || /^192\.168\./.test(h) || /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(h) || /^169\.254\./.test(h) || /^fc00:/.test(h) || /^fe80:/.test(h)) return true;
+  return false;
+}
 function asalSitus(req) {
-  const host = String(req.headers["x-forwarded-host"] || req.headers.host || "").split(",")[0].trim();
-  if (!host) return "";
+  const rawHost = String(req.headers["x-forwarded-host"] || req.headers.host || "").split(",")[0].trim();
+  if (!rawHost) return "";
+  let hostname;
+  try { hostname = new URL(`https://${rawHost}`).hostname; } catch { return ""; }
+  if (!hostname || isPrivateHost(hostname)) return "";
+  // Validasi host terhadap allowlist bila dikonfigurasi — cegah host-header poisoning
+  const daftar = konfigurasi.asalDiizinkan;
+  if (daftar.length) {
+    const allowedHosts = daftar.map((o) => { try { return new URL(o).hostname; } catch { return o; } }).filter(Boolean);
+    if (!allowedHosts.includes(hostname)) return "";
+  }
+  // Validasi format hostname sederhana
+  if (!/^[a-z0-9.-]+$/i.test(hostname)) return "";
   const proto = String(req.headers["x-forwarded-proto"] || "https").split(",")[0].trim();
-  return `${proto}://${host}`;
+  const safeProto = proto === "http" ? "http" : "https";
+  return `${safeProto}://${rawHost}`;
 }
 
 /** Benarkah URL ini mengembalikan PDF? Hanya 4 byte pertama yang dibaca. */
 async function berisiPdf(kandidat) {
+  // Blokir URL dengan host privat sebelum fetch — cegah SSRF via redirect/proxy
+  try {
+    const u = new URL(kandidat.url);
+    if (isPrivateHost(u.hostname) || !/^https?:$/.test(u.protocol)) return false;
+  } catch { return false; }
   const pembatal = new AbortController();
   try {
     const jawaban = await fetch(kandidat.url, {
@@ -50,7 +73,7 @@ async function berisiPdf(kandidat) {
         Range: "bytes=0-3",
         Accept: "application/pdf,*/*",
       },
-      redirect: "follow",
+      redirect: "error",
       signal: pembatal.signal,
     });
     if (!jawaban.ok || !jawaban.body) return false;
@@ -142,7 +165,16 @@ export default async function handler(req, res) {
     };
     if (req.headers.range) kepala.Range = req.headers.range;
 
-    const hulu = await fetch(sumber.url, { headers: kepala, redirect: "follow" });
+    // Validasi ulang URL sumber sebelum fetch final (SSRF guard)
+    try {
+      const u2 = new URL(sumber.url);
+      if (isPrivateHost(u2.hostname) || !/^https?:$/.test(u2.protocol)) throw new Error("Host privat diblokir");
+    } catch {
+      sumberTerpilih.delete(nama);
+      res.status(502).json({ error: "Sumber PDF tidak valid." });
+      return;
+    }
+    const hulu = await fetch(sumber.url, { headers: kepala, redirect: "error" });
     if (!hulu.ok) {
       sumberTerpilih.delete(nama);
       res.status(502).json({ error: "Sumber PDF tidak dapat diakses." });
