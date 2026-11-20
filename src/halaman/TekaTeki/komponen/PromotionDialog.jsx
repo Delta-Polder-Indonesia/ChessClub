@@ -107,9 +107,8 @@ export default function PromotionDialog({
         <p className="text-sm font-semibold text-slate-700">{judul}</p>
         <div className="flex gap-2">
           {PILIHAN_PROMOSI.map((p, i) => (
-            <TooltipLabel label={t(KUCI_NAMA_PROMOSI[p])}>
+            <TooltipLabel key={p} label={t(KUCI_NAMA_PROMOSI[p])}>
               <button
-                key={p}
                 type="button"
                 onClick={() => pilih(p)}
                 aria-label={t(KUCI_NAMA_PROMOSI[p])}
