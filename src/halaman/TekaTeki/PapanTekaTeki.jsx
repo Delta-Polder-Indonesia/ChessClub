@@ -263,8 +263,19 @@ const Petak = memo(function Petak({
   const tampilLajur = tampilKoordinat === "semua" || (tampilKoordinat === "tepi" && baris === 7);
   const tampilBaris = tampilKoordinat === "semua" || (tampilKoordinat === "tepi" && kolom === 0);
 
+  const teksTooltip = ratingIkon
+    ? labelIkonLangkah(ratingIkon)
+    : mahkota
+      ? t("papan.ikonMahkota")
+      : skakmat
+        ? t("papan.ikonSkakmat")
+        : resign
+          ? t("papan.ikonResign")
+          : "";
+
   return (
-    <button
+    <TooltipLabel label={teksTooltip}>
+      <button
       type="button"
       data-petak={sq}
       aria-label={t(
@@ -397,18 +408,15 @@ const Petak = memo(function Petak({
           pada petak tepi (baris atas / kolom kanan layar) digeser
           ke dalam agar tidak terpotong. */}
       {ratingIkon && (
-        <TooltipLabel label={labelIkonLangkah(ratingIkon)}>
-          <span
-            aria-label={labelIkonLangkah(ratingIkon)}
-            className="absolute z-[60] aspect-square w-[46%]"
-            style={{
-              top: baris === 0 ? "2%" : "-8%",
-              right: kolom === 7 ? "2%" : "-8%",
-            }}
-          >
-            <RatingSVG rating={ratingIkon} size="100%" className="pointer-events-none h-full w-full" />
-          </span>
-        </TooltipLabel>
+        <RatingSVG
+          rating={ratingIkon}
+          size="100%"
+          className="pointer-events-none absolute z-[60] aspect-square w-[46%]"
+          style={{
+            top: baris === 0 ? "2%" : "-8%",
+            right: kolom === 7 ? "2%" : "-8%",
+          }}
+        />
       )}
 
       {/* Lencana mahkota hijau — ikon "victory" (lingkaran hijau +
@@ -417,18 +425,15 @@ const Petak = memo(function Petak({
           ukuran sama dengan ikon klasifikasi langkah agar serasi.
           Tanpa rotasi, persis seperti board.jsx menandai pemenang. */}
       {mahkota && (
-        <TooltipLabel label={t("papan.ikonMahkota")}>
-          <span
-            aria-label={t("papan.ikonMahkota")}
-            className="absolute z-[60] aspect-square w-[46%]"
-            style={{
-              top: baris === 0 ? "2%" : "-8%",
-              right: kolom === 7 ? "2%" : "-8%",
-            }}
-          >
-            <ResultSVG result="victory" size="100%" className="pointer-events-none h-full w-full" />
-          </span>
-        </TooltipLabel>
+        <ResultSVG
+          result="victory"
+          size="100%"
+          className="pointer-events-none absolute z-[60] aspect-square w-[46%]"
+          style={{
+            top: baris === 0 ? "2%" : "-8%",
+            right: kolom === 7 ? "2%" : "-8%",
+          }}
+        />
       )}
 
       {/* Lencana skakmat — ikon "defeat" (raja tumbang) dari set hasil
@@ -436,38 +441,33 @@ const Petak = memo(function Petak({
           yang kalah. Dipasang di pojok kanan-atas petak raja lawan yang
           baru saja termat; posisi & ukuran sama dengan lencana lain. */}
       {skakmat && (
-        <TooltipLabel label={t("papan.ikonSkakmat")}>
-          <span
-            aria-label={t("papan.ikonSkakmat")}
-            className="absolute z-[60] aspect-square w-[46%]"
-            style={{
-              top: baris === 0 ? "2%" : "-8%",
-              right: kolom === 7 ? "2%" : "-8%",
-              transform: "rotate(-90deg)",
-            }}
-          >
-            <ResultSVG result="defeat" size="100%" className="pointer-events-none h-full w-full" />
-          </span>
-        </TooltipLabel>
+        <ResultSVG
+          result="defeat"
+          size="100%"
+          className="pointer-events-none absolute z-[60] aspect-square w-[46%]"
+          style={{
+            top: baris === 0 ? "2%" : "-8%",
+            right: kolom === 7 ? "2%" : "-8%",
+            transform: "rotate(-90deg)",
+          }}
+        />
       )}
 
       {/* Lencana resign — ikon bendera menyerah di atas raja yang
           menyerah. Posisi & ukuran sama dengan lencana lain. */}
       {resign && (
-        <TooltipLabel label={t("papan.ikonResign")}>
-          <span
-            aria-label={t("papan.ikonResign")}
-            className="absolute z-[60] aspect-square w-[46%]"
-            style={{
-              top: baris === 0 ? "2%" : "-8%",
-              right: kolom === 7 ? "2%" : "-8%",
-            }}
-          >
-            <ResultSVG result="resign" size="100%" className="pointer-events-none h-full w-full" />
-          </span>
-        </TooltipLabel>
+        <ResultSVG
+          result="resign"
+          size="100%"
+          className="pointer-events-none absolute z-[60] aspect-square w-[46%]"
+          style={{
+            top: baris === 0 ? "2%" : "-8%",
+            right: kolom === 7 ? "2%" : "-8%",
+          }}
+        />
       )}
-    </button>
+      </button>
+    </TooltipLabel>
   );
 });
 
