@@ -1,3 +1,5 @@
+import { TooltipLabel } from "../../../components/ui/tooltip.jsx";
+
 /**
  * Pengganti tipis <Image> milik Next.js.
  *
@@ -9,17 +11,18 @@
 export default function Gambar({ src, alt = "", width, height, className, title, draggable = true, priority, ...lain }) {
   void priority;
   return (
-    <img
-      src={src}
-      alt={alt}
-      title={title}
-      width={width}
-      height={height}
-      className={className}
-      draggable={draggable}
-      loading="lazy"
-      decoding="async"
-      {...lain}
-    />
+    <TooltipLabel label={title}>
+      <img
+        src={src}
+        alt={alt}
+        width={width}
+        height={height}
+        className={className}
+        draggable={draggable}
+        loading="lazy"
+        decoding="async"
+        {...lain}
+      />
+    </TooltipLabel>
   );
 }
