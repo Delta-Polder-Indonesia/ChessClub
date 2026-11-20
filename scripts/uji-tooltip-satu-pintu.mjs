@@ -157,7 +157,6 @@ const pusat = baca(CENTRAL);
   const hasLabel = /function TooltipLabel/.test(pusat);
   const exportLine = (pusat.match(/export\s*\{[^}]*\}/) || [""])[0];
   const exposesPrimitive = /export\s*\{[^}]*\bTooltip\b/.test(pusat) && /TooltipTrigger/.test(exportLine);
-  centralExport = { hasArrow, hasRadix, hasLabel, exposesPrimitive, exportLine };
 const centralExport = { hasArrow, hasRadix, hasLabel, exposesPrimitive, exportLine };
 
 // ── Laporan inventaris ─────────────────────────────────────────────
