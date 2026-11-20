@@ -170,15 +170,15 @@ export default function SidebarTekaTeki({ kol }) {
                   </button>
                 </form>
                 <TooltipLabel label={t("tekaTeki.petunjuk")}>
-                <button
-                  type="button"
-                  onClick={kol.hint}
-                  disabled={!kol.bisaHint}
-                  className="w-full bg-[#363431] hover:bg-[#45423e] text-white font-semibold py-2.5 px-3 rounded-md text-sm transition flex items-center justify-center gap-2 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-[#363431]"
-                >
-                  <Lightbulb className="w-4 h-4 text-yellow-400" aria-hidden="true" />
-                  {t("tekaTeki.petunjuk")}
-                </button>
+                  <button
+                    type="button"
+                    onClick={kol.hint}
+                    disabled={!kol.bisaHint}
+                    className="w-full bg-[#363431] hover:bg-[#45423e] text-white font-semibold py-2.5 px-3 rounded-md text-sm transition flex items-center justify-center gap-2 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-[#363431]"
+                  >
+                    <Lightbulb className="w-4 h-4 text-yellow-400" aria-hidden="true" />
+                    {t("tekaTeki.petunjuk")}
+                  </button>
                 </TooltipLabel>
                 <div className="pt-3 flex justify-center text-gray-300 text-xs border-t border-[#312e2b]">
                   <Link
