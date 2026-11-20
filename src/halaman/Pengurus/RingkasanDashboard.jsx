@@ -1,7 +1,8 @@
 /**
  * Kartu-kartu ringkasan — tampil di tab Dashboard.
  */
-import { Kartu, TooltipLabel } from "./ui.jsx";
+import { Kartu } from "./ui.jsx";
+import { TooltipLabel } from "@/components/ui/tooltip.jsx";
 
 const LABEL_MODE_VERIFIKASI = {
   wajib: "Wajib",
@@ -20,7 +21,7 @@ export default function RingkasanDashboard({ ringkas, onBuka, hitam }) {
       {/* Kartu ringkasan */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
         <Kartu label="Anggota" nilai={ringkas.anggota} warna="biru" />
-        <TooltipLabel label="Klik untuk membuka daftar larangan">
+        <TooltipLabel side="right" label="Klik untuk membuka daftar larangan">
           <div onClick={() => onBuka("larangan", banOtomatis ? "otomatis" : "semua")}
             className="cursor-pointer transition-transform active:scale-95">
           <Kartu label="Daftar larangan" nilai={ringkas.daftarHitam}
@@ -41,7 +42,7 @@ export default function RingkasanDashboard({ ringkas, onBuka, hitam }) {
 
       {/* Kartu aktivitas */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-        <TooltipLabel label="Klik untuk membuka pesan masuk">
+        <TooltipLabel side="right" label="Klik untuk membuka pesan masuk">
           <div
             onClick={() => onBuka("pesan")}
             className="cursor-pointer transition-transform active:scale-95 rounded-lg border border-slate-200 bg-white p-4 text-center"
@@ -57,7 +58,7 @@ export default function RingkasanDashboard({ ringkas, onBuka, hitam }) {
           </p>
         </div>
         </TooltipLabel>
-        <TooltipLabel label="Klik untuk melihat larangan otomatis">
+        <TooltipLabel side="right" label="Klik untuk melihat larangan otomatis">
           <div
             onClick={() => onBuka("larangan", "otomatis")}
             className="cursor-pointer transition-transform active:scale-95 rounded-lg border border-slate-200 bg-white p-4 text-center"
