@@ -2,8 +2,12 @@
 
 ## Melaporkan celah
 
-Kirim deskripsi, langkah reproduksi, dan dampak ke pengurus repositori
-(GitHub Security Advisory lebih disukai daripada issue publik).
+**Jangan buka issue publik untuk celah keamanan.**
+
+- **GitHub Security Advisory (disarankan):** `Security` → `Report a vulnerability` di repo ini
+- **Email alternatif:** hubungi pengurus via `kontak` di situs atau DM maintainer GitHub `@Delta-Polder-Indonesia` dengan subject `[SECURITY]`
+
+Sertakan: deskripsi, langkah reproduksi, dampak, dan versi/commit. Kami menargetkan konfirmasi ≤7 hari dan perbaikan ≤90 hari (responsible disclosure).
 
 Kami menargetkan konfirmasi dalam 7 hari dan perbaikan atau mitigasi
 dalam 90 hari (responsible disclosure). Jangan publikasikan exploit
@@ -64,6 +68,11 @@ lewat saluran tidak terenkripsi.
 - `X-Forwarded-For` berbahaya jika `KCI_JUMLAH_PROXY` salah.
 - Penyimpanan JSON tidak scale melewati ribuan anggota — lihat `DATABASE-MIGRATION.md`.
 - Login admin tanpa CSRF: dilindungi brute-force, tetap wajib password kuat.
+
+## Kontak
+
+- Maintainer: [@Delta-Polder-Indonesia](https://github.com/Delta-Polder-Indonesia) (GitHub)
+- Situs: halaman `/hubungi-kami` (jangan kirim data sensitif via form publik)
 
 ## Observabilitas (opsional)
 

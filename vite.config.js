@@ -149,8 +149,8 @@ export default defineConfig({
     // tanpa mengubah perilaku runtime. Jangan matikan di produksi hanya
     // demi keterbacaan; pakai source map untuk debug.
     minify: "esbuild",
-    // Target browser modern → output lebih kecil (esbuild downlevel)
-    target: "es2020",
+    // Target browser modern → output lebih kecil (Vercel Edge mendukung es2022)
+    target: "es2022",
     // Hapus console.log/debug/info di produksi → bundle lebih kecil
     // dan main thread tidak terbebani logging.
     esbuild: {
