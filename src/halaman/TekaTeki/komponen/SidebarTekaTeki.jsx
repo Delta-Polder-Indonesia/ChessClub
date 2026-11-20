@@ -170,7 +170,7 @@ export default function SidebarTekaTeki({ kol }) {
                   </button>
                 </form>
                 <TooltipLabel label={t("tekaTeki.petunjuk")}>
-                  <span tabIndex={0} aria-label={t("tekaTeki.petunjuk")} className="flex w-full">
+                  <span tabIndex={!kol.bisaHint ? 0 : undefined} aria-label={t("tekaTeki.petunjuk")} className="flex w-full">
                     <button
                       type="button"
                     onClick={kol.hint}

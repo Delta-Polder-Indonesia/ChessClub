@@ -200,7 +200,7 @@ export default function PanelEngine({
             {/* PV — di luar kotak, sejajar horizontal. */}
             {hasil.pvSan.length > 0 && (
               <TooltipLabel label={barisanSan(fen, hasil.pvSan)}>
-                <p tabIndex={0} className={`min-w-0 flex-1 truncate ${g.pv}`}>
+                <p tabIndex={onMainkan ? undefined : 0} className={`min-w-0 flex-1 truncate ${g.pv}`}>
                   {onMainkan ? (
                     parseBarisanSan(fen, hasil.pvSan).map((langkah, idx) => (
                       <span key={idx}>

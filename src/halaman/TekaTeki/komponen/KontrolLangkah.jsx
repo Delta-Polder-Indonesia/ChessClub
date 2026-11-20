@@ -39,7 +39,7 @@ export default function KontrolLangkah({
     <div className="flex-shrink-0 mt-auto p-3 bg-[#1e1c18] border-t border-[#312e2b] space-y-3">
                 <div className="flex items-center gap-1 bg-[#262421] p-1 rounded-lg border border-[#312e2b]">
                   <TooltipLabel label={t("papan.keAwal")}>
-                    <span tabIndex={0} aria-label={t("papan.keAwal")} className="flex flex-1 min-w-0">
+                    <span tabIndex={!bisaMundur ? 0 : undefined} aria-label={t("papan.keAwal")} className="flex flex-1 min-w-0">
                     <button
                       type="button"
                       onClick={onKeAwal}
@@ -52,7 +52,7 @@ export default function KontrolLangkah({
                     </span>
                   </TooltipLabel>
                   <TooltipLabel label={t("tekaTeki.mundurSatu")}>
-                    <span tabIndex={0} aria-label={t("tekaTeki.mundurSatu")} className="flex flex-1 min-w-0">
+                    <span tabIndex={!bisaMundur ? 0 : undefined} aria-label={t("tekaTeki.mundurSatu")} className="flex flex-1 min-w-0">
                     <button
                       type="button"
                       onClick={onMundur}
@@ -65,7 +65,7 @@ export default function KontrolLangkah({
                     </span>
                   </TooltipLabel>
                   <TooltipLabel label={t("tekaTeki.majuSatu")}>
-                    <span tabIndex={0} aria-label={t("tekaTeki.majuSatu")} className="flex flex-1 min-w-0">
+                    <span tabIndex={!bisaMaju ? 0 : undefined} aria-label={t("tekaTeki.majuSatu")} className="flex flex-1 min-w-0">
                     <button
                       type="button"
                       onClick={onMaju}
@@ -78,7 +78,7 @@ export default function KontrolLangkah({
                     </span>
                   </TooltipLabel>
                   <TooltipLabel label={t("papan.keAkhir")}>
-                    <span tabIndex={0} aria-label={t("papan.keAkhir")} className="flex flex-1 min-w-0">
+                    <span tabIndex={!bisaMaju ? 0 : undefined} aria-label={t("papan.keAkhir")} className="flex flex-1 min-w-0">
                     <button
                       type="button"
                       onClick={onKeAkhir}
@@ -161,7 +161,7 @@ export default function KontrolLangkah({
                   )}
                   {onBukaAnalisa && (
                     <TooltipLabel label={t("tekaTeki.analisa")}>
-                      <span tabIndex={0} aria-label={t("tekaTeki.analisa")} className="block min-w-0">
+                      <span tabIndex={!selesai || memuat || memuatKoleksi ? 0 : undefined} aria-label={t("tekaTeki.analisa")} className="block min-w-0">
                         type="button"
                         data-aksi="buka-analisa"
                         onClick={onBukaAnalisa}
