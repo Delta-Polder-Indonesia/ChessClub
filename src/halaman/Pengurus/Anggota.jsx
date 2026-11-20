@@ -304,11 +304,11 @@ export default function PanelAnggota({
           Menampilkan <span className="font-medium text-slate-700">{anggotaTersaring.length}</span> dari {anggota.length} anggota
         </p>
 
-        <div className="max-h-[480px] overflow-y-auto">
-          <Table className="table-fixed">
+        <div className="max-h-[480px] overflow-auto border border-slate-200 rounded-md">
+          <Table className="min-w-[860px]">
             <TableHeader>
               <TableRow>
-                <TableHead className="w-10 px-3">
+                <TableHead className="w-10 px-3 shrink-0">
                   <input
                     type="checkbox"
                     checked={semuaTerpilih}
@@ -317,13 +317,13 @@ export default function PanelAnggota({
                     className="size-4 accent-slate-800"
                   />
                 </TableHead>
-                <TableHead className="w-10 px-3">#</TableHead>
-                <TableHead className="px-3">Anggota</TableHead>
-                <TableHead className="px-3">Kota</TableHead>
-                <TableHead className="px-3">Rating</TableHead>
-                <TableHead className="px-3">LIVE</TableHead>
-                <TableHead className="px-3">Status</TableHead>
-                <TableHead className="w-24 px-3">Aksi</TableHead>
+                <TableHead className="w-12 px-3 shrink-0">#</TableHead>
+                <TableHead className="px-3 min-w-[260px] max-w-[320px]">Anggota</TableHead>
+                <TableHead className="px-3 w-[140px] min-w-[120px] max-w-[160px]">Kota</TableHead>
+                <TableHead className="px-3 w-[90px] shrink-0">Rating</TableHead>
+                <TableHead className="px-3 w-[90px] shrink-0">LIVE</TableHead>
+                <TableHead className="px-3 w-[140px] shrink-0">Status</TableHead>
+                <TableHead className="w-20 px-3 shrink-0">Aksi</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -332,7 +332,7 @@ export default function PanelAnggota({
 
                 return (
                   <TableRow key={a.username}>
-                    <TableCell className="w-10 p-3">
+                    <TableCell className="w-10 p-3 shrink-0">
                       <input
                         type="checkbox"
                         checked={!!terpilih[a.username]}
@@ -342,33 +342,33 @@ export default function PanelAnggota({
                         className="size-4 accent-slate-800"
                       />
                     </TableCell>
-                    <TableCell className="p-3">{index + 1}</TableCell>
-                    <TableCell className="p-3">
-                      <div className="flex items-center gap-3">
+                    <TableCell className="p-3 w-12 shrink-0">{index + 1}</TableCell>
+                    <TableCell className="p-3 min-w-[260px] max-w-[320px]">
+                      <div className="flex items-center gap-3 overflow-hidden">
                         <Avatar username={a.username} foto={a.foto} />
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-1.5">
+                        <div className="min-w-0 flex-1 overflow-hidden">
+                          <div className="flex items-center gap-1.5 min-w-0">
                             <a
                               href={a.url}
                               target="_blank"
                               rel="noopener noreferrer"
+                              className="truncate text-sm font-medium text-slate-900 hover:underline min-w-0"
+                              title={`@${a.username}`}
                             >
                               @{a.username}
                             </a>
-                            {kenaBanBaris && <LencanaBan />}
+                            {kenaBanBaris && <span className="shrink-0"><LencanaBan /></span>}
                           </div>
-                          <p className="text-sm text-slate-500 truncate">
+                          <p className="text-sm text-slate-500 truncate block max-w-[200px]" title={a.nama || a.panggilan || ""}>
                             {a.nama || a.panggilan || "—"}
                           </p>
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="p-3">
-                      <div className="min-w-0">
-                        <p className="text-sm text-slate-500 truncate">
-                          {a.kota || "—"}
-                        </p>
-                      </div>
+                    <TableCell className="p-3 w-[140px] min-w-[120px] max-w-[160px] overflow-hidden">
+                      <p className="text-sm text-slate-600 truncate" title={a.kota || ""}>
+                        {a.kota || "—"}
+                      </p>
                     </TableCell>
                     <TableCell className="p-3">
                       {a.elo ? (
