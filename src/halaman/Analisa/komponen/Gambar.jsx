@@ -19,6 +19,8 @@ export default function Gambar({ src, alt = "", width, height, className, title,
         height={height}
         className={className}
         draggable={draggable}
+        tabIndex={title ? 0 : undefined}
+        aria-label={title || undefined}
         loading="lazy"
         decoding="async"
         {...lain}

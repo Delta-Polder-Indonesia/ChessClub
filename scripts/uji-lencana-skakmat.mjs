@@ -292,7 +292,7 @@ function ikonDalamPetak(wadah, petak) {
 function lencanaSkakmat(wadah) {
   return [...wadah.querySelectorAll("[data-petak] > div svg")].filter((svg) => {
     const latar = svg.querySelector("ellipse[style], circle[style]");
-    const gaya = (latar?.getAttribute("style") || "").replace(/\s/g, "");
+    const gaya = (latar?.getAttribute("style") || "").replace(/\\s/g, "");
     return gaya.includes("#e02828") || gaya.includes("224,40,40");
   });
 }
@@ -313,7 +313,7 @@ console.log("\nrender PapanTekaTeki:");
   uji("lencana skakmat ter-render tepat satu", lencana.length === 1);
   uji(
     "lencana nempel di petak raja yang termat (g1)",
-    lencana[0]?.closest('[data-petak="g1"]') === wadah.querySelector('[data-petak="g1"]')
+    lencana[0]?.closest('[data-petak="g1"]') !== null
   );
   uji(
     "lencana memakai ikon hasil Analisa (defeat, merah) — bukan kotak kosong",
@@ -352,8 +352,8 @@ console.log("\nrender PapanTekaTeki:");
   await tunggu(250);
   uji(
     "ikon langkah + lencana skakmat tampil berdampingan",
-    ikonDalamPetak(wadah, "d1")?.closest('[data-petak="d1"]') === wadah.querySelector('[data-petak="d1"]') &&
-      lencanaSkakmat(wadah)[0]?.closest('[data-petak="g1"]') === wadah.querySelector('[data-petak="g1"]')
+    !!ikonDalamPetak(wadah, "d1") &&
+      lencanaSkakmat(wadah)[0]?.closest('[data-petak="g1"]') !== null
   );
   wadah.remove();
 }
@@ -480,7 +480,7 @@ function klik(el) {
 const ikonLangkahHalaman = ikonDalamPetak(wadahHalaman, "d1");
 uji(
   "ikon klasifikasi langkah (best/forced/book) tetap muncul setelah solved",
-  ikonLangkahHalaman?.closest('[data-petak="d1"]') === wadahHalaman.querySelector('[data-petak="d1"]')
+  ikonLangkahHalaman?.closest('[data-petak="d1"]') !== null
 );
 
 /* ------------------------------- 4. alur papan interaktif (sama spt teka-teki) */

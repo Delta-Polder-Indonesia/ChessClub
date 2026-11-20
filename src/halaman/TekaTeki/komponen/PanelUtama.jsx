@@ -53,7 +53,7 @@ export default function PanelUtama({
                 <div className="flex-shrink-0 min-w-0 border-b border-[#312e2b] bg-[#1e1c18] px-4 py-2 flex items-baseline gap-2">
                   <span className="text-[10px] font-semibold text-gray-300 uppercase tracking-wider flex-shrink-0">{t("papan.pembukaan")}</span>
                   <TooltipLabel label={teksPembukaan}>
-                    <span className="text-[11px] font-medium text-gray-300 truncate min-w-0">{teksPembukaan}</span>
+                    <span tabIndex={0} className="text-[11px] font-medium text-gray-300 truncate min-w-0">{teksPembukaan}</span>
                   </TooltipLabel>
                 </div>
               ) : null}

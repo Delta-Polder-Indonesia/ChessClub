@@ -67,12 +67,12 @@ export default function PanelVideo({
                     <div className="rounded-md border border-[#312e2b] bg-[#1e1c18] px-3 py-2 space-y-0.5">
                       {videoJudulSoal && (
                         <TooltipLabel label={videoJudulSoal}>
-                          <p className="text-xs font-semibold text-white truncate">{videoJudulSoal}</p>
+                          <p tabIndex={0} className="text-xs font-semibold text-white truncate">{videoJudulSoal}</p>
                         </TooltipLabel>
                       )}
                       {videoTurnamen && (
                         <TooltipLabel label={videoTurnamen}>
-                          <p className="text-xs text-gray-400 truncate">{videoTurnamen}</p>
+                          <p tabIndex={0} className="text-xs text-gray-400 truncate">{videoTurnamen}</p>
                         </TooltipLabel>
                       )}
                     </div>

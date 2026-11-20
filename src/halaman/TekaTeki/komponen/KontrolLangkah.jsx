@@ -39,48 +39,56 @@ export default function KontrolLangkah({
     <div className="flex-shrink-0 mt-auto p-3 bg-[#1e1c18] border-t border-[#312e2b] space-y-3">
                 <div className="flex items-center gap-1 bg-[#262421] p-1 rounded-lg border border-[#312e2b]">
                   <TooltipLabel label={t("papan.keAwal")}>
+                    <span tabIndex={0} aria-label={t("papan.keAwal")} className="flex flex-1 min-w-0">
                     <button
                       type="button"
                       onClick={onKeAwal}
                       disabled={!bisaMundur}
                       aria-label={t("papan.keAwal")}
-                      className="flex flex-1 items-center justify-center rounded py-2.5 text-lg font-bold text-gray-400 transition hover:bg-[#363431] hover:text-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-gray-400"
+                      className="w-full flex items-center justify-center rounded py-2.5 text-lg font-bold text-gray-400 transition hover:bg-[#363431] hover:text-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-gray-400"
                     >
                       <ChevronStartIcon className="size-5" />
                     </button>
+                    </span>
                   </TooltipLabel>
                   <TooltipLabel label={t("tekaTeki.mundurSatu")}>
+                    <span tabIndex={0} aria-label={t("tekaTeki.mundurSatu")} className="flex flex-1 min-w-0">
                     <button
                       type="button"
                       onClick={onMundur}
                       disabled={!bisaMundur}
                       aria-label={t("tekaTeki.mundurSatu")}
-                      className="flex flex-1 items-center justify-center rounded py-2.5 text-lg font-bold text-gray-400 transition hover:bg-[#363431] hover:text-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-gray-400"
+                      className="w-full flex items-center justify-center rounded py-2.5 text-lg font-bold text-gray-400 transition hover:bg-[#363431] hover:text-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-gray-400"
                     >
                       <ChevronLeftIcon className="size-5" />
                     </button>
+                    </span>
                   </TooltipLabel>
                   <TooltipLabel label={t("tekaTeki.majuSatu")}>
+                    <span tabIndex={0} aria-label={t("tekaTeki.majuSatu")} className="flex flex-1 min-w-0">
                     <button
                       type="button"
                       onClick={onMaju}
                       disabled={!bisaMaju}
                       aria-label={t("tekaTeki.majuSatu")}
-                      className="flex flex-1 items-center justify-center rounded py-2.5 text-lg font-bold text-gray-400 transition hover:bg-[#363431] hover:text-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-gray-400"
+                      className="w-full flex items-center justify-center rounded py-2.5 text-lg font-bold text-gray-400 transition hover:bg-[#363431] hover:text-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-gray-400"
                     >
                       <ChevronRightIcon className="size-5" />
                     </button>
+                    </span>
                   </TooltipLabel>
                   <TooltipLabel label={t("papan.keAkhir")}>
+                    <span tabIndex={0} aria-label={t("papan.keAkhir")} className="flex flex-1 min-w-0">
                     <button
                       type="button"
                       onClick={onKeAkhir}
                       disabled={!bisaMaju}
                       aria-label={t("papan.keAkhir")}
-                      className="flex flex-1 items-center justify-center rounded py-2.5 text-lg font-bold text-gray-400 transition hover:bg-[#363431] hover:text-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-gray-400"
+                      className="w-full flex items-center justify-center rounded py-2.5 text-lg font-bold text-gray-400 transition hover:bg-[#363431] hover:text-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-gray-400"
                     >
                       <ChevronEndIcon className="size-5" />
                     </button>
+                    </span>
                   </TooltipLabel>
                 </div>
 
@@ -153,7 +161,7 @@ export default function KontrolLangkah({
                   )}
                   {onBukaAnalisa && (
                     <TooltipLabel label={t("tekaTeki.analisa")}>
-                      <button
+                      <span tabIndex={0} aria-label={t("tekaTeki.analisa")} className="block min-w-0">
                         type="button"
                         data-aksi="buka-analisa"
                         onClick={onBukaAnalisa}
@@ -168,6 +176,7 @@ export default function KontrolLangkah({
                         <SearchCheck className="w-5 h-5" aria-hidden="true" />
                         <span>{t("tekaTeki.analisa")}</span>
                       </button>
+                      </span>
                     </TooltipLabel>
                   )}
                   <TooltipLabel label={t("tekaTeki.soalAcak")}>

@@ -170,7 +170,7 @@ export default function SidebarTekaTeki({ kol }) {
                   </button>
                 </form>
                 <TooltipLabel label={t("tekaTeki.petunjuk")}>
-                  <button
+                  <span tabIndex={0} aria-label={t("tekaTeki.petunjuk")} className="flex w-full">
                     type="button"
                     onClick={kol.hint}
                     disabled={!kol.bisaHint}
@@ -179,6 +179,7 @@ export default function SidebarTekaTeki({ kol }) {
                     <Lightbulb className="w-4 h-4 text-yellow-400" aria-hidden="true" />
                     {t("tekaTeki.petunjuk")}
                   </button>
+                  </span>
                 </TooltipLabel>
                 <div className="pt-3 flex justify-center text-gray-300 text-xs border-t border-[#312e2b]">
                   <Link
