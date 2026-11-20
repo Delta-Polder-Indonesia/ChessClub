@@ -14,6 +14,9 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const require = createRequire(path.join(ROOT, "noop.js"));
 const { build } = require("esbuild");
 const { JSDOM } = require("jsdom");
+const Modul = require("node:module");
+process.env.NODE_PATH = [process.env.NODE_PATH, path.join(ROOT, "node_modules")].filter(Boolean).join(path.delimiter);
+Modul._initPaths();
 
 const TMP = mkdtempSync(path.join(tmpdir(), "uji-global-title-tooltip-"));
 const BUNDLE = path.join(TMP, "global-title-tooltip.cjs");
@@ -185,7 +188,7 @@ try {
 
   const d = tombol("Keterangan D", "deskripsi-d");
   kirimPointer("pointerover", d, document.body);
-  jalankanFrame();
+  pastikan(rafTertunda.size > 0, "ada RAF tertunda sebelum cleanup");
   await act(async () => {
     akar.unmount();
   });
