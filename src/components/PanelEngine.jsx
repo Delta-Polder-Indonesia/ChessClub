@@ -200,30 +200,28 @@ export default function PanelEngine({
             {/* PV — di luar kotak, sejajar horizontal. */}
             {hasil.pvSan.length > 0 && (
               <TooltipLabel label={barisanSan(fen, hasil.pvSan)}>
-                <p
-                  className={`min-w-0 flex-1 truncate ${g.pv}`}
-              >
-                {onMainkan ? (
-                  parseBarisanSan(fen, hasil.pvSan).map((langkah, idx) => (
-                    <span key={idx}>
-                      {langkah.prefix}
-                      {idx === 0 ? (
-                        <button
-                          type="button"
-                          onClick={() => onMainkan(langkah.san)}
-                          className="font-bold text-[#81b64c] hover:underline cursor-pointer"
-                          aria-label={`Mainkan ${langkah.san}`}
-                        >
-                          {langkah.san}
-                        </button>
-                      ) : (
-                        langkah.san
-                      )}{" "}
-                    </span>
-                  ))
-                ) : (
-                  barisanSan(fen, hasil.pvSan)
-                )}
+                <p className={`min-w-0 flex-1 truncate ${g.pv}`}>
+                  {onMainkan ? (
+                    parseBarisanSan(fen, hasil.pvSan).map((langkah, idx) => (
+                      <span key={idx}>
+                        {langkah.prefix}
+                        {idx === 0 ? (
+                          <button
+                            type="button"
+                            onClick={() => onMainkan(langkah.san)}
+                            className="font-bold text-[#81b64c] hover:underline cursor-pointer"
+                            aria-label={`Mainkan ${langkah.san}`}
+                          >
+                            {langkah.san}
+                          </button>
+                        ) : (
+                          langkah.san
+                        )}{" "}
+                      </span>
+                    ))
+                  ) : (
+                    barisanSan(fen, hasil.pvSan)
+                  )}
                 </p>
               </TooltipLabel>
             )}
