@@ -25,8 +25,8 @@ const komponenBersama = [
 for (const nama of komponenBersama) {
   const isi = baca(nama);
   const polaNative = nama === "src/components/RecruitmentCareer.jsx"
-    ? /<img[^>]*\\btitle\\s*=/
-    : /\\btitle\\s*=/;
+    ? /<img[^>]*\btitle\s*=/
+    : /\btitle\s*=/;
   assert.doesNotMatch(isi, polaNative, `${nama}: masih memakai title native sebagai jalur tooltip`);
 }
 
@@ -55,8 +55,8 @@ const komponenAnalisa = [
 
 for (const nama of komponenAnalisa) {
   const isi = baca(nama);
-  assert.match(isi, /components\\/ui\\/tooltip\\.jsx/, `${nama}: belum memakai tooltip Radix bersama`);
-  assert.doesNotMatch(isi, /\\btitle\\s*=/, `${nama}: masih membuat tooltip native melalui atribut title`);
+  assert.match(isi, /components\/ui\/tooltip\.jsx/, `${nama}: belum memakai tooltip Radix bersama`);
+  assert.doesNotMatch(isi, /\btitle\s*=/, `${nama}: masih membuat tooltip native melalui atribut title`);
 }
 
 const komponenTekaTeki = [
