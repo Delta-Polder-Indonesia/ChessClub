@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { MessageSquareText } from "lucide-react";
 import { Switch } from "./ui/switch.jsx";
+import { TooltipLabel } from "./ui/tooltip.jsx";
 import RatingSVG from "../halaman/Analisa/komponen/svg/rating.jsx";
 import { berkasPublik } from "../lib/asets.js";
 import {
@@ -129,13 +130,16 @@ export default function KartuKomentator({
     <section aria-label={t("papan.komentator.judul")} className={className}>
       {!sembunyikanKontrol && <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2">
-          <Switch
-            size="sm"
-            checked={nyala}
-            onCheckedChange={() => setNyala(!nyala)}
-            aria-label={nyala ? t("papan.komentator.matikan") : t("papan.komentator.nyalakan")}
-            title={nyala ? t("papan.komentator.matikan") : t("papan.komentator.nyalakan")}
-          />
+          <TooltipLabel label={nyala ? t("papan.komentator.matikan") : t("papan.komentator.nyalakan")}>
+            <span className="inline-flex">
+              <Switch
+                size="sm"
+                checked={nyala}
+                onCheckedChange={() => setNyala(!nyala)}
+                aria-label={nyala ? t("papan.komentator.matikan") : t("papan.komentator.nyalakan")}
+              />
+            </span>
+          </TooltipLabel>
           <p className="flex min-w-0 items-center gap-1.5 text-sm font-bold leading-none text-white">
             <MessageSquareText className="h-4 w-4 shrink-0 text-[#81b64c]" aria-hidden="true" />
             <span className="truncate">{t("papan.komentator.judul")}</span>
