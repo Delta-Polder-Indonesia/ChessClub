@@ -8,6 +8,7 @@
  *   saat memindai banyak anggota atau saat halaman daftar sering dibuka.
  */
 import { konfigurasi } from "./konfigurasi.js";
+import { periksaUsername } from "../../src/lib/identitas.js";
 
 const cache = new Map(); // kunci -> { kedaluwarsa, nilai }
 
@@ -68,8 +69,9 @@ export function bersihkanCache() {
 
 /** Hapus cache untuk username tertentu (pakai setelah data berubah). */
 export function hapusCache(username) {
-  if (!username) return;
-  const kunci = `/player/${encodeURIComponent(username)}`;
+  const hasil = periksaUsername(username);
+  if (!hasil.sah) return;
+  const kunci = `/player/${hasil.username}`;
   cache.delete(kunci);
   cache.delete(`${kunci}/stats`);
 }
@@ -82,6 +84,45 @@ export class GalatChess extends Error {
     this.status = status;
     this.sementara = sementara;
   }
+}
+
+function usernameUntukJalur(username) {
+  const hasil = periksaUsername(username);
+  if (!hasil.sah) {
+    throw new GalatChess("Username Chess.com tidak valid.", { status: 400 });
+  }
+  return hasil.username;
+}
+
+function tanggalPuzzleSah(jalur) {
+  const cocok = /^\/puzzle\/(\d{4})-(\d{2})-(\d{2})$/.exec(jalur);
+  if (!cocok) return false;
+  const [, tahun, bulan, hari] = cocok.map(Number);
+  const tanggal = new Date(Date.UTC(tahun, bulan - 1, hari));
+  return (
+    tanggal.getUTCFullYear() === tahun &&
+    tanggal.getUTCMonth() === bulan - 1 &&
+    tanggal.getUTCDate() === hari
+  );
+}
+
+/**
+ * chessGet hanya menerima tiga keluarga endpoint yang dipakai aplikasi.
+ * Path tidak pernah boleh berasal langsung dari parameter permintaan.
+ */
+function validasiJalurChess(jalur) {
+  const sah =
+    typeof jalur === "string" &&
+    (
+      /^\/player\/[a-z0-9_-]{3,25}(?:\/stats)?$/.test(jalur) ||
+      /^\/club\/[a-z0-9-]{1,60}\/members$/.test(jalur) ||
+      jalur === "/puzzle" ||
+      tanggalPuzzleSah(jalur)
+    );
+  if (!sah) {
+    throw new GalatChess("Jalur API Chess.com tidak diizinkan.", { status: 400 });
+  }
+  return jalur;
 }
 
 async function ambilSekali(jalur) {
@@ -114,6 +155,7 @@ export async function chessGet(
   jalur,
   { pakaiCache = true, cacheDetik = konfigurasi.chess.cacheDetik } = {}
 ) {
+  jalur = validasiJalurChess(jalur);
   if (pakaiCache) {
     const tersimpan = dariCache(jalur);
     if (tersimpan !== undefined) return tersimpan;
@@ -169,17 +211,22 @@ export async function chessGet(
 }
 
 export const ambilProfil = (username, opsi) =>
-  chessGet(`/player/${encodeURIComponent(username)}`, opsi);
+  chessGet(`/player/${usernameUntukJalur(username)}`, opsi);
 
 export const ambilStatistik = (username, opsi) =>
-  chessGet(`/player/${encodeURIComponent(username)}/stats`, opsi);
+  chessGet(`/player/${usernameUntukJalur(username)}/stats`, opsi);
 
 /**
  * Roster publik sebuah klub Chess.com. Respons berisi `weekly`, `monthly`,
  * dan `all_time`; penggabungan ketiganya dilakukan di klub.js.
  */
-export const ambilAnggotaKlub = (slug, opsi) =>
-  chessGet(`/club/${encodeURIComponent(slug)}/members`, opsi);
+export const ambilAnggotaKlub = (slug, opsi) => {
+  const namaKlub = String(slug ?? "").trim().toLowerCase();
+  if (!/^[a-z0-9-]{1,60}$/.test(namaKlub)) {
+    throw new GalatChess("Slug klub Chess.com tidak valid.", { status: 400 });
+  }
+  return chessGet(`/club/${namaKlub}/members`, opsi);
+};
 
 /** Ringkas semua kontrol waktu menjadi satu objek rating. */
 export function ringkasRating(stats) {

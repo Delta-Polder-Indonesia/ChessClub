@@ -92,7 +92,7 @@
     "uji:buku-analisa": "node scripts/uji-buku-analisa.mjs",
     "gambar:optimum": "node scripts/optimumkan-gambar.mjs",
     "gambar:kualitas": "node scripts/naikkan-kualitas-gambar.mjs",
-    "uji:backend": "node server/uji/uji-backend.mjs && node server/uji/uji-ebook.mjs && node server/uji/uji-keamanan-admin.mjs",
+    "uji:backend": "node server/uji/uji-backend.mjs && node server/uji/uji-ebook.mjs && node server/uji/uji-keamanan-admin.mjs && node server/uji/uji-keamanan-aliran-data.mjs",
     "uji:keamanan-admin": "node server/uji/uji-keamanan-admin.mjs",
     "uji:auth-jwt": "node server/uji/uji-auth-jwt.mjs",
     "uji:klasemen": "node server/uji/uji-klasemen.mjs",

@@ -1335,7 +1335,7 @@ export function daftarkanRute(router, { mulaiPada }) {
     const bodi = await bacaBodi(req);
     const kode = await buatKodeEbook(bodi);
     await logAudit("ebook-kode-buat", {
-      resourceId: `${kode.panggilan}:${kode.kode}`,
+      resourceId: "kode-akses",
       status: "success",
     });
     return { status: 201, isi: kode };
@@ -1346,7 +1346,7 @@ export function daftarkanRute(router, { mulaiPada }) {
     const bodi = await bacaBodi(req);
     await hapusKodeEbook(bodi?.kode);
     await logAudit("ebook-kode-hapus", {
-      resourceId: String(bodi?.kode || ""),
+      resourceId: "kode-akses",
       status: "success",
     });
     return { status: 200, isi: { pesan: "Kode akses dihapus." } };
@@ -1367,7 +1367,7 @@ export function daftarkanRute(router, { mulaiPada }) {
     pastikanAdmin(req);
     const kode = await terbitkanKodeDariMinta(param.id);
     await logAudit("ebook-kode-buat", {
-      resourceId: `${kode.panggilan}:${kode.kode}`,
+      resourceId: "kode-akses",
       status: "success",
     });
     return { status: 201, isi: kode };
