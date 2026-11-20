@@ -48,7 +48,7 @@ function RatingIcon({ titleText, ratingPhase, t }) {
   const { rating, accuracy } = ratingPhase;
   if (!rating || !accuracy) {
     const label = t("analisa.ringkasan.cukupLangkah");
-    return <TooltipLabel label={label}><span title={label} tabIndex={0} aria-label={label} className="text-sm text-foregroundGrey">-</span></TooltipLabel>;
+    return <TooltipLabel label={label}><span tabIndex={0} aria-label={label} className="text-sm text-foregroundGrey">-</span></TooltipLabel>;
   }
   const label = t("analisa.ringkasan.akurasiFase", { fase: titleText, angka: accuracy });
   return <TooltipLabel label={label}><div title={label} tabIndex={0} role="img" aria-label={label} className="inline-flex"><RatingSVG draggable rating={rating} size={18} /></div></TooltipLabel>;
