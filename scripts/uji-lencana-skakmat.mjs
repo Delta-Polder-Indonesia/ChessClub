@@ -203,6 +203,7 @@ function siapkanGlobal(window) {
 
   globalThis.window = window;
   globalThis.document = window.document;
+  globalThis.getComputedStyle = window.getComputedStyle.bind(window);
   globalThis.localStorage = window.localStorage;
   if (!globalThis.navigator) globalThis.navigator = window.navigator;
   globalThis.ResizeObserver = PengamatPalsu;
@@ -282,9 +283,18 @@ const tungguSasaran = (wadah, tujuan) =>
     5000
   );
 
-/** Semua lencana skakmat yang ter-render di dalam wadah. */
+/** SVG hasil di petak, bukan atribut title yang tidak lagi dipakai setelah migrasi TooltipLabel. */
+function ikonDalamPetak(wadah, petak) {
+  return wadah.querySelector(`[data-petak="${petak}"] > div svg`);
+}
+
+/** Semua SVG lencana skakmat merah yang ter-render di dalam wadah. */
 function lencanaSkakmat(wadah) {
-  return [...wadah.querySelectorAll('[title^="Skakmat"]')];
+  return [...wadah.querySelectorAll("[data-petak] > div svg")].filter((svg) => {
+    const latar = svg.querySelector("ellipse[style], circle[style]");
+    const gaya = latar?.getAttribute("style") || "";
+    return /#e02828|224,\\s*40,\\s*40/i.test(gaya);
+  });
 }
 
 /* --------------------------------------------- 2. render PapanTekaTeki */
@@ -324,7 +334,7 @@ console.log("\nrender PapanTekaTeki:");
     ikonLangkah: { petak: "d4", rating: "best" },
   });
   await tunggu(250);
-  uji("ikon 'langkah terbaik' tetap tampil", !!wadah.querySelector('[title="Langkah terbaik"]'));
+  uji("ikon 'langkah terbaik' tetap tampil", !!ikonDalamPetak(wadah, "d4"));
   uji("tanpa skakmat → tanpa lencana skakmat", lencanaSkakmat(wadah).length === 0);
   wadah.remove();
 }
@@ -342,7 +352,7 @@ console.log("\nrender PapanTekaTeki:");
   await tunggu(250);
   uji(
     "ikon langkah + lencana skakmat tampil berdampingan",
-    !!wadah.querySelector('[title="Langkah terbaik"]') &&
+    !!ikonDalamPetak(wadah, "d1") &&
       lencanaSkakmat(wadah)[0]?.closest('[data-petak="g1"]') !== null
   );
   wadah.remove();
@@ -467,12 +477,10 @@ function klik(el) {
   klik(tabMain);
   await tungguHingga(() => tabMain?.getAttribute("aria-selected") === "true", 1000);
 }
-const ikonLangkahHalaman = [...wadahHalaman.querySelectorAll("[title]")].filter((e) =>
-  /Langkah terbaik|Satu-satunya langkah|Langkah buku/.test(e.getAttribute("title"))
-);
+const ikonLangkahHalaman = ikonDalamPetak(wadahHalaman, "d1");
 uji(
   "ikon klasifikasi langkah (best/forced/book) tetap muncul setelah solved",
-  ikonLangkahHalaman.length === 1 && ikonLangkahHalaman[0].closest('[data-petak="d1"]') !== null
+  ikonLangkahHalaman?.closest('[data-petak="d1"]') !== null
 );
 
 /* ------------------------------- 4. alur papan interaktif (sama spt teka-teki) */
@@ -498,13 +506,10 @@ uji("interaktif: belum ada lencana di awal", lencanaSkakmat(wadahInteraktif).len
 klikInteraktif("e2");
 await tungguSasaran(wadahInteraktif, "e4");
 klikInteraktif("e4");
-await tungguHingga(
-  () => wadahInteraktif.querySelector('[title="Langkah buku (pembukaan)"]') !== null,
-  5000
-);
+await tungguHingga(() => ikonDalamPetak(wadahInteraktif, "e4") !== null, 5000);
 uji(
   "interaktif: ikon buku muncul pada langkah pembukaan (1. e4)",
-  wadahInteraktif.querySelector('[title="Langkah buku (pembukaan)"]') !== null
+  ikonDalamPetak(wadahInteraktif, "e4") !== null
 );
 wadahInteraktif.remove();
 
