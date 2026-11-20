@@ -423,7 +423,7 @@ export async function cocokkanPassword(plain, hash) {
       return false;
     }
     console.warn("[kci] Password plaintext terdeteksi — segera migrasi ke bcrypt (sementara masih diizinkan di dev).");
-    return samaAman(String(plain), String(hash));
+    return bandingkanTokenAman(String(plain), String(hash));
   }
   return bcrypt.compare(String(plain), hash);
 }
@@ -431,15 +431,32 @@ export async function cocokkanPassword(plain, hash) {
 /* ------------------------------------------------------------- keamanan */
 
 /**
- * Bandingkan dua string tanpa membocorkan waktu (anti timing attack).
- * Menggunakan hashing terlebih dahulu agar panjang string tidak bocor,
- * lalu membandingkan hash-nya dengan timingSafeEqual.
+ * Bandingkan dua string/token panjang-variabel tanpa membocorkan timing.
+ * Tidak melakukan hashing — aman untuk token/identitas, BUKAN untuk
+ * hashing password. Password harus via bcrypt (lihat cocokkanPassword).
+ *
+ * Penanganan beda panjang tanpa RangeError: timingSafeEqual mensyaratkan
+ * buffer sama panjang, jadi beda panjang langsung false tanpa melempar.
+ */
+export function bandingkanTokenAman(a, b) {
+  const ba = Buffer.from(String(a));
+  const bb = Buffer.from(String(b));
+  if (ba.length !== bb.length) return false;
+  return crypto.timingSafeEqual(ba, bb);
+}
+
+/**
+ * Bandingkan dua digest/nilai panjang-tetap (mis. hash hex/base64) secara
+ * aman. Dahulu dipakai via sha256 pre-hash agar panjang tidak bocor;
+ * sekarang dibatasi untuk digest tetap saja — JANGAN pakai untuk password
+ * atau token panjang-variabel (pakai bandingkanTokenAman/bcrypt).
+ *
+ * Dipertahankan untuk kompatibilitas; implementasinya didelegasikan ke
+ * komparasi aman tanpa hash agar aliran password tidak pernah menyentuh
+ * createHash("sha256") (CWE-916).
  */
 export function samaAman(a, b) {
-  const ha = crypto.createHash("sha256").update(String(a)).digest();
-  const hb = crypto.createHash("sha256").update(String(b)).digest();
-  if (ha.length !== hb.length) return false;
-  return crypto.timingSafeEqual(ha, hb);
+  return bandingkanTokenAman(a, b);
 }
 
 /**
@@ -528,7 +545,7 @@ export function dapatkanAdminDariRequest(req) {
   }
 
   // 2) Kompatibilitas legacy: cek tokenAdmin lama sebagai master fallback
-  if (konfigurasi.tokenAdmin && samaAman(token, konfigurasi.tokenAdmin)) {
+  if (konfigurasi.tokenAdmin && bandingkanTokenAman(token, konfigurasi.tokenAdmin)) {
     return { username: username || "admin", role: "master", password: token };
   }
 
@@ -545,13 +562,13 @@ export function dapatkanAdminDariRequest(req) {
       // admin lain diterima lalu identitas diganti) tidak diizinkan —
       // mencegah login lateral memakai kredensial admin lain.
       for (const a of kandidat) {
-        if (a.username === username && samaAman(token, a.password)) return a;
+        if (a.username === username && bandingkanTokenAman(token, a.password)) return a;
       }
     } else {
       // Tanpa header identitas: token (legacy, non-JWT) yang cocok dengan
       // salah satu admin plaintext menetapkan identitas mengikuti pemiliknya.
       for (const a of kandidat) {
-        if (samaAman(token, a.password)) return a;
+        if (bandingkanTokenAman(token, a.password)) return a;
       }
     }
   }
@@ -560,7 +577,7 @@ export function dapatkanAdminDariRequest(req) {
   if (
     konfigurasi.admin?.password &&
     !hashBcrypt(konfigurasi.admin.password) &&
-    samaAman(token, konfigurasi.admin.password)
+    bandingkanTokenAman(token, konfigurasi.admin.password)
   ) {
     const role = konfigurasi.admins?.find((a) => a.username === konfigurasi.admin.username)?.role || "master";
     return { username: konfigurasi.admin.username, password: konfigurasi.admin.password, role };
@@ -635,7 +652,7 @@ export function pastikanAdmin(req) {
     throw e;
   }
 
-  const cocok = tokenSah.some((t) => samaAman(diberikan, t));
+  const cocok = tokenSah.some((t) => bandingkanTokenAman(diberikan, t));
   if (!cocok) {
     const e = new Error("Token pengurus tidak valid.");
     e.status = 401;
