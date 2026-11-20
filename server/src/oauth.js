@@ -196,9 +196,13 @@ const repoTiketTerpakai = buatRepo(konfigurasi.berkasTiketTerpakai, {});
 const tiketDipakai = new Map();
 const MAKS_LEDGER = 20_000;
 
-// Muat ledger persisten saat startup (best-effort, jangan gagalkan boot)
+// Muat ledger persisten saat startup (best-effort, jangan gagalkan boot).
+// Diekspor agar `index.js` dapat `await` secara eksplisit saat boot;
+// top-level `await` di bawah menjamin modul tidak selesai dimuat sebelum
+// ledger persisten terbaca — mencegah race di mana `periksaTiket()` lolos
+// karena `tiketDipakai` masih kosong saat cold-start.
 let tiketTerpakaiDimuat = false;
-async function muatTiketTerpakai() {
+export async function muatTiketTerpakai() {
   if (tiketTerpakaiDimuat) return;
   tiketTerpakaiDimuat = true;
   try {
@@ -211,7 +215,7 @@ async function muatTiketTerpakai() {
     }
   } catch (_e) { /* ledger belum ada — abaikan */ }
 }
-muatTiketTerpakai();
+await muatTiketTerpakai();
 
 function catatTiketDipakai(jti, kedaluwarsaMs) {
   if (!jti) return;
