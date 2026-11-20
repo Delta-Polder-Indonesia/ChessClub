@@ -146,6 +146,10 @@ try {
 
   pastikan(Boolean(tooltip), "elemen tooltip dibuat saat pointer masuk");
   pastikan(tooltip?.textContent === "Keterangan A", "teks tooltip mengikuti target A");
+  const panah = tooltip?.querySelector(".aegov-tooltip-arrow");
+  pastikan(Boolean(panah), "tooltip global memiliki elemen anak panah");
+  pastikan(tooltip?.dataset.side === "top" && panah?.style.bottom === "-4px", "anak panah berada di sisi bawah saat tooltip di atas pemicu");
+  pastikan(panah?.style.left.endsWith("px"), "anak panah mengikuti titik tengah pemicu");
   pastikan(tooltip?.style.visibility === "visible" && tooltip?.style.opacity === "1", "tooltip tampil setelah posisi dihitung");
   pastikan(!a.hasAttribute("title") && a.getAttribute("data-title-saved") === "Keterangan A", "title A disimpan sementara");
   pastikan(a.getAttribute("aria-describedby") === `deskripsi-a ${idTooltip}`, "aria-describedby lama dipertahankan dan tooltip ditautkan");
@@ -171,6 +175,14 @@ try {
   pastikan(b.getAttribute("aria-describedby")?.includes(idTooltip), "relasi ARIA tersedia saat fokus");
   b.blur();
   pastikan(b.getAttribute("title") === "Keterangan B" && b.getAttribute("aria-describedby") === "deskripsi-b", "title dan deskripsi dipulihkan setelah fokus keluar");
+
+  const batasAtas = tombol("Keterangan dekat tepi");
+  batasAtas.getBoundingClientRect = () => ({ left: 100, top: 2, right: 160, bottom: 32, width: 60, height: 30 });
+  kirimPointer("pointerover", batasAtas, document.body);
+  jalankanFrame();
+  pastikan(tooltip?.dataset.side === "bottom" && panah?.style.top === "-4px", "tooltip berpindah ke bawah dan anak panah mengarah ke pemicu saat ruang atas tidak cukup");
+  kirimPointer("pointerout", batasAtas, document.body);
+  await tunggu(130);
 
   kirimPointer("pointerover", a, document.body);
   kirimPointer("pointerout", a, document.body);
@@ -204,7 +216,7 @@ try {
     console.error(`\n${gagal} pemeriksaan GlobalTitleTooltip gagal.`);
     process.exitCode = 1;
   } else {
-    console.log("OK — GlobalTitleTooltip: pointer, fokus, pergantian target, ARIA, RAF, target terlepas, cleanup, dan warna.");
+    console.log("OK — GlobalTitleTooltip: pointer, fokus, pergantian target, ARIA, panah dua sisi, RAF, target terlepas, cleanup, dan warna.");
   }
 } catch (error) {
   console.error("GAGAL: uji GlobalTitleTooltip tidak dapat dijalankan.");
